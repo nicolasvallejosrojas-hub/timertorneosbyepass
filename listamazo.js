@@ -1,7 +1,7 @@
 /* ============================================================
    listamazo.js — la lista de mazo de las inscripciones
    ------------------------------------------------------------
-   Versión actual: v=4   (subir el ?v= al tocar este archivo)
+   Versión actual: v=5   (subir el ?v= al tocar este archivo)
 
    La usan la página de inscripción (el jugador la escribe y ve si está bien)
    y el panel (la tienda imprime las de todos). Vive acá para que las dos
@@ -42,10 +42,11 @@ const SECCION = [
 const TITULO = { pokemon: "Pokémon", entrenador: "Entrenador", energia: "Energía" };
 
 /* «4 Iono PAL 185» → { cant: 4, nombre: "Iono", set: "PAL", num: "185" }.
-   La expansión son 2 a 5 mayúsculas o números (PR-SV también) y el número
-   puede traer letras (TG05, GG12, SV001). Sin eso, todo es nombre. */
+   La expansión son 2 a 5 mayúsculas o números con al menos una letra (30C
+   empieza con número; PR-SV lleva guion) y el número puede traer letras (TG05,
+   GG12, SV001). Sin eso, todo es nombre. */
 const LINEA = /^\*?\s*(\d{1,2})x?\s+(.+?)\s*$/;
-const COLA  = /^(.*\S)\s+([A-Z][A-Z0-9]{1,4}(?:-[A-Z0-9]{1,4})?)\s+([A-Z]{0,4}\d{1,4}[a-z]?)$/;
+const COLA  = /^(.*\S)\s+((?=[A-Z0-9]*[A-Z])[A-Z0-9]{2,5}(?:-[A-Z0-9]{1,4})?)\s+([A-Z]{0,4}\d{1,4}[a-z]?)$/;
 
 /* La base de cartas legales en Estándar: cartas-estandar.json, que arma
    cartas-estandar.py desde Limitless (expansión, número, nombre, categoría y
@@ -54,10 +55,17 @@ const sinCeros = n => String(n || "").replace(/^0+(?=\d)/, "");
 const normNom = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
   .replace(/[’`´]/g, "'").replace(/\s+/g, " ").trim();
 const BASICA = /\bbasic\b.*energy|energ[ií]a .*b[aá]sica/i;
+export const norm = normNom;
+/* porCodigo: «TWM 130» → { reg, x } (x: B = Pokémon Básico, A = ACE SPEC).
+   Los nombres se guardan con su marca x para revisar por nombre las
+   impresiones viejas. `cartas` queda entera para el buscador. */
 export function indexar(d){
-  const porCodigo = new Map(), nombres = new Set();
-  d.cartas.forEach(([s, n, nom, , reg]) => { porCodigo.set(s + " " + sinCeros(n), reg); nombres.add(normNom(nom)); });
-  return { porCodigo, nombres, actualizado: d.actualizado };
+  const porCodigo = new Map(), nombres = new Map();
+  d.cartas.forEach(([s, n, nom, , reg, x = ""]) => {
+    porCodigo.set(s + " " + sinCeros(n), { reg, x });
+    const k = normNom(nom); nombres.set(k, (nombres.get(k) || "") + x);
+  });
+  return { porCodigo, nombres, cartas: d.cartas, actualizado: d.actualizado };
 }
 let PEDIDA = null;
 export const cargarEstandar = () => PEDIDA ??= fetch("cartas-estandar.json")
@@ -69,16 +77,27 @@ export const cargarEstandar = () => PEDIDA ??= fetch("cartas-estandar.json")
    nombre: una carta vieja reimpresa en una expansión legal también se juega
    (en la hoja va con «NA»). Son avisos y no errores: la última palabra la tiene
    la tienda, y la base puede ir un paso atrás de la expansión recién salida. */
+/* Cada carta queda con `estado`: "ok", "fuera" (no es legal) o "reimp" (Pokémon
+   con nombre legal pero otra impresión), y con `x` (B / A) cuando se sabe: el
+   registrador lo muestra al lado de cada carta. */
 function revisarLegal(r, base){
   const fuera = [], reimp = [];
+  let ace = 0, basicos = 0;
   [...r.pokemon, ...r.entrenador, ...r.energia].forEach(c => {
-    const reg = c.set ? base.porCodigo.get(c.set + " " + sinCeros(c.num)) : undefined;
-    if (reg !== undefined){ c.reg = reg; return; }
-    if (BASICA.test(c.nombre)) return;
+    const hit = c.set ? base.porCodigo.get(c.set + " " + sinCeros(c.num)) : undefined;
+    const porNombre = base.nombres.get(normNom(c.nombre));
+    c.x = hit ? hit.x : (porNombre || "").includes("A") ? "A" : (porNombre || "").includes("B") ? "B" : "";
+    if (c.x === "A") ace += c.cant;
+    if (c.x === "B" && r.pokemon.includes(c)) basicos += c.cant;
+    if (hit){ c.reg = hit.reg; c.estado = "ok"; return; }
+    if (BASICA.test(c.nombre)){ c.estado = "ok"; return; }
     const quien = c.nombre + (c.set ? " " + c.set + " " + c.num : "");
-    if (!base.nombres.has(normNom(c.nombre))) fuera.push(quien);
-    else if (r.pokemon.includes(c) && c.set) reimp.push(quien);
+    if (porNombre === undefined){ c.estado = "fuera"; fuera.push(quien); }
+    else if (r.pokemon.includes(c) && c.set){ c.estado = "reimp"; reimp.push(quien); }
+    else c.estado = "ok";
   });
+  if (ace > 1) r.avisos.push("Llevas " + ace + " cartas ACE SPEC y solo se permite 1 en el mazo.");
+  if (r.pokemon.length && !basicos) r.avisos.push("No hay ningún Pokémon Básico: el mazo necesita al menos uno.");
   if (fuera.length) r.avisos.push("No aparecen en la lista de Estándar (al " + base.actualizado + "): " + fuera.join(", ") + ".");
   if (reimp.length) r.avisos.push("Estos Pokémon no están en Estándar con esa expansión y número: " + reimp.join(", ") +
     ". Si son reimpresión de una carta legal con el mismo texto, valen (en la hoja, NA en la expansión).");
@@ -90,21 +109,8 @@ function titulo(l){
   return s && /^[^\d]*[:\-–]?\s*\d*\s*$/.test(l) ? s[0] : null;
 }
 
-/* La inscripción pide la lista en tres cajas, pero se guarda como un solo texto
-   con sus títulos, igual que antes: así la hoja, el CSV y las reglas no
-   cambian. separar() reparte un texto en las tres (lo que va antes del primer
-   título cae en `primera`) y componer() las vuelve a juntar. */
-export function separar(texto, primera = "pokemon"){
-  const out = { pokemon: [], entrenador: [], energia: [] };
-  let sec = primera;
-  String(texto || "").split(/\r?\n/).forEach(crudo => {
-    const l = crudo.trim();
-    if (!l || /^(total|cartas)/i.test(l)) return;
-    const s = titulo(l);
-    if (s) sec = s; else out[sec].push(l);
-  });
-  return { pokemon: out.pokemon.join("\n"), entrenador: out.entrenador.join("\n"), energia: out.energia.join("\n") };
-}
+/* El registrador arma la lista por secciones y la guarda como un solo texto
+   con sus títulos, igual que antes: así la hoja, el CSV y las reglas no cambian. */
 export const componer = c => "Pokémon:\n" + (c.pokemon || "").trim() + "\n\nEntrenador:\n" + (c.entrenador || "").trim() +
   "\n\nEnergía:\n" + (c.energia || "").trim();
 

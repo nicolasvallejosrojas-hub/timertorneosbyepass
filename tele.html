@@ -90,20 +90,27 @@
     return obj;
   }
 
-  /* Escucha una ruta: en vivo con EventSource; si no hay, pregunta cada 3 s. */
+  /* Escucha una ruta: en vivo con EventSource; si no hay, pregunta cada 3 s.
+     alCambiar(valor, enVivo): enVivo es true solo cuando el valor es un cambio
+     recién hecho por el panel. El primer evento después de CADA conexión (la
+     inicial y también las reconexiones automáticas del navegador) es una
+     «foto» del estado guardado, con su hora vieja: llega con enVivo = false. */
   var negada = false;
   function escuchar(ruta, alCambiar){
     var valor = null;
     if (window.EventSource){
+      var esFoto = true;                     // se vuelve a poner en true en cada onopen
       var al = function(esPatch){ return function(e){
         var m; try { m = JSON.parse(e.data); } catch(x){ return; }
-        valor = aplicar(valor, m.path, m.data, esPatch); alCambiar(valor, true); }; };
+        valor = aplicar(valor, m.path, m.data, esPatch);
+        var enVivo = !esFoto; esFoto = false;
+        alCambiar(valor, enVivo); }; };
       var abrir = function(){
         var es = new EventSource(url(ruta));
         es.addEventListener("put", al(false));
         es.addEventListener("patch", al(true));
         es.addEventListener("cancel", function(){ es.close(); negada = true; noDisponible(); });
-        es.onopen = function(){ if (!negada) $("estado").innerHTML = S ? "" : "Esperando al organizador…"; };
+        es.onopen = function(){ esFoto = true; if (!negada) $("estado").innerHTML = S ? "" : "Esperando al organizador…"; };
         es.onerror = function(){
           if (negada) return;
           $("estado").innerHTML = S ? "Sin conexión — mostrando lo último recibido" : "Sin conexión, reintentando…";
@@ -138,10 +145,29 @@
   }
 
   /* ---------------- reloj ---------------- */
-  var S = null, EXTRAS = {}, offset = 0, primera = true;
+  /* El panel guarda endTime con la hora del SERVIDOR de Firebase. El reloj de
+     la tele puede estar corrido unos segundos, así que hay que saber cuánto:
+     `offset` = hora del servidor − hora de la tele (en ms). Esta página no usa
+     el SDK, así que no tiene .info/serverTimeOffset: lo saca de la hora
+     (updatedAt) con que el panel publicó el último cambio, que desde el
+     05-10-2026 es hora de servidor. (La cabecera HTTP «Date» no sirve: Firebase
+     no la expone por CORS y el navegador la entrega como null; se probó.) */
+  var S = null, EXTRAS = {}, offset = 0;
+  var ultimoUpdated = null;       // updatedAt del último cambio ya usado para calibrar
   function dos(n){ return n < 10 ? "0" + n : "" + n; }
   function fmt(sec){ var a = Math.abs(sec); return (sec < 0 ? "-" : "") + dos(Math.floor(a / 60)) + ":" + dos(a % 60); }
   function ahora(){ return Date.now() + offset; }
+
+  /* Se calibra solo con un cambio EN VIVO y nuevo. Nunca con la «foto» inicial o
+     de una reconexión (esa hora es vieja y haría saltar el reloj). El panel
+     nuevo publica updatedAt con hora de servidor; el viejo, con la de su PC
+     (por eso el error de unos segundos del panel se pasaba a la tele). */
+  function calibrarConPanel(v, enVivo){
+    if (!enVivo || !v || !v.updatedAt || v.updatedAt === ultimoUpdated) return;
+    ultimoUpdated = v.updatedAt;
+    offset = v.updatedAt - Date.now();
+  }
+
   function dibujar(){
     if (!S) return;
     var sec = (S.paused || !S.endTime) ? Math.round(S.remaining || 0) : Math.round((S.endTime - ahora()) / 1000);
@@ -159,10 +185,8 @@
     $("extras").innerHTML = h.join("");
   }
   escuchar("salas/" + SALA + "/timer/state", function(v, enVivo){
-    /* Sin la hora del servidor: si el reloj de la tele está corrido, se ajusta
-       con la hora a la que el panel publicó un cambio recién llegado. */
-    if (enVivo && !primera && v && v.updatedAt){ var d = v.updatedAt - Date.now(); if (Math.abs(d) > 2500) offset = d; }
-    primera = false; S = v; if (!negada) $("estado").innerHTML = S ? "" : "Esperando al organizador…"; dibujar();
+    calibrarConPanel(v, enVivo);
+    S = v; if (!negada) $("estado").innerHTML = S ? "" : "Esperando al organizador…"; dibujar();
   });
   escuchar("salas/" + SALA + "/timer/extras", function(v){ EXTRAS = v || {}; dibujar(); });
   setInterval(dibujar, 250);

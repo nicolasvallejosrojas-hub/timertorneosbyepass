@@ -1200,7 +1200,7 @@ import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
          revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=4";
 import { entregarTabla } from "./tablafinal.js?v=1";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=4";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=5";
 
 /* =========================================================
    1. Arranque: Firebase, sala y utilidades
@@ -1972,7 +1972,7 @@ let mediaSucia = false;
    publicaciones cuando vuelven desde Firebase y no las aplica dos veces. */
 let ultimaMia = 0;
 function snapState(){
-  ultimaMia = Date.now();
+  ultimaMia = Math.round(now());   // hora del SERVIDOR (como endTime), no la del PC: la tele se calibra con esto
   return { endTime: st.paused ? null : st.endTime, paused: st.paused,
            remaining: st.remaining, timerColor: apPub.timerColor,
            negativeColor: apPub.negativeColor, timerSize: apPub.timerSize,
@@ -4148,7 +4148,7 @@ function pintarInscritos(){
     "</div>" +
     (filas.length ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th><th>Nick</th><th>Nombre</th><th>ID</th>' +
       "<th>Nacimiento</th><th>División</th><th>Lista</th><th></th></tr></thead><tbody>" +
-      filas.map((f, i) => { const r = leerLista(f.lista, estandar ? BASE_E : null), av = r.avisos.filter(a => /Estándar/.test(a));
+      filas.map((f, i) => { const r = leerLista(f.lista, estandar ? BASE_E : null), av = r.avisos.filter(a => /Estándar|ACE SPEC|Pokémon Básico/.test(a));
         return "<tr><td>" + (i + 1) + "</td><td>" + esc(f.nick) + "</td><td>" + esc(f.nombre + " " + f.apellido) +
           '<br><span class="muted">' + esc(f.correo) + "</span></td><td>" + esc(f.playerId) + "</td><td>" + esc(ddmmaaaa(f.nacimiento)) +
           "</td><td>" + esc(division(f.nacimiento)) + "</td><td>" + (r.errores.length ? '<span class="err">' + r.total + " cartas</span>" : "60 ✓") +

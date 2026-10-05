@@ -28,8 +28,36 @@
   .campo > span:not(.pista){font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
   .campo input,.campo textarea{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;font-family:inherit;}
   .campo textarea{min-height:120px;font-size:var(--t3);line-height:1.5;resize:vertical;font-variant-numeric:tabular-nums;}
-  #listaT{min-height:220px;} #listaE{min-height:90px;}
-  .campo .cuantas{float:right;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;color:var(--texto);}
+  /* el registrador de la lista */
+  .busca{position:relative;}
+  .busca input{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;}
+  #sugerencias{position:absolute;left:0;right:0;top:100%;z-index:5;margin:4px 0 0;padding:4px;list-style:none;
+    background:var(--sup-alta);border-radius:var(--radio);box-shadow:0 12px 30px -10px rgba(0,0,0,.45);max-height:340px;overflow:auto;}
+  #sugerencias li{padding:10px 12px;border-radius:var(--radio);cursor:pointer;display:flex;justify-content:space-between;gap:var(--e2);
+    align-items:baseline;min-height:44px;box-sizing:border-box;}
+  #sugerencias li small{color:var(--apagado);white-space:nowrap;font-variant-numeric:tabular-nums;}
+  #sugerencias li[aria-selected]{background:var(--accion);color:var(--sobre-accion);}
+  #sugerencias li[aria-selected] small{color:inherit;}
+  #sugerencias li.nada{cursor:default;color:var(--apagado);font-size:var(--t2);}
+  #importar summary{cursor:pointer;color:var(--accion-texto);font-size:var(--t3);min-height:44px;display:flex;align-items:center;}
+  #importar textarea{width:100%;box-sizing:border-box;padding:12px;font-family:inherit;font-size:var(--t3);margin:var(--e1) 0;}
+  .seccion h3{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:var(--e2) 0 var(--e1);
+    display:flex;justify-content:space-between;}
+  .seccion h3 b{color:var(--texto);letter-spacing:0;font-variant-numeric:tabular-nums;}
+  .cartas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .carta{display:flex;align-items:center;gap:var(--e2);background:var(--campo);border-radius:var(--radio);padding:4px 4px 4px 6px;}
+  .carta.mal{box-shadow:inset 3px 0 0 var(--negativo);}
+  .carta .cant{display:flex;align-items:center;flex:none;}
+  .carta .cant b{min-width:1.6em;text-align:center;font-variant-numeric:tabular-nums;}
+  .carta button{background:none;border:none;color:var(--texto);font:inherit;font-size:var(--t4);width:40px;height:40px;cursor:pointer;border-radius:var(--radio);}
+  .carta button:hover{background:var(--sup-alta);}
+  .carta .nom{flex:1;min-width:0;line-height:1.3;}
+  .carta .nom small{display:block;color:var(--apagado);font-size:var(--t2);}
+  .carta .quitar{color:var(--apagado);}
+  .aviso-carta{color:var(--negativo);}
+  .cartas .vacia{color:var(--apagado);font-size:var(--t2);padding:6px 2px;}
+  /* inscripciones cerradas: la lista se ve, pero sin nada para editarla */
+  .soloLectura .busca,.soloLectura #importar,.soloLectura .carta button{display:none;}
   .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
   .pista a,.meta a{color:var(--accion-texto);}
   .conteo{display:flex;gap:var(--e3);flex-wrap:wrap;font-size:var(--t3);font-variant-numeric:tabular-nums;}
@@ -84,20 +112,28 @@
           <span class="pista">Día, mes y año. Define tu división (Junior, Senior o Masters).</span></label>
       </div>
 
-      <div class="caja" style="margin-top:var(--e4)">
+      <div class="caja" id="cajaLista" style="margin-top:var(--e4)">
         <h2>Lista de mazo</h2>
-        <p class="pista">Una carta por línea: cantidad, nombre, expansión y número. Si pegas la lista completa como la
-          exporta el juego en línea, en cualquier caja, se reparte sola. Puedes corregirla hasta que empiece el torneo.</p>
-        <label class="campo"><span>Pokémon <b class="cuantas" id="nP"></b></span>
-          <textarea id="listaP" data-sec="pokemon" maxlength="3000" spellcheck="false" placeholder="3 Dreepy TWM 128
-3 Drakloak TWM 129
-2 Dragapult ex TWM 130"></textarea></label>
-        <label class="campo"><span>Entrenadores <b class="cuantas" id="nT"></b></span>
-          <textarea id="listaT" data-sec="entrenador" maxlength="3000" spellcheck="false" placeholder="4 Ultra Ball MEG 131
-4 Boss's Orders MEG 114
-4 Rare Candy MEG 125"></textarea></label>
-        <label class="campo"><span>Energías <b class="cuantas" id="nE"></b></span>
-          <textarea id="listaE" data-sec="energia" maxlength="1500" spellcheck="false" placeholder="8 Basic {P} Energy SVE 5"></textarea></label>
+        <p class="pista" id="pistaLista">Busca cada carta por su nombre y elige la impresión; con − y + cambias la cantidad.
+          Puedes corregirla hasta que empiece el torneo.</p>
+        <div class="busca">
+          <input id="buscaCarta" type="search" role="combobox" aria-expanded="false" aria-controls="sugerencias"
+            aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Busca una carta: «dragapult», «ultra ball»…">
+          <ul id="sugerencias" role="listbox" class="oculto" aria-label="Cartas encontradas"></ul>
+        </div>
+        <details id="importar">
+          <summary>¿Juegas en línea? Pega la lista exportada</summary>
+          <textarea id="pegado" rows="7" spellcheck="false" placeholder="Pokémon: 12
+3 Dreepy TWM 128
+…
+Trainer: 40
+…"></textarea>
+          <div class="acc"><button type="button" class="btn" id="importarBtn">Usar esta lista</button></div>
+          <p class="pista" id="importarMsg" role="status"></p>
+        </details>
+        <section class="seccion"><h3>Pokémon <b id="nP"></b></h3><ul class="cartas" id="filasP"></ul></section>
+        <section class="seccion"><h3>Entrenadores <b id="nT"></b></h3><ul class="cartas" id="filasT"></ul></section>
+        <section class="seccion"><h3>Energías <b id="nE"></b></h3><ul class="cartas" id="filasE"></ul></section>
         <div class="conteo" id="conteo" aria-live="polite"></div>
         <ul class="revision" id="revision"></ul>
       </div>
@@ -129,7 +165,7 @@ import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } f
 import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=12";
 import { slug, nombreTienda } from "./sala.js?v=6";
 import { fechaLegible, urlGoogle } from "./agenda.js?v=4";
-import { leerLista, cuenta, division, hoja, imprimir, cargarEstandar, separar, componer } from "./listamazo.js?v=4";
+import { leerLista, cuenta, division, hoja, imprimir, cargarEstandar, componer, norm } from "./listamazo.js?v=5";
 
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
@@ -169,33 +205,142 @@ function pintarAcuerdo(){
     "La permanencia en el área del evento se interpretará como un consentimiento a los términos de esta notificación. Gracias por su cooperación.</p>";
 }
 
-/* ------------------------------------------------------------ la lista, en vivo */
-/* La base de cartas de Estándar: avisa lo que no es legal y llena la columna Reg. de la hoja. */
-let BASE_E = null;
-const CAJA = { pokemon: "listaP", entrenador: "listaT", energia: "listaE" };
-const lista = () => componer({ pokemon: $("listaP").value, entrenador: $("listaT").value, energia: $("listaE").value });
-function ponerLista(texto){ const s = separar(texto); Object.keys(CAJA).forEach(k => $(CAJA[k]).value = s[k]); }
+/* ------------------------------------------------------------ el registrador de la lista
+   La lista vive en LISTA (tres secciones de { cant, nombre, set, num }) y se
+   guarda como siempre: un texto con títulos (componer), así que la hoja, el CSV
+   y las reglas no cambian. Se arma de tres formas: buscando cada carta en la
+   base (cartas-estandar.json), pegando la lista exportada del juego en línea, o
+   escribiendo la línea entera para una carta que la base no tenga. */
+let BASE = null, BASE_E = null;          // BASE: el buscador; BASE_E: además revisa legalidad (solo Estándar)
+let LISTA = { pokemon: [], entrenador: [], energia: [] };
+const SEC_DE_CAT = { P: "pokemon", T: "entrenador", E: "energia" };
+const FILAS = { pokemon: "filasP", entrenador: "filasT", energia: "filasE" };
+const linea = c => c.cant + " " + c.nombre + (c.set ? " " + c.set + " " + c.num : "");
+const lista = () => componer(Object.fromEntries(Object.keys(LISTA).map(k => [k, LISTA[k].map(linea).join("\n")])));
+const copiar = r => ({ pokemon: r.pokemon.map(c => ({ ...c })), entrenador: r.entrenador.map(c => ({ ...c })), energia: r.energia.map(c => ({ ...c })) });
+function ponerLista(texto){ LISTA = copiar(leerLista(texto)); }
+
+const ESTADO = { fuera: "No es legal en Estándar", reimp: "Otra impresión: en la hoja va con NA" };
 function revisarLista(){
   const r = leerLista(lista(), BASE_E);
-  const vacia = !Object.values(CAJA).some(id => $(id).value.trim());
-  [["nP", "pokemon"], ["nT", "entrenador"], ["nE", "energia"]].forEach(([id, k]) => $(id).textContent = vacia ? "" : cuenta(r, k));
-  $("conteo").innerHTML = vacia ? "" :
-    '<span class="tot ' + (r.total === 60 ? "ok" : "mal") + '">Total <b>' + r.total + "</b> / 60</span>";
+  const vacia = !r.total;
+  /* Más de 4 por nombre (salvo Energía básica): se marca en cada fila. */
+  const porNombre = {};
+  [...r.pokemon, ...r.entrenador, ...r.energia].forEach(c => { if (!/basic|b[aá]sica/i.test(c.nombre)) porNombre[norm(c.nombre)] = (porNombre[norm(c.nombre)] || 0) + c.cant; });
+  Object.keys(FILAS).forEach(sec => {
+    $(FILAS[sec]).innerHTML = r[sec].map((c, i) => {
+      const mas4 = porNombre[norm(c.nombre)] > 4, nota = ESTADO[c.estado] || (mas4 ? "Más de 4 copias" : "");
+      return '<li class="carta' + (nota ? " mal" : "") + '"><div class="cant">' +
+        '<button type="button" data-cambio="-1" data-pos="' + sec + ":" + i + '" aria-label="Una ' + esc(c.nombre) + ' menos">−</button>' +
+        "<b>" + c.cant + "</b>" +
+        '<button type="button" data-cambio="1" data-pos="' + sec + ":" + i + '" aria-label="Una ' + esc(c.nombre) + ' más">+</button></div>' +
+        '<div class="nom"><b>' + esc(c.nombre) + "</b><small>" + esc([c.set ? c.set + " " + c.num : "sin expansión", c.reg, c.x === "A" ? "ACE SPEC" : ""].filter(Boolean).join(" · ")) +
+        (nota ? ' · <span class="aviso-carta">' + esc(nota) + "</span>" : "") + "</small></div>" +
+        '<button type="button" class="quitar" data-quitar="' + sec + ":" + i + '" aria-label="Quitar ' + esc(c.nombre) + '">×</button></li>';
+    }).join("") || '<li class="vacia">Todavía no hay cartas.</li>';
+  });
+  [["nP", "pokemon"], ["nT", "entrenador"], ["nE", "energia"]].forEach(([id, k]) => $(id).textContent = cuenta(r, k) || "");
+  $("conteo").innerHTML = vacia ? "" : '<span class="tot ' + (r.total === 60 ? "ok" : "mal") + '">Total <b>' + r.total + "</b> / 60</span>";
+  /* Lo que ya se ve en cada fila no se repite abajo. */
+  const enFila = /^(No aparecen en la lista|Estos Pokémon no están|Más de 4 copias)/;
   $("revision").innerHTML = vacia ? "" : r.errores.map(e => '<li class="mal">' + esc(e) + "</li>").join("") +
-    r.avisos.map(a => '<li class="av">' + esc(a) + "</li>").join("");
+    r.avisos.filter(a => !enFila.test(a)).map(a => '<li class="av">' + esc(a) + "</li>").join("");
   return r;
 }
-/* Si en una caja aparece un título («Trainer: 40»), es una lista entera pegada:
-   se reparte. Solo se reemplazan las cajas de las secciones que trae, así que
-   escribir «Pokémon:» en su caja no borra las otras dos. */
-Object.keys(CAJA).forEach(k => $(CAJA[k]).oninput = e => {
-  const caja = e.target;
-  if (caja.value.split(/\r?\n/).some(l => /^\s*(pok[eé]mon|trainers?|entrenador(es)?|energy|energ[ií]as?)\b[^\d]*[:\-–]?\s*\d*\s*$/i.test(l))){
-    const s = separar(caja.value, k);
-    Object.keys(CAJA).forEach(x => { if (s[x] || x === k) $(CAJA[x]).value = s[x]; });
-  }
+$("cajaLista").addEventListener("click", e => {
+  const b = e.target.closest("[data-pos],[data-quitar]");
+  if (!b) return;
+  const [sec, i] = (b.dataset.pos || b.dataset.quitar).split(":"), c = LISTA[sec][+i];
+  if (!c) return;
+  c.cant += b.dataset.quitar ? -c.cant : +b.dataset.cambio;
+  if (c.cant < 1) LISTA[sec].splice(+i, 1);
+  c.cant = Math.min(c.cant, 60);
   revisarLista();
 });
+
+/* --- el buscador: todas las palabras tienen que estar en el nombre o en
+   «expansión número». Primero lo que empieza igual; dentro de cada nombre, la
+   impresión más nueva. De las Energías básicas se ofrece una sola por tipo, la
+   más reciente (hay de todas las expansiones desde 1999). */
+const ORDEN_REG = { J: 0, I: 1, H: 2 };
+const ENERGIA_PREF = ["MEE", "SVE"];
+const prefE = s => { const i = ENERGIA_PREF.indexOf(s); return i < 0 ? 99 : i; };
+function buscar(q){
+  const ws = norm(q).split(" ").filter(Boolean);
+  if (!BASE || !ws.length) return [];
+  const todo = ws.join(" "), basicas = new Map(), res = [];
+  for (const c of BASE.cartas){
+    const [s, n, nom, cat, reg] = c, nn = norm(nom), k = nn + " " + s.toLowerCase() + " " + n;
+    if (!ws.every(w => k.includes(w))) continue;
+    const punt = nn.startsWith(todo) ? 0 : nn.split(" ").some(p => p.startsWith(ws[0])) ? 1 : 2;
+    if (cat === "E" && !reg){ const ya = basicas.get(nn); if (!ya || prefE(s) < prefE(ya[1][0])) basicas.set(nn, [punt, c]); continue; }
+    res.push([punt, c]);
+  }
+  res.push(...basicas.values());
+  return res.sort((a, b) => a[0] - b[0] || a[1][2].localeCompare(b[1][2]) ||
+    (ORDEN_REG[a[1][4]] ?? 3) - (ORDEN_REG[b[1][4]] ?? 3) || a[1][0].localeCompare(b[1][0])).slice(0, 8).map(x => x[1]);
+}
+let OPCIONES = [], ACTIVA = -1;
+function pintarSugerencias(){
+  const q = $("buscaCarta").value.trim();
+  OPCIONES = buscar(q).map(c => ({ carta: c }));
+  /* «2 Carta Nueva ABC 12»: una carta que la base no tiene (o Expandido) se
+     agrega tal cual, eligiendo la sección. */
+  if (/^\d{1,2}\s+\S/.test(q) && !OPCIONES.length)
+    OPCIONES = ["pokemon", "entrenador", "energia"].map(sec => ({ linea: q, sec }));
+  ACTIVA = OPCIONES.length ? 0 : -1;
+  const NOM_SEC = { pokemon: "Pokémon", entrenador: "Entrenadores", energia: "Energías" };
+  $("sugerencias").innerHTML = OPCIONES.map((o, i) => '<li role="option" id="op' + i + '" data-op="' + i + '"' + (i === ACTIVA ? ' aria-selected="true"' : "") + ">" +
+    (o.carta ? "<b>" + esc(o.carta[2]) + "</b><small>" + esc([o.carta[0] + " " + o.carta[1], o.carta[4], o.carta[5] === "A" ? "ACE SPEC" : ""].filter(Boolean).join(" · ")) + "</small>"
+             : "Agregar «" + esc(o.linea) + "» a <b>" + NOM_SEC[o.sec] + "</b>") + "</li>").join("") ||
+    (q.length > 1 ? '<li class="nada">' + (BASE ? "No encontramos esa carta. Si es nueva, escribe la línea completa: «2 Nombre ABC 12»."
+                                                  : "Cargando las cartas…") + "</li>" : "");
+  const ver = !!$("sugerencias").innerHTML;
+  $("sugerencias").classList.toggle("oculto", !ver);
+  $("buscaCarta").setAttribute("aria-expanded", String(ver));
+  $("buscaCarta").setAttribute("aria-activedescendant", ACTIVA >= 0 ? "op" + ACTIVA : "");
+}
+function elegir(i){
+  const o = OPCIONES[i];
+  if (!o) return;
+  if (o.carta){
+    const [set, num, nombre, cat] = o.carta, sec = SEC_DE_CAT[cat] || "pokemon";
+    const ya = LISTA[sec].find(c => c.set === set && c.num === num);
+    if (ya) ya.cant = Math.min(ya.cant + 1, 60); else LISTA[sec].push({ cant: 1, nombre, set, num });
+  } else {
+    const r = leerLista({ pokemon: "Pokémon:", entrenador: "Entrenador:", energia: "Energía:" }[o.sec] + "\n" + o.linea);
+    LISTA[o.sec].push(...r[o.sec].map(c => ({ ...c })));
+  }
+  $("buscaCarta").value = ""; pintarSugerencias(); revisarLista(); $("buscaCarta").focus();
+}
+$("buscaCarta").oninput = pintarSugerencias;
+$("buscaCarta").onkeydown = e => {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp"){
+    if (!OPCIONES.length) return;
+    e.preventDefault();
+    ACTIVA = (ACTIVA + (e.key === "ArrowDown" ? 1 : -1) + OPCIONES.length) % OPCIONES.length;
+    $("sugerencias").querySelectorAll("[data-op]").forEach(li => li.toggleAttribute("aria-selected", +li.dataset.op === ACTIVA));
+    $("buscaCarta").setAttribute("aria-activedescendant", "op" + ACTIVA);
+  } else if (e.key === "Enter"){ e.preventDefault(); elegir(ACTIVA); }
+  else if (e.key === "Escape"){ $("buscaCarta").value = ""; pintarSugerencias(); }
+};
+/* mousedown y no click: con click, el campo pierde el foco antes y la lista se cierra. */
+$("sugerencias").onmousedown = e => { const li = e.target.closest("[data-op]"); if (li){ e.preventDefault(); elegir(+li.dataset.op); } };
+$("buscaCarta").onblur = () => setTimeout(() => { $("sugerencias").classList.add("oculto"); $("buscaCarta").setAttribute("aria-expanded", "false"); }, 150);
+$("buscaCarta").onfocus = pintarSugerencias;
+
+/* --- pegar la lista exportada: reemplaza la que hay. */
+$("importarBtn").onclick = () => {
+  const t = $("pegado").value.trim();
+  if (!t) return;
+  const r = leerLista(t);
+  const malas = r.errores.filter(e => /^(No entendí|Falta el título|«)/.test(e));
+  if (LISTA.pokemon.length + LISTA.entrenador.length + LISTA.energia.length && !confirm("¿Reemplazar la lista que llevas por la que pegaste?")) return;
+  LISTA = copiar(r);
+  $("importarMsg").textContent = r.total + " cartas importadas." + (malas.length ? " No se pudieron leer: " + malas.join(" ") : "");
+  $("pegado").value = ""; $("importar").open = !!malas.length;
+  revisarLista();
+};
 
 /* ------------------------------------------------------------ formulario */
 const CAMPOS = ["correo", "playerId", "nick", "nombre", "apellido", "nacimiento"];
@@ -283,7 +428,10 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
     (EV.detalle ? "<br>" + esc(EV.detalle) : "");
   $("google").href = urlGoogle(EV);
   pintarAcuerdo();
-  if (EV.inscripcion.formato !== "expandido") cargarEstandar().then(b => { BASE_E = b; revisarLista(); });
+  const estandar = EV.inscripcion.formato !== "expandido";
+  if (!estandar) $("pistaLista").textContent = "Formato Expandido: el buscador solo trae las cartas de Estándar. Para las demás, " +
+    "escribe la línea completa (por ejemplo «2 Nombre de la carta ABC 12») o pega tu lista exportada.";
+  cargarEstandar().then(b => { BASE = b; BASE_E = estandar ? b : null; revisarLista(); });
 
   /* ¿Quién se inscribe? Primero una cuenta de ByePass; si no, la sesión
      anónima que haya quedado de una inscripción anterior en este navegador. */
@@ -315,6 +463,7 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
     $("noHay").className = "aviso" + (MIA ? "" : " mal"); $("noHay").textContent = motivo;
     if (!MIA) return;
     $("form").querySelectorAll("input,textarea,#enviar").forEach(x => x.disabled = true);
+    $("cajaLista").classList.add("soloLectura");
     $("quien").classList.add("oculto");
   }
   $("form").classList.remove("oculto");
