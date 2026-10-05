@@ -148,12 +148,15 @@
   /* El panel guarda endTime con la hora del SERVIDOR de Firebase. El reloj de
      la tele puede estar corrido unos segundos, así que hay que saber cuánto:
      `offset` = hora del servidor − hora de la tele (en ms). Esta página no usa
-     el SDK, así que no tiene .info/serverTimeOffset: lo saca de la hora
-     (updatedAt) con que el panel publicó el último cambio, que desde el
-     05-10-2026 es hora de servidor. (La cabecera HTTP «Date» no sirve: Firebase
-     no la expone por CORS y el navegador la entrega como null; se probó.) */
+     el SDK, así que no tiene .info/serverTimeOffset. Lo saca de dos lados:
+       1) al abrir, de la cabecera «Date» de ESTE sitio (calibrarConSitio);
+       2) con cada cambio en vivo del panel, de su updatedAt, que desde el
+          05-10-2026 es hora de servidor (calibrarConPanel). Es el más exacto.
+     La cabecera «Date» de Firebase no sirve: no la expone por CORS y el
+     navegador la entrega como null (se probó). */
   var S = null, EXTRAS = {}, offset = 0;
   var ultimoUpdated = null;       // updatedAt del último cambio ya usado para calibrar
+  var conPanel = false;           // true cuando ya se calibró con un cambio del panel
   function dos(n){ return n < 10 ? "0" + n : "" + n; }
   function fmt(sec){ var a = Math.abs(sec); return (sec < 0 ? "-" : "") + dos(Math.floor(a / 60)) + ":" + dos(a % 60); }
   function ahora(){ return Date.now() + offset; }
@@ -166,7 +169,30 @@
     if (!enVivo || !v || !v.updatedAt || v.updatedAt === ultimoUpdated) return;
     ultimoUpdated = v.updatedAt;
     offset = v.updatedAt - Date.now();
+    conPanel = true;
   }
+
+  /* Al abrir: una tele que se abre con la ronda ya corriendo no recibe ningún
+     cambio en vivo hasta que el panel haga algo, y mientras tanto mostraba el
+     error de su propio reloj (29 s en el PC del 05-10-2026). Se pregunta la
+     hora a este mismo sitio: es la misma dirección, así que el navegador sí
+     deja leer la cabecera «Date». Va con HEAD porque sw.js solo atiende GET:
+     así nunca contesta una copia guardada con la hora vieja. La cabecera
+     trae segundos enteros (+500 ms) y tardó medio viaje en llegar. */
+  function calibrarConSitio(){
+    try {
+      var x = new XMLHttpRequest(), t0 = Date.now();
+      x.open("HEAD", location.pathname + "?hora=" + t0, true);
+      x.onload = function(){
+        var d = Date.parse(x.getResponseHeader("Date") || "");
+        if (isNaN(d) || conPanel) return;   // si el panel ya calibró, manda el panel
+        offset = d + 500 - (t0 + Date.now()) / 2;
+        dibujar();
+      };
+      x.send();
+    } catch(e){}
+  }
+  calibrarConSitio();
 
   function dibujar(){
     if (!S) return;
