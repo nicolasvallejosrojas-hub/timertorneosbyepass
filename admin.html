@@ -1016,6 +1016,14 @@
         <option value="expandido">Expandido</option>
       </select>
     </label>
+    <fieldset id="evCuposWrap" style="display:none;border:0;padding:0;margin:0">
+      <legend class="muted" style="padding:0">Cupos por categor&iacute;a <span>(vac&iacute;o = sin l&iacute;mite)</span></legend>
+      <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+        <label>Junior <input id="evCupo-junior" type="number" min="1" max="200" inputmode="numeric" style="display:block;width:96px;margin-top:4px"></label>
+        <label>Senior <input id="evCupo-senior" type="number" min="1" max="200" inputmode="numeric" style="display:block;width:96px;margin-top:4px"></label>
+        <label>Masters <input id="evCupo-masters" type="number" min="1" max="200" inputmode="numeric" style="display:block;width:96px;margin-top:4px"></label>
+      </div>
+    </fieldset>
 
     <label>Lugar <span class="muted">(opcional)</span>
       <input id="evLugar" style="width:100%;margin-top:4px" placeholder="Tienda, direcci&oacute;n" maxlength="120">
@@ -4023,8 +4031,37 @@ function modoTodoDia(){
   $("evDurWrap").style.display  = td ? "none" : "";
 }
 $("evTodoDia").onchange = modoTodoDia;
-const modoInsc = () => $("evFmtWrap").style.display = $("evInsc").checked ? "" : "none";
+const modoInsc = () => $("evFmtWrap").style.display = $("evCuposWrap").style.display = $("evInsc").checked ? "" : "none";
 $("evInsc").onchange = modoInsc;
+
+/* Las plazas de cada categoría: cupos/<tienda>/<evento>/<categoría>/<n> vale "" si
+   está libre o el uid de quien la tiene (las reglas dejan tomar solo las que
+   existen y solo una vez). Al guardar el evento se ajustan a los cupos nuevos:
+   se crean o borran plazas, y a quien ya estaba inscrito sin plaza se le asigna
+   una. Si hay más inscritos que cupos, no se guarda. */
+const DIVS = ["junior", "senior", "masters"], NOM_DIV = { junior: "Junior", senior: "Senior", masters: "Masters" };
+const catDe = nac => division(nac).toLowerCase();
+const catF = f => f.division ? NOM_DIV[f.division] : division(f.nacimiento);
+async function planCupos(id, cupos, existe){
+  const [sl, ins] = existe ? await Promise.all([get(ref(db, "cupos/" + TIENDA + "/" + id)), get(ref(db, "inscripciones/" + TIENDA + "/" + id))]) : [null, null];
+  const S = (sl && sl.val()) || {}, I = (ins && ins.val()) || {}, up = {};
+  for (const d of DIVS){
+    const n = cupos[d], viejas = S[d] || {}, base = "cupos/" + TIENDA + "/" + id + "/" + d;
+    if (!n){ if (Object.keys(viejas).length) up[base] = null; continue; }
+    const duenos = [...new Set(Object.values(viejas).filter(Boolean))];
+    const sinPlaza = Object.entries(I).filter(([u, f]) => (f.division || catDe(f.nacimiento)) === d && !duenos.includes(u)).map(([u]) => u);
+    const todos = duenos.concat(sinPlaza);
+    if (todos.length > n) return { error: "Ya hay " + todos.length + " inscritos en " + NOM_DIV[d] + ": no puedes bajar el cupo a " + n + ". Quita inscritos primero." };
+    const plazas = {}, sin = [];
+    for (const u of todos){ const k = Object.keys(viejas).find(x => viejas[x] === u); if (k && +k <= n && !plazas[k]) plazas[k] = u; else sin.push(u); }
+    for (let k = 1; k <= n; k++) if (!plazas[k]) plazas[k] = sin.shift() || "";
+    for (let k = 1; k <= Math.max(n, ...Object.keys(viejas).map(Number)); k++){
+      const nuevo = k <= n ? plazas[k] : null;
+      if ((viejas[k] === undefined ? null : viejas[k]) !== nuevo) up[base + "/" + k] = nuevo;
+    }
+  }
+  return { up };
+}
 
 function leerForm(){
   const titulo = $("evTit").value.trim();
@@ -4036,8 +4073,15 @@ function leerForm(){
   if (!todoDia && !hora) return { error:"Pon la hora de inicio, o marca «todo el día»." };
   /* Al editar se respeta si la tienda ya las había cerrado. */
   const antes = editandoId && (AGENDA.find(e => e.id === editandoId) || {}).inscripcion;
+  const cupos = {};
+  for (const d of DIVS){
+    const v = $("evCupo-" + d).value.trim(); if (!v) continue;
+    const n = +v;
+    if (!Number.isInteger(n) || n < 1 || n > 200) return { error:"Los cupos son números de 1 a 200. Déjalos vacíos si no quieres limitar esa categoría." };
+    cupos[d] = n;
+  }
   return { ev: {
-    inscripcion: $("evInsc").checked ? { abierta: antes ? antes.abierta : true, formato: $("evFmt").value } : null,
+    inscripcion: $("evInsc").checked ? { abierta: antes ? antes.abierta : true, formato: $("evFmt").value, ...(Object.keys(cupos).length ? { cupos } : {}) } : null,
     titulo, fecha, hora,
     duracion: todoDia ? 0 : +$("evDur").value,
     lugar:    $("evLugar").value.trim(),
@@ -4052,7 +4096,7 @@ function limpiarForm(){
   editandoId = null;
   $("evTit").value = ""; $("evJuego").value = ""; $("evLugar").value = ""; $("evDet").value = "";
   $("evTodoDia").checked = false; modoTodoDia();
-  $("evInsc").checked = false; $("evFmt").value = "estandar"; modoInsc();
+  $("evInsc").checked = false; $("evFmt").value = "estandar"; DIVS.forEach(d => $("evCupo-" + d).value = ""); modoInsc();
   $("evGuardar").textContent = "Agregar fecha";
   $("evCancelar").style.display = "none";
   $("evForm").classList.remove("editando");
@@ -4064,14 +4108,17 @@ $("evGuardar").onclick = async () => {
   if (error){ $("evMsg").innerHTML = '<span class="err">' + error + '</span>'; return; }
   $("evMsg").textContent = "Guardando…";
   try {
+    const id = editandoId || push(R_AGENDA).key;
+    /* Evento y plazas van juntos: los cupos no pueden quedar a medias. */
+    const plan = ev.inscripcion || editandoId ? await conTimeout(planCupos(id, (ev.inscripcion && ev.inscripcion.cupos) || {}, !!editandoId), 15000) : { up: {} };
+    if (plan.error){ $("evMsg").innerHTML = '<span class="err">' + plan.error + '</span>'; return; }
+    const rutas = { ...plan.up };
     if (editandoId){
-      // update y no set: set borraría "creado", que el formulario no vuelve a mandar
-      await conTimeout(update(ref(db, BASE_T + "/agenda/" + editandoId), ev), 15000);
-      $("evMsg").innerHTML = '<span class="ok">Fecha actualizada ✓</span>';
-    } else {
-      await conTimeout(push(R_AGENDA, { ...ev, creado: Date.now() }), 15000);
-      $("evMsg").innerHTML = '<span class="ok">Fecha agregada ✓ ya la ven los jugadores</span>';
-    }
+      // campo por campo y no el nodo entero: reemplazarlo borraría "creado", que el formulario no vuelve a mandar
+      for (const [k, v] of Object.entries(ev)) rutas[BASE_T + "/agenda/" + id + "/" + k] = v === undefined ? null : v;
+    } else rutas[BASE_T + "/agenda/" + id] = { ...ev, creado: Date.now() };
+    await conTimeout(update(ref(db), rutas), 15000);
+    $("evMsg").innerHTML = editandoId ? '<span class="ok">Fecha actualizada ✓</span>' : '<span class="ok">Fecha agregada ✓ ya la ven los jugadores</span>';
     limpiarForm();
   } catch(e){ $("evMsg").innerHTML = '<span class="err">' + mensajeConexion(e) + '</span>'; }
 };
@@ -4088,6 +4135,7 @@ function editar(ev){
   $("evDet").value   = ev.detalle || "";
   $("evInsc").checked = !!ev.inscripcion;
   $("evFmt").value   = (ev.inscripcion && ev.inscripcion.formato) || "estandar";
+  DIVS.forEach(d => $("evCupo-" + d).value = (ev.inscripcion && ev.inscripcion.cupos && ev.inscripcion.cupos[d]) || "");
   modoTodoDia(); modoInsc();
   $("evGuardar").textContent = "Guardar cambios";
   $("evCancelar").style.display = "";
@@ -4102,7 +4150,7 @@ async function borrar(ev){
   /* Con inscripciones, se borran en la misma escritura: solas no sirven y
      guardan datos personales. Sin ellas no se toca ese nodo. */
   const rutas = { [BASE_T + "/agenda/" + ev.id]: null };
-  if (ev.inscripcion) rutas["inscripciones/" + TIENDA + "/" + ev.id] = null;
+  if (ev.inscripcion){ rutas["inscripciones/" + TIENDA + "/" + ev.id] = null; rutas["cupos/" + TIENDA + "/" + ev.id] = null; }
   try { await update(ref(db), rutas); } catch(e){ alert(mensajeConexion(e)); }
 }
 
@@ -4114,15 +4162,19 @@ async function borrar(ev){
    la tienda. Se bajan recién al abrir los inscritos de un evento: una lista
    pesa ~1,5 KB y no hace falta traerlas todas para mostrar el calendario.
    ------------------------------------------------------------ */
-let inscAbierto = null, offInsc = null, INSC = null;
+let inscAbierto = null, offInsc = null, offPlz = null, INSC = null, PLZ = null;
 const urlInscripcion = ev => new URL("inscripcion.html?sala=" + TIENDA + "&evento=" + ev.id, location.href).href;
 const paraHoja = ev => ({ ...ev, formato: ev.inscripcion.formato, tienda: nombreDeLaTienda() });
 
 function verInscritos(ev){
   if (offInsc){ offInsc(); offInsc = null; }
-  inscAbierto = inscAbierto === ev.id ? null : ev.id; INSC = null;
-  if (inscAbierto) offInsc = onValue(ref(db, "inscripciones/" + TIENDA + "/" + ev.id), s => { INSC = s.val() || {}; pintarInscritos(); },
-    () => { const c = $("inscCaja"); if (c) c.innerHTML = '<span class="err">No se pudieron cargar las inscripciones.</span>'; });
+  if (offPlz){ offPlz(); offPlz = null; }
+  inscAbierto = inscAbierto === ev.id ? null : ev.id; INSC = null; PLZ = null;
+  if (inscAbierto){
+    offInsc = onValue(ref(db, "inscripciones/" + TIENDA + "/" + ev.id), s => { INSC = s.val() || {}; pintarInscritos(); },
+      () => { const c = $("inscCaja"); if (c) c.innerHTML = '<span class="err">No se pudieron cargar las inscripciones.</span>'; });
+    offPlz = onValue(ref(db, "cupos/" + TIENDA + "/" + ev.id), s => { PLZ = s.val() || {}; pintarInscritos(); }, () => {});
+  }
   renderAgenda();
 }
 
@@ -4136,6 +4188,10 @@ function pintarInscritos(){
   if (!INSC){ c.textContent = "Cargando…"; return; }
   const filas = Object.entries(INSC).map(([uid, d]) => ({ uid, ...d })).sort((a, b) => (a.creado || 0) - (b.creado || 0));
   const abierta = ev.inscripcion.abierta, empezo = (ev.inicioMs || 0) <= Date.now();
+  const cupos = ev.inscripcion.cupos || {}, porCat = { junior: 0, senior: 0, masters: 0 };
+  filas.forEach(f => porCat[f.division || catDe(f.nacimiento)]++);
+  /* plazas tomadas por alguien que no llegó a inscribirse (se cortó la conexión): se pueden liberar */
+  const sueltas = Object.entries(PLZ || {}).flatMap(([d, m]) => Object.entries(m).filter(([, v]) => v && !INSC[v]).map(([n]) => d + "/" + n));
   c.innerHTML =
     '<div class="row" style="align-items:center;gap:8px">' +
       '<input readonly id="inscUrl" value="' + esc(urlInscripcion(ev)) + '" style="flex:1;min-width:220px">' +
@@ -4146,12 +4202,16 @@ function pintarInscritos(){
       (!abierta ? "cerradas</b>: el enlace no deja inscribirse" : empezo ? "cerradas</b>: el torneo ya empezó" : "abiertas</b> hasta que empiece el torneo") + "</span>" +
       (empezo ? "" : '<button class="small sec" data-i="abrir">' + (abierta ? "Dejar de recibir inscripciones" : "Volver a abrir inscripciones") + "</button>") +
     "</div>" +
+    '<div class="muted" style="margin-top:6px">Por categoría: ' + DIVS.map(d => "<b>" + NOM_DIV[d] + "</b> " + porCat[d] + (cupos[d] ? " de " + cupos[d] : " (sin límite)")).join(" · ") + "</div>" +
+    (sueltas.length ? '<div class="row" style="align-items:center;gap:8px;margin-top:6px"><span class="err" style="flex:1">' + sueltas.length +
+      (sueltas.length === 1 ? " cupo tomado por alguien que no llegó a inscribirse" : " cupos tomados por gente que no llegó a inscribirse") +
+      '</span><button class="small sec" data-i="liberar">Liberar</button></div>' : "") +
     (filas.length ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th><th>Nick</th><th>Nombre</th><th>ID</th>' +
-      "<th>Nacimiento</th><th>División</th><th>Lista</th><th></th></tr></thead><tbody>" +
+      "<th>Nacimiento</th><th>Categoría</th><th>Lista</th><th></th></tr></thead><tbody>" +
       filas.map((f, i) => { const r = leerLista(f.lista, estandar ? BASE_E : null), av = r.avisos.filter(a => /Estándar|ACE SPEC|Pokémon Básico/.test(a));
         return "<tr><td>" + (i + 1) + "</td><td>" + esc(f.nick) + "</td><td>" + esc(f.nombre + " " + f.apellido) +
           '<br><span class="muted">' + esc(f.correo) + "</span></td><td>" + esc(f.playerId) + "</td><td>" + esc(ddmmaaaa(f.nacimiento)) +
-          "</td><td>" + esc(division(f.nacimiento)) + "</td><td>" + (r.errores.length ? '<span class="err">' + r.total + " cartas</span>" : "60 ✓") +
+          "</td><td>" + esc(catF(f)) + (f.division && f.division !== catDe(f.nacimiento) ? ' <span class="err" title="La categoría que marcó no coincide con su fecha de nacimiento">· revisar</span>' : "") + "</td><td>" + (r.errores.length ? '<span class="err">' + r.total + " cartas</span>" : "60 ✓") +
           (av.length ? ' <span class="err" title="' + esc(av.join(" ")) + '">· revisar</span>' : "") +
           '</td><td><button class="small sec" data-imp="' + esc(f.uid) + '">Imprimir</button> <button class="small sec" data-quitar="' + esc(f.uid) + '">Quitar</button></td></tr>';
       }).join("") + "</tbody></table></div>" : "") +
@@ -4171,16 +4231,22 @@ function pintarInscritos(){
     if (d.imp && INSC[d.imp]) imprimir([hoja(INSC[d.imp], paraHoja(ev), BASE_E)]);
     if (d.i === "todas") imprimir(filas.map(f => hoja(f, paraHoja(ev), BASE_E)));
     if (d.i === "csv") bajarCsvInscritos(ev, filas);
-    if (d.quitar && INSC[d.quitar] && confirm("¿Quitar a " + INSC[d.quitar].nombre + " " + INSC[d.quitar].apellido + " de «" + ev.titulo + "»? Se borra su lista."))
-      try { await remove(ref(db, "inscripciones/" + TIENDA + "/" + ev.id + "/" + d.quitar)); } catch(err){ alert(mensajeConexion(err)); }
+    if (d.i === "liberar"){
+      try { await update(ref(db), Object.fromEntries(sueltas.map(k => ["cupos/" + TIENDA + "/" + ev.id + "/" + k, ""]))); } catch(err){ alert(mensajeConexion(err)); }
+    }
+    if (d.quitar && INSC[d.quitar] && confirm("¿Quitar a " + INSC[d.quitar].nombre + " " + INSC[d.quitar].apellido + " de «" + ev.titulo + "»? Se borra su lista y se libera su cupo.")){
+      const cambios = { ["inscripciones/" + TIENDA + "/" + ev.id + "/" + d.quitar]: null };
+      Object.entries(PLZ || {}).forEach(([cat, m]) => Object.entries(m).forEach(([n, v]) => { if (v === d.quitar) cambios["cupos/" + TIENDA + "/" + ev.id + "/" + cat + "/" + n] = ""; }));
+      try { await update(ref(db), cambios); } catch(err){ alert(mensajeConexion(err)); }
+    }
   };
 }
 
 /* Con «;» y BOM, como el CSV de estadísticas: así lo abre bien Excel en castellano. */
 function bajarCsvInscritos(ev, filas){
   const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
-  const t = [["Nombre", "Apellido", "Nick", "ID de jugador", "Nacimiento", "División", "Correo", "Inscrito", "Lista de mazo"]]
-    .concat(filas.map(f => [f.nombre, f.apellido, f.nick, f.playerId, ddmmaaaa(f.nacimiento), division(f.nacimiento), f.correo,
+  const t = [["Nombre", "Apellido", "Nick", "ID de jugador", "Nacimiento", "Categoría", "Correo", "Inscrito", "Lista de mazo"]]
+    .concat(filas.map(f => [f.nombre, f.apellido, f.nick, f.playerId, ddmmaaaa(f.nacimiento), catF(f), f.correo,
                             new Date(f.actualizado || f.creado || 0).toLocaleString("es-CL"), f.lista]));
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob(["﻿" + t.map(r => r.map(q).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" }));

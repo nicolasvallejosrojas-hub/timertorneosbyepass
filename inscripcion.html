@@ -95,6 +95,19 @@
     .mazo .conteo{grid-area:c;} .mazo .sP{grid-area:p;} .mazo .sT{grid-area:t;} .mazo .sE{grid-area:e;align-self:start;} .mazo .revision{grid-area:r;margin-top:var(--e3);}
   }
   @media (pointer:fine){ .carta button{width:32px;height:32px;} }
+  /* la categoría: tres casillas grandes con los cupos que quedan */
+  .categoria{border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:var(--e2);}
+  .categoria legend{padding:0;margin-bottom:7px;font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
+  .cats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--e2);}
+  .cat{display:flex;flex-direction:column;gap:2px;padding:var(--e3);border-radius:var(--radio);background:var(--campo);cursor:pointer;
+    box-shadow:inset 0 0 0 2px transparent;min-height:44px;box-sizing:border-box;position:relative;}
+  .cat input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;}
+  .cat b{font-size:var(--t4);font-weight:700;}
+  .cat small{font-size:var(--t2);color:var(--apagado);font-variant-numeric:tabular-nums;}
+  .cat:has(input:checked){background:var(--sup-alta);box-shadow:inset 0 0 0 2px var(--accion);}
+  .cat:has(input:focus-visible){outline:2px solid var(--texto);outline-offset:2px;}
+  .cat:has(input:disabled){opacity:.55;cursor:default;}
+  .cat .lleno{color:var(--negativo);font-weight:600;}
   .acuerdo{max-height:220px;overflow:auto;background:var(--campo);border-radius:var(--radio);padding:var(--e3) var(--e4);font-size:var(--t2);line-height:1.6;}
   .acuerdo h3{font-size:var(--t3);margin:0 0 var(--e1);} .acuerdo p{margin:0 0 var(--e2);}
   .chk{display:flex;gap:var(--e2);align-items:flex-start;font-size:var(--t3);line-height:1.45;min-height:44px;cursor:pointer;}
@@ -103,7 +116,7 @@
   .acc .btn{min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
   .enlace{background:none;border:none;color:var(--apagado);font:inherit;font-size:var(--t3);text-decoration:underline;cursor:pointer;min-height:44px;padding:0;}
   .oculto{display:none!important;}
-  @media (max-width:560px){ .dos{grid-template-columns:1fr;} .acc .btn{flex:1 1 100%;} }
+  @media (max-width:560px){ .dos{grid-template-columns:1fr;} .acc .btn{flex:1 1 100%;} .cats{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -140,6 +153,11 @@
         <label class="campo"><span>Fecha de nacimiento</span>
           <input id="nacimiento" type="date" autocomplete="bday" required>
           <span class="pista" id="divPista">Día, mes y año. Define tu división (Junior, Senior o Masters).</span></label>
+        <fieldset class="categoria" id="categoria">
+          <legend>Categoría en la que te inscribes</legend>
+          <div class="cats" id="cats" role="radiogroup"></div>
+          <p class="pista" id="catPista"></p>
+        </fieldset>
       </div>
 
       <div class="caja armar" id="cajaLista" style="margin-top:var(--e4)">
@@ -194,7 +212,7 @@ Trainer: 40
 <script src="config.js?v=9"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, connectDatabaseEmulator, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=12";
 import { slug, nombreTienda } from "./sala.js?v=6";
@@ -384,11 +402,58 @@ $("importarBtn").onclick = () => {
   revisarLista();
 };
 
+/* ------------------------------------------------------------ categoría y cupos
+   La tienda puede limitar cuántos entran por categoría (inscripcion.cupos en la
+   agenda). Cada cupo es una plaza cupos/<tienda>/<evento>/<categoría>/<n> que
+   vale "" si está libre o el uid de quien la tiene: las reglas de Firebase no
+   dejan que dos personas tomen la misma ni que alguien se inscriba sin la suya,
+   así que el límite se cumple aunque se salten esta página. */
+const DIVS = ["junior", "senior", "masters"], NOM_DIV = { junior: "Junior", senior: "Senior", masters: "Masters" };
+const RANGO = { junior: () => TEMPORADA - 12 + " o después", senior: () => TEMPORADA - 16 + "–" + (TEMPORADA - 13), masters: () => TEMPORADA - 17 + " o antes" };
+let PLAZAS = {};   // categoría → { n: "" | uid }
+const limite = d => ((EV && EV.inscripcion && EV.inscripcion.cupos) || {})[d] || 0;
+const libres = d => Object.values(PLAZAS[d] || {}).filter(v => v === "").length;
+const suya = d => YO ? (Object.entries(PLAZAS[d] || {}).find(([, v]) => v === YO.uid) || [])[0] : undefined;
+const catDe = nac => division(nac).toLowerCase();
+async function cargarPlazas(){
+  if (!EV || !EV.inscripcion || !EV.inscripcion.cupos) return;
+  try { PLAZAS = (await get(ref(db, "cupos/" + T + "/" + E))).val() || {}; } catch(e){}
+  pintarCategorias();
+}
+function pintarCategorias(){
+  const marcada = (document.querySelector("#cats input:checked") || {}).value || (MIA && MIA.division) || catDe($("nacimiento").value);
+  $("cats").innerHTML = DIVS.map(d => {
+    const lim = limite(d), lleno = lim && !libres(d) && !suya(d);
+    return '<label class="cat"><input type="radio" name="cat" value="' + d + '"' + (marcada === d ? " checked" : "") + (lleno ? " disabled" : "") + ">" +
+      "<b>" + NOM_DIV[d] + "</b><small>" + RANGO[d]() + "</small><small>" +
+      (!lim ? "Sin límite de cupos" : lleno ? '<span class="lleno">Cupos llenos</span>' : libres(d) + " de " + lim + (lim === 1 ? " cupo libre" : " cupos libres")) + "</small></label>";
+  }).join("");
+  /* inscrito: la categoría ya no se cambia desde acá (el cupo está tomado) */
+  if (MIA) $("cats").querySelectorAll("input").forEach(i => i.disabled = true);
+  const d = catDe($("nacimiento").value), el = (document.querySelector("#cats input:checked") || {}).value;
+  $("catPista").textContent = MIA ? "Para cambiar de categoría, anula tu inscripción y vuelve a inscribirte."
+    : el && d && el !== d ? "Tu fecha de nacimiento corresponde a " + NOM_DIV[d] + "." : "Se marca sola según tu fecha de nacimiento.";
+}
+$("cats").onchange = pintarCategorias;
+/* Toma la primera plaza libre; si otra persona se adelanta (las reglas lo rechazan), la siguiente. */
+async function plazaPara(div){
+  if (suya(div)) return suya(div);
+  await cargarPlazas();
+  const libresN = Object.entries(PLAZAS[div] || {}).filter(([, v]) => v === "").map(([n]) => n).sort((a, b) => a - b);
+  for (const n of libresN){
+    try { await set(ref(YO.db, "cupos/" + T + "/" + E + "/" + div + "/" + n), YO.uid); return n; }
+    catch(e){ if (!/permission/i.test((e && (e.code || e.message)) || "")) throw e; }
+  }
+  return "";
+}
+
 /* ------------------------------------------------------------ formulario */
 const CAMPOS = ["correo", "playerId", "nick", "nombre", "apellido", "nacimiento"];
 const PISTA_DIV = $("divPista").textContent;
 const pintarDivision = () => { const d = division($("nacimiento").value);
-  $("divPista").textContent = d ? "División " + d + " en la temporada " + TEMPORADA + "." : PISTA_DIV; };
+  $("divPista").textContent = d ? "División " + d + " en la temporada " + TEMPORADA + "." : PISTA_DIV;
+  if (!MIA && d){ const r = document.querySelector('#cats input[value="' + d.toLowerCase() + '"]'); if (r && !r.disabled) r.checked = true; }
+  pintarCategorias(); };
 $("nacimiento").oninput = pintarDivision;
 function rellenar(d, soloVacios){
   CAMPOS.forEach(k => { if (d[k] && (!soloVacios || !$(k).value)) $(k).value = d[k]; });
@@ -407,6 +472,9 @@ function leer(){
   if (!d.nick) return { error: "Escribe tu nickname." };
   if (!d.nombre || !d.apellido) return { error: "Escribe tu nombre y tu apellido." };
   const n = errorNacimiento(d.nacimiento); if (n) return { error: n };
+  d.division = (document.querySelector("#cats input:checked") || {}).value || "";
+  if (!d.division) return { error: "Marca la categoría en la que te inscribes (Junior, Senior o Masters)." };
+  if (d.division !== catDe(d.nacimiento)) return { error: "Por tu fecha de nacimiento juegas en " + NOM_DIV[catDe(d.nacimiento)] + ". Marca esa categoría." };
   const r = leerLista(d.lista);
   if (r.errores.length) return { error: "La lista de mazo tiene problemas: " + r.errores[0] };
   if (!$("acepta").checked) return { error: "Para inscribirte tienes que aceptar el Acuerdo de Cesión de Derechos." };
@@ -420,6 +488,7 @@ function pintarMia(){
   $("imprimir").classList.toggle("oculto", !hay);
   $("anular").classList.toggle("oculto", !hay || !abierta());
   $("yaInscrito").classList.toggle("oculto", !hay);
+  pintarCategorias();
   if (hay) $("yaInscrito").innerHTML = "<b>Estás inscrito</b> · División " + esc(division(MIA.nacimiento)) +
     ". " + (abierta() ? "Puedes corregir tus datos y tu lista hasta que empiece el torneo." : "Las inscripciones ya cerraron: tu lista quedó así.");
 }
@@ -434,8 +503,16 @@ $("form").onsubmit = async e => {
     if (!YO){ const u = authInv.currentUser || (await signInAnonymously(authInv)).user; YO = { db: dbInv, uid: u.uid, cuenta: false }; }
     const ahora = Date.now();
     const dato = { ...d, acepta: true, creado: (MIA && MIA.creado) || ahora, actualizado: ahora };
-    await set(ref(YO.db, ruta(YO.uid)), dato);
-    MIA = dato; pintarMia();
+    let nueva = "";
+    if (limite(d.division)){
+      const antes = suya(d.division);
+      dato.cupo = await plazaPara(d.division);
+      if (!dato.cupo){ await cargarPlazas(); b.disabled = false; pintarMia(); return error("Los cupos de " + NOM_DIV[d.division] + " se llenaron. Si alguien anula, se liberan: vuelve a intentarlo más tarde."); }
+      if (!antes) nueva = dato.cupo;
+    }
+    try { await set(ref(YO.db, ruta(YO.uid)), dato); }
+    catch(err){ if (nueva) set(ref(YO.db, "cupos/" + T + "/" + E + "/" + d.division + "/" + nueva), "").catch(() => {}); throw err; }
+    MIA = dato; pintarMia(); cargarPlazas();
     $("yaInscrito").scrollIntoView({ block: "center", behavior: "smooth" });
   } catch(err){
     const c = (err && (err.code || err.message)) || "";
@@ -451,7 +528,11 @@ $("form").onsubmit = async e => {
 
 $("anular").onclick = async () => {
   if (!YO || !confirm("¿Anular tu inscripción a «" + EV.titulo + "»? Se borran tus datos y tu lista de este torneo.")) return;
-  try { await remove(ref(YO.db, ruta(YO.uid))); MIA = null; $("acepta").checked = false; pintarMia(); }
+  try {
+    const cambios = { [ruta(YO.uid)]: null }, n = MIA.division && suya(MIA.division);
+    if (n) cambios["cupos/" + T + "/" + E + "/" + MIA.division + "/" + n] = "";
+    await update(ref(YO.db), cambios);
+    MIA = null; $("acepta").checked = false; await cargarPlazas(); pintarMia(); }
   catch(err){ error("No se pudo anular. Revisa la conexión y vuelve a intentarlo."); }
 };
 $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.inscripcion.formato, tienda: TIENDA }, BASE_E)]);
@@ -479,6 +560,7 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
   if (!estandar) $("pistaLista").textContent = "Formato Expandido: el buscador solo trae las cartas de Estándar. Para las demás, " +
     "escribe la línea completa (por ejemplo «2 Nombre de la carta ABC 12») o pega tu lista exportada.";
   cargarEstandar().then(b => { BASE = b; BASE_E = estandar ? b : null; revisarLista(); });
+  pintarCategorias(); await cargarPlazas();
 
   /* ¿Quién se inscribe? Primero una cuenta de ByePass; si no, la sesión
      anónima que haya quedado de una inscripción anterior en este navegador. */
