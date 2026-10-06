@@ -1,7 +1,7 @@
 /* ============================================================
    listamazo.js — la lista de mazo de las inscripciones
    ------------------------------------------------------------
-   Versión actual: v=5   (subir el ?v= al tocar este archivo)
+   Versión actual: v=6   (subir el ?v= al tocar este archivo)
 
    La usan la página de inscripción (el jugador la escribe y ve si está bien)
    y el panel (la tienda imprime las de todos). Vive acá para que las dos
@@ -56,11 +56,15 @@ const normNom = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀
   .replace(/[’`´]/g, "'").replace(/\s+/g, " ").trim();
 const BASICA = /\bbasic\b.*energy|energ[ií]a .*b[aá]sica/i;
 export const norm = normNom;
-/* porCodigo: «TWM 130» → { reg, x } (x: B = Pokémon Básico, A = ACE SPEC).
+/* porCodigo: «TWM 130» → { reg, x } (x: B = Pokémon Básico, A = ACE SPEC,
+   R = impresión vieja de un Entrenador que tiene reimpresión legal).
    Los nombres se guardan con su marca x para revisar por nombre las
-   impresiones viejas. `cartas` queda entera para el buscador. */
+   impresiones viejas. `cartas` queda entera para el buscador, con las
+   reimpresiones (lista «reimp» del JSON) al final. Una impresión vieja de un
+   Entrenador legal vale tanto como la nueva: se juega igual. */
 export function indexar(d){
   const porCodigo = new Map(), nombres = new Map();
+  d = { ...d, cartas: d.cartas.concat((d.reimp || []).map(c => [...c, "R"])) };
   d.cartas.forEach(([s, n, nom, , reg, x = ""]) => {
     porCodigo.set(s + " " + sinCeros(n), { reg, x });
     const k = normNom(nom); nombres.set(k, (nombres.get(k) || "") + x);
