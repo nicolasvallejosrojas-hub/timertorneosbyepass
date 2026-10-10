@@ -1,4 +1,24 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de muro.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos del muro
+      2. Diálogos de insignias
+      3. Módulos que usa el muro
+      4. Arranque y variables
+      5. Pestañas
+      6. Qué filas del historial son mías
+      7. Rachas contra cada rival
+      8. Inicio: publicaciones
+      9. Mi perfil
+     10. Insignias
+     11. Perfil de otro jugador
+     12. Mis tiendas (columna)
+     13. En vivo
+     14. Seguir y ordenar tiendas
+     15. Próximo torneo
+     16. Buscador y salir
+     17. Confirmar el correo
+     18. Arranque con la sesión
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -7,6 +27,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 1 · Estilos del muro — Rejilla de tres columnas, perfil, publicaciones, en vivo e insignias. -->
 <style>
   /* =========================================================
      El muro
@@ -501,11 +522,13 @@
 
 </div>
 
+<!-- ▌BLOQUE 2 · Diálogos de insignias — Detalle de una insignia y celebración al ganar una. -->
 <!-- El detalle de una insignia y la celebración cuando se gana una. -->
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, serverTimestamp }
@@ -516,14 +539,16 @@ import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./ag
 /* SALA es el timer que se está mirando (su reloj y sus mesas); TIENDA, la
    tienda de ese timer: historial, agenda, a quién sigo y mi ID compartido. */
 import { SALA, BASE, TIENDA, BASE_T, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=6";
-import { nombreMes } from "./clasificacion.js?v=2";
+import { nombreMes, claveJugador } from "./clasificacion.js?v=3";
 import { estoyEnLinea } from "./presencia.js?v=4";
 import { leerHistorial } from "./historial.js?v=1";
 import { vigilar } from "./mantenimiento.js?v=3";
-import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=5";
+import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=6";
 
 const $ = id => document.getElementById(id);
 
+/* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
+   Firebase, enlaces con ?emu y ?sala, perfil pedido por #jugador, estado global. */
 const app  = initializeApp(FIREBASE_CONFIG);
 const db   = getDatabase(app);
 const auth = getAuth(app);
@@ -556,6 +581,8 @@ $("aHerr").href = "herramientas.html" + qs;
 let usuario = null, perfil = null, HIST = null, ESTADO = null, PAIR = null, filtro = "";
 let TIENDAS = null, errTienda = "";
 
+/* ▌BLOQUE 5 · Pestañas ══════════════════════════════════════════════════════════
+   Inicio, Mi perfil, En vivo y el perfil de otro jugador. */
 /* ------------------------------------------------------------
    Pestañas
    ------------------------------------------------------------ */
@@ -593,6 +620,10 @@ addEventListener("hashchange", () => {
    nombre igual que como se inscribe en la tienda. La normalización (norm) es
    la de insignias.js: la misma que usa el directorio de jugadores. */
 
+/* ▌BLOQUE 6 · Qué filas del historial son mías ══════════════════════════════════
+   Una fila es mía si tiene mi uid; si no tiene uid, si el nombre calza con el de mi perfil. Junta
+   los torneos de mis tiendas (las que sigo, organizo o miro). deNombre: el perfil de otra persona
+   por su clave (c:…), su cuenta (u:…) o, en enlaces viejos, su nombre. */
 /* Una fila es mía si la tienda la marcó con mi uid —eso ocurre solo si le
    compartí mi ID de jugador— y si no, por nombre. El nombre sigue siendo el
    respaldo y no un residuo: cubre los torneos archivados antes de que
@@ -634,8 +665,12 @@ function filasDe(esDe){
 const miosDelHistorial = () => filasDe(esMia);
 /* Otro jugador, por su nombre. Los reservados no tienen perfil: pidieron no
    salir con su nombre, y juntar sus torneos sería desarmar eso. */
-const deNombre = n => p => !!p && !p.reservado && norm(p.name) === n;
+/* n puede ser la clave de la persona (c:…), su cuenta (u:…) o, en un enlace viejo, su nombre. */
+const deNombre = n => p => !!p && !p.reservado && (claveJugador(p) === n || (!!p.uid && "u:" + p.uid === n) || norm(p.name) === n);
 
+/* ▌BLOQUE 7 · Rachas contra cada rival ══════════════════════════════════════════
+   Con las partidas archivadas calcula victorias, derrotas y la racha más reciente contra cada
+   rival. */
 /* ------------------------------------------------------------
    Rachas contra cada rival
    ------------------------------------------------------------
@@ -657,7 +692,7 @@ function rachasDe(esDe){
         if (a !== yo && b !== yo) return;
         const otro = st[a === yo ? b : a];
         if (!otro) return;
-        const clave = otro.reservado ? "u:" + otro.uid : norm(otro.name);
+        const clave = claveJugador(otro);
         const x = riv[clave] ??= { clave, w: 0, l: 0, e: 0, racha: null, n: 0 };
         x.nombre = otro.name; x.reservado = !!otro.reservado;
         const r = g === 0 || g === 3 ? "e" : (g === 1) === (a === yo) ? "w" : "l";
@@ -702,6 +737,8 @@ function pintarFicha(){
     mios.length + (mios.length === 1 ? " torneo" : " torneos") + " · " + w + "-" + l + "-" + e;
 }
 
+/* ▌BLOQUE 8 · Inicio: publicaciones ═════════════════════════════════════════════
+   Los torneos de mis tiendas como publicaciones, con la tabla final y mi resultado. */
 /* ------------------------------------------------------------
    El muro: un torneo archivado es una publicación
    ------------------------------------------------------------ */
@@ -746,7 +783,7 @@ function pintarMuro(){
         '<tr' + (esMia(p) ? ' class="yo-fila"' : "") + '>' +
         '<td class="pos">' + p.place + "º</td>" +
         "<td>" + (p.reservado ? esc(esMia(p) ? "Tú · reservado" : p.name)
-                 : '<a href="#jugador" data-jug="' + esc(norm(p.name)) + '">' + esc(p.name) + "</a>") + "</td>" +
+                 : '<a href="#jugador" data-jug="' + esc(claveJugador(p)) + '">' + esc(p.name) + "</a>") + "</td>" +
         '<td class="pts">' + (p.pts || 0) + " pts · " +
         (p.w || 0) + "-" + (p.l || 0) + "-" + (p.t || 0) + "</td></tr>").join("") +
       "</tbody></table>" +
@@ -756,6 +793,8 @@ function pintarMuro(){
   }).join("");
 }
 
+/* ▌BLOQUE 9 · Mi perfil ═════════════════════════════════════════════════════════
+   Ficha, récord y resultados propios. */
 /* ------------------------------------------------------------
    Mi perfil y mis resultados
    ------------------------------------------------------------ */
@@ -813,6 +852,9 @@ function resultadosHtml(mios, vacio){
     : vacio;
 }
 
+/* ▌BLOQUE 10 · Insignias ════════════════════════════════════════════════════════
+   Carga historial, puntos y tienda de cada tienda leída; calcula insignias permanentes y de tienda
+   con insignias.js, vitrina, ocultas, detalle y celebración de las nuevas. */
 /* ------------------------------------------------------------
    Insignias
    ------------------------------------------------------------
@@ -1033,6 +1075,9 @@ function celebrar(nuevas){
   try { d.showModal(); } catch(e){}
 }
 
+/* ▌BLOQUE 11 · Perfil de otro jugador ═══════════════════════════════════════════
+   verJugador / pintarJugador: los torneos de un jugador por su nombre, sus insignias y rachas si
+   las hace públicas. */
 /* ------------------------------------------------------------
    El perfil de otro jugador
    ------------------------------------------------------------
@@ -1094,6 +1139,8 @@ $("swRachas").onchange = async e => {
   catch(err){ e.target.checked = !v; $("swRachasTxt").textContent = "No se pudo guardar. Revisa la conexión."; }
 };
 
+/* ▌BLOQUE 12 · Mis tiendas (columna) ════════════════════════════════════════════
+   Las tiendas que sigo, con su logo. */
 /* Las tiendas que sigue el jugador, todas, con la actual marcada. Antes era
    una lista de "otras tiendas" metida debajo del botón de seguir. */
 /* La sala no guarda un nombre propio: lo único que existe es el identificador
@@ -1132,6 +1179,8 @@ function pintarMisTiendas(){
     update(ref(db, "usuarios/" + usuario.uid + "/tiendas/" + b.dataset.fav), { favorita: !t[b.dataset.fav].favorita })));
 }
 
+/* ▌BLOQUE 13 · En vivo ══════════════════════════════════════════════════════════
+   La ronda que se está jugando: mi mesa, la ronda completa y cómo va la tabla. */
 /* ------------------------------------------------------------
    En vivo
    ------------------------------------------------------------
@@ -1263,6 +1312,8 @@ function pintarVivo(){
   }
 }
 
+/* ▌BLOQUE 14 · Seguir y ordenar tiendas ═════════════════════════════════════════
+   Seguir, dejar de seguir y el orden de mis tiendas (usuarios/<uid>/tiendas). */
 /* ------------------------------------------------------------
    Tiendas: las que sigo, en el orden que elijo
    ------------------------------------------------------------
@@ -1352,6 +1403,8 @@ function pintarTienda(){
 }
 $("bOrdenar").onclick = () => { ordenando = !ordenando; pintarTienda(); };
 
+/* ▌BLOQUE 15 · Próximo torneo ═══════════════════════════════════════════════════
+   El siguiente evento de mis tiendas. */
 /* ------------------------------------------------------------
    Próximo torneo, de la agenda
    ------------------------------------------------------------ */
@@ -1380,6 +1433,8 @@ function pintarProximo(){
     '<a class="btn ancho" target="_blank" rel="noopener" href="' + urlGoogle(ev) + '">Agregar a mi calendario</a>';
 }
 
+/* ▌BLOQUE 16 · Buscador y salir ═════════════════════════════════════════════════
+   Filtra las publicaciones por nombre. */
 /* ------------------------------------------------------------
    Buscador
    ------------------------------------------------------------ */
@@ -1392,6 +1447,8 @@ $("buscar").oninput = e => {
 
 $("btnSalir").onclick = () => signOut(auth);
 
+/* ▌BLOQUE 17 · Confirmar el correo ══════════════════════════════════════════════
+   Aviso para confirmar el correo; se revisa solo al volver a la pestaña. */
 /* ------------------------------------------------------------
    Correo sin confirmar
    ------------------------------------------------------------
@@ -1434,6 +1491,8 @@ async function revisarCorreo(){
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden) revisarCorreo(); });
 
+/* ▌BLOQUE 18 · Arranque con la sesión ═══════════════════════════════════════════
+   Lee el perfil del usuario y arranca todo lo anterior. */
 /* ------------------------------------------------------------
    Sesión y datos
    ------------------------------------------------------------ */

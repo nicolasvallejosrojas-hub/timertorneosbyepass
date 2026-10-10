@@ -1,10 +1,26 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de cuenta.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos de la cuenta
+      2. Marcado: vitrina y vistas
+      3. Módulos
+      4. Navegación entre vistas
+      5. Entrar
+      6. Recuperar la contraseña
+      7. Crear cuenta (tres pasos)
+      8. Ajustes
+      9. Escríbenos
+     10. Tu tienda
+     11. Eliminar la cuenta
+     12. Vitrina en vivo
+     13. Arranque con la sesión
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ByePass — Cuenta</title>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 1 · Estilos de la cuenta — Barra, pasos, campos, medidor de contraseña, vitrina y ajustes. -->
 <style>
   /* =========================================================
      Cuenta de jugador: entrar, crear cuenta y ajustes
@@ -186,6 +202,8 @@
 <main>
 <div class="centro">
 
+  <!-- ▌BLOQUE 2 · Marcado: vitrina y vistas — La ronda en vivo para quien llega desde un torneo, y las vistas:
+       entrar, olvidé, confirmar, nueva clave, crear cuenta, ajustes. -->
   <!-- La vitrina y las pestañas solo aparecen si llegaste desde un torneo que
        está corriendo (?desde=torneo y hay ronda en la sala). -->
   <div class="vitrina isla oculto" id="vitrina">
@@ -555,6 +573,7 @@
 </main>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y de sesion.js. -->
 <script type="module">
 import { ref, get, set, remove, update, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -572,6 +591,8 @@ estoyEnLinea(db, "cuenta");
 
 const $ = id => document.getElementById(id);
 
+/* ▌BLOQUE 4 · Navegación entre vistas ═══════════════════════════════════════════
+   Decide qué vista mostrar según el #hash y los enlaces de los correos de Firebase (oobCode). */
 /* ------------------------------------------------------------
    Vistas por hash, para que el botón "atrás" del navegador sirva también
    entre los pasos del registro: #crear, #crear-2, #crear-3.
@@ -658,6 +679,8 @@ document.querySelectorAll("[data-ver]").forEach(b => b.onclick = () => {
   b.textContent = ver ? "Ocultar" : "Ver";
 });
 
+/* ▌BLOQUE 5 · Entrar ════════════════════════════════════════════════════════════
+   Inicio de sesión con correo y contraseña. */
 /* ------------------------------------------------------------
    Entrar
    ------------------------------------------------------------ */
@@ -675,6 +698,8 @@ $("formIngresar").onsubmit = async e => {
   b.disabled = false; b.textContent = "Entrar";
 };
 
+/* ▌BLOQUE 6 · Recuperar la contraseña ═══════════════════════════════════════════
+   Correo de recuperación y formulario de clave nueva. */
 /* ------------------------------------------------------------
    Recuperar la contraseña
    ------------------------------------------------------------ */
@@ -759,6 +784,8 @@ $("formNueva").onsubmit = async e => {
   catch(err){ location.replace(urlCuenta("ingresar")); }
 };
 
+/* ▌BLOQUE 7 · Crear cuenta (tres pasos) ═════════════════════════════════════════
+   Medidor de contraseña, código de beta, validación por paso y registro con sesion.js. */
 /* ------------------------------------------------------------
    Crear cuenta
    ------------------------------------------------------------ */
@@ -883,6 +910,9 @@ async function crearCuenta(){
   }
 }
 
+/* ▌BLOQUE 8 · Ajustes ═══════════════════════════════════════════════════════════
+   Nombre, nacimiento, ID de jugador, privacidad, IDs de otros juegos, tiendas con las que comparto
+   el ID. */
 /* ------------------------------------------------------------
    Ajustes
    ------------------------------------------------------------ */
@@ -1108,6 +1138,8 @@ $("ajClave").onclick = async () => {
 
 $("btnSalir").onclick = () => signOut(auth);
 
+/* ▌BLOQUE 9 · Escríbenos ════════════════════════════════════════════════════════
+   Guarda un mensaje en buzon/. */
 /* ------------------------------------------------------------ Escríbenos
    El buzón lo lee solo la administración (Herramientas → Buzón). Las reglas
    dejan uno por minuto: buzonUltimo se escribe en la misma escritura. */
@@ -1133,6 +1165,8 @@ $("formBuzon").onsubmit = async e => {
   $("btnBuzon").disabled = false;
 };
 
+/* ▌BLOQUE 10 · Tu tienda ════════════════════════════════════════════════════════
+   Pedir una tienda (solicitudes/), ver su estado y crearla cuando está aprobada. */
 /* ------------------------------------------------------------ Tu tienda
    Pedir la cuenta de una tienda (antes vivía en el panel). Se pide acá, quien
    administra la aprueba en Herramientas y recién entonces se crea desde acá:
@@ -1245,6 +1279,8 @@ async function crearTienda(u, { id, nombre, comuna }, gastar){
   location.href = panelDe(id);
 }
 
+/* ▌BLOQUE 11 · Eliminar la cuenta ═══════════════════════════════════════════════
+   Borra los datos propios y la cuenta. */
 /* ------------------------------------------------------------ Eliminar la cuenta
    Firebase pide un ingreso reciente para borrar una cuenta: por eso la
    contraseña. Después se borran los datos en una sola escritura y al final el
@@ -1281,6 +1317,8 @@ $("btnEliminar").onclick = async () => {
   } catch(err){ listo("No se pudo terminar de borrar. Revisa la conexión y vuelve a intentar."); }
 };
 
+/* ▌BLOQUE 12 · Vitrina en vivo ══════════════════════════════════════════════════
+   Reloj y ronda de la sala para quien llega desde un torneo. */
 /* ------------------------------------------------------------
    Vitrina: la sala en vivo, para quien llega desde un torneo
    ------------------------------------------------------------
@@ -1354,6 +1392,8 @@ if (DESDE_TORNEO){
   setInterval(pintarReloj, 1000);
 }
 
+/* ▌BLOQUE 13 · Arranque con la sesión ═══════════════════════════════════════════
+   Con sesión: ajustes; sin sesión: entrar o crear cuenta. */
 /* ------------------------------------------------------------
    Sesión
    ------------------------------------------------------------ */

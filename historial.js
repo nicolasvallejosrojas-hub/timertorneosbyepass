@@ -1,3 +1,6 @@
+/* ▌ÍNDICE de historial.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Historial con caché
+*/
 /* ============================================================
    historial.js — el historial de una tienda, guardado en el celular
    ------------------------------------------------------------
@@ -20,6 +23,8 @@
 import { ref, query, orderByKey, startAfter, onValue }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+/* ▌BLOQUE 1 · Historial con caché ═══════════════════════════════════════════════
+   Guarda los torneos en el teléfono y pide solo los nuevos. */
 /* Llama a cb(historial) cada vez que cambia, con el mismo objeto
    { id: torneo } que daba leer salas/<sala>/historial. fallo() si no se pudo.
    Devuelve una función para dejar de escuchar. */

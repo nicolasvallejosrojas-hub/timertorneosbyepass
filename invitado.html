@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de invitado.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Script
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -7,6 +11,7 @@
 <meta name="description" content="Prueba el timer de ByePass sin crear una cuenta: reloj en la tele, mesas en el celular y sorteo, por 24 horas.">
 <title>Timer sin cuenta — ByePass</title>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 1 · Estilos -->
 <style>
   body{min-height:100vh;}
   .sup{display:flex;align-items:center;min-height:56px;padding:0 var(--e4);}
@@ -60,6 +65,8 @@
   </main>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 2 · Script — Crea o retoma una sala de invitado (inv-xxxxxx, 24 h) con una sesión anónima y abre
+     el panel en ella. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";

@@ -1,7 +1,14 @@
+/* ▌ÍNDICE de insignias.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Catálogo e íconos
+    2. Filas de un jugador
+    3. Niveles
+    4. Insignias permanentes
+    5. Insignias de tienda
+*/
 /* ============================================================
    insignias.js — el catálogo y la cuenta de las insignias
    ------------------------------------------------------------
-   Versión actual: v=5   (subir el ?v= al tocar este archivo)
+   Versión actual: v=6   (subir el ?v= al tocar este archivo)
 
    Dos tipos:
      · PERMANENTES: son de la cuenta. Cuentan los torneos de todas las tiendas
@@ -19,8 +26,10 @@
    Lo usan el muro (perfil propio y ajeno) y el panel (las de evento). No lee
    nada del navegador al cargarse, así que se puede probar con node.
    ============================================================ */
-import { clasificar, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer } from "./clasificacion.js?v=2";
+import { clasificar, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=3";
 
+/* ▌BLOQUE 1 · Catálogo e íconos ═════════════════════════════════════════════════
+   Íconos SVG, medallas (permanentes) y parches (de tienda). */
 export const BETA_CUPOS = 100;
 export const NIVELES = ["bronce", "plata", "oro"];
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
@@ -91,6 +100,8 @@ export function parche(ico, color, sigla, { s = 64, ok = true, anillo = 0, event
     "<em>" + esc(sigla) + "</em>" + candado(ok) + "</span>";
 }
 
+/* ▌BLOQUE 2 · Filas de un jugador ═══════════════════════════════════════════════
+   norm y claveFila (= claveJugador de clasificacion.js: la misma regla que el ranking). */
 /* ------------------------------------------------------------
    Quién es quién en el historial
    ------------------------------------------------------------ */
@@ -98,7 +109,7 @@ export function parche(ico, color, sigla, { s = 64, ok = true, anillo = 0, event
 export const norm = s => String(s || "").toLowerCase().normalize("NFD")
   .replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
 /* La misma clave que usan las rachas: los reservados, por uid; el resto, por nombre. */
-export const claveFila = p => p.reservado ? "u:" + p.uid : norm(p.name);
+export const claveFila = claveJugador;
 const filasDe = t => Object.values(t.standings || {});
 const orden = (a, b) => (a.fecha || "").localeCompare(b.fecha || "") || (a.creado || 0) - (b.creado || 0);
 
@@ -120,6 +131,8 @@ export const fechaLarga = f => {
 const isoLocal = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 export const hoy = () => isoLocal(new Date());
 
+/* ▌BLOQUE 3 · Niveles ═══════════════════════════════════════════════════════════
+   Cuánto falta para el siguiente nivel. */
 /* Una cuenta con niveles: la serie trae la fecha en que se sumó cada unidad,
    así que el nivel n se ganó en la fecha número niveles[n-1]. */
 function evaluar(niveles, serie){
@@ -133,6 +146,8 @@ function progreso(niveles, r){
   return (niveles.length > 1 || r.sig > 1) ? { v: r.v, meta: r.sig, txt } : null;
 }
 
+/* ▌BLOQUE 4 · Insignias permanentes ═════════════════════════════════════════════
+   De la cuenta: se calculan con todos los torneos legibles. */
 /* ------------------------------------------------------------
    Permanentes
    ------------------------------------------------------------ */
@@ -216,6 +231,8 @@ export function permanentes({ tiendas, esDe, alta = null, numero = null, tester 
   }).filter(Boolean);
 }
 
+/* ▌BLOQUE 5 · Insignias de tienda ═══════════════════════════════════════════════
+   Automáticas (debut, local, podio, campeón del mes) y de evento. */
 /* ------------------------------------------------------------
    De tienda
    ------------------------------------------------------------ */
@@ -257,8 +274,9 @@ function poblacion(hist, campeones){
    ganaron. Lo usa también el panel para decir «Entregada a N». */
 export function repartoEvento(e, hist, dia = hoy()){
   const torneos = Object.values(hist || {}).filter(t => t.fecha === e.fecha);
+  /* Las elegidas antes del 09-10-2026 se guardaron por nombre (o u:<uid>): siguen valiendo. */
   const gana = f => e.modo === "top" ? f.place >= 1 && f.place <= (e.top || 0)
-                  : e.modo === "elegidos" ? Object.values(e.elegidos || {}).includes(claveFila(f)) : true;
+                  : e.modo === "elegidos" ? Object.values(e.elegidos || {}).some(k => k === claveFila(f) || k === norm(f.name) || (f.reservado && k === "u:" + f.uid)) : true;
   const ganadores = [];
   torneos.forEach(t => filasDe(t).forEach(f => { if (gana(f)) ganadores.push(f); }));
   return { torneos, ganadores, estado: torneos.length ? "entregada" : e.fecha >= dia ? "programada" : "sin torneo" };

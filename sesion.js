@@ -1,3 +1,10 @@
+/* ▌ÍNDICE de sesion.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Firebase y enlaces
+    2. Mensajes de error
+    3. Validaciones
+    4. Beta cerrada
+    5. Registrar
+*/
 /* ============================================================
    sesion.js — entrar y crear cuenta
    ------------------------------------------------------------
@@ -18,6 +25,8 @@ import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, updatePro
 import { SALA } from "./sala.js?v=6";
 import { vigilar } from "./mantenimiento.js?v=3";
 
+/* ▌BLOQUE 1 · Firebase y enlaces ════════════════════════════════════════════════
+   app, db, auth compartidos; params() conserva ?emu y ?sala en los enlaces. */
 export const app  = initializeApp(FIREBASE_CONFIG);
 export const db   = getDatabase(app);
 export const auth = getAuth(app);
@@ -50,6 +59,8 @@ export const urlPanel  = () => "admin.html" + params();
 export const urlMuro   = h => "muro.html" + params() + (h ? "#" + h : "");
 export const urlCuenta = h => "cuenta.html" + params() + (h ? "#" + h : "");
 
+/* ▌BLOQUE 2 · Mensajes de error ═════════════════════════════════════════════════
+   decir(e): traduce los errores de Firebase. */
 /* ------------------------------------------------------------
    Errores de Firebase, en castellano
    ------------------------------------------------------------ */
@@ -76,6 +87,8 @@ export const decir = e => {
   return ERRORES[c] || "No se pudo completar. Intenta de nuevo.";
 };
 
+/* ▌BLOQUE 3 · Validaciones ══════════════════════════════════════════════════════
+   ID de jugador, correo, fuerza de contraseña y fecha de nacimiento. */
 /* ------------------------------------------------------------
    Lo que se valida
    ------------------------------------------------------------ */
@@ -130,6 +143,8 @@ export function errorNacimiento(v){
   return "";
 }
 
+/* ▌BLOQUE 4 · Beta cerrada ══════════════════════════════════════════════════════
+   Códigos de invitación. */
 /* ------------------------------------------------------------
    Beta cerrada
    ------------------------------------------------------------
@@ -158,6 +173,8 @@ export async function revisarCodigo(c){
   } catch(e){ return "beta/codigo"; }
 }
 
+/* ▌BLOQUE 5 · Registrar ═════════════════════════════════════════════════════════
+   Crea la cuenta y su perfil en usuarios/<uid>. */
 /* ------------------------------------------------------------
    Registrarse
    ------------------------------------------------------------

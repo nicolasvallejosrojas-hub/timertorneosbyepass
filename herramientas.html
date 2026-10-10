@@ -1,4 +1,17 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de herramientas.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Diálogo de borrar tienda
+      3. Módulos
+      4. Arranque
+      5. Mantenimiento
+      6. Salas de invitado
+      7. Beta cerrada
+      8. Tiendas
+      9. Cifras, buzón y cuentas
+     10. Solicitudes de tienda
+     11. Borrar una tienda
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -7,6 +20,7 @@
 <meta name="robots" content="noindex">
 <title>Herramientas de administrador — ByePass</title>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 1 · Estilos — Mantenimiento, beta, tiendas, cifras, buzón, cuentas y borrar. -->
 <style>
   /* Herramientas de quien administra el sitio entero (admins/<uid> = true en
      la consola): el mantenimiento y todas las tiendas. No es el panel del
@@ -186,6 +200,7 @@
     </div>
   </main>
 
+  <!-- ▌BLOQUE 2 · Diálogo de borrar tienda — Confirmación antes de borrar una tienda entera. -->
   <dialog class="hoja" id="dlgBorrar" aria-labelledby="dbTit">
     <h2 id="dbTit">Eliminar la tienda</h2>
     <p class="nota" style="font-size:var(--t3);color:var(--texto)">Se borra entera y <b>no se puede deshacer</b>:</p>
@@ -200,6 +215,7 @@
   </dialog>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
 import { ref, onValue, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -209,6 +225,8 @@ import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=4";
 estoyEnLinea(db, "herramientas");
 
 const $ = id => document.getElementById(id);
+/* ▌BLOQUE 4 · Arranque ══════════════════════════════════════════════════════════
+   Solo para admins (admins/<uid>); las reglas son la protección real. */
 /* El ?emu=1 viaja en cada enlace: sin eso, una prueba local abriría la base real. */
 const EMU = enEmulador() ? "emu=1&" : "";
 const aTienda = id => "tienda.html?" + EMU + "sala=" + encodeURIComponent(id);
@@ -239,6 +257,8 @@ onAuthStateChanged(auth, async u => {
   pintarTiendas();
 });
 
+/* ▌BLOQUE 5 · Mantenimiento ═════════════════════════════════════════════════════
+   Activa o desactiva sistema/mantenimiento con un mensaje. */
 /* ------------------------------------------------------------ mantenimiento
    Lo que cierra de verdad son las reglas: con el sitio cerrado, nadie que no
    administre lee ni escribe nada. */
@@ -270,6 +290,8 @@ $("mantBtn").onclick = async () => {
   catch(e){ $("mantBtn").disabled = false; $("mantDesc").textContent = "No se pudo cambiar. Revisa la conexión."; }
 };
 
+/* ▌BLOQUE 6 · Salas de invitado ═════════════════════════════════════════════════
+   Borra las salas de invitado vencidas. */
 /* ------------------------------------------------------------ salas de invitado
    El timer sin cuenta (invitado.html) abre salas inv-xxxxxx que duran 24 h.
    Al vencer las reglas ya no dejan leerlas; acá se borran de verdad (la sala,
@@ -290,6 +312,8 @@ async function limpiarInvitados(){
     ". Duran 24 horas; al vencer se cierran solas y se borran al abrir esta página.";
 }
 
+/* ▌BLOQUE 7 · Beta cerrada ══════════════════════════════════════════════════════
+   Activa la beta, crea lotes de códigos de invitación y copia sus enlaces. */
 /* ------------------------------------------------------------ beta cerrada
    beta/activa abre o cierra el registro. Cada código (beta/codigos/<CÓDIGO>)
    tiene cuántos usos permite y cuántos lleva; las reglas cuentan cada uso junto
@@ -384,6 +408,8 @@ function pintarCodigos(){
   });
 }
 
+/* ▌BLOQUE 8 · Tiendas ═══════════════════════════════════════════════════════════
+   Lista todas las tiendas y marca verificadas. */
 /* ------------------------------------------------------------ tiendas
    Las que nadie ha revisado, primero. verificada: true sale en el directorio;
    false, revisada y no; sin el campo, por revisar. */
@@ -434,6 +460,8 @@ async function pintarTiendas(){
   });
 }
 
+/* ▌BLOQUE 9 · Cifras, buzón y cuentas ═══════════════════════════════════════════
+   En línea y visitas, mensajes del buzón, buscar y eliminar cuentas. */
 /* ------------------------------------------------------------ cifras, buzón y cuentas
    En línea: presencia.js. Cuentas: usuarios/ (solo quien administra la lee).
    El buzón: lo que mandan desde Ajustes → Escríbenos. */
@@ -535,6 +563,8 @@ async function eliminarCuenta(uid){
   } catch(e){ alert("No se pudo eliminar (no se borró nada). Revisa la conexión."); }
 }
 
+/* ▌BLOQUE 10 · Solicitudes de tienda ════════════════════════════════════════════
+   Aprobar o rechazar los pedidos de tienda. */
 /* ------------------------------------------------------------ solicitudes
    Quien quiere una tienda la pide desde el panel. Aprobarla deja que esa
    cuenta reclame ESE id (lo exigen las reglas); rechazarla le muestra la nota.
@@ -579,6 +609,8 @@ function pintarSolicitudes(){
   });
 }
 
+/* ▌BLOQUE 11 · Borrar una tienda ════════════════════════════════════════════════
+   Borra la tienda y todos sus nodos. */
 /* ------------------------------------------------------------ eliminar
    Todo lo que cuelga del id de la tienda, en una sola escritura: o se borra
    todo o no se borra nada. Lo de cada jugador (a quién sigue, su vitrina)

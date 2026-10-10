@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de widget.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Script
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -7,6 +11,7 @@
 <meta name="robots" content="noindex">
 <title>Torneos — ByePass</title>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 1 · Estilos -->
 <style>
   /* La agenda y el ranking del mes de UNA tienda, para meter en su propia web
      con un <iframe> (el código lo da el panel, pestaña Tienda).
@@ -56,12 +61,14 @@
 </main>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 2 · Script — Lee una vez la agenda y el historial de la tienda, arma el ranking del mes y suelta
+     la conexión. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, goOffline } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { TIENDA, nombreTienda, iniciales } from "./sala.js?v=6";
 import { estaVigente, urlGoogle, ordenar } from "./agenda.js?v=4";
-import { clasificar, mesesDe, nombreMes, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=2";
+import { clasificar, mesesDe, nombreMes, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=3";
 import { historialUnaVez } from "./historial.js?v=1";
 import { contarVisita } from "./presencia.js?v=4";
 

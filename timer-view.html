@@ -1,8 +1,27 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de timer-view.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Desvío de televisores viejos
+      2. Estilos de la vista de jugadores
+      3. Marcado: pestañas y páginas
+      4. Módulos que usa la vista
+      5. Arranque
+      6. Pestañas
+      7. Respaldo local
+      8. Conexión
+      9. Reloj
+     10. Diseño e imágenes
+     11. Emparejamientos
+     12. Clasificación mensual
+     13. Ruleta de sorteos
+     14. Agenda de torneos
+     15. Sala de invitado vencida
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ▌BLOQUE 1 · Desvío de televisores viejos — Si el navegador no soporta módulos (Smart TV de antes de
+     2021), manda a tele.html. -->
 <script>
 /* Navegadores viejos (Smart TV con Tizen o webOS de antes de 2021): esta
    vista usa módulos, ?. y ?? y ahí ni arranca. Se van a tele.html, la vista
@@ -15,6 +34,8 @@
 </script>
 <title>Torneo — Timer y emparejamientos</title>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 2 · Estilos de la vista de jugadores — Reloj, pestañas, mesas, clasificación, ruleta y agenda.
+     -->
 <style>
   /* Lo compartido vive en estilo.css. Acá queda solo el acomodo de esta
      página: el reloj a pantalla completa, la rejilla de mesas y las tarjetas.
@@ -289,6 +310,7 @@
 <!-- ============ Fondo y barra de pestañas ============ -->
 <img id="bg" alt="">
 
+<!-- ▌BLOQUE 3 · Marcado: pestañas y páginas — Timer, Emparejamientos, Clasificación, Sorteo y Agenda. -->
 <!-- Barra abajo: cinco pestañas con texto no caben a 375 px, y abajo se
      llega con el pulgar mientras la otra mano sostiene el mazo. -->
 <nav id="tabbar" class="vidrio" aria-label="Secciones">
@@ -396,6 +418,7 @@
 </main>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 4 · Módulos que usa la vista — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -427,8 +450,10 @@ if (!new URLSearchParams(location.search).get("sala"))
 }
 import { resolver as palResolver, esOriginal as palEsOriginal, aplicar as palAplicarEn,
          alDia } from "./paleta.js?v=4";
-import { nombreMes, mesDe, mesesDe, clasificar, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=2";
+import { nombreMes, mesDe, mesesDe, clasificar, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=3";
 
+/* ▌BLOQUE 5 · Arranque ══════════════════════════════════════════════════════════
+   Conecta Firebase en modo lectura y calcula la hora del servidor. */
 /* =========================================================
    1. Arranque: Firebase, sala y utilidades
    ========================================================= */
@@ -461,6 +486,8 @@ let offset = 0;                                   // diferencia con la hora del 
 const ahora = () => Date.now() + offset;
 onValue(ref(db, ".info/serverTimeOffset"), s => { offset = s.val() || 0; });
 
+/* ▌BLOQUE 6 · Pestañas ══════════════════════════════════════════════════════════
+   Muestra una pestaña y suscribe sus datos solo cuando se abre. */
 /* =========================================================
    2. Navegación entre pestañas
    ========================================================= */
@@ -492,6 +519,8 @@ function show(t){
 }
 Object.entries(PAGINAS).forEach(([k, [, boton]]) => $(boton).onclick = () => show(k));
 
+/* ▌BLOQUE 7 · Respaldo local ════════════════════════════════════════════════════
+   Guarda en el teléfono el estado del reloj y el diseño: sin señal sigue marcando bien. */
 /* =========================================================
    3. Respaldo local
    El reloj y el diseño quedan guardados en el propio teléfono. Si el jugador
@@ -516,6 +545,8 @@ function guardarRespaldo(){
   }, 500);
 }
 
+/* ▌BLOQUE 8 · Conexión ══════════════════════════════════════════════════════════
+   Indicador de conectado / sin señal. */
 /* =========================================================
    4. Conexión
    ========================================================= */
@@ -528,6 +559,9 @@ onValue(ref(db, ".info/connected"), s => {
 /* Soltar la conexión en segundo plano: lo hace presencia.js. El reloj sigue
    andando solo porque conoce la hora exacta de término. */
 
+/* ▌BLOQUE 9 · Reloj ═════════════════════════════════════════════════════════════
+   Escucha timer/state y timer/extras y dibuja el reloj contra la hora del servidor; anuncios para
+   lector de pantalla y pantalla encendida. */
 /* =========================================================
    5. Reloj
    Llega por su propio canal (paquete diminuto = respuesta inmediata).
@@ -605,6 +639,9 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") pedirWakeLock();
 });
 
+/* ▌BLOQUE 10 · Diseño e imágenes ════════════════════════════════════════════════
+   Aplica el tema publicado (colores, fondos, logo, cajas) y baja las imágenes solo cuando cambia
+   mediaVersion. */
 /* =========================================================
    6. Diseño e imágenes
    "theme" es liviano y llega en vivo con cada cambio. Las imágenes son
@@ -715,6 +752,8 @@ if (INVITADO){
 if (TH) applyTheme();
 dibujarReloj();
 
+/* ▌BLOQUE 11 · Emparejamientos ══════════════════════════════════════════════════
+   Escucha pairings: rondas, buscador de nombre, mesas con resultado y tabla. */
 /* =========================================================
    7. Emparejamientos
    ========================================================= */
@@ -865,6 +904,9 @@ function renderPair(){
   }
 }
 
+/* ▌BLOQUE 12 · Clasificación mensual ════════════════════════════════════════════
+   Lee config e historial de la tienda directo de Firebase (al abrir la pestaña) y arma la tabla
+   del mes con clasificacion.js; podio. */
 /* =========================================================
    8. Clasificación mensual
    El historial puede crecer bastante, así que se descarga recién cuando
@@ -964,6 +1006,8 @@ function renderClas(soloTabla){
   $("cstatus").textContent = "";
 }
 
+/* ▌BLOQUE 13 · Ruleta de sorteos ════════════════════════════════════════════════
+   Dibuja la ruleta y reproduce el giro que publica el panel. */
 /* =========================================================
    9. Ruleta de sorteos
    El organizador publica el giro con la hora exacta de partida, el ángulo
@@ -1101,6 +1145,9 @@ function pintarRuleta(){
 }
 
 window.addEventListener("resize", () => { if (tab === "sorteo") pintarRuleta(); });
+/* ▌BLOQUE 14 · Agenda de torneos ════════════════════════════════════════════════
+   Lista y rejilla del mes, de solo lectura; enlace directo a pestañas con #mesas, #ranking,
+   #sorteo, #agenda. */
 /* =========================================================
    10. Agenda de torneos
    El organizador publica las fechas desde su panel; acá solo se muestran y se
@@ -1239,6 +1286,7 @@ setInterval(() => { if (tab === "agenda" && AG) renderAgenda(); }, 60000);
 const POR_HASH = { mesas: "pair", ranking: "clas", sorteo: "sorteo", agenda: "agenda" };
 if (POR_HASH[location.hash.slice(1)]) show(POR_HASH[location.hash.slice(1)]);
 </script>
+<!-- ▌BLOQUE 15 · Sala de invitado vencida — El aviso cuando las reglas ya no dejan leer la sala. -->
 <!-- Sala de invitado vencida: las reglas ya no dejan leerla. -->
 <div id="vencida" role="alert"><h2>Esta sala de invitado terminó</h2>
   <p>Las salas de invitado duran 24 horas y después se borran. Crea la tuya, o una cuenta para guardar tus torneos, en <a href="index.html">byepass.cl</a>.</p></div>

@@ -1,3 +1,6 @@
+/* ▌ÍNDICE de tablafinal.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Tabla como imagen
+*/
 /* ============================================================
    tablafinal.js — la tabla final como imagen para compartir
    ------------------------------------------------------------
@@ -13,6 +16,8 @@
    nombre viene como «Jugador reservado».
    ============================================================ */
 
+/* ▌BLOQUE 1 · Tabla como imagen ═════════════════════════════════════════════════
+   Dibuja la tabla en un canvas y la comparte o descarga. */
 const C = { fondo: "#0F2E2A", fila: "#143833", texto: "#F3FFFB", suave: "#9DBDB4", coral: "#F45B45", ambar: "#FFB020", linea: "rgba(243,255,251,.1)" };
 const W = 1080, PAD = 72, FILA = 66, CAB = 330, PIE = 170;
 

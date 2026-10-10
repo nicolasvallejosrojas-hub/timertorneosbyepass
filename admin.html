@@ -1,4 +1,46 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de admin.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos del panel
+      2. Pantallas de entrada
+      3. Cabecera de la tienda y pestañas
+      4. Pestaña Timer (marcado)
+      5. Pestaña Emparejamientos (marcado)
+      6. Pestaña Sorteo (marcado)
+      7. Pestaña Calendario (marcado)
+      8. Pestaña Tienda (marcado)
+      9. Pestaña Estadísticas (marcado)
+     10. Módulos que usa el panel
+     11. Arranque: Firebase, sala y utilidades
+     12. Login, tienda y rol
+     13. Varios timers por tienda
+     14. La tienda: perfil, miembros y permisos
+     15. Insignias de la tienda
+     16. Cambio de pestaña
+     17. Estado del timer
+     18. Publicación a Firebase
+     19. Reloj
+     20. Sonido
+     21. Fondo, escala y presets
+     22. Cajas de imagen sobre el lienzo
+     23. Hoja de ajustes e imágenes
+     24. Arranque de la interfaz
+     25. Lectura del .tdf de TOM
+     26. Vista previa y publicación de emparejamientos
+     27. Vigilancia del .tdf
+     28. Reparto de premios y ronda en el lienzo
+     29. Historial, puntos, enlace de ID y archivar
+     30. Torneo de la página (sin TOM)
+     31. Base de jugadores de la tienda
+     32. Ruleta de sorteos
+     33. Calendario: agenda y plantillas
+     34. Calendario: guardar una fecha y sus cupos
+     35. Inscritos de un evento
+     36. Calendario: rejilla y lista
+     37. Paleta del sistema
+     38. Estadísticas de la tienda
+     39. Widget para la web de la tienda
+     40. Conexión
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -6,6 +48,9 @@
 <title>Panel del organizador</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 1 · Estilos del panel — Acomodo propio del panel: lienzo del timer, rail de apariencia,
+     emparejamientos (TOM y torneo de la página), ruleta, calendario y QR. Colores, tipografía y componentes
+     comunes vienen de estilo.css. -->
 <style>
   /* =========================================================
      1. Base y controles comunes
@@ -442,6 +487,9 @@
 <body>
 <h1>Panel del organizador</h1>
 
+<!-- ▌BLOQUE 2 · Pantallas de entrada — Lo que se ve antes de organizar: iniciar sesión, elegir tienda (o
+     abrir el timer personal / pedir una tienda), aceptar una invitación a organizar y el aviso de sala de
+     invitado vencida. -->
 <!-- ============ Login ============ -->
 <div class="card" id="loginCard">
   <div class="muted" style="margin-bottom:8px">Inicia sesión para controlar el timer y publicar emparejamientos.</div>
@@ -498,6 +546,8 @@
     <a class="btn sec" href="cuenta.html#crear">Crear una cuenta</a></div>
 </div>
 
+<!-- ▌BLOQUE 3 · Cabecera de la tienda y pestañas — La tienda que se organiza (nombre, timer elegido, salir),
+     el aviso de la sala de invitado, la barra de pestañas y el aviso de «sin señal». -->
 <div id="all" style="display:none">
 
 <!-- ============ La tienda que se está organizando ============ -->
@@ -537,6 +587,8 @@
 <!-- Sin señal: el panel sigue (Firebase guarda lo escrito y lo manda al volver), pero cerrar la pestaña lo perdería. -->
 <div id="sinRed" class="aviso" role="status" hidden></div>
 
+<!-- ▌BLOQUE 4 · Pestaña Timer (marcado) — El lienzo del reloj con sus botones (iniciar, reiniciar, tiempos),
+     el tiempo extra por mesa y la hoja de apariencia: logo, fondos, colores, sonido y paleta. -->
 <!-- ============================================================
      TIMER
      ============================================================ -->
@@ -768,6 +820,9 @@
 </div>
 </div>
 
+<!-- ▌BLOQUE 5 · Pestaña Emparejamientos (marcado) — Dos modos: «Con TOM» (vigilar la carpeta o arrastrar el
+     .tdf, vista previa, publicar, archivar, recuperar IDs) y «Torneo de la página» (torneo suizo sin TOM y
+     base de jugadores). Abajo, reparto de premios, puntos por puesto e historial. -->
 <!-- ============================================================
      EMPAREJAMIENTOS
      ============================================================ -->
@@ -903,6 +958,7 @@
 </div>
 </div>
 
+<!-- ▌BLOQUE 6 · Pestaña Sorteo (marcado) — La ruleta: lista de nombres, girar, ganadores. -->
 <!-- ============================================================
      SORTEO
      ============================================================ -->
@@ -950,6 +1006,8 @@
 </div>
 </div>
 
+<!-- ▌BLOQUE 7 · Pestaña Calendario (marcado) — La rejilla del mes, el formulario de una fecha (con
+     plantillas, inscripciones con lista de mazo y cupos por categoría) y la lista de próximos y pasados. -->
 <!-- ============================================================
      CALENDARIO
      ============================================================ -->
@@ -1058,6 +1116,8 @@
 </div>
 </div>
 
+<!-- ▌BLOQUE 8 · Pestaña Tienda (marcado) — Los timers de la tienda (hasta 5), las insignias de la tienda y el
+     código del widget. -->
 <!-- ============================================================
      TIENDA: su perfil público y quiénes la organizan
      ============================================================ -->
@@ -1143,6 +1203,8 @@
   </div>
 </div>
 
+<!-- ▌BLOQUE 9 · Pestaña Estadísticas (marcado) — Cifras y gráficos de la tienda: torneos, jugadores, visitas.
+     -->
 <!-- ============================================================
      ESTADÍSTICAS de la tienda: torneos, jugadores y visitas
      ============================================================ -->
@@ -1190,6 +1252,9 @@
 <input type="file" accept="image/*" id="fBox" style="display:none">
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 10 · Módulos que usa el panel — Imports de Firebase y de los módulos compartidos (sala, agenda,
+     insignias, torneo, paleta, listamazo, etc.). Cada uno lleva su ?v= para que el navegador no mezcle
+     versiones. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -1200,7 +1265,9 @@ import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, no
 import { vigilar } from "./mantenimiento.js?v=3";
 import { estoyEnLinea } from "./presencia.js?v=4";
 import { barras } from "./graficos.js?v=2";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=5";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=6";
+import { claveJugador } from "./clasificacion.js?v=3";
+import { planClaves } from "./jugadores.js?v=1";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
          GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=1";
@@ -1210,6 +1277,9 @@ import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_
 import { entregarTabla } from "./tablafinal.js?v=1";
 import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=6";
 
+/* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
+   Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
+   calcula la hora del servidor (offset) y define conTimeout / mensajeConexion. */
 /* =========================================================
    1. Arranque: Firebase, sala y utilidades
    ========================================================= */
@@ -1255,6 +1325,10 @@ function mensajeConexion(e){
     : "Error: " + (e.code || e.message);
 }
 
+/* ▌BLOQUE 12 · Login, tienda y rol ══════════════════════════════════════════════
+   Entrar y salir; leer ?sala, ?unirse, ?elegir; decidir qué se abre según quién entra: selector de
+   tiendas, timer personal, sala de invitado, invitación a organizar o la tienda pedida.
+   onAuthStateChanged es el punto de partida de todo el panel. */
 /* =========================================================
    2. Login, sala y pestañas
    ========================================================= */
@@ -1584,6 +1658,9 @@ onAuthStateChanged(auth, async u => {
   }
 });
 
+/* ▌BLOQUE 13 · Varios timers por tienda ═════════════════════════════════════════
+   Lista los timers de la tienda (principal, -t2…-t5), los muestra, crea uno nuevo copiando el
+   diseño del timer 1 y guarda qué tablas de clasificación se ocultan. */
 /* ------------------------------------------------------------
    Timers de la tienda. El 1 es la sala de la tienda; del 2 al MAX_TIMERS son
    <tienda>-tN (ver sala.js). Existe el que tiene salas/<id>/tienda. Las
@@ -1663,6 +1740,9 @@ async function crearTimer(){
   } catch(e){ $("timersMsg").textContent = "No se pudo crear. Revisa la conexión."; }
 }
 
+/* ▌BLOQUE 14 · La tienda: perfil, miembros y permisos ═══════════════════════════
+   Escucha tiendas/<id> (perfil, miembros, verificada) y deja listo el panel según el rol: dueño,
+   organizador o admin. */
 /* ------------------------------------------------------------
    Pestaña Tienda: el perfil público y los organizadores
    ------------------------------------------------------------ */
@@ -1758,6 +1838,9 @@ function escucharTienda(u){
   }
 }
 
+/* ▌BLOQUE 15 · Insignias de la tienda ═══════════════════════════════════════════
+   Panel de insignias automáticas y de evento: elegir ícono, nombre y fecha, elegir jugadores
+   ganadores (torneo archivado) y guardarlas en tiendas/<id>/insignias. */
 /* ------------------------------------------------------------
    Pestaña Tienda: las insignias de la tienda
    ------------------------------------------------------------
@@ -1851,6 +1934,9 @@ $("ieCrear").onclick = async () => {
   catch(e){ msg("No se pudo crear. Revisa la conexión."); }
 };
 
+/* ▌BLOQUE 16 · Cambio de pestaña ════════════════════════════════════════════════
+   Muestra la pestaña pedida y carga lo que necesita la primera vez (calendario, estadísticas,
+   etc.). */
 /* Una entrada por pestaña: agregar una más es agregar una línea acá y el
    botón en el HTML, no seis toggles repartidos. */
 const PESTANAS = { t:"panelT", p:"panelP", s:"panelS", c:"panelC", o:"panelO", e:"panelE" };
@@ -1866,6 +1952,9 @@ function switchTab(t){
 }
 Object.keys(PESTANAS).forEach(k => $("tab" + k.toUpperCase()).onclick = () => switchTab(k));
 
+/* ▌BLOQUE 17 · Estado del timer ═════════════════════════════════════════════════
+   El objeto st con todo lo del reloj y su diseño (vistas computador/celular, colores, cajas de
+   imagen, presets). Lee el respaldo local y adapta los colores viejos. */
 /* =========================================================
    3. Estado del timer
    ========================================================= */
@@ -1948,6 +2037,10 @@ function adoptarApariencia(t){
   palPintarControles(); palAplicar(false);
 }
 
+/* ▌BLOQUE 18 · Publicación a Firebase ═══════════════════════════════════════════
+   Escribe el reloj (timer/state: endTime, remaining, paused, updatedAt) apenas cambia, y la
+   apariencia (timer/theme y timer/media) solo al confirmar «Publicar». Si hay otro organizador,
+   adopta lo publicado. */
 /* =========================================================
    4. Publicación a Firebase
    El estado del reloj viaja SOLO (unos 100 bytes) para que iniciar/pausar
@@ -2139,6 +2232,9 @@ async function cleanAndPublish(){
                        media: snapMedia(), mediaVersion: Date.now() }); } catch(e){}
 }
 
+/* ▌BLOQUE 19 · Reloj ════════════════════════════════════════════════════════════
+   Iniciar, pausar, reiniciar, editar el tiempo a mano, presets y tiempo extra por mesa
+   (timer/extras). renderClock dibuja el reloj cada segundo. */
 /* =========================================================
    5. Reloj
    ========================================================= */
@@ -2244,6 +2340,8 @@ setInterval(() => { try { renderClock(); } catch(e){} }, 250);
 ["visibilitychange","pageshow","focus"].forEach(ev =>
   window.addEventListener(ev, () => { try { renderClock(); } catch(e){} }));
 
+/* ▌BLOQUE 20 · Sonido ═══════════════════════════════════════════════════════════
+   La alarma al llegar a cero: sonido subido por la tienda o tres pitidos. */
 /* =========================================================
    6. Sonido
    ========================================================= */
@@ -2285,6 +2383,9 @@ $("clearSound").onclick = () => {
   refrescarAjustes();
 };
 
+/* ▌BLOQUE 21 · Fondo, escala y presets ══════════════════════════════════════════
+   Pinta el fondo del lienzo (color, degradé o imagen), escala el lienzo a la ventana y dibuja los
+   botones de tiempos guardados. */
 /* =========================================================
    7. Fondo, escala y presets
    ========================================================= */
@@ -2340,6 +2441,8 @@ $("btnFull").onclick = () => {
   else if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
 };
 
+/* ▌BLOQUE 22 · Cajas de imagen sobre el lienzo ══════════════════════════════════
+   Agregar, mover, redimensionar y borrar imágenes sobre el timer (clic derecho en el lienzo). */
 /* =========================================================
    8. Cajitas de imagen sobre el lienzo
    ========================================================= */
@@ -2475,6 +2578,9 @@ $("canvas").addEventListener("contextmenu", e => {
    ========================================================= */
 
 
+/* ▌BLOQUE 23 · Hoja de ajustes e imágenes ═══════════════════════════════════════
+   Conecta cada control de apariencia con st, comprime las imágenes antes de subirlas y avisa al
+   cerrar con cambios sin publicar. */
 function refrescarAjustes(){
   const v = V();
   $("bgWhich").textContent = st.view === "desktop" ? "vista computador" : "vista celular";
@@ -2591,6 +2697,8 @@ $("fBgMobile").onchange  = e => { const f = e.target.files && e.target.files[0];
 $("btnDelBgD").onclick = () => { st.desktop.bgImage = ""; pintarFondo(); refrescarAjustes(); cambioApariencia(true); };
 $("btnDelBgM").onclick = () => { st.mobile.bgImage  = ""; pintarFondo(); refrescarAjustes(); cambioApariencia(true); };
 
+/* ▌BLOQUE 24 · Arranque de la interfaz ══════════════════════════════════════════
+   renderAll: dibuja todo una vez que llegaron los datos del timer. */
 /* =========================================================
    10. Arranque de la interfaz
    ========================================================= */
@@ -2622,6 +2730,9 @@ function renderAll(){
   }
 }
 
+/* ▌BLOQUE 25 · Lectura del .tdf de TOM ══════════════════════════════════════════
+   parseTdf: lee el XML que guarda TOM y saca jugadores, rondas, mesas, resultados, la tabla y los
+   ID de jugador (ID_POR_PUESTO, que nunca se publica) y las partidas para las rachas (DUELOS). */
 /* =========================================================
    11. Lectura del .tdf de TOM
    ========================================================= */
@@ -2746,6 +2857,9 @@ function parseTdf(xmlText){
            pendientes, updatedAt: Date.now() };
 }
 
+/* ▌BLOQUE 26 · Vista previa y publicación de emparejamientos ════════════════════
+   Muestra lo leído del .tdf, y publica en salas/<sala>/pairings solo lo que cambió (lo que leen
+   las pantallas de los jugadores). También borra lo publicado. */
 /* =========================================================
    12. Vista previa y publicación de emparejamientos
    ========================================================= */
@@ -2902,6 +3016,9 @@ $("clearBtn").onclick = async () => {
   } catch(e){ $("clearMsg").innerHTML = '<span class="err">'+mensajeConexion(e)+'</span>'; }
 };
 
+/* ▌BLOQUE 27 · Vigilancia del .tdf ══════════════════════════════════════════════
+   En Chrome/Edge, vigila la carpeta de TOM cada 4 s y publica solo cuando el archivo cambia.
+   Guarda el permiso en IndexedDB para retomarlo al recargar. */
 /* =========================================================
    12b. Vigilancia del .tdf — sincronización con TOM
    El navegador no puede "mirar" el disco por su cuenta, pero sí puede quedarse
@@ -3094,6 +3211,9 @@ async function restaurarVigilancia(){
 // El "revisado hace N s" tiene que envejecer aunque no pase nada
 setInterval(() => { if (vigHandle) pintarVig(); }, 1000);
 
+/* ▌BLOQUE 28 · Reparto de premios y ronda en el lienzo ══════════════════════════
+   Calcula cuánto le toca a cada puesto según el modo elegido y escucha pairings para mostrar el
+   nombre del torneo y la ronda sobre el timer. */
 /* =========================================================
    12c. Nombre del torneo y ronda en el lienzo
    Lo que se proyecta gana mucho con decir de qué torneo y qué ronda se trata.
@@ -3163,6 +3283,11 @@ onValue(ref(db, BASE + "/pairings"), snap => {
   $("ronda").style.display = "block";
 }, () => {});
 
+/* ▌BLOQUE 29 · Historial, puntos, enlace de ID y archivar ═══════════════════════
+   Escucha enlaces (ID que cada jugador comparte) e idsHistorial; enlazarPasados marca con su uid
+   las filas de torneos viejos y escribe las claves por ID (jugadores.js). Puntos por puesto.
+   archivarTorneo guarda el torneo en historial (público, sin ID) y los ID aparte en idsHistorial.
+   Tabla como imagen, recuperar IDs desde .tdf viejos y lista del historial. */
 /* =========================================================
    13. Historial y puntos por puesto
    ========================================================= */
@@ -3210,10 +3335,16 @@ async function enlazarPasados(){
       if (!e.publico){ rutas[r + "/name"] = "Jugador reservado"; rutas[r + "/reservado"] = true; }
     });
   });
-  if (!Object.keys(rutas).length) return;
+  /* Misma persona = mismo ID: una clave en todas sus filas, escritas como estén (jugadores.js).
+     Va en una escritura aparte: si las reglas todavía no aceptan «clave», el enlace por uid de
+     arriba no se pierde. */
+  const claves = {};
+  Object.entries(planClaves(HIST_P, IDS_HIST)).forEach(([r, v]) => { claves["historial/" + r] = v; });
+  if (!Object.keys(rutas).length && !Object.keys(claves).length) return;
   enlazando = true;
   /* historialVer nuevo: los celulares que guardaron el historial lo bajan de nuevo. */
-  try { await update(ref(db, BASE_T), { ...rutas, historialVer: Date.now() }); } catch(e){}
+  if (Object.keys(rutas).length) try { await update(ref(db, BASE_T), { ...rutas, historialVer: Date.now() }); } catch(e){}
+  if (Object.keys(claves).length) try { await update(ref(db, BASE_T), { ...claves, historialVer: Date.now() }); } catch(e){}
   enlazando = false;
 }
 const R_CFG  = ref(db, BASE_T + "/config");
@@ -3390,6 +3521,9 @@ function pintarHist(){
   });
 }
 
+/* ▌BLOQUE 30 · Torneo de la página (sin TOM) ════════════════════════════════════
+   Correr un suizo en la página con torneo.js: crear, inscribir, emparejar, anotar resultados, top
+   cut, publicar cada cambio en pairings y archivar en el historial. */
 /* =========================================================
    12d. Torneo de la página (sin TOM)
    Dos caminos para lo mismo: TOM arma el torneo y el panel lee su .tdf, o la
@@ -3665,6 +3799,9 @@ function pintarNuevo(){
   pintarJuegos();
 }
 
+/* ▌BLOQUE 31 · Base de jugadores de la tienda ═══════════════════════════════════
+   jugadores/<tienda>: buscar, agregar, corregir y borrar los jugadores que se inscriben en los
+   torneos de la página. */
 /* ------------------------------------------------------------ la base */
 function pintarBaseJ(){
   const todos = Object.entries(BASEJ).map(([id, j]) => ({ id, ...j }));
@@ -3744,6 +3881,9 @@ async function borrarJ(id){
 }
 
 
+/* ▌BLOQUE 32 · Ruleta de sorteos ════════════════════════════════════════════════
+   Lista, giro y ganadores. El giro se publica en salas/<sala>/sorteo para que los celulares lo
+   vean girar igual. */
 /* =========================================================
    14. Ruleta de sorteos
    El giro se publica con hora de partida, ángulo inicial y ángulo final. Cada
@@ -3958,6 +4098,9 @@ $("rBorrar").onclick = async () => {
     $("rMsg").innerHTML = '<span class="ok">Quitado de la vista ✓</span>';
   } catch(e){ $("rMsg").innerHTML = '<span class="err">'+mensajeConexion(e)+'</span>'; }
 };
+/* ▌BLOQUE 33 · Calendario: agenda y plantillas ══════════════════════════════════
+   Escucha salas/<tienda>/agenda y las plantillas de fechas; alternar «todo el día» y mostrar los
+   campos de inscripción. */
 /* =========================================================
    15. Calendario de torneos
    Lo que se guarda acá lo lee la pestaña "Agenda" de los jugadores. El enlace
@@ -4034,6 +4177,10 @@ $("evTodoDia").onchange = modoTodoDia;
 const modoInsc = () => $("evFmtWrap").style.display = $("evCuposWrap").style.display = $("evInsc").checked ? "" : "none";
 $("evInsc").onchange = modoInsc;
 
+/* ▌BLOQUE 34 · Calendario: guardar una fecha y sus cupos ════════════════════════
+   planCupos ajusta las plazas cupos/<tienda>/<evento>/<categoría>/<n> a los cupos del evento.
+   leerForm/limpiarForm/editar/borrar el evento; el evento y sus plazas se guardan en una sola
+   escritura. */
 /* Las plazas de cada categoría: cupos/<tienda>/<evento>/<categoría>/<n> vale "" si
    está libre o el uid de quien la tiene (las reglas dejan tomar solo las que
    existen y solo una vez). Al guardar el evento se ajustan a los cupos nuevos:
@@ -4154,6 +4301,10 @@ async function borrar(ev){
   try { await update(ref(db), rutas); } catch(e){ alert(mensajeConexion(e)); }
 }
 
+/* ▌BLOQUE 35 · Inscritos de un evento ═══════════════════════════════════════════
+   Lista de inscritos (inscripciones/<tienda>/<evento>, solo la tienda la lee) con categoría y
+   cupos; abrir/cerrar inscripciones, imprimir listas de mazo, CSV, quitar a alguien (libera su
+   cupo) y liberar cupos sueltos. */
 /* ------------------------------------------------------------
    Inscripciones (League Challenge, League Cup)
    Un evento de la agenda con «inscripcion» tiene un enlace público
@@ -4254,6 +4405,8 @@ function bajarCsvInscritos(ev, filas){
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+/* ▌BLOQUE 36 · Calendario: rejilla y lista ══════════════════════════════════════
+   Dibuja el mes, la lista de próximos y pasados, el filtro por juego y el .ics. */
 const MES_CORTO = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
 
 function irMes(delta){
@@ -4391,6 +4544,8 @@ $("evIcsTodo").onclick = () => {
 
 modoTodoDia();
 
+/* ▌BLOQUE 37 · Paleta del sistema ═══════════════════════════════════════════════
+   Editor de la paleta (acento y base) con paleta.js; la publica dentro de timer/theme. */
 /* ============================================================
    PALETA DEL SISTEMA — interfaz
    ------------------------------------------------------------
@@ -4573,6 +4728,9 @@ function palPintarControles(){
   palAplicar(false);
 })();
 
+/* ▌BLOQUE 38 · Estadísticas de la tienda ════════════════════════════════════════
+   Torneos, jugadores distintos y nuevos, visitas por día y por mes, a partir del historial y de
+   stats/tiendas/<id>. */
 /* =========================================================
    Estadísticas de la tienda (pestaña Estadísticas)
    Salen del historial que el panel ya escucha (HIST_P) y de las visitas que
@@ -4598,7 +4756,7 @@ async function pintarEstTienda(recargar){
   /* La primera vez de cada jugador en la tienda, cuántas veces vino y cómo
      se escribe su nombre en su último torneo. Se cuenta por nombre, como el ranking. */
   const primera = {}, veces = {}, nombre = {};
-  T.forEach(t => quienes(t).forEach(f => { const k = normNombre(f.name); primera[k] ??= t.fecha; veces[k] = (veces[k] || 0) + 1; nombre[k] = f.name; }));
+  T.forEach(t => quienes(t).forEach(f => { const k = claveJugador(f); primera[k] ??= t.fecha; veces[k] = (veces[k] || 0) + 1; nombre[k] = f.name; }));
   const ks = Object.keys(primera);
   $("etTorneos").textContent = etN(T.length);
   $("etTorneosD").textContent = T.filter(t => t.fecha >= hace30).length + " en los últimos 30 días";
@@ -4619,7 +4777,7 @@ async function pintarEstTienda(recargar){
     { etq: etCorta, desc: d => (d.n ? d.n + " · " : "") + etCorta(d.x) + ": " + d.b + " jugadores" });
   const meses = Array.from({ length: 6 }, (_, i) => { const d = new Date(hoy.slice(0, 7) + "-01T12:00:00"); d.setMonth(d.getMonth() - (5 - i)); return etDia(d.getTime()).slice(0, 7); });
   barras($("etGMes"), meses.map(m => {
-      const s = new Set(T.filter(t => t.fecha.slice(0, 7) === m).flatMap(t => quienes(t).map(f => normNombre(f.name))));
+      const s = new Set(T.filter(t => t.fecha.slice(0, 7) === m).flatMap(t => quienes(t).map(f => claveJugador(f))));
       return { x: m, a: s.size, b: [...s].filter(k => primera[k].slice(0, 7) < m).length }; }),
     { etq: m => ET_MES[+m.slice(5) - 1] + " " + m.slice(2, 4), desc: d => ET_MES[+d.x.slice(5) - 1] + ": " + d.a + " jugaron, " + d.b + " ya habían venido" });
   barras($("etGVis"), serieV, { etq: etCorta, desc: d => etCorta(d.x) + ": " + d.a + " visitas, " + d.b + " únicas" });
@@ -4651,6 +4809,8 @@ addEventListener("resize", () => {
   clearTimeout(etRedibujo); etRedibujo = setTimeout(() => pintarEstTienda(), 150);
 });
 
+/* ▌BLOQUE 39 · Widget para la web de la tienda ══════════════════════════════════
+   Arma el código <iframe> de widget.html para copiar. */
 /* =========================================================
    Widget: la agenda y el ranking de la tienda en su propia web
    (widget.html, que cuenta sus visitas como «widget»)
@@ -4669,6 +4829,8 @@ $("wgCopiar").onclick = () => navigator.clipboard.writeText($("wgCodigo").value)
   () => { $("wgMsg").textContent = "Copiado ✓"; setTimeout(() => $("wgMsg").textContent = "", 2000); },
   () => { $("wgCodigo").select(); $("wgMsg").textContent = "Cópialo con Ctrl+C."; });
 
+/* ▌BLOQUE 40 · Conexión ═════════════════════════════════════════════════════════
+   Muestra el aviso de «sin señal» y avisa al cerrar la pestaña si quedaron cambios sin enviar. */
 /* =========================================================
    Sin señal. Firebase guarda lo que se escribe sin conexión y lo manda solo
    al volver, así que el panel sigue funcionando (el reloj corre por su hora

@@ -1,3 +1,8 @@
+/* ▌ÍNDICE de graficos.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Barras SVG
+*/
+/* ▌BLOQUE 1 · Barras SVG ════════════════════════════════════════════════════════
+   barras(): gráfico de barras sin librerías. */
 /* ============================================================
    graficos.js — barras verticales en SVG, sin librerías
    ------------------------------------------------------------

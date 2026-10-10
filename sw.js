@@ -1,3 +1,8 @@
+/* ▌ÍNDICE de sw.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Service worker
+*/
+/* ▌BLOQUE 1 · Service worker ════════════════════════════════════════════════════
+   Red primero; la copia guardada solo sin señal. Atiende solo GET. */
 /* =========================================================
    sw.js — la app instalable
    ---------------------------------------------------------

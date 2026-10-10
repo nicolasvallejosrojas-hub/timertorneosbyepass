@@ -1,3 +1,6 @@
+/* ▌ÍNDICE de presencia.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. En línea y visitas
+*/
 /* ============================================================
    presencia.js — cuántas personas hay en línea, y cuántas visitas
    ------------------------------------------------------------
@@ -33,6 +36,8 @@
 import { ref, push, set, update, remove, onValue, onDisconnect, serverTimestamp, goOffline, goOnline, increment }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+/* ▌BLOQUE 1 · En línea y visitas ════════════════════════════════════════════════
+   presencia/ (pestañas en línea) y stats/ (visitas por día). */
 const LATIDO = 120000, VIGENTE = 300000, VIEJA = 600000;
 
 /* El día de hoy en la hora del teléfono, como 2026-09-28. */

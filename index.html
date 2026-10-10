@@ -1,4 +1,14 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de index.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos de la portada
+      2. Módulos
+      3. Enlaces y sesión abierta
+      4. Entrar
+      5. Fecha de nacimiento
+      6. Contraseña
+      7. Crear cuenta
+      8. El dibujo
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -7,6 +17,7 @@
 <meta name="description" content="Tu tienda, tus torneos y la gente que juega contigo. Crea tu cuenta gratis: cada torneo que juegues queda en tu muro.">
 <title>ByePass</title>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 1 · Estilos de la portada — Franja, registro, dibujo, «así funciona» y pie. -->
 <style>
   /* La portada es la puerta del registro, como la de Facebook en 2009: la
      franja de marca con el ingreso a la derecha, y abajo la frase, el dibujo
@@ -369,6 +380,7 @@
   </footer>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 2 · Módulos — Imports de sesion.js. -->
 <script type="module">
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { signInWithEmailAndPassword, onAuthStateChanged }
@@ -392,6 +404,8 @@ get(ref(db, "altas")).then(s => {
   if (Object.keys(s.val() || {}).length < 100) $("betaAviso").classList.remove("oculto");
 }, () => {});
 
+/* ▌BLOQUE 3 · Enlaces y sesión abierta ══════════════════════════════════════════
+   Con sesión abierta salta al muro. */
 const DESTINO = { ingresar: urlCuenta("ingresar"), olvide: urlCuenta("olvide"), panel: urlPanel(), pedir: urlCuenta("tienda"),
                   torneo: "timer-view.html" + params(), tiendas: "tienda.html" + (enEmulador() ? "?emu=1" : "") };
 document.querySelectorAll("[data-link]").forEach(a => a.href = DESTINO[a.dataset.link]);
@@ -401,6 +415,8 @@ document.querySelectorAll("[data-link]").forEach(a => a.href = DESTINO[a.dataset
 let registrando = false;
 onAuthStateChanged(auth, u => { if (u && !registrando) location.replace(urlMuro()); });
 
+/* ▌BLOQUE 4 · Entrar ════════════════════════════════════════════════════════════
+   Ingreso desde la franja. */
 /* ------------------------------------------------------------ entrar */
 $("formEntrar").onsubmit = async e => {
   e.preventDefault();
@@ -417,6 +433,8 @@ $("formEntrar").onsubmit = async e => {
   }
 };
 
+/* ▌BLOQUE 5 · Fecha de nacimiento ═══════════════════════════════════════════════
+   Los selectores de día, mes y año. */
 /* ------------------------------------------------------------ fecha
    Día, mes y año por separado, como en 2009. Un calendario nativo abre en el
    mes de hoy, y para llegar a 2011 hay que retroceder quince años a toques. */
@@ -428,6 +446,8 @@ opciones($("rgAnio"), Array.from({ length: 101 }, (_, i) => [anioHoy - i, anioHo
 const fecha = () => [$("rgAnio").value, $("rgMes").value, $("rgDia").value].every(Boolean)
   ? $("rgAnio").value + "-" + $("rgMes").value + "-" + $("rgDia").value : "";
 
+/* ▌BLOQUE 6 · Contraseña ════════════════════════════════════════════════════════
+   Medidor de fuerza. */
 /* ------------------------------------------------------------ contraseña */
 function medir(){
   const clave = $("rgClave").value;
@@ -441,6 +461,8 @@ function medir(){
 }
 ["rgClave", "rgNombre", "rgCorreo"].forEach(id => $(id).addEventListener("input", medir));
 
+/* ▌BLOQUE 7 · Crear cuenta ══════════════════════════════════════════════════════
+   Validación y registro (con código si la beta está activa). */
 /* ------------------------------------------------------------ crear cuenta */
 function error(){
   const nombre = $("rgNombre").value.trim();
@@ -486,6 +508,8 @@ $("formRegistro").onsubmit = async e => {
   }
 };
 
+/* ▌BLOQUE 8 · El dibujo ═════════════════════════════════════════════════════════
+   Jugadores alrededor del reloj; el reloj corre de verdad. */
 /* ------------------------------------------------------------ el dibujo */
 const PINES = [[62,92],[140,40],[262,34],[392,44],[492,86],[512,196],[440,286],[306,304],[168,292],[52,226]];
 const COLORES = ["--accion", "--acento2", "--ok", "--podio1", "--podio3"];

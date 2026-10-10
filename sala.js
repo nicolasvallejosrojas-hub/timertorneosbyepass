@@ -1,3 +1,7 @@
+/* ▌ÍNDICE de sala.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Nombre de sala
+    2. Tienda y timers
+*/
 /* ============================================================
    sala.js — de qué sala habla esta pestaña
    ------------------------------------------------------------
@@ -13,11 +17,16 @@
    que un día dejan de ser iguales.
    ============================================================ */
 
+/* ▌BLOQUE 1 · Nombre de sala ════════════════════════════════════════════════════
+   Normaliza el nombre de sala (sin tildes ni mayúsculas). */
 /* Nombre de sala apto para una ruta de Firebase: sin tildes, sin mayúsculas y
    sin los caracteres que la base prohíbe en una clave. */
 export const slug = (v, largo = 24) => (v || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
   .replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, largo);
 
+/* ▌BLOQUE 2 · Tienda y timers ═══════════════════════════════════════════════════
+   SALA (el timer), TIENDA (sin el -tN), BASE y BASE_T (rutas en Firebase), salas de invitado y
+   personales, nombre e iniciales de la tienda. */
 /* Desde el 27-09-2026 una tienda tiene hasta MAX_TIMERS timers. El 1 es la
    sala con el mismo id de la tienda (la de siempre); el 2 en adelante son
    <tienda>-t2, <tienda>-t3… Cada timer tiene su reloj, sus mesas y su sorteo;

@@ -1,4 +1,16 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de inscripcion.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Marcado
+      3. Módulos
+      4. Arranque y variables
+      5. Acuerdo de cesión de derechos
+      6. Registrador de la lista
+      7. Buscador de cartas
+      8. Categoría y cupos
+      9. Formulario
+     10. Arranque
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -7,6 +19,8 @@
 <meta name="description" content="Inscripción a un torneo con lista de mazo.">
 <title>Inscripción — ByePass</title>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 1 · Estilos — Formulario, registrador de mazo (dos columnas en pantalla ancha), categorías y
+     acuerdo. -->
 <style>
   /* Inscripción a un torneo de una tienda (League Challenge, League Cup).
      Llega por un enlace que comparte la tienda. La cuenta es opcional: sin
@@ -120,6 +134,7 @@
 </style>
 </head>
 <body>
+  <!-- ▌BLOQUE 2 · Marcado — Datos del jugador, categoría, lista de mazo, acuerdo y botones. -->
   <header class="sup"><a class="marca" href="index.html">Bye<b>Pass</b></a></header>
   <main>
     <div>
@@ -210,6 +225,7 @@ Trainer: 40
   </main>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sesion, sala, agenda y listamazo. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -220,6 +236,8 @@ import { fechaLegible, urlGoogle } from "./agenda.js?v=4";
 import { leerLista, cuenta, division, hoja, imprimir, cargarEstandar, componer, norm, TEMPORADA } from "./listamazo.js?v=6";
 
 const $ = id => document.getElementById(id);
+/* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
+   Tienda y evento de la URL; app «invitado» para inscribirse sin cuenta (sesión anónima). */
 const q = new URLSearchParams(location.search);
 const T = slug(q.get("sala")), E = String(q.get("evento") || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
 
@@ -243,6 +261,8 @@ function noHay(txt){
   $("noHay").textContent = txt; $("noHay").classList.remove("oculto");
 }
 
+/* ▌BLOQUE 5 · Acuerdo de cesión de derechos ═════════════════════════════════════
+   El texto con el nombre del evento. */
 /* ------------------------------------------------------------ el acuerdo */
 function pintarAcuerdo(){
   $("acuerdo").innerHTML = "<h3>Acuerdo de Cesión de Derechos</h3>" +
@@ -257,6 +277,9 @@ function pintarAcuerdo(){
     "La permanencia en el área del evento se interpretará como un consentimiento a los términos de esta notificación. Gracias por su cooperación.</p>";
 }
 
+/* ▌BLOQUE 6 · Registrador de la lista ═══════════════════════════════════════════
+   LISTA por secciones; revisarLista muestra cada carta con su estado (legal, reimpresión, más de
+   4) y el contador de 60. */
 /* ------------------------------------------------------------ el registrador de la lista
    La lista vive en LISTA (tres secciones de { cant, nombre, set, num }) y se
    guarda como siempre: un texto con títulos (componer), así que la hoja, el CSV
@@ -314,6 +337,9 @@ $("cajaLista").addEventListener("click", e => {
   revisarLista();
 });
 
+/* ▌BLOQUE 7 · Buscador de cartas ════════════════════════════════════════════════
+   Busca en cartas-estandar.json (legales y reimpresiones), atajo «4 iono», elegir con flechas y
+   Enter, pegar la lista exportada. */
 /* --- el buscador: todas las palabras tienen que estar en el nombre o en
    «expansión número». Primero lo que empieza igual; dentro de cada nombre, la
    impresión más nueva. De las Energías básicas se ofrece una sola por tipo, la
@@ -402,6 +428,9 @@ $("importarBtn").onclick = () => {
   revisarLista();
 };
 
+/* ▌BLOQUE 8 · Categoría y cupos ═════════════════════════════════════════════════
+   Casillas Junior/Senior/Masters con los cupos libres; plazaPara toma una plaza libre (las reglas
+   impiden tomar una ocupada). */
 /* ------------------------------------------------------------ categoría y cupos
    La tienda puede limitar cuántos entran por categoría (inscripcion.cupos en la
    agenda). Cada cupo es una plaza cupos/<tienda>/<evento>/<categoría>/<n> que
@@ -447,6 +476,9 @@ async function plazaPara(div){
   return "";
 }
 
+/* ▌BLOQUE 9 · Formulario ════════════════════════════════════════════════════════
+   Rellenar con la cuenta, validar (correo, ID, nacimiento, categoría, lista, acuerdo), guardar la
+   inscripción, anular e imprimir. */
 /* ------------------------------------------------------------ formulario */
 const CAMPOS = ["correo", "playerId", "nick", "nombre", "apellido", "nacimiento"];
 const PISTA_DIV = $("divPista").textContent;
@@ -537,6 +569,9 @@ $("anular").onclick = async () => {
 };
 $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.inscripcion.formato, tienda: TIENDA }, BASE_E)]);
 
+/* ▌BLOQUE 10 · Arranque ═════════════════════════════════════════════════════════
+   Carga el evento y la tienda, decide si está abierta, quién se inscribe (cuenta o anónimo) y su
+   inscripción previa. */
 /* ------------------------------------------------------------ arranque */
 (async () => {
   if (!T || !E) return noHay("Este enlace de inscripción está incompleto. Pídele el enlace de nuevo a la tienda.");

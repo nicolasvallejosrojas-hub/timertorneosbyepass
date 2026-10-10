@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de tele.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Marcado
+      3. Script ES5 para Smart TV
+      4. Reloj
+      5. Diseño
+      6. Nombre del torneo y ronda
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -6,6 +14,8 @@
 <meta name="theme-color" content="#0F2E2A">
 <title>Timer — ByePass</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Newsreader:opsz,wght@6..72,300&display=swap">
+<!-- ▌BLOQUE 1 · Estilos — Pantalla completa para la tele: logo, ronda, reloj grande, tiempo extra y estado.
+     -->
 <!--
   tele.html — la vista del timer para teles y navegadores viejos
   -------------------------------------------------------------
@@ -49,12 +59,16 @@
 </head>
 <body>
 <img id="bg" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+<!-- ▌BLOQUE 2 · Marcado — Cabecera, reloj, estado y aviso de sala no disponible. -->
 <div id="cab"><img id="logo" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><span id="marca">Bye<b>Pass</b></span><div><div id="titulo"></div><div id="sub"></div></div></div>
 <div id="centro"><div id="ronda"></div><div id="reloj">--:--</div><div id="extras"></div></div>
 <div id="estado">Conectando…</div>
 <div id="aviso"><h2 id="avisoT">Esta sala no está disponible</h2><p id="avisoP">Revisa el enlace, o crea tu sala en byepass.cl</p></div>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 3 · Script ES5 para Smart TV — Sin módulos ni SDK de Firebase: lee por la API REST con
+     EventSource (o cada 3 s). Calibra la hora con la cabecera Date del sitio y con el updatedAt del panel.
+     -->
 <script>
 (function(){
   function $(id){ return document.getElementById(id); }
@@ -144,6 +158,8 @@
     $("aviso").style.display = "block";
   }
 
+  /* ▌BLOQUE 4 · Reloj ═════════════════════════════════════════════════════════════
+     Calcula el tiempo restante contra la hora calibrada y lo dibuja. */
   /* ---------------- reloj ---------------- */
   /* El panel guarda endTime con la hora del SERVIDOR de Firebase. El reloj de
      la tele puede estar corrido unos segundos, así que hay que saber cuánto:
@@ -217,6 +233,8 @@
   escuchar("salas/" + SALA + "/timer/extras", function(v){ EXTRAS = v || {}; dibujar(); });
   setInterval(dibujar, 250);
 
+  /* ▌BLOQUE 5 · Diseño ════════════════════════════════════════════════════════════
+     Aplica colores, fondo y logo publicados. */
   /* ---------------- diseño e imágenes ---------------- */
   var TH = null, MED = null, medVer = null;
   function pintarDiseno(){
@@ -261,6 +279,8 @@
     x.send();
   });
 
+  /* ▌BLOQUE 6 · Nombre del torneo y ronda ═════════════════════════════════════════
+     Lo saca de pairings. */
   /* ---------------- el torneo: nombre y ronda ---------------- */
   escuchar("salas/" + SALA + "/pairings", function(P){
     if (!P || !P.rounds){ $("titulo").innerHTML = ""; $("sub").innerHTML = ""; $("ronda").style.display = "none"; return; }

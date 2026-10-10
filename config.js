@@ -1,3 +1,10 @@
+/* ▌ÍNDICE de config.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Configuración de Firebase
+    2. esc()
+    3. Emulador
+*/
+/* ▌BLOQUE 1 · Configuración de Firebase ═════════════════════════════════════════
+   Las claves del proyecto (no son secretas: protege las reglas). */
 // ====== CONFIGURACIÓN DE FIREBASE ======
 // Proyecto: timer-y-qrs-pokemon
 // Estos valores NO son secretos: la seguridad real está en las reglas
@@ -12,6 +19,8 @@ const FIREBASE_CONFIG = {
   appId: "1:551925622696:web:0bb0195d153fe7c64f9f9d"
 };
 
+/* ▌BLOQUE 2 · esc() ═════════════════════════════════════════════════════════════
+   Escapa texto antes de meterlo en HTML. Global: la usan todas las páginas. */
 // ====== ESCAPAR TEXTO ======
 // Todo lo que escribe una persona (nombres del TOM, tiendas, mensajes) pasa por
 // acá antes de ir a innerHTML. Una sola para todo el sitio: había una copia por
@@ -24,6 +33,8 @@ function esc(t){
   });
 }
 
+/* ▌BLOQUE 3 · Emulador ══════════════════════════════════════════════════════════
+   Con ?emu=1 en localhost apunta al emulador local en vez de la base real. */
 // ====== EMULADOR LOCAL ======
 // Este archivo se publica, así que el emulador tiene que ser IMPOSIBLE de
 // encender en producción: primero se exige que la página venga de localhost o

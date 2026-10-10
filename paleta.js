@@ -1,3 +1,9 @@
+/* ▌ÍNDICE de paleta.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Tokens y presets
+    2. Leer y escribir colores
+    3. Contraste
+    4. Derivar la paleta
+*/
 /* ============================================================
    paleta.js — la paleta del sistema, derivada de dos colores
    ------------------------------------------------------------
@@ -14,6 +20,8 @@
    reemplazos manuales, que se validan uno por uno.
    ============================================================ */
 
+/* ▌BLOQUE 1 · Tokens y presets ══════════════════════════════════════════════════
+   Qué colores gobierna la paleta y las predefinidas. */
 /* Los tokens que esta paleta gobierna, con lo que hace cada uno. El orden es
    el que se muestra en el mapa del panel: de lo más al fondo a lo más encima. */
 export const MAPA = [
@@ -79,6 +87,8 @@ const LIENZO_LEGADO = { "#362f3c": "#0F2E2A", "#2a242f": "#0A221F", "#f4f0f5": "
                         "#f7f5ff": "#F3FFFB", "#ff5b52": "#FF7A6B" };
 export const alDia = c => (c && LIENZO_LEGADO[String(c).toLowerCase()]) || c;
 
+/* ▌BLOQUE 2 · Leer y escribir colores ═══════════════════════════════════════════
+   hex/rgb/hsl. */
 /* ------------------------------------------------------------
    Conversión entre los tres formatos
    ------------------------------------------------------------ */
@@ -160,6 +170,8 @@ export function extraerColores(txt){
   return out;
 }
 
+/* ▌BLOQUE 3 · Contraste ═════════════════════════════════════════════════════════
+   Contraste WCAG. */
 /* ------------------------------------------------------------
    Contraste (WCAG 2.1)
    ------------------------------------------------------------ */
@@ -180,6 +192,8 @@ function legible(c, contra, minimo){
   return aHex(c);
 }
 
+/* ▌BLOQUE 4 · Derivar la paleta ═════════════════════════════════════════════════
+   De acento y base calcula todos los tokens, revisa contrastes y los aplica. */
 /* ------------------------------------------------------------
    La derivación
    ------------------------------------------------------------ */

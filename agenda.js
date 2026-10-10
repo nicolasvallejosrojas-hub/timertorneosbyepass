@@ -1,3 +1,10 @@
+/* ▌ÍNDICE de agenda.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Fechas y vigencia
+    2. Google Calendar
+    3. Archivo .ics
+    4. Texto para humanos
+    5. Rejilla de mes
+*/
 /* =========================================================
    agenda.js — calendario de torneos, compartido por el panel
    del organizador y por la vista de los jugadores.
@@ -29,6 +36,8 @@
    Versión actual: v=4
    ========================================================= */
 
+/* ▌BLOQUE 1 · Fechas y vigencia ═════════════════════════════════════════════════
+   Fecha+hora local → epoch; un evento sigue vigente hasta que termina. */
 /* Epoch del instante, calculado en la zona horaria de quien lo escribe */
 export function aEpoch(fecha, hora){
   if (!fecha) return null;
@@ -61,6 +70,8 @@ function diaSiguiente(fecha){
   return "" + x.getFullYear() + dosD(x.getMonth()+1) + dosD(x.getDate());
 }
 
+/* ▌BLOQUE 2 · Google Calendar ═══════════════════════════════════════════════════
+   Enlace para agregar el evento. */
 /* ---------- Google Calendar ----------
    El enlace abre el formulario de "evento nuevo" ya relleno. No pide permisos
    ni API key: es la URL pública de siempre, y en el celular la toma la app. */
@@ -90,6 +101,8 @@ export function urlGoogle(ev){
     campos.map(([k, v]) => k + "=" + (k === "dates" ? v : encodeURIComponent(v))).join("&");
 }
 
+/* ▌BLOQUE 3 · Archivo .ics ══════════════════════════════════════════════════════
+   Calendario descargable. */
 /* ---------- Archivo .ics ----------
    Para quien no usa Google: iPhone, Outlook, Proton. El mismo archivo sirve
    para los tres. */
@@ -151,6 +164,8 @@ export function bajarIcs(eventos, nombreArchivo = "torneos.ics", nombreCalendari
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
+/* ▌BLOQUE 4 · Texto para humanos ════════════════════════════════════════════════
+   «sábado 17 de octubre», «en 3 días». */
 /* ---------- Texto para humanos ---------- */
 export const MES_LARGO = ["enero","febrero","marzo","abril","mayo","junio","julio",
                           "agosto","septiembre","octubre","noviembre","diciembre"];
@@ -185,6 +200,8 @@ export function cuantoFalta(ev, ahora = Date.now()){
    eventos. El dibujo lo hace cada página por su lado, porque el panel deja
    editar y la vista del jugador no. */
 
+/* ▌BLOQUE 5 · Rejilla de mes ════════════════════════════════════════════════════
+   Celdas del mes (semana parte el lunes), índice por fecha y el mes que conviene mostrar. */
 /* La semana parte el lunes, como se lee acá. getDay() da 0 para el domingo,
    así que hay que rotarlo: (dia + 6) % 7 deja el lunes en 0 y el domingo en 6. */
 export const DOWS = ["LUN","MAR","MIÉ","JUE","VIE","SÁB","DOM"];

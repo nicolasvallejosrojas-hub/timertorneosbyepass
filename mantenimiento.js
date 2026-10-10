@@ -1,3 +1,6 @@
+/* ▌ÍNDICE de mantenimiento.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Pantalla de mantenimiento
+*/
 /* ============================================================
    mantenimiento.js — la pantalla de «Cerrado por mantenimiento»
    ------------------------------------------------------------
@@ -16,6 +19,8 @@
 import { ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+/* ▌BLOQUE 1 · Pantalla de mantenimiento ═════════════════════════════════════════
+   La muestra cuando sistema/mantenimiento/activo es true. */
 const RECUERDO = "mantenimiento";   // la última vez que se supo: para no mostrar la página un instante
 const ERRORES = {
   "auth/invalid-credential": "El correo o la clave no coinciden.",

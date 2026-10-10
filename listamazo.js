@@ -1,3 +1,11 @@
+/* ▌ÍNDICE de listamazo.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Temporada y división
+    2. Formato de la lista
+    3. Base de Estándar
+    4. Revisar legalidad
+    5. Leer la lista
+    6. Hoja A4 e impresión
+*/
 /* ============================================================
    listamazo.js — la lista de mazo de las inscripciones
    ------------------------------------------------------------
@@ -23,6 +31,8 @@
    pegó no se pierde aunque la lectura cambie.
    ============================================================ */
 
+/* ▌BLOQUE 1 · Temporada y división ══════════════════════════════════════════════
+   Junior / Senior / Masters por año de nacimiento. */
 /* La temporada de la hoja oficial. Las divisiones se definen por AÑO de
    nacimiento y se corren un año con cada temporada: al salir la hoja nueva,
    cambiar este número y listo. */
@@ -34,6 +44,8 @@ export function division(nacimiento){
   return a >= TEMPORADA - 12 ? "Junior" : a >= TEMPORADA - 16 ? "Senior" : "Masters";
 }
 
+/* ▌BLOQUE 2 · Formato de la lista ═══════════════════════════════════════════════
+   Reconoce títulos de sección y líneas «4 Iono PAL 185». */
 const SECCION = [
   ["pokemon",    /^pok[eé]mon/i],
   ["entrenador", /^(trainers?|entrenador(es)?)/i],
@@ -48,6 +60,8 @@ const TITULO = { pokemon: "Pokémon", entrenador: "Entrenador", energia: "Energ�
 const LINEA = /^\*?\s*(\d{1,2})x?\s+(.+?)\s*$/;
 const COLA  = /^(.*\S)\s+((?=[A-Z0-9]*[A-Z])[A-Z0-9]{2,5}(?:-[A-Z0-9]{1,4})?)\s+([A-Z]{0,4}\d{1,4}[a-z]?)$/;
 
+/* ▌BLOQUE 3 · Base de Estándar ══════════════════════════════════════════════════
+   Carga cartas-estandar.json (legales y reimpresiones) y lo indexa por código y nombre. */
 /* La base de cartas legales en Estándar: cartas-estandar.json, que arma
    cartas-estandar.py desde Limitless (expansión, número, nombre, categoría y
    marca de regulación). Se baja una vez y solo para eventos Estándar. */
@@ -76,6 +90,8 @@ export const cargarEstandar = () => PEDIDA ??= fetch("cartas-estandar.json")
   .then(r => r.ok ? r.json() : Promise.reject(r.status)).then(indexar)
   .catch(() => { PEDIDA = null; return null; });   // sin la base, la lista se revisa igual, sin esta parte
 
+/* ▌BLOQUE 4 · Revisar legalidad ═════════════════════════════════════════════════
+   Estado de cada carta, ACE SPEC y Pokémon Básico. */
 /* Con la base (formato Estándar), cada carta se busca por expansión y número:
    así funciona también con la lista exportada en castellano. Si no calza, por
    nombre: una carta vieja reimpresa en una expansión legal también se juega
@@ -107,6 +123,8 @@ function revisarLegal(r, base){
     ". Si son reimpresión de una carta legal con el mismo texto, valen (en la hoja, NA en la expansión).");
 }
 
+/* ▌BLOQUE 5 · Leer la lista ═════════════════════════════════════════════════════
+   leerLista: texto → secciones, total y errores/avisos. */
 /* «Pokémon: 12», «Trainer», «Energía:»: devuelve la sección, o null si la línea no es un título. */
 function titulo(l){
   const s = SECCION.find(([, re]) => re.test(l) && !/^\d/.test(l));
@@ -150,6 +168,8 @@ export function leerLista(texto, base = null){
   return r;
 }
 
+/* ▌BLOQUE 6 · Hoja A4 e impresión ═══════════════════════════════════════════════
+   hoja(): la lista con el formato de la hoja oficial; imprimir() sin abrir otra ventana. */
 export const cuenta = (r, sec) => r[sec].reduce((s, c) => s + c.cant, 0);
 
 /* esc() es la global de config.js: todas las páginas que importan este módulo la cargan antes. */

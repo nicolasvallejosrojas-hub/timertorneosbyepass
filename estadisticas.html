@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<!-- ▌ÍNDICE de estadisticas.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Módulos
+      3. Arranque
+      4. Fechas
+      5. Lectura
+      6. Pintar
+      7. Controles y CSV
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -7,6 +16,7 @@
 <meta name="robots" content="noindex">
 <title>Estadísticas — ByePass</title>
 <link rel="stylesheet" href="estilo.css?v=11">
+<!-- ▌BLOQUE 1 · Estilos — Controles, cifras, gráficos y tablas. -->
 <style>
   /* Cómo se usa ByePass, para quien administra el sitio (admins/<uid> = true).
      Lo protegen las reglas: stats/, usuarios/ y solicitudes/ solo los lee
@@ -156,6 +166,7 @@
   </main>
 
 <script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 2 · Módulos — Imports. -->
 <script type="module">
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -164,9 +175,12 @@ import { nombreTienda } from "./sala.js?v=6";
 import { contarEnLinea } from "./presencia.js?v=4";
 import { historialUnaVez } from "./historial.js?v=1";
 import { barras } from "./graficos.js?v=2";
-import { norm } from "./insignias.js?v=5";
+import { norm } from "./insignias.js?v=6";
+import { claveGlobal } from "./clasificacion.js?v=3";
 
 const $ = id => document.getElementById(id);
+/* ▌BLOQUE 3 · Arranque ══════════════════════════════════════════════════════════
+   Solo para admins. */
 const EMU = enEmulador() ? "emu=1&" : "";
 const DEST = { inicio: "index.html" + (EMU ? "?emu=1" : ""), tiendas: "tienda.html" + (EMU ? "?emu=1" : ""),
                herramientas: "herramientas.html" + (EMU ? "?emu=1" : "") };
@@ -188,6 +202,8 @@ onAuthStateChanged(auth, async u => {
   cargar();
 });
 
+/* ▌BLOQUE 4 · Fechas ════════════════════════════════════════════════════════════
+   Ayudas para días, semanas y meses. */
 /* ------------------------------------------------------------ fechas
    Todo en días locales, como YYYY-MM-DD: así se ordenan como texto. */
 const diaDe = ms => { const d = new Date(ms);
@@ -206,6 +222,9 @@ const NOMBRE_PAGINA = { portada: "Portada", cuenta: "Cuenta", muro: "Muro", tien
 const fmtN = n => Math.round(n).toLocaleString("es-CL");
 const pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "—";
 
+/* ▌BLOQUE 5 · Lectura ═══════════════════════════════════════════════════════════
+   Lee una vez historial (con caché), usuarios, altas, stats y solicitudes; torneos() cuenta
+   jugadores distintos por clave de ID (o cuenta; si no hay, por nombre). */
 /* ------------------------------------------------------------ lectura */
 let D = null, DIAS = 30;
 async function cargar(){
@@ -225,7 +244,7 @@ function torneos(){
   const r = [];
   for (const [id, h] of Object.entries(D.hist)) for (const t of Object.values(h || {})){
     if (!t || !/^\d{4}-\d{2}-\d{2}$/.test(t.fecha || "")) continue;
-    const nombres = Object.values(t.standings || {}).filter(f => f && f.name && !f.reservado).map(f => norm(f.name));
+    const nombres = Object.values(t.standings || {}).filter(f => f && f.name && !f.reservado).map(f => claveGlobal(id, f));
     r.push({ tienda: id, fecha: t.fecha, juego: t.juego || "", jugadores: t.jugadores || Object.keys(t.standings || {}).length,
              nombres, partidas: Object.keys(t.partidas || {}).length });
   }
@@ -234,6 +253,8 @@ function torneos(){
 /* Cuándo se creó cada cuenta: usuarios/<uid>/creado, y si falta, su alta. */
 const creadas = () => Object.keys(D.usuarios).map(u => D.usuarios[u].creado || D.altas[u]).filter(x => typeof x === "number");
 
+/* ▌BLOQUE 6 · Pintar ════════════════════════════════════════════════════════════
+   Cifras, gráficos y tablas del período. */
 /* ------------------------------------------------------------ pintar */
 function rango(){
   const h = hoy();
@@ -261,7 +282,7 @@ function pintar(){
   $("cTorneosD").textContent = fmtN(Tp.length) + " en el período · " + (Tp.length ? (Tp.reduce((a, t) => a + t.jugadores, 0) / Tp.length).toFixed(1).replace(".", ",") + " jugadores en promedio" : "sin torneos");
   const todos = new Set(T.flatMap(t => t.nombres)), delP = new Set(Tp.flatMap(t => t.nombres));
   $("cJugadores").textContent = fmtN(todos.size);
-  $("cJugadoresD").textContent = fmtN(delP.size) + " distintos en el período · contados por nombre, con o sin cuenta";
+  $("cJugadoresD").textContent = fmtN(delP.size) + " distintos en el período · una persona es su ID de jugador cuando la tienda lo guardó (si no, su nombre)";
   let v = 0, uu = 0; for (const d of dias){ for (const x of Object.values(vis[d] || {})){ v += x.v || 0; uu += x.u || 0; } }
   $("cVisitas").textContent = fmtN(v);
   $("cVisitasD").textContent = fmtN(uu) + " visitantes únicos (sumados por día y página)";
@@ -341,6 +362,8 @@ document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
   pintar();
 });
+/* ▌BLOQUE 7 · Controles y CSV ═══════════════════════════════════════════════════
+   Recargar, cambiar período y bajar el CSV. */
 $("actualizar").onclick = cargar;
 let redibujo = null;
 addEventListener("resize", () => { clearTimeout(redibujo); redibujo = setTimeout(pintar, 150); });

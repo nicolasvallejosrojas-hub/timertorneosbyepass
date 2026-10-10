@@ -1,3 +1,11 @@
+/* ▌ÍNDICE de torneo.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Constantes y azar
+    2. Tabla del suizo
+    3. Emparejar
+    4. Top cut
+*/
+/* ▌BLOQUE 1 · Constantes y azar ═════════════════════════════════════════════════
+   Resultados, rondas sugeridas y azar con semilla. */
 /* ============================================================
    torneo.js — correr un torneo suizo en la página
    ------------------------------------------------------------
@@ -64,6 +72,8 @@ function barajar(lista, rnd){
   return a;
 }
 
+/* ▌BLOQUE 2 · Tabla del suizo ═══════════════════════════════════════════════════
+   Resumen por jugador, % de victorias de rivales, cara a cara y tabla ordenada. */
 /* Firebase devuelve las listas como arreglo o como objeto: acá, siempre en orden. */
 const enOrden = o => Object.keys(o || {}).sort((x, y) => x - y).map(k => o[k]).filter(Boolean);
 export const rondasDe = t => Object.keys((t && t.ronda) || {}).map(Number).sort((x, y) => x - y)
@@ -134,6 +144,8 @@ function caraACara(t, a, b, hasta){
   return Math.sign(d);
 }
 
+/* ▌BLOQUE 3 · Emparejar ═════════════════════════════════════════════════════════
+   La ronda siguiente: por puntos, sin repetir rival, bye al azar. */
 /* ------------------------------------------------------------
    Emparejar la ronda siguiente
    ------------------------------------------------------------ */
@@ -184,6 +196,8 @@ export function emparejar(t){
   return { n, mesas, revanchas };
 }
 
+/* ▌BLOQUE 4 · Top cut ═══════════════════════════════════════════════════════════
+   Eliminación directa sembrada después del suizo. */
 /* ------------------------------------------------------------
    Top cut
    ------------------------------------------------------------ */
