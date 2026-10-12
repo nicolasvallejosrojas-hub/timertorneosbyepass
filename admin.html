@@ -24,12 +24,12 @@
      22. Cajas de imagen sobre el lienzo
      23. Hoja de ajustes e imágenes
      24. Arranque de la interfaz
-     25. Lectura del .tdf de TOM
+     25. El torneo leído del archivo
      26. Vista previa y publicación de emparejamientos
-     27. Vigilancia del .tdf
+     27. Vigilancia de la carpeta
      28. Reparto de premios y ronda en el lienzo
      29. Historial, puntos, enlace de ID y archivar
-     30. Torneo de la página (sin TOM)
+     30. Torneo de la página
      31. Base de jugadores de la tienda
      32. Ruleta de sorteos
      33. Calendario: agenda y plantillas
@@ -49,8 +49,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="estilo.css?v=11">
 <!-- ▌BLOQUE 1 · Estilos del panel — Acomodo propio del panel: lienzo del timer, rail de apariencia,
-     emparejamientos (TOM y torneo de la página), ruleta, calendario y QR. Colores, tipografía y componentes
-     comunes vienen de estilo.css. -->
+     emparejamientos (desde archivo y torneo de la página), ruleta, calendario y QR. Colores, tipografía y
+     componentes comunes vienen de estilo.css. -->
 <style>
   /* =========================================================
      1. Base y controles comunes
@@ -141,7 +141,7 @@
   @media (max-width:640px){ .insForm{grid-template-columns:1fr;} }
   @media (max-width:640px){ .grid2{grid-template-columns:1fr;} }
 
-  /* --- emparejamientos: con TOM o con la página --- */
+  /* --- emparejamientos: desde archivo o con la página --- */
   .modos{display:inline-flex;background:var(--campo);border-radius:10px;padding:3px;gap:2px;}
   .modos button{background:none;color:var(--apagado);font-weight:500;padding:8px 16px;border-radius:8px;font-size:var(--t3);}
   .modos button:hover{background:var(--sup-alta);color:var(--texto);}
@@ -395,7 +395,7 @@
   #rGanadores div{padding:5px 0;border-bottom:1px solid var(--divider);}
 
   /* =========================================================
-     3b. Vigilancia del .tdf
+     3b. Vigilancia de la carpeta
      ========================================================= */
   /* Hereda .card. El estado activo se marca con el realce interno amarillo,
      que es como se marca todo lo activo en el sistema, y no con un tinte de
@@ -820,57 +820,65 @@
 </div>
 </div>
 
-<!-- ▌BLOQUE 5 · Pestaña Emparejamientos (marcado) — Dos modos: «Con TOM» (vigilar la carpeta o arrastrar el
-     .tdf, vista previa, publicar, archivar, recuperar IDs) y «Torneo de la página» (torneo suizo sin TOM y
-     base de jugadores). Abajo, reparto de premios, puntos por puesto e historial. -->
+<!-- ▌BLOQUE 5 · Pestaña Emparejamientos (marcado) — Dos modos: «Desde archivo» (vigilar la carpeta, arrastrar
+     o pegar el archivo, plantilla, vista previa, publicar, archivar, recuperar IDs) y «Torneo de la página»
+     (torneo suizo y base de jugadores). Abajo, reparto de premios, puntos por puesto e historial. -->
 <!-- ============================================================
      EMPAREJAMIENTOS
      ============================================================ -->
 <div class="panel hide" id="panelP">
 <div class="card">
   <div class="modos" role="tablist" aria-label="Cómo se corre el torneo">
-    <button role="tab" data-modo="tom" aria-selected="true">Con TOM</button>
+    <button role="tab" data-modo="archivo" aria-selected="true">Desde archivo</button>
     <button role="tab" data-modo="pagina" aria-selected="false">Torneo de la página</button>
   </div>
   <div class="muted" id="modoTxt" style="margin-top:8px"></div>
 </div>
 
-<div id="modoTom">
-<!-- Tarjeta propia, no anidada dentro de la de abajo: sincronizar con TOM y
+<div id="modoArchivo">
+<!-- Tarjeta propia, no anidada dentro de la de abajo: vigilar la carpeta y
      cargar un archivo a mano son dos caminos distintos para lo mismo, no uno
      dentro del otro. -->
 <div class="card" id="vigCard">
     <div class="row" style="align-items:center">
-      <div style="flex:1;font-size:var(--t3)"><span class="latido" id="vigLuz" style="display:none"></span>Sincronizaci&oacute;n autom&aacute;tica con TOM</div>
+      <div style="flex:1;font-size:var(--t3)"><span class="latido" id="vigLuz" style="display:none"></span>Sincronizaci&oacute;n autom&aacute;tica</div>
       <button id="vigCarpeta" class="small sec">Vigilar carpeta</button>
       <button id="vigArchivo" class="small sec">Vigilar un archivo</button>
       <button id="vigParar" class="small sec" style="display:none">Detener</button>
     </div>
-    <div class="muted" style="margin-top:6px;line-height:1.55">Eliges <b>una vez</b> la carpeta donde TOM guarda el torneo y el panel
-      la revisa solo. Cada vez que TOM escribe el archivo &mdash; al guardar, o al cerrar una ronda con sus respaldos
-      <code>_rN-begin</code> / <code>_rN-end</code> &mdash; los emparejamientos se publican sin que toques nada.</div>
+    <div class="muted" style="margin-top:6px;line-height:1.55">Eliges <b>una vez</b> la carpeta donde se guarda el archivo del torneo
+      y el panel la revisa sola. Cada vez que el archivo cambia, se lee el m&aacute;s reciente y los emparejamientos se
+      publican sin que toques nada.</div>
     <div id="vigEstado" class="muted">Apagada. Por ahora hay que arrastrar el archivo a mano.</div>
     <label class="chk" style="margin-top:8px"><input type="checkbox" id="vigAuto" checked> Publicar apenas detecte un cambio</label>
 </div>
 
 <div class="card">
-  <div style="margin-bottom:10px">O carga el <b>.tdf</b> a mano (el principal tras guardar, o un respaldo <code>_rN-begin</code> / <code>_rN-end</code>).</div>
+  <div style="margin-bottom:10px">Carga el archivo del torneo y se buscan ah&iacute; los jugadores, las mesas y los resultados.
+    Sirve el que guarda tu programa de torneos, un <b>CSV</b> o <b>.txt</b> (en Excel, Guardar como &rsaquo; CSV) o las celdas pegadas abajo.
+    Si lo armas t&uacute;: una fila por mesa con ronda, mesa, jugador 1, ID, jugador 2, ID y resultado.
+    <button class="small sec" id="plantillaBtn" type="button">Descargar plantilla</button></div>
   <div id="drop">
     <div class="ico"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor"
       stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/>
       <path d="M9 13h6M9 17h4"/></svg></div>
-    <div class="big">Arrastra aquí el archivo .tdf</div>
+    <div class="big">Arrastra aquí el archivo del torneo</div>
     <div class="sm">o haz clic para buscarlo en tu computador</div>
   </div>
-  <input type="file" id="tdf" accept=".tdf,.xml" style="display:none">
-  <label class="chk"><input type="checkbox" id="autoPub"> Publicar automáticamente al soltar el archivo</label>
+  <input type="file" id="archivoIn" style="display:none">
+  <details class="plegable"><summary>Pegar desde Excel o el bloc de notas</summary>
+    <textarea id="pegado" rows="6" placeholder="ronda;mesa;jugador1;id1;jugador2;id2;resultado" aria-label="Partidas pegadas"
+      style="width:100%;box-sizing:border-box;margin-top:8px;font-family:inherit"></textarea>
+    <button class="small sec" id="pegadoBtn" type="button">Leer lo pegado</button>
+  </details>
+  <label class="chk"><input type="checkbox" id="autoPub"> Publicar automáticamente al cargar el archivo</label>
   <div class="row" style="margin-top:10px;align-items:center">
     <label style="margin:0;white-space:nowrap">Rondas totales
       <input type="number" id="rondasTot" min="0" max="20" style="width:64px;margin-left:6px">
     </label>
     <span class="muted" style="flex:1">Para que se lea &laquo;Ronda 2 de 6&raquo; en la pantalla y en los celulares.
-      TOM no guarda este dato &mdash; lo deduce de la cantidad de jugadores, y eso no siempre calza. D&eacute;jalo vac&iacute;o si no lo quieres mostrar.</span>
+      Si el archivo trae <code># suizas</code>, se llena solo. D&eacute;jalo vac&iacute;o si no lo quieres mostrar.</span>
   </div>
   <div id="parseMsg" class="muted" style="margin-top:8px"></div>
   <div id="preview"></div>
@@ -889,7 +897,7 @@
 <div class="card">
   <div style="font-size:var(--t3);margin-bottom:6px">Cierre del torneo</div>
   <div class="muted" style="margin-bottom:8px" id="archTxt">Cuando el torneo termin&oacute; de verdad, arch&iacute;valo aqu&iacute;.
-    Reci&eacute;n entonces suma a la clasificaci&oacute;n mensual. TOM no avisa cu&aacute;l es la &uacute;ltima ronda, as&iacute; que el bot&oacute;n es manual.</div>
+    Reci&eacute;n entonces suma a la clasificaci&oacute;n mensual. El archivo no dice cu&aacute;l es la &uacute;ltima ronda, as&iacute; que el bot&oacute;n es manual.</div>
   <div class="row" style="align-items:center">
     <label style="white-space:nowrap" id="archFechaLbl">Fecha del torneo <input type="date" id="archDate" style="width:auto"></label>
     <label style="white-space:nowrap" id="archJuegoLbl">Juego <input id="archJuego" list="archJuegos" maxlength="40" placeholder="Opcional" style="width:12em"></label>
@@ -899,10 +907,10 @@
   </div>
   <div id="archMsg" class="muted" style="margin-top:6px"></div>
 </div>
-</div><!-- /modoTom -->
+</div><!-- /modoArchivo -->
 
 <!-- El torneo de la página: la base de jugadores de la tienda y el torneo de
-     este timer. Lo que ven los jugadores sale igual que con TOM. -->
+     este timer. Lo que ven los jugadores sale igual que desde un archivo. -->
 <div id="modoPagina" hidden>
 <div class="card" id="tnCard">
   <div id="tnCuerpo"><div class="muted">Cargando&hellip;</div></div>
@@ -947,14 +955,16 @@
 <div class="card">
   <div style="font-size:var(--t3);margin-bottom:6px">Torneos archivados</div>
   <div id="histList" class="muted">Cargando&hellip;</div>
-  <div class="muted" style="margin-top:12px">¿Archivaste torneos antes del 29-09-2026? Sube sus .tdf y el perfil de
+  <div id="recBox">
+  <div class="muted" style="margin-top:12px">¿Archivaste torneos antes del 29-09-2026? Sube sus archivos y el perfil de
     quien te comparta su ID los va a encontrar, aunque su nombre esté escrito distinto. El archivo no se publica:
     solo se guardan los ID, que lee tu tienda.</div>
   <div class="row" style="margin-top:6px;align-items:center">
-    <button class="small sec" id="recBtn">Recuperar IDs desde .tdf</button>
-    <input type="file" id="recTdf" accept=".tdf,.xml" multiple style="display:none">
+    <button class="small sec" id="recBtn">Recuperar IDs desde archivos</button>
+    <input type="file" id="recArchivos" multiple style="display:none">
     <span id="recMsg" class="muted"></span>
   </div>
+  </div><!-- /recBox -->
 </div>
 </div>
 
@@ -1268,9 +1278,10 @@ import { barras } from "./graficos.js?v=2";
 import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=6";
 import { claveJugador } from "./clasificacion.js?v=3";
 import { planClaves } from "./jugadores.js?v=1";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=1";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=1";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=2";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
          revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=4";
@@ -2730,11 +2741,11 @@ function renderAll(){
   }
 }
 
-/* ▌BLOQUE 25 · Lectura del .tdf de TOM ══════════════════════════════════════════
-   parseTdf: lee el XML que guarda TOM y saca jugadores, rondas, mesas, resultados, la tabla y los
-   ID de jugador (ID_POR_PUESTO, que nunca se publica) y las partidas para las rachas (DUELOS). */
+/* ▌BLOQUE 25 · El torneo leído del archivo ══════════════════════════════════════
+   Lo que dejó importar.js: el torneo para publicar (parsed), los ID de cada puesto (ID_POR_PUESTO,
+   que nunca se publica) y las partidas para las rachas (DUELOS). */
 /* =========================================================
-   11. Lectura del .tdf de TOM
+   11. El torneo leído del archivo (importar.js)
    ========================================================= */
 let parsed = null;
 /* El ID de jugador de cada puesto de la tabla, por indice. Vive FUERA de
@@ -2747,119 +2758,11 @@ let ID_POR_PUESTO = [];
    reservado» y el ID no viaja— y g: 1 ganó a, 2 ganó b, 0 empate, 3 doble
    derrota. Vive fuera de `parsed` por lo mismo que ID_POR_PUESTO. */
 let DUELOS = [];
-const P1WIN = [1,8], P2WIN = [2,10], TIE = [3], DBLLOSS = [4], BYE = [5];
-
-/* TOM escribe la fecha al estilo de EE.UU. (mes/día/año). Devuelve aaaa-mm-dd
-   o cadena vacía si no logra entenderla; el organizador la confirma a mano. */
-function fechaISO(txt){
-  if (!txt) return "";
-  let m = txt.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return m[1]+"-"+m[2]+"-"+m[3];
-  m = txt.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-  if (m){
-    const a = m[3], mes = m[1].padStart(2,"0"), dia = m[2].padStart(2,"0");
-    if (+mes >= 1 && +mes <= 12 && +dia >= 1 && +dia <= 31) return a+"-"+mes+"-"+dia;
-  }
-  return "";
-}
-
-function parseTdf(xmlText){
-  const doc = new DOMParser().parseFromString(xmlText, "text/xml");
-  if (doc.querySelector("parsererror")) throw new Error("XML inválido");
-  const name      = doc.querySelector("data > name")?.textContent || "Torneo";
-  const roundtime = doc.querySelector("data > roundtime")?.textContent || "";
-  const startdate = doc.querySelector("data > startdate")?.textContent?.trim() || "";
-
-  const names = {};
-  doc.querySelectorAll("tournament > players > player").forEach(p => {
-    const full = ((p.querySelector("firstname")?.textContent||"") + " " +
-                  (p.querySelector("lastname")?.textContent||"")).trim();
-    if (full) names[p.getAttribute("userid")] = full;
-  });
-  if (!Object.keys(names).length) throw new Error("no encontré la lista de jugadores");
-
-  const rec = {}; Object.keys(names).forEach(id => rec[id] = {w:0,l:0,t:0});
-  const snapRec = id => { const r = rec[id] || {w:0,l:0,t:0};
-    return { w:r.w, l:r.l, t:r.t, pts:r.w*3 + r.t }; };
-
-  // Si el .tdf tiene más de un "pod" (por ejemplo, fase suiza + corte a Top X
-  // en un pod aparte), se usa solo el último: es la fase vigente del torneo.
-  const pods = [...doc.querySelectorAll("pods > pod")];
-  const podActivo = pods[pods.length-1] || null;
-  const rounds = [], crudos = [];
-  (podActivo ? podActivo.querySelectorAll("rounds > round") : []).forEach(r => {
-    const raw = [];
-    r.querySelectorAll("matches > match").forEach(m => raw.push({
-      out:   parseInt(m.getAttribute("outcome")||"0", 10),
-      p1:    m.querySelector("player1")?.getAttribute("userid") || null,
-      p2:    m.querySelector("player2")?.getAttribute("userid") || null,
-      solo:  m.querySelector("player")?.getAttribute("userid") || null,
-      table: parseInt(m.querySelector("tablenumber")?.textContent||"0", 10)
-    }));
-
-    // Primero se cuentan los resultados de esta ronda y después se arma la
-    // tabla. Así el récord que ve el jugador YA incluye lo que acaba de pasar.
-    // Si la ronda todavía no tiene resultados, no suma nada y el récord
-    // mostrado sigue siendo el previo, que es lo correcto en ese momento.
-    raw.forEach(m => {
-      const A = rec[m.p1], B = rec[m.p2], S = rec[m.solo];
-      if      (BYE.includes(m.out) && S) S.w++;
-      else if (P1WIN.includes(m.out) && A && B){ A.w++; B.l++; }
-      else if (P2WIN.includes(m.out) && A && B){ B.w++; A.l++; }
-      else if (TIE.includes(m.out) && A && B){ A.t++; B.t++; }
-      else if (DBLLOSS.includes(m.out) && A && B){ A.l++; B.l++; }
-    });
-    raw.forEach(m => { if (m.p1 && m.p2) crudos.push([parseInt(r.getAttribute("number"), 10), m.p1, m.p2, m.out]); });
-
-    const matches = raw.map(m => {
-      const n1 = names[m.p1 || m.solo] || "?";
-      const n2 = m.p2 ? (names[m.p2] || "?") : null;
-      let result = "";
-      if      (P1WIN.includes(m.out))   result = "Gana " + n1;
-      else if (P2WIN.includes(m.out))   result = "Gana " + n2;
-      else if (TIE.includes(m.out))     result = "Empate";
-      else if (DBLLOSS.includes(m.out)) result = "Doble derrota";
-      else if (BYE.includes(m.out))     result = "Bye";
-      return { table:m.table, p1:n1, p1rec:snapRec(m.p1||m.solo),
-               p2:n2, p2rec: m.p2 ? snapRec(m.p2) : null, result };
-    }).sort((a,b) => a.table - b.table);
-
-    rounds.push({ number: parseInt(r.getAttribute("number"), 10), matches });
-  });
-  rounds.sort((a,b) => a.number - b.number);
-  if (!rounds.length) throw new Error("el archivo no contiene rondas emparejadas");
-
-  const lastR = rounds[rounds.length-1];
-  const pendientes = lastR.matches.filter(m => m.p2 && !m.result).length;
-  const phase = pendientes === 0 ? "results" : "paired";
-
-  const oficial = [...doc.querySelectorAll('standings pod[type="finished"] player')];
-  let standings;
-  if (oficial.length){
-    standings = oficial.map(p => ({ place: parseInt(p.getAttribute("place"), 10),
-      name: names[p.getAttribute("id")] || "?", __id: p.getAttribute("id"),
-      ...snapRec(p.getAttribute("id")) }))
-      .sort((a,b) => a.place - b.place);
-  } else {
-    standings = Object.keys(names).map(id => ({ name: names[id], __id: id, ...snapRec(id) }))
-      .sort((a,b) => b.pts - a.pts || b.w - a.w).map((s,i) => ({ place:i+1, ...s }));
-  }
-  // El ID se saca de la tabla y se guarda al lado, indexado por puesto.
-  ID_POR_PUESTO = standings.map(p => p.__id);
-  const puesto = Object.fromEntries(ID_POR_PUESTO.map((id, i) => [id, i]));
-  const G = o => P1WIN.includes(o) ? 1 : P2WIN.includes(o) ? 2 : TIE.includes(o) ? 0 : DBLLOSS.includes(o) ? 3 : null;
-  /* Las mesas sin resultado (y los bye) no son partidas: quedan fuera. */
-  DUELOS = crudos.map(([r, a, b, o]) => [r, puesto[a], puesto[b], G(o)])
-    .filter(d => d[1] != null && d[2] != null && d[3] != null);
-  standings = standings.map(({ __id, ...fila }) => fila);
-  return { name, roundtime, startdate, fecha: fechaISO(startdate),
-           rounds, standings, phase, lastRound: lastR.number,
-           pendientes, updatedAt: Date.now() };
-}
 
 /* ▌BLOQUE 26 · Vista previa y publicación de emparejamientos ════════════════════
-   Muestra lo leído del .tdf, y publica en salas/<sala>/pairings solo lo que cambió (lo que leen
-   las pantallas de los jugadores). También borra lo publicado. */
+   Muestra lo leído del archivo (aplicarLectura, con los avisos de importar.js), y publica en
+   salas/<sala>/pairings solo lo que cambió (lo que leen las pantallas de los jugadores). También
+   borra lo publicado. */
 /* =========================================================
    12. Vista previa y publicación de emparejamientos
    ========================================================= */
@@ -2869,7 +2772,7 @@ const recTxt = r => r ? ` (${r.w}-${r.l}-${r.t} · ${r.pts} pts${pctTxt(r)})` : 
 
 function showPreview(d){
   const last = d.rounds[d.rounds.length-1];
-  let html = `<div style="margin-top:10px"><b>${esc(d.name)}</b> — se publicará hasta la <b>ronda ${last.number}</b>`;
+  let html = `<div style="margin-top:10px"><b>${esc(d.name)}</b> — se publicará hasta la <b>${esc(last.etiqueta || "ronda " + last.number)}</b>`;
   if (d.standings.length) html += ` + tabla de posiciones`;
   html += `</div><div style="margin-top:6px;font-size:var(--t2)">` + (d.phase === "results"
     ? '<span class="ok">Todos los resultados de esta ronda están cargados</span> — los jugadores verán el aviso para revisarlos.'
@@ -2891,21 +2794,29 @@ function showPreview(d){
   $("preview").innerHTML = html;
 }
 
-/* El texto del .tdf entra por dos puertas —arrastrado a mano o traído por la
+/* El archivo entra por tres puertas —arrastrado, pegado o traído por la
    vigilancia de la carpeta— así que el trabajo vive acá, separado del arrastre.
-   "silencioso" es para la vigilancia: si TOM está a medio escribir el archivo,
-   el XML sale cortado y no hay que pintar un error rojo por algo que en dos
-   segundos se arregla solo. */
-function aplicarTdf(texto, nombre, { autoPublicar = false, silencioso = false } = {}){
+   "silencioso" es para la vigilancia: si el archivo está a medio escribirse,
+   sale cortado y no hay que pintar un error rojo por algo que en dos segundos
+   se arregla solo. */
+/* Lo que dejó el archivo para revisar (un ID raro, alguien que llegó tarde…). */
+let AVISOS = [];
+/* fuente: el texto pegado o los bytes del archivo. El ID de cada puesto y las
+   partidas quedan aparte, porque `parsed` se publica entero. */
+function aplicarLectura(fuente, nombre, { autoPublicar = false, silencioso = false } = {}){
   try {
-    parsed = parseTdf(texto); showPreview(parsed);
+    const r = typeof fuente === "string" ? importarTexto(fuente) : importarArchivo(fuente);
+    parsed = r.parsed; ID_POR_PUESTO = r.ids; DUELOS = r.duelos; AVISOS = r.avisos;
+    showPreview(parsed);
+    if (parsed.rondasTotales) $("rondasTot").value = parsed.rondasTotales;
     $("publishBtn").disabled = false;
     $("archiveBtn").disabled = false; $("tablaBtn").disabled = false;
     $("archDate").value = parsed.fecha || new Date().toISOString().slice(0,10);
     $("archMsg").innerHTML = parsed.fecha
       ? 'Fecha leída del archivo: <b>'+fechaLarga(parsed.fecha)+'</b>. Corrígela si no calza.'
       : '<span class="err">El archivo no trae fecha; se usó la de hoy. Revísala.</span>';
-    $("parseMsg").innerHTML = '<span class="ok">'+esc(nombre)+' leído ✓</span>';
+    $("parseMsg").innerHTML = '<span class="ok">'+esc(nombre)+' leído ✓</span>' + (AVISOS.length
+      ? '<ul class="warnc" style="margin:6px 0 0;padding-left:18px">' + AVISOS.map(a => "<li>" + esc(a) + "</li>").join("") + "</ul>" : "");
     if (autoPublicar) publishPairings();
     return true;
   } catch(err){
@@ -2918,18 +2829,23 @@ function aplicarTdf(texto, nombre, { autoPublicar = false, silencioso = false } 
 }
 
 function handleFile(f){
-  if (!f) return;
-  if (!/\.(tdf|xml)$/i.test(f.name)){
-    $("parseMsg").innerHTML = '<span class="err">Ese no parece un archivo .tdf</span>'; return;
-  }
-  const reader = new FileReader();
-  reader.onload = ev => aplicarTdf(ev.target.result, f.name, { autoPublicar: $("autoPub").checked });
-  reader.readAsText(f);
+  if (f) f.arrayBuffer().then(buf => aplicarLectura(buf, f.name, { autoPublicar: $("autoPub").checked }));
 }
+$("pegadoBtn").onclick = () => {
+  const txt = $("pegado").value;
+  if (txt.trim()) aplicarLectura(txt, "Lo pegado", { autoPublicar: $("autoPub").checked });
+};
+/* La plantilla con «;», que es lo que usa Excel en español; el BOM es para que abra bien los tildes. */
+$("plantillaBtn").onclick = () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\uFEFF" + PLANTILLA], { type: "text/csv;charset=utf-8" }));
+  a.download = "plantilla-torneo.csv"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
 
-$("tdf").onchange = e => { handleFile(e.target.files[0]); e.target.value = ""; };
+$("archivoIn").onchange = e => { handleFile(e.target.files[0]); e.target.value = ""; };
 const drop = $("drop");
-drop.onclick = () => $("tdf").click();
+drop.onclick = () => $("archivoIn").click();
 ["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => {
   e.preventDefault(); e.stopPropagation(); drop.classList.add("over"); }));
 ["dragleave","dragend"].forEach(ev => drop.addEventListener(ev, e => {
@@ -2940,10 +2856,10 @@ drop.addEventListener("drop", e => {
 });
 ["dragover","drop"].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
 
-/* TOM no guarda cuántas rondas va a tener el torneo: lo deduce de la cantidad
-   de jugadores, y en los torneos de tienda eso no se cumple (hay .tdf de 38
-   jugadores con 4 rondas). Así que lo escribe el organizador y se recuerda por
-   sala, porque casi siempre es el mismo número. */
+/* Cuántas rondas va a tener el torneo: el archivo casi nunca lo dice (salvo
+   «# suizas») y por cantidad de jugadores no calza en los torneos de tienda
+   (hay de 38 jugadores con 4 rondas). Así que lo escribe el organizador y se
+   recuerda por sala, porque casi siempre es el mismo número. */
 try { $("rondasTot").value = localStorage.getItem(LS("rondas")) || ""; } catch(e){}
 $("rondasTot").onchange = () => {
   try { localStorage.setItem(LS("rondas"), $("rondasTot").value); } catch(e){}
@@ -2955,8 +2871,8 @@ $("rondasTot").onchange = () => {
    al tocar un ganador baja «Mesa 7: gana Camila» y no la hoja entera, que con
    50 jugadores llega a 27 KB y antes se reenviaba en cada toque. El reloj no
    pasa por acá: ya mandaba solo la hora de término.
-   Las posiciones se publican cuando la ronda queda completa, como en TOM: a
-   mitad de ronda la tabla está a medias y confunde.
+   Las posiciones se publican cuando la ronda queda completa: a mitad de
+   ronda la tabla está a medias y confunde.
    Se compara contra lo que HAY publicado (PUB, que el lienzo ya escucha más
    abajo) y no contra lo que este panel cree haber mandado: con dos
    organizadores, cada uno compara contra lo mismo.
@@ -2981,7 +2897,7 @@ async function publicarPairings(nuevo){
   if (nuevo.pendientes > 0 && PUB.standings) nuevo = Object.assign({}, nuevo, { standings: PUB.standings });
   const rutas = diferencias(PUB, nuevo, base, {}), n = Object.keys(rutas).length;
   if (!n) return;
-  /* Si cambió casi todo (otro torneo, un .tdf distinto), la hoja entera pesa lo mismo. */
+  /* Si cambió casi todo (otro torneo, otro archivo), la hoja entera pesa lo mismo. */
   if (n > 300) return set(ref(db, base), nuevo);
   return update(ref(db), rutas);
 }
@@ -3016,19 +2932,21 @@ $("clearBtn").onclick = async () => {
   } catch(e){ $("clearMsg").innerHTML = '<span class="err">'+mensajeConexion(e)+'</span>'; }
 };
 
-/* ▌BLOQUE 27 · Vigilancia del .tdf ══════════════════════════════════════════════
-   En Chrome/Edge, vigila la carpeta de TOM cada 4 s y publica solo cuando el archivo cambia.
+/* ▌BLOQUE 27 · Vigilancia de la carpeta ═════════════════════════════════════════
+   En Chrome/Edge, vigila la carpeta del torneo cada 4 s y publica solo cuando el archivo cambia.
    Guarda el permiso en IndexedDB para retomarlo al recargar. */
 /* =========================================================
-   12b. Vigilancia del .tdf — sincronización con TOM
+   12b. Vigilancia de la carpeta — sincronización automática
    El navegador no puede "mirar" el disco por su cuenta, pero sí puede quedarse
    con el permiso de una carpeta que el usuario le entrega a mano UNA vez
-   (File System Access API). Con eso, cada pocos segundos se busca el .tdf más
-   reciente de esa carpeta y, si cambió, se lee y se publica.
+   (File System Access API). Con eso, cada pocos segundos se busca el archivo
+   más reciente de esa carpeta y, si cambió, se lee y se publica.
 
-   La carpeta gana sobre el archivo suelto: TOM va dejando respaldos
-   _rN-begin / _rN-end a medida que avanza el torneo, así que "el más nuevo de
-   la carpeta" sigue la ronda actual sin que nadie tenga que reapuntar nada.
+   La carpeta gana sobre el archivo suelto: los programas de torneo van dejando
+   respaldos a medida que avanza el torneo, así que "el más nuevo de la
+   carpeta" sigue la ronda actual sin que nadie tenga que reapuntar nada.
+   (El permiso guardado antes del 12-10-2026 vivía en otra base: hay que elegir
+   la carpeta una vez más.)
 
    Solo Chrome y Edge. En Firefox y Safari los botones avisan que no se puede y
    queda el arrastre de siempre.
@@ -3039,7 +2957,7 @@ const VIG_MS  = 4000;
 /* IndexedDB, y no localStorage, porque un handle de carpeta es un objeto vivo
    del navegador: se puede clonar estructuradamente, pero no serializar a texto. */
 const idb = () => new Promise((ok, fail) => {
-  const r = indexedDB.open("tdf-vigilancia", 1);
+  const r = indexedDB.open("vigilancia", 1);
   r.onupgradeneeded = () => r.result.createObjectStore("handles");
   r.onsuccess = () => ok(r.result);
   r.onerror   = () => fail(r.error);
@@ -3068,12 +2986,15 @@ async function leerHandle(){
 let vigHandle = null, vigTipo = null, vigTimer = null;
 let vigFirma = null, vigUltimo = null, vigRevisado = 0, vigFallos = 0, vigAviso = "";
 
-/* El .tdf más reciente de la carpeta, o el archivo elegido si se vigila uno solo */
+/* Lo que puede traer un torneo (tablas de texto o XML). Se mira la extensión
+   solo para no abrir fotos o instaladores; qué hay adentro lo decide importar.js. */
+const LEIBLE = /\.(csv|tsv|txt|xml|tdf)$/i;
+/* El archivo más reciente de la carpeta, o el elegido si se vigila uno solo */
 async function archivoVigilado(){
   if (vigTipo === "archivo") return await vigHandle.getFile();
   let mejor = null;
   for await (const [nombre, h] of vigHandle.entries()){
-    if (h.kind !== "file" || !/\.tdf$/i.test(nombre)) continue;
+    if (h.kind !== "file" || !LEIBLE.test(nombre)) continue;
     const f = await h.getFile();
     if (!mejor || f.lastModified > mejor.lastModified) mejor = f;
   }
@@ -3105,29 +3026,28 @@ function pintarVig(){
     h += '<br><span class="ok">Último cambio: ' + esc(vigUltimo.nombre) +
          " &middot; ronda " + vigUltimo.ronda + " &middot; " + hora + "</span>";
   } else {
-    h += '<br><span class="muted">Sin cambios todavía. Guarda en TOM y aparece solo.</span>';
+    h += '<br><span class="muted">Sin cambios todavía. Guarda el archivo y aparece solo.</span>';
   }
   if (vigFallos >= 3){
     h += '<br><span class="warnc">El archivo se está leyendo a medio escribir (' + vigFallos +
-         " intentos). Suele arreglarse solo apenas TOM termina de guardar.</span>";
+         " intentos). Suele arreglarse solo apenas termina de guardarse.</span>";
   }
   est.innerHTML = h;
 }
 
-async function revisarTdf(){
+async function revisarArchivo(){
   if (!vigHandle) return;
   try {
     const f = await archivoVigilado();
     vigRevisado = Date.now();
     if (!f){ pintarVig(); return; }
 
-    // nombre + fecha de modificación + tamaño: si los tres son iguales, TOM no
+    // nombre + fecha de modificación + tamaño: si los tres son iguales, no se
     // escribió nada nuevo y no hay para qué leer ni publicar de nuevo.
     const firma = f.name + "|" + f.lastModified + "|" + f.size;
     if (firma === vigFirma){ pintarVig(); return; }
 
-    const texto = await f.text();
-    if (!aplicarTdf(texto, f.name, { autoPublicar: $("vigAuto").checked, silencioso: true })){
+    if (!aplicarLectura(await f.arrayBuffer(), f.name, { autoPublicar: $("vigAuto").checked, silencioso: true })){
       vigFallos++; pintarVig(); return;             // se reintenta en el próximo ciclo
     }
     vigFirma = firma; vigFallos = 0;
@@ -3145,8 +3065,8 @@ function arrancarVig(handle, tipo){
   vigHandle = handle; vigTipo = tipo;
   vigFirma = null; vigUltimo = null; vigFallos = 0; vigAviso = "";
   clearInterval(vigTimer);
-  vigTimer = setInterval(revisarTdf, VIG_MS);
-  revisarTdf();
+  vigTimer = setInterval(revisarArchivo, VIG_MS);
+  revisarArchivo();
   pintarVig();
 }
 function detenerVig(aviso = ""){
@@ -3173,10 +3093,9 @@ function elegir(fn){
   };
 }
 $("vigCarpeta").onclick = elegir(async () => ({
-  h: await showDirectoryPicker({ mode:"read", id:"tom", startIn:"documents" }), tipo:"carpeta" }));
+  h: await showDirectoryPicker({ mode:"read", id:"torneo", startIn:"documents" }), tipo:"carpeta" }));
 $("vigArchivo").onclick = elegir(async () => {
-  const [h] = await showOpenFilePicker({ id:"tom", startIn:"documents", multiple:false,
-    types:[{ description:"Torneo de TOM", accept:{ "application/xml":[".tdf",".xml"] } }] });
+  const [h] = await showOpenFilePicker({ id:"torneo", startIn:"documents", multiple:false });
   return { h, tipo:"archivo" };
 });
 $("vigParar").onclick = async () => { await guardarHandle(null); detenerVig("Vigilancia detenida."); };
@@ -3221,7 +3140,7 @@ setInterval(() => { if (vigHandle) pintarVig(); }, 1000);
    solo se lee, y si no hay nada publicado la línea desaparece sola.
    ========================================================= */
 /* ------------------------------------------------------------ reparto de premios
-   Con la tabla publicada (sirve igual con TOM y con el torneo de la página).
+   Con la tabla publicada (sirve igual desde archivo y con el torneo de la página).
    «Más para los primeros»: el 1º pesa k, el 2º k-1… y el último 1. Lo que no
    alcanza a repartirse entero va a los decimales más altos, que por cómo son
    los pesos siempre son los mejores puestos: nadie recibe más que alguien que
@@ -3287,13 +3206,13 @@ onValue(ref(db, BASE + "/pairings"), snap => {
    Escucha enlaces (ID que cada jugador comparte) e idsHistorial; enlazarPasados marca con su uid
    las filas de torneos viejos y escribe las claves por ID (jugadores.js). Puntos por puesto.
    archivarTorneo guarda el torneo en historial (público, sin ID) y los ID aparte en idsHistorial.
-   Tabla como imagen, recuperar IDs desde .tdf viejos y lista del historial. */
+   Tabla como imagen, recuperar IDs desde archivos viejos y lista del historial. */
 /* =========================================================
    13. Historial y puntos por puesto
    ========================================================= */
 const R_HIST = ref(db, BASE_T + "/historial");
 
-/* Quien compartio su ID de jugador con esta sala: ID del .tdf -> uid de la
+/* Quien compartio su ID de jugador con esta sala: ID del archivo -> uid de la
    cuenta. El nodo enlaces/<sala> solo lo lee el dueño de la sala, asi que esto
    se engancha recien cuando se confirma que lo eres.
 
@@ -3317,7 +3236,7 @@ function escucharEnlaces(){
 /* Los ID de cada torneo archivado (idsHistorial/<sala>/<torneo>/<puesto>), en
    un nodo que solo lee la tienda: el historial es público y el ID no viaja.
    Con esto, quien comparte su ID DESPUÉS de jugar también recupera sus torneos
-   pasados, aunque el .tdf lo tenga con el nombre escrito distinto. Corre en el
+   pasados, aunque el archivo lo tenga con el nombre escrito distinto. Corre en el
    panel del organizador, que es quien puede leer los dos lados. Los torneos
    archivados antes del 29-09-2026 no guardaron ID: esos siguen por nombre. */
 let IDS_HIST = {}, enlazando = false;
@@ -3398,7 +3317,7 @@ async function archivarTorneo(){
     ...(numTimer(SALA) > 1 ? { timer: numTimer(SALA) } : {}),
     /* La fila lleva el uid solo si ese jugador compartio su ID con la sala.
        Es lo que despues deja que su perfil reconozca el torneo sin depender de
-       que el nombre este escrito igual que en el .tdf. El ID no viaja: el uid
+       que el nombre este escrito igual que en el archivo. El ID no viaja: el uid
        no le dice nada a nadie que no sea su dueño. */
     /* Quien apagó «salir con mi nombre» queda como «Jugador reservado» en lo
        que se publica. El puesto, el récord y el uid se quedan: su perfil lo
@@ -3447,24 +3366,22 @@ $("tablaBtn").onclick = () => {
     }) }).catch(() => { $("archMsg").innerHTML = '<span class="err">No se pudo armar la imagen.</span>'; });
 };
 
-/* Torneos archivados antes de que se guardaran los ID: el .tdf viejo se lee
-   de nuevo y se empareja con su torneo del historial por nombre, cantidad de
+/* Torneos archivados antes de que se guardaran los ID: su archivo se lee de
+   nuevo y se empareja con su torneo del historial por nombre, cantidad de
    jugadores y la tabla fila por fila (es el mismo cálculo que al archivar).
-   parseTdf pisa ID_POR_PUESTO y DUELOS del torneo en curso: se devuelven. */
-const nomRec = x => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
+   No toca el torneo en curso: importarArchivo no escribe nada global. */
+const nomRec = x => String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
 const mismaFila = (a, b) => a && (a.reservado || nomRec(a.name) === nomRec(b.name)) && a.w === b.w && a.l === b.l && a.t === b.t;
-$("recBtn").onclick = () => $("recTdf").click();
-$("recTdf").onchange = async e => {
+$("recBtn").onclick = () => $("recArchivos").click();
+$("recArchivos").onchange = async e => {
   const archivos = [...e.target.files]; e.target.value = "";
   if (!archivos.length) return;
   $("recMsg").textContent = "Leyendo…";
   let ok = 0, sin = [];
   for (const f of archivos){
-    const antes = [ID_POR_PUESTO, DUELOS];
     let d, ids;
-    try { d = parseTdf(await f.text()); ids = ID_POR_PUESTO; }
+    try { ({ parsed: d, ids } = importarArchivo(await f.arrayBuffer())); }
     catch(err){ sin.push(f.name); continue; }
-    finally { [ID_POR_PUESTO, DUELOS] = antes; }
     let cand = Object.entries(HIST_P).filter(([, t]) => t.nombre === d.name && (t.standings || []).length === d.standings.length &&
       d.standings.every((b, i) => mismaFila(t.standings[i], b)));
     if (cand.length > 1 && d.fecha) cand = cand.filter(([, t]) => t.fecha === d.fecha);
@@ -3521,12 +3438,12 @@ function pintarHist(){
   });
 }
 
-/* ▌BLOQUE 30 · Torneo de la página (sin TOM) ════════════════════════════════════
+/* ▌BLOQUE 30 · Torneo de la página ══════════════════════════════════════════════
    Correr un suizo en la página con torneo.js: crear, inscribir, emparejar, anotar resultados, top
    cut, publicar cada cambio en pairings y archivar en el historial. */
 /* =========================================================
-   12d. Torneo de la página (sin TOM)
-   Dos caminos para lo mismo: TOM arma el torneo y el panel lee su .tdf, o la
+   12d. Torneo de la página
+   Dos caminos para lo mismo: el torneo se arma afuera y el panel lee su archivo, o la
    página lo corre sola con torneo.js. Los dos publican el mismo pairings (lo
    que ven la pantalla y los celulares) y archivan igual en el historial.
    La base de jugadores es de la TIENDA (jugadores/<tienda>); el torneo, de
@@ -3535,16 +3452,17 @@ function pintarHist(){
 const R_TN = ref(db, BASE + "/torneo");
 const rutaT = k => BASE + "/torneo" + (k ? "/" + k : "");
 const rutaJ = id => "jugadores/" + TIENDA + (id ? "/" + id : "");
-let TN = null, BASEJ = {}, MODO = "tom", modoLeido = false;
-try { MODO = localStorage.getItem(LS("modoTorneo")) || "tom"; } catch(e){}
+let TN = null, BASEJ = {}, MODO = "archivo", modoLeido = false;
+/* Lo recordado antes de que el modo se llamara «archivo» también abre acá. */
+try { MODO = localStorage.getItem(LS("modoTorneo")) === "pagina" ? "pagina" : "archivo"; } catch(e){}
 function elegirModo(m){
   MODO = m;
   try { localStorage.setItem(LS("modoTorneo"), m); } catch(e){}
   document.querySelectorAll("[data-modo]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.modo === m)));
-  $("modoTom").hidden = m !== "tom";
+  $("modoArchivo").hidden = m !== "archivo";
   $("modoPagina").hidden = m !== "pagina";
-  $("modoTxt").textContent = m === "tom"
-    ? "TOM arma el torneo (emparejamientos, resultados, tabla) y acá se publica lo que guarda en su archivo .tdf. Es el camino para los torneos oficiales."
+  $("modoTxt").textContent = m === "archivo"
+    ? "Cargas el archivo del torneo (el que guarda tu programa de torneos, un CSV, el bloc de notas o celdas pegadas desde Excel) y acá se ven y se publican las mesas, los resultados y la tabla."
     : "La página corre el torneo: inscribes a los jugadores por nombre, empareja en suizo, anotas quién ganó cada mesa y la tabla se arma sola, con los desempates del manual.";
 }
 document.querySelectorAll("[data-modo]").forEach(b => b.onclick = () => elegirModo(b.dataset.modo));
@@ -3756,7 +3674,7 @@ function enlazarTorneo(){
 }
 
 /* Terminar: el historial, la marca de archivado y «último torneo» en la base,
-   en una sola escritura. Suma a la clasificación del mes igual que con TOM.
+   en una sola escritura. Suma a la clasificación del mes igual que desde archivo.
    Sin ID de jugador, el perfil de cada uno lo encuentra por su nombre. */
 async function archivarPagina(){
   const f = $("tnArchFecha").value;
@@ -4014,7 +3932,7 @@ $("rDesdeTorneo").onclick = async () => {
     } catch(e){}
   }
   if (!nombres?.length){
-    $("rMsg").innerHTML = '<span class="err">Carga primero un .tdf o publica emparejamientos.</span>';
+    $("rMsg").innerHTML = '<span class="err">Carga primero el archivo del torneo o publica emparejamientos.</span>';
     return;
   }
   $("rItems").value = nombres.join("\n");
@@ -4400,7 +4318,7 @@ function bajarCsvInscritos(ev, filas){
     .concat(filas.map(f => [f.nombre, f.apellido, f.nick, f.playerId, ddmmaaaa(f.nacimiento), catF(f), f.correo,
                             new Date(f.actualizado || f.creado || 0).toLocaleString("es-CL"), f.lista]));
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob(["﻿" + t.map(r => r.map(q).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" }));
+  a.href = URL.createObjectURL(new Blob(["\uFEFF" + t.map(r => r.map(q).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" }));
   a.download = "inscritos-" + slug(ev.titulo, 40) + "-" + ev.fecha + ".csv";
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

@@ -8,7 +8,7 @@
 
    Problema: las tablas públicas (ranking, insignias, rachas, perfil de jugador,
    directorio, estadísticas) reconocían a una persona por cómo estaba escrito su
-   NOMBRE. Con más de un TOM (o un error de tipeo), la misma persona queda como
+   NOMBRE. Con más de un computador (o un error de tipeo), la misma persona queda como
    «Juan Pérez» en un torneo y «JP Juan» en otro y salía repetida; y dos personas
    distintas que se llaman igual se sumaban como una sola.
 

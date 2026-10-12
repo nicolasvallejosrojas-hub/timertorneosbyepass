@@ -615,7 +615,7 @@ addEventListener("hashchange", () => {
 /* ------------------------------------------------------------
    Récord del jugador, calculado sobre los torneos archivados
    ------------------------------------------------------------
-   El historial guarda los nombres tal como venian en el .tdf del TOM, asi que
+   El historial guarda los nombres tal como venian en el archivo del torneo, asi que
    el cruce es por nombre normalizado. Por eso el registro pide escribir el
    nombre igual que como se inscribe en la tienda. La normalización (norm) es
    la de insignias.js: la misma que usa el directorio de jugadores. */
@@ -1195,7 +1195,7 @@ function pintarMisTiendas(){
    ------------------------------------------------------------ */
 const rec = r => r ? r.w + "-" + r.l + "-" + r.t + " · " + (r.pts || 0) + " pts" : "";
 
-/* La ronda vigente es la última publicada: el .tdf se republica completo cada
+/* La ronda vigente es la última publicada: el torneo se republica completo cada
    vez, así que la de más abajo del arreglo es siempre la de ahora. */
 function rondaActual(){
   return (PAIR && PAIR.rounds && PAIR.rounds.length)

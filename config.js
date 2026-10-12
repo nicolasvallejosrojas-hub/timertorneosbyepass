@@ -22,7 +22,7 @@ const FIREBASE_CONFIG = {
 /* ▌BLOQUE 2 · esc() ═════════════════════════════════════════════════════════════
    Escapa texto antes de meterlo en HTML. Global: la usan todas las páginas. */
 // ====== ESCAPAR TEXTO ======
-// Todo lo que escribe una persona (nombres del TOM, tiendas, mensajes) pasa por
+// Todo lo que escribe una persona (nombres del archivo del torneo, tiendas, mensajes) pasa por
 // acá antes de ir a innerHTML. Una sola para todo el sitio: había una copia por
 // página y ya no escapaban lo mismo (la mitad dejaba pasar la comilla simple).
 // Va como función global, igual que FIREBASE_CONFIG, porque todas las páginas

@@ -11,7 +11,7 @@
    menú de compartir (WhatsApp, Instagram…); en el computador se descarga.
    No sube nada a ningún lado: la imagen queda solo en el aparato.
 
-   La usan el panel de la tienda (TOM y torneo de la página) y la sala de
+   La usan el panel de la tienda (desde archivo y torneo de la página) y la sala de
    invitado. Los nombres llegan ya resueltos: quien pidió no salir con su
    nombre viene como «Jugador reservado».
    ============================================================ */

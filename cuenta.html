@@ -375,10 +375,10 @@
           <p class="bajada">Las dos son opcionales y las puedes poner después en ajustes. El ID, eso
             sí, no se cambia una vez guardado.</p>
         </div>
-        <label class="campo"><span>ID de jugador de TOM <span class="opcional">— opcional</span></span>
+        <label class="campo"><span>ID de Play! Pokémon <span class="opcional">— opcional</span></span>
           <input type="text" id="crId" inputmode="numeric" placeholder="7 u 8 dígitos" maxlength="8">
-          <span class="pista">El número de 7 u 8 dígitos con que te inscriben en los torneos que se llevan con TOM, el programa
-            oficial de torneos. Con él tus resultados llegan solos a tu perfil. Los ID de otros juegos van en tus ajustes.</span>
+          <span class="pista">El número de 7 u 8 dígitos con que te inscriben en los torneos oficiales.
+            Con él tus resultados llegan solos a tu perfil. Los ID de otros juegos van en tus ajustes.</span>
         </label>
         <div class="filas">
           <label class="filaj"><span class="k">Salir con mi nombre en la clasificación
@@ -458,18 +458,18 @@
       <h2>Tu torneo</h2>
       <div class="filas">
         <!-- Con ID: fijo, con candado. Sin ID: se puede poner, una sola vez. -->
-        <div class="filaj oculto" id="idFijo"><span class="k">ID de jugador de TOM
+        <div class="filaj oculto" id="idFijo"><span class="k">ID de Play! Pokémon
           <small>No se cambia. Si está mal, habla con la tienda.</small></span>
           <span class="v" id="ajIdFijo"></span>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg></div>
         <div id="edId">
           <button class="filaj" type="button" aria-expanded="false" aria-controls="formId">
-            <span class="k">ID de jugador de TOM</span><span class="v" id="ajId"></span>
+            <span class="k">ID de Play! Pokémon</span><span class="v" id="ajId"></span>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg></button>
           <form class="edicion oculto" id="formId" novalidate>
-            <label class="campo"><span>ID de jugador de TOM</span>
+            <label class="campo"><span>ID de Play! Pokémon</span>
               <input type="text" id="nuevoId" inputmode="numeric" placeholder="7 u 8 dígitos" maxlength="8">
-              <span class="pista">El de 7 u 8 dígitos de los torneos que se llevan con TOM, el programa oficial de torneos.
+              <span class="pista">El de 7 u 8 dígitos con que te inscriben en los torneos oficiales.
                 Revísalo bien: una vez guardado, no se puede cambiar.</span>
             </label>
             <div class="aviso mal oculto" id="errId" role="alert"></div>

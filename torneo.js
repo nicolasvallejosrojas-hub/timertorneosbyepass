@@ -9,15 +9,15 @@
 /* ============================================================
    torneo.js — correr un torneo suizo en la página
    ------------------------------------------------------------
-   Versión actual: v=1   (subir el ?v= al tocar este archivo)
+   Versión actual: v=2   (subir el ?v= al tocar este archivo)
 
-   El otro camino es TOM: arma el torneo y el panel lee su .tdf. Este es para
+   El otro camino es cargar el archivo del torneo (importar.js). Este es para
    los torneos de la tienda que no se suben a ninguna parte: los jugadores se
    inscriben por nombre desde la base de la tienda y la página empareja, lleva
    los resultados y arma la tabla.
 
-   Las reglas son las del manual de torneos (5.3.3 y 5.5.1), no el código de
-   TOM:
+   Las reglas son las del manual de torneos (5.3.3 y 5.5.1), no las de otro
+   programa:
      · Ronda 1 al azar. Después, al azar entre quienes llevan los mismos
        puntos, sin repetir rival; el impar de un grupo baja al siguiente.
      · Con número impar, bye al azar en el grupo más bajo (a quien no haya
@@ -45,7 +45,8 @@
    desde: la primera ronda que juega (1 si se inscribió a tiempo).
    drop:  la última ronda que jugó antes de retirarse (0 = sigue).
    Mesa sin b = bye. r: 1 gana a, 2 gana b, 0 empate, 3 doble derrota;
-   sin r, la mesa está en juego.
+   sin r, la mesa está en juego. mesa: el número de mesa, solo cuando el
+   torneo viene de un archivo (importar.js); si no, se numeran en orden.
    ============================================================ */
 export const GANA_A = 1, GANA_B = 2, EMPATE = 0, DOBLE = 3;
 
@@ -263,7 +264,7 @@ export function clasificacion(t){
 const nom = (t, id) => ((t.jugadores || {})[id] || {}).nombre || "?";
 const rec = p => p ? { w: p.w, l: p.l, t: p.e, pts: p.pts } : null;
 
-/* El mismo formato que arma el panel con el .tdf de TOM (salas/<sala>/pairings):
+/* El mismo formato que arma el panel desde un archivo (salas/<sala>/pairings):
    la pantalla y los celulares no notan la diferencia. */
 export function aPairings(t){
   const rs = rondasDe(t);
@@ -275,7 +276,7 @@ export function aPairings(t){
       const p1 = nom(t, m.a), p2 = m.b ? nom(t, m.b) : null;
       const result = !m.b ? "Bye" : m.r === GANA_A ? "Gana " + p1 : m.r === GANA_B ? "Gana " + p2
                    : m.r === EMPATE ? "Empate" : m.r === DOBLE ? "Doble derrota" : "";
-      return { table: m.b ? i + 1 : 0, p1, p1rec: rec(s[m.a]), p2, p2rec: m.b ? rec(s[m.b]) : null, result };
+      return { table: m.b ? (m.mesa || i + 1) : 0, p1, p1rec: rec(s[m.a]), p2, p2rec: m.b ? rec(s[m.b]) : null, result };
     }).sort((x, y) => x.table - y.table) };
   });
   const ult = rs[rs.length - 1];
