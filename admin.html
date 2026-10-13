@@ -47,7 +47,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Panel del organizador</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="estilo.css?v=11">
+<link rel="stylesheet" href="estilo.css?v=12">
 <!-- ▌BLOQUE 1 · Estilos del panel — Acomodo propio del panel: lienzo del timer, rail de apariencia,
      emparejamientos (desde archivo y torneo de la página), ruleta, calendario y QR. Colores, tipografía y
      componentes comunes vienen de estilo.css. -->
@@ -289,8 +289,9 @@
 
      Ahora vive afuera del transform, a tamano real, y al lado en vez de
      encima: cada cambio se ve en vivo mientras se hace. */
-  #timerLayout{display:grid;grid-template-columns:minmax(0,1fr) 400px;
+  #timerLayout{display:grid;grid-template-columns:minmax(0,1fr);
     gap:var(--e3);align-items:start;max-width:1320px}
+  #timerLayout.diseno{grid-template-columns:minmax(0,1fr) 400px}
   /* La tarjeta del panel esta topada en 840 px; aca la rejilla manda. */
   #timerLayout > .card{max-width:none;margin-bottom:0}
 
@@ -309,6 +310,50 @@
   #pendiente .tbtn{min-height:36px}
   #pendienteAviso{font-size:var(--t2);color:var(--apagado);margin-bottom:var(--e2)}
   #pendienteAviso:empty{display:none}
+
+  /* Consola de la ronda (modo «En vivo»): el reloj del panel es del panel, con
+     los colores del panel, y al lado va lo que ve la sala. El rail de apariencia
+     y la vista computador/celular solo aparecen en «Diseñar la pantalla». */
+  #tGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:var(--e4);align-items:start}
+  #consola{display:flex;flex-direction:column;gap:var(--e3);min-width:0}
+  #pRonda{font-size:var(--t2);color:var(--apagado)}
+  #pRonda:empty{display:none}
+  #pClock{font-family:Newsreader,Georgia,serif;font-weight:300;font-variant-numeric:tabular-nums;
+    font-size:clamp(72px,8vw,120px);line-height:.95;color:var(--texto);cursor:pointer;
+    align-self:flex-start;border-radius:var(--radio-chico)}
+  #pClock:focus-visible{outline:2px solid var(--accion);outline-offset:4px}
+  #pClock.pausado,#fClock.pausado{opacity:.5}
+  #pClock.porvencer,#fClock.porvencer{color:var(--accion-texto)}
+  #pClock.negativo,#fClock.negativo{color:var(--negativo)}
+  #mandos{display:flex;flex-direction:column;gap:var(--e3)}
+  #stage #mandos{align-items:center}
+  #pBotones{display:flex;gap:var(--e2);flex-wrap:wrap}
+  #consola .mainbtn,#consola .greybtn{min-height:52px;box-shadow:none}
+  #consola .greybtn,#consola .preset,#consola .tbtn{background:var(--sup-alta)}
+  #consola .greybtn:hover,#consola .preset:hover,#consola .tbtn:hover{background:var(--sup-hover)}
+  #consola #presets{justify-content:flex-start}
+  #consola .preset{min-height:36px}
+  #consola .preset.sel{color:var(--accion-texto);font-weight:600;box-shadow:inset 0 0 0 1px var(--accion)}
+  #consola #extraMesa{margin-top:var(--e2)}
+  #monTit{font-size:var(--t2);color:var(--apagado);margin-bottom:var(--e2)}
+  #timerLayout:not(.diseno) #settings,#timerLayout:not(.diseno) #vistaBarra,
+  #timerLayout.diseno #consola,#timerLayout.diseno #monTit{display:none}
+  #timerLayout.diseno #tGrid{grid-template-columns:minmax(0,1fr)}
+
+  /* Franja del reloj en las otras pestañas. Sin coral: en esas pestañas la
+     acción principal es otra (publicar, girar, guardar). */
+  #franja{position:sticky;top:var(--e2);z-index:20;display:flex;align-items:center;gap:var(--e3);
+    flex-wrap:wrap;padding:var(--e2) var(--e3);border-radius:var(--radio);margin-bottom:var(--e3);
+    max-width:874px;box-sizing:border-box}
+  #fClock{font-family:Newsreader,Georgia,serif;font-weight:300;font-size:var(--d3);
+    font-variant-numeric:tabular-nums;line-height:1}
+  #fRonda{font-size:var(--t2);color:var(--apagado)}
+  #franja .tbtn{min-height:40px;background:var(--sup-alta)}
+  #franja .tbtn:hover{background:var(--sup-hover)}
+  @media (prefers-reduced-motion: reduce){
+    #pClock.pulsing,#fClock.pulsing{animation:none;text-decoration:underline;
+      text-decoration-thickness:.06em;text-underline-offset:.12em}
+  }
 
   #settings{background:var(--sup);border:1px solid var(--divider);
     border-radius:var(--radio);padding:var(--e4);box-sizing:border-box;
@@ -353,7 +398,7 @@
   /* Apilado, el rail deja de ser barra lateral: pegarlo y darle scroll propio
      solo estorbaria, porque ya no compite por ancho con la maqueta. */
   @media (max-width:1000px){
-    #timerLayout{grid-template-columns:minmax(0,1fr)}
+    #timerLayout,#timerLayout.diseno,#tGrid{grid-template-columns:minmax(0,1fr)}
     #settings{position:static;max-height:none}
   }
   .lab{font-size:var(--t2);display:block}
@@ -417,14 +462,11 @@
   /* =========================================================
      5. Calendario de torneos
      ========================================================= */
-  .calDia:hover{border-color:var(--accion);}
-  .calDia.hoy
+  /* En el panel se agenda tocando el día: la celda responde al mouse. */
+  .calDia{cursor:pointer;}
+  @media (hover:hover){ .calDia:hover{background:var(--sup-alta);} }
   .calHint{font-size:var(--t2);color:var(--rotulo);margin-top:10px;}
 
-  /* En pantalla angosta la celda se achica y el evento queda como un punto de
-     color con la hora: el título no cabe y cortarlo a dos letras no sirve. */
-  @media (max-width:620px){
-  }
 
   .evRow{display:flex;gap:12px;align-items:flex-start;padding:11px 2px;border-bottom:1px solid var(--divider);}
   .evRow.pasado{opacity:.45;}
@@ -583,26 +625,41 @@
   <button id="tabE">Estadísticas</button>
 </nav>
 
+<!-- El reloj a mano en las otras pestañas: publicando emparejamientos o girando
+     el sorteo no hay que volver al Timer para pausar la ronda. -->
+<div id="franja" class="vidrio" role="region" aria-label="Reloj de la ronda" hidden>
+  <span id="fClock">32:00</span>
+  <span id="fRonda"></span>
+  <span style="flex:1"></span>
+  <button class="tbtn" id="fToggle">Iniciar</button>
+  <button class="tbtn" id="fExtra">Tiempo extra a una mesa</button>
+</div>
+
 <main>
 <!-- Sin señal: el panel sigue (Firebase guarda lo escrito y lo manda al volver), pero cerrar la pestaña lo perdería. -->
 <div id="sinRed" class="aviso" role="status" hidden></div>
 
-<!-- ▌BLOQUE 4 · Pestaña Timer (marcado) — El lienzo del reloj con sus botones (iniciar, reiniciar, tiempos),
-     el tiempo extra por mesa y la hoja de apariencia: logo, fondos, colores, sonido y paleta. -->
+<!-- ▌BLOQUE 4 · Pestaña Timer (marcado) — Dos modos: «En vivo» (consola: reloj del panel, Iniciar/Reiniciar,
+     tiempos y tiempo extra por mesa, y al lado lo que ve la sala) y «Diseñar la pantalla» (el lienzo grande
+     con la vista computador/celular y la hoja de apariencia: logo, fondos, colores, sonido y paleta). Antes
+     de <main>, la franja del reloj que se ve en las otras pestañas. -->
 <!-- ============================================================
      TIMER
      ============================================================ -->
 <div class="panel" id="panelT">
 <div id="timerLayout">
-<div class="card" style="padding:12px">
+<div class="card" id="tCard">
 
-  <!-- Barra del organizador. Estaba adentro del lienzo, asi que se escalaba
-       con el y encima se mezclaba con lo que si ven los jugadores. -->
+  <!-- Barra del organizador, fuera del lienzo. Dos modos: «En vivo» para correr
+       la ronda y «Diseñar la pantalla» para la apariencia, que se toca una vez y
+       no tiene por qué ocupar la pantalla durante el torneo. -->
   <div class="barra">
-    <div class="seg" role="group" aria-label="Vista del lienzo">
-      <button id="btnDesktop">Computador</button>
-      <button id="btnMobile">Celular</button>
+    <div class="seg" role="group" aria-label="Qué hacer en esta pestaña">
+      <button id="modoVivo" class="on" aria-pressed="true">En vivo</button>
+      <button id="modoDiseno" aria-pressed="false">Diseñar la pantalla</button>
     </div>
+    <span style="flex:1"></span>
+    <span id="syncMsg" class="muted"></span>
     <button class="tbtn" id="btnFull">Pantalla completa</button>
   </div>
 
@@ -614,50 +671,68 @@
   </div>
   <div id="pendienteAviso" role="status" aria-live="polite"></div>
 
-  <div id="stageWrap">
-    <div id="scaler">
-      <div id="canvas" class="isla">
-        <img id="bgImg" alt="">
-
-        <div id="topbar">
-          <img id="logo" alt="">
-          <div id="tnombre">
-            <div id="ttitle">Timer de torneo</div>
-            <div id="tsubt"></div>
-          </div>
+  <div id="tGrid">
+    <!-- La consola: el reloj del panel a tamaño de lectura (no una miniatura del
+         lienzo), los mandos y el tiempo extra. En pantalla completa los mandos
+         vuelven al lienzo, como antes. -->
+    <section id="consola" aria-label="Control de la ronda">
+      <div id="pRonda"></div>
+      <div id="pClock" role="button" tabindex="0" title="Clic para cambiar el tiempo"
+           aria-label="Tiempo de la ronda. Clic para cambiarlo">32:00</div>
+      <input id="clockEdit" type="text" aria-label="Tiempo de la ronda, en minutos o mm:ss">
+      <div id="mandos">
+        <div id="pBotones">
+          <button class="mainbtn" id="toggleBtn">Iniciar</button>
+          <button class="greybtn" id="resetBtn">Reiniciar</button>
         </div>
-
-        <div id="stage">
-          <div id="ronda"></div>
-          <div id="clock" title="Clic para editar el tiempo">32:00</div>
-          <input id="clockEdit" type="text">
-          <div style="display:flex; gap:8px">
-            <button class="mainbtn" id="toggleBtn">Iniciar</button>
-            <button class="greybtn" id="resetBtn">Reiniciar</button>
-          </div>
-          <div id="presets"></div>
-        </div>
-
-
+        <div id="presets"></div>
       </div>
-    </div>
-  </div>
+      <div id="extraMesa">
+        <b>Tiempo extra por mesa</b>
+        <label style="margin:0">Mesa <input type="number" id="exMesa" min="1" max="999" inputmode="numeric"></label>
+        <select id="exMin" aria-label="Minutos extra">
+          <option value="1">+1 min</option><option value="2">+2 min</option><option value="3" selected>+3 min</option>
+          <option value="5">+5 min</option><option value="10">+10 min</option>
+        </select>
+        <button class="tbtn" id="exAgregar">Sumar</button>
+        <span id="exLista" style="display:contents"></span>
+      </div>
+      <div class="hint" style="margin-top:0">Para una consulta larga al juez: la tele y los celulares muestran cuánto le queda a esa mesa. Reiniciar el reloj lo borra.</div>
+    </section>
 
-  <div class="row" style="margin-top:10px;align-items:center">
-    <span id="syncMsg" class="muted" style="flex:1"></span>
-    <span class="muted" id="hintCajas">Clic derecho sobre el lienzo para agregar cajitas.</span>
+    <!-- Lo que ve la sala. En «Diseñar la pantalla» ocupa todo el ancho y suma
+         la vista computador/celular y las cajitas. -->
+    <section id="monitor" aria-label="Lo que ve la sala">
+      <div class="barra" id="vistaBarra">
+        <div class="seg" role="group" aria-label="Vista del lienzo">
+          <button id="btnDesktop">Computador</button>
+          <button id="btnMobile">Celular</button>
+        </div>
+        <span class="muted" id="hintCajas">Clic derecho sobre el lienzo para agregar cajitas.</span>
+      </div>
+      <div id="monTit">Lo que ve la sala</div>
+      <div id="stageWrap">
+        <div id="scaler">
+          <div id="canvas" class="isla">
+            <img id="bgImg" alt="">
+
+            <div id="topbar">
+              <img id="logo" alt="">
+              <div id="tnombre">
+                <div id="ttitle">Timer de torneo</div>
+                <div id="tsubt"></div>
+              </div>
+            </div>
+
+            <div id="stage">
+              <div id="ronda"></div>
+              <div id="clock" title="Clic para editar el tiempo">32:00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
-  <div id="extraMesa">
-    <b>Tiempo extra por mesa</b>
-    <label style="margin:0">Mesa <input type="number" id="exMesa" min="1" max="999" inputmode="numeric"></label>
-    <select id="exMin" aria-label="Minutos extra">
-      <option value="1">+1 min</option><option value="2">+2 min</option><option value="3" selected>+3 min</option>
-      <option value="5">+5 min</option><option value="10">+10 min</option>
-    </select>
-    <button class="tbtn" id="exAgregar">Sumar</button>
-    <span id="exLista" style="display:contents"></span>
-  </div>
-  <div class="muted" style="margin-top:4px">Para una consulta larga al juez: la tele y los celulares muestran cuánto le queda a esa mesa. Reiniciar el reloj lo borra.</div>
 </div>
 
 <!-- ============================================================
@@ -735,7 +810,7 @@
 
     <section class="grupo">
       <h3>Reloj</h3>
-      <button class="tbtn" id="btnPaleta">Volver a los colores disenados</button>
+      <button class="tbtn" id="btnPaleta">Volver a los colores diseñados</button>
       <span class="hint" style="margin:0">Repone el fondo, el reloj y el negativo de la
         pantalla proyectada. Se aplica a las dos vistas.</span>
       <div class="row">
@@ -779,10 +854,10 @@
     <section class="grupo">
       <h3>Paleta del sistema</h3>
       <span class="hint" style="margin:0">Se aplica al panel <b>y a la pantalla
-        proyectada</b>. Viaja con el tema, asi que los jugadores la ven al toque.</span>
+        proyectada</b>. Viaja con el tema, así que los jugadores la ven al toque.</span>
 
       <div class="row">
-        <label class="lab" style="flex:1">Color de accion
+        <label class="lab" style="flex:1">Color de acción
           <input type="color" class="col" id="palAccion">
         </label>
         <label class="lab" style="flex:1">Base
@@ -1956,6 +2031,8 @@ function switchTab(t){
     $(panel).classList.toggle("hide", k !== t);
     $("tab" + k.toUpperCase()).classList.toggle("on", k === t);
   }
+  $("franja").hidden = t === "t";
+  if (t === "t") escalar();
   if (t === "s") pintarRuleta();
   if (t === "c") renderAgenda();
   if (t === "e") pintarEstTienda();
@@ -2289,6 +2366,8 @@ $("exMesa").onkeydown = e => { if (e.key === "Enter") $("exAgregar").click(); };
 function setPreset(m){ st.presetMin = m; st.resetSec = m*60; reset(); renderPresets(); }
 
 $("toggleBtn").onclick = startPause;
+$("fToggle").onclick = startPause;
+$("fExtra").onclick = () => { switchTab("t"); modoTimer("vivo"); $("exMesa").focus(); };
 $("resetBtn").onclick = () => {
   if (!st.paused && !confirm("El cronómetro está corriendo. ¿Reiniciarlo de todas formas?")) return;
   reset();
@@ -2299,12 +2378,22 @@ $("addPreset").onclick = () => {
   st.customPresets.push(v); $("newPreset").value = ""; renderPresets(); saveLocal();
 };
 
-/* Editar el tiempo a mano tocando el reloj */
-$("clock").onclick = () => {
-  $("clock").style.display = "none";
-  const e = $("clockEdit"); e.style.display = "block";
+/* Editar el tiempo a mano tocando el reloj. Se edita sobre el que se está
+   mirando: el de la consola, o el del lienzo si se proyecta en pantalla
+   completa desde este equipo. */
+function editarReloj(){
+  const full = document.fullscreenElement === $("canvas");
+  if (!full && $("timerLayout").classList.contains("diseno")) modoTimer("vivo");
+  const host = full ? $("clock") : $("pClock"), e = $("clockEdit");
+  host.after(e);
+  e.style.fontSize = getComputedStyle(host).fontSize;
+  host.style.display = "none"; e.style.display = "block";
   e.value = fmt(currentSec()).replace("-",""); e.focus(); e.select();
-};
+}
+function cerrarEdicion(){ $("clockEdit").style.display = "none"; $("clock").style.display = $("pClock").style.display = ""; }
+$("clock").onclick = editarReloj;
+$("pClock").onclick = editarReloj;
+$("pClock").onkeydown = e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); editarReloj(); } };
 function commitEdit(){
   const raw = ($("clockEdit").value || "").trim();
   let secs;
@@ -2314,10 +2403,10 @@ function commitEdit(){
   st.resetSec  = st.remaining;                    // "Reiniciar" vuelve exactamente a esto
   st.presetMin = st.remaining % 60 === 0 ? st.remaining/60 : null;
   st.paused = true; st.endTime = null; alarmFired = false;
-  $("clockEdit").style.display = "none"; $("clock").style.display = "block";
+  cerrarEdicion();
   publishState(); renderPresets(); renderClock();
 }
-function cancelEdit(){ $("clockEdit").style.display = "none"; $("clock").style.display = "block"; }
+function cancelEdit(){ cerrarEdicion(); }
 $("clockEdit").onkeydown = e => { if (e.key==="Enter") commitEdit(); if (e.key==="Escape") cancelEdit(); };
 // Un clic afuera del campo (perder el foco) cancela en vez de aplicar: así un
 // clic accidental en el reloj no pausa ni retrocede el tiempo para todos.
@@ -2329,7 +2418,6 @@ function renderClock(){
   $("clock").textContent = fmt(s);
   $("clock").style.fontSize = st.timerSize+"px";
   $("clock").style.color = s < 0 ? st.negativeColor : st.timerColor;
-  $("clockEdit").style.fontSize = st.timerSize+"px";
   // Los cuatro estados tienen que leerse a 3 m sin leer ninguna palabra:
   // apagado = en pausa, crema = corriendo, amarillo = últimos 10 s, rosa =
   // tiempo negativo. El amarillo no repite el rosa del negativo a propósito.
@@ -2338,6 +2426,14 @@ function renderClock(){
   $("clock").classList.toggle("porvencer", porVencer);
   $("clock").classList.toggle("pausado", st.paused);
   $("toggleBtn").textContent = st.paused ? "Iniciar" : "Pausar";
+  /* La consola y la franja de las otras pestañas muestran el mismo reloj, con
+     los colores del panel y no los del lienzo, que son para fondo oscuro. */
+  ["pClock", "fClock"].forEach(id => {
+    const c = $(id); c.textContent = fmt(s);
+    c.classList.toggle("pausado", st.paused); c.classList.toggle("porvencer", porVencer);
+    c.classList.toggle("pulsing", porVencer); c.classList.toggle("negativo", s < 0);
+  });
+  $("fToggle").textContent = $("toggleBtn").textContent;
   if (!st.paused){
     // "s <= 0" y no "s === 0": si el navegador frena el intervalo (pestaña de
     // fondo, equipo cargado) el cero puede pasar de largo y la alarma no sonaría.
@@ -2451,6 +2547,30 @@ $("btnFull").onclick = () => {
   if (!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(()=>{});
   else if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
 };
+
+/* «En vivo» para correr la ronda y «Diseñar la pantalla» para la apariencia.
+   Se recuerda por sala. */
+function modoTimer(m){
+  const dis = m === "diseno";
+  $("timerLayout").classList.toggle("diseno", dis);
+  $("modoVivo").classList.toggle("on", !dis); $("modoVivo").setAttribute("aria-pressed", String(!dis));
+  $("modoDiseno").classList.toggle("on", dis); $("modoDiseno").setAttribute("aria-pressed", String(dis));
+  try { localStorage.setItem(LS("modoTimer"), dis ? "diseno" : "vivo"); } catch(e){}
+  escalar();
+}
+$("modoVivo").onclick = () => modoTimer("vivo");
+$("modoDiseno").onclick = () => modoTimer("diseno");
+let modoGuardado = "vivo";
+try { modoGuardado = localStorage.getItem(LS("modoTimer")) || "vivo"; } catch(e){}
+modoTimer(modoGuardado);
+
+/* Proyectando en pantalla completa desde este equipo, los mandos vuelven al
+   lienzo como antes: sin ellos habría que salir de la pantalla completa para pausar. */
+document.addEventListener("fullscreenchange", () => {
+  const full = document.fullscreenElement === $("canvas");
+  if (full) $("stage").appendChild($("mandos"));
+  else { $("consola").insertBefore($("mandos"), $("extraMesa")); cancelEdit(); }
+});
 
 /* ▌BLOQUE 22 · Cajas de imagen sobre el lienzo ══════════════════════════════════
    Agregar, mover, redimensionar y borrar imágenes sobre el timer (clic derecho en el lienzo). */
@@ -3189,6 +3309,7 @@ onValue(ref(db, BASE + "/pairings"), snap => {
     $("ttitle").textContent = "Timer de torneo";
     $("tsubt").textContent = "";
     $("ronda").style.display = "none";
+    $("pRonda").textContent = $("fRonda").textContent = "";
     return;
   }
   const deN = p.rondasTotales ? " de " + p.rondasTotales : "";
@@ -3200,6 +3321,8 @@ onValue(ref(db, BASE + "/pairings"), snap => {
   $("ronda").textContent = etq +
     (p.phase === "results" ? " · resultados" : " · en curso");
   $("ronda").style.display = "block";
+  $("pRonda").textContent = $("tsubt").textContent;
+  $("fRonda").textContent = etq;
 }, () => {});
 
 /* ▌BLOQUE 29 · Historial, puntos, enlace de ID y archivar ═══════════════════════
@@ -4361,8 +4484,10 @@ function renderMes(){
 
     (porDia[c.iso] || []).forEach(ev => {
       const chip = document.createElement("div");
-      chip.className = "calEv" + (estaVigente(ev) ? "" : " pasado");
-      chip.textContent = (ev.hora ? ev.hora + " " : "") + ev.titulo;
+      chip.className = "calEv" + (estaVigente(ev) ? "" : " pasado") + (ev.hora ? "" : " todoDia");
+      /* Hora y título por separado: en el celular solo cabe la hora (estilo.css). */
+      chip.innerHTML = (ev.hora ? '<span class="calHora">' + esc(ev.hora) + "</span> " : "") +
+        '<span class="calTit">' + esc(ev.titulo) + "</span>";
       chip.title = ev.titulo + " — clic para editar";
       chip.onclick = e => { e.stopPropagation(); editar(ev); };
       cel.appendChild(chip);

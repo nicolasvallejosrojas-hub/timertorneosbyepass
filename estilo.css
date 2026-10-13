@@ -268,6 +268,14 @@ input::placeholder,textarea::placeholder{color:var(--rotulo);}
   overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
 .calEv:hover{background:var(--accion-clara);}
 .calEv.pasado{background:var(--sup-alta);color:var(--apagado);font-weight:400;}
+/* En el celular la celda mide unos 37 px: el título no cabe y cortarlo a dos
+   letras no dice nada. Queda solo la hora, entera; el evento sin hora es una
+   barra del mismo color. El detalle está en la lista de abajo. */
+@media (max-width:620px){
+  .calEv{padding:1px;text-overflow:clip;font-variant-numeric:tabular-nums;letter-spacing:-.02em;text-align:center;}
+  .calEv .calTit{display:none;}
+  .calEv.todoDia{height:6px;padding:0;}
+}
 #calNav{display:flex;align-items:center;gap:var(--e2);margin-bottom:var(--e3);}
 #calNav button{border:none;background:var(--sup-alta);color:var(--texto);
   border-radius:var(--radio-chico);padding:7px 13px;font-family:inherit;font-size:var(--t2);

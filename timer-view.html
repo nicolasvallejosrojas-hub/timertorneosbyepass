@@ -33,7 +33,7 @@
 })();
 </script>
 <title>Torneo — Timer y emparejamientos</title>
-<link rel="stylesheet" href="estilo.css?v=11">
+<link rel="stylesheet" href="estilo.css?v=12">
 <!-- ▌BLOQUE 2 · Estilos de la vista de jugadores — Reloj, pestañas, mesas, clasificación, ruleta y agenda.
      -->
 <style>
@@ -1225,8 +1225,9 @@ function renderMes(){
 
     (porDia[c.iso] || []).forEach(ev => {
       const chip = document.createElement("div");
-      chip.className = "calEv" + (estaVigente(ev) ? "" : " pasado");
-      chip.textContent = ev.hora || "todo el día";
+      chip.className = "calEv" + (estaVigente(ev) ? "" : " pasado") + (ev.hora ? "" : " todoDia");
+      /* Sin hora, en el celular queda como barra (estilo.css): «todo el día» no cabe. */
+      chip.innerHTML = ev.hora ? '<span class="calHora">' + esc(ev.hora) + "</span>" : '<span class="calTit">todo el día</span>';
       chip.title = ev.titulo;
       chip.onclick = () => irATarjeta(ev);
       cel.appendChild(chip);
