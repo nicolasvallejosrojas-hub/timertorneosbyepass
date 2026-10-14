@@ -6,6 +6,10 @@
       4. Reloj
       5. Diseño
       6. Nombre del torneo y ronda
+      7. Pestañas y control remoto
+      8. Mesas
+      9. Ranking
+     10. Sorteo
 -->
 <html lang="es">
 <head>
@@ -26,8 +30,18 @@
   Esta página es JavaScript de antes (var, function, sin módulos) y CSS sin
   inset, gap ni clamp. Lee Firebase por su API REST en vivo (EventSource) o,
   si ni eso hay, preguntando cada 3 segundos. Solo lee: reloj, diseño,
-  imágenes y el nombre del torneo. Si algo cambia en el formato de
-  salas/<sala>/timer, cambiarlo también acá.
+  imágenes, el nombre del torneo, las mesas, el ranking y el sorteo. Si algo
+  cambia en el formato de salas/<sala>/timer, /pairings o /sorteo, cambiarlo
+  también acá.
+
+  Pestañas (como en timer-view.html): Timer · Mesas · Ranking · Sorteo. Se
+  cambian con las flechas ← → del control, o tocando/clic en la barra de abajo.
+  ↑ ↓ pasan de página y OK (Enter) elige la ronda o el mes. Si nadie toca nada,
+  las listas largas pasan solas de página.
+
+  El ranking usa clasificacion.js (la MISMA cuenta que el perfil de la tienda):
+  se baja como texto y se le quita el «export», porque aquí no hay módulos. Si
+  se sube la versión de clasificacion.js (?v=), subirla también en cargarClas().
 -->
 <style>
   html,body{margin:0;padding:0;height:100%;overflow:hidden;}
@@ -55,6 +69,56 @@
   #aviso{position:fixed;top:0;left:0;right:0;bottom:0;z-index:5;display:none;background:#0F2E2A;text-align:center;padding-top:36vh;}
   #aviso h2{margin:0;font-size:5vh;}
   #aviso p{color:#9DBDB4;font-size:2.6vh;}
+
+  /* Barra de pestañas: se esconde sola en el reloj para no ensuciar la pantalla. */
+  #nav{position:fixed;left:0;right:0;bottom:0;z-index:4;display:-webkit-flex;display:flex;-webkit-justify-content:center;justify-content:center;
+    padding:1.3vh 0;background:rgba(10,34,31,.94);-webkit-transition:opacity .4s;transition:opacity .4s;}
+  #nav.oculta{opacity:0;}
+  #nav span{position:relative;margin:0 .8vw;padding:1.1vh 2.6vw;border-radius:1.2vh;color:#9DBDB4;font-size:2.6vh;font-weight:600;cursor:pointer;}
+  #nav span.on{background:#F45B45;color:#0F2E2A;}
+  #dot{position:absolute;top:.5vh;right:.7vw;width:1.5vh;height:1.5vh;border-radius:50%;background:#FFB020;display:none;}
+
+  /* Las tres pantallas nuevas ocupan lo que hay entre la cabecera y la barra. */
+  .pag{position:fixed;left:0;right:0;top:11vh;bottom:9vh;z-index:3;display:none;overflow:hidden;background:#0F2E2A;padding:0 2.4vw;box-sizing:border-box;}
+  .pag.ver{display:block;}
+  .barra{height:6.4vh;padding-top:.6vh;overflow:hidden;white-space:nowrap;}
+  .info{float:right;color:#9DBDB4;font-size:2.2vh;line-height:5vh;}
+  .chips span{display:inline-block;margin-right:1vw;padding:.7vh 1.6vw;border-radius:1vh;background:#143833;color:#9DBDB4;font-size:2.4vh;font-weight:600;cursor:pointer;}
+  .chips span.on{background:#F3FFFB;color:#0F2E2A;}
+  .cols2,.cols3{height:70vh;overflow:hidden;}
+  .cols2{-webkit-column-count:2;column-count:2;-webkit-column-gap:1.6vw;column-gap:1.6vw;}
+  .cols3{-webkit-column-count:3;column-count:3;-webkit-column-gap:1.6vw;column-gap:1.6vw;}
+  .mesa,.fila{display:block;box-sizing:border-box;overflow:hidden;background:#143833;border-radius:1.4vh;margin:0 0 1.6vh;
+    -webkit-column-break-inside:avoid;break-inside:avoid;page-break-inside:avoid;}
+  .mesa{height:15.6vh;padding:1.1vh 1.2vw;}
+  .mn{font-size:1.8vh;letter-spacing:.16em;color:#9DBDB4;}
+  .mn b{font-family:Newsreader,Georgia,serif;font-weight:300;font-size:3.4vh;color:#FFB020;letter-spacing:0;margin-left:.4vw;}
+  .jug{font-size:2.5vh;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .jug small{font-size:1.9vh;color:#9DBDB4;}
+  .jug b{font-size:1.7vh;letter-spacing:.1em;color:#0F2E2A;background:#FFB020;border-radius:.6vh;padding:.1vh .5vw;margin-left:.4vw;vertical-align:middle;}
+  .jug.g{color:#FFB020;font-weight:600;}
+  .fila{height:8vh;line-height:8vh;padding:0 1.2vw;white-space:nowrap;margin-bottom:1.2vh;}
+  .fila .pt{float:right;font-size:3.2vh;font-weight:600;color:#FFB020;}
+  .fila .pos{display:inline-block;min-width:4vw;font-size:3vh;font-weight:700;color:#9DBDB4;}
+  .fila .pos.p1{color:#E0A800;} .fila .pos.p2{color:#8A97AD;} .fila .pos.p3{color:#C07A3A;}
+  .fila .nom{display:inline-block;max-width:44%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;font-size:2.8vh;font-weight:600;}
+  .fila .met{margin-left:1vw;font-size:2vh;color:#9DBDB4;}
+  .vacio{padding-top:12vh;text-align:center;color:#9DBDB4;font-size:3vh;}
+  .vacio b{display:block;color:#F3FFFB;font-size:4vh;margin-bottom:1vh;}
+
+  /* Sorteo: la rueda a la izquierda, el ganador y la lista a la derecha. */
+  #pSort.ver{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;}
+  #sRueda{position:relative;-webkit-flex:none;flex:none;width:68vh;height:68vh;margin:0 4vw 0 1vw;}
+  #sCanvas{width:100%;height:100%;display:block;}
+  #sPin{position:absolute;top:-1vh;left:50%;margin-left:-1.6vh;width:0;height:0;border-left:1.6vh solid transparent;border-right:1.6vh solid transparent;border-top:3.4vh solid #F45B45;}
+  #sInfo{-webkit-flex:1;flex:1;min-width:0;}
+  #sTitulo{font-size:3vh;font-weight:600;color:#9DBDB4;margin-bottom:2vh;}
+  #sGanador .lbl{font-size:2.4vh;letter-spacing:.16em;color:#9DBDB4;font-weight:600;}
+  #sGanador .who{font-family:Newsreader,Georgia,serif;font-weight:300;font-size:8vh;line-height:1.1;color:#FFB020;margin-top:1vh;word-wrap:break-word;}
+  #sLista{margin-top:3vh;font-size:2.8vh;line-height:1.5;}
+  #sLista .secLabel{font-size:2vh;letter-spacing:.16em;color:#9DBDB4;margin-bottom:.6vh;}
+  #sLista div div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #sEstado{margin-top:2vh;font-size:2.2vh;color:#9DBDB4;}
 </style>
 </head>
 <body>
@@ -63,6 +127,16 @@
 <div id="cab"><img id="logo" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><span id="marca">Bye<b>Pass</b></span><div><div id="titulo"></div><div id="sub"></div></div></div>
 <div id="centro"><div id="ronda"></div><div id="reloj">--:--</div><div id="extras"></div></div>
 <div id="estado">Conectando…</div>
+<!-- Mesas: las rondas publicadas por el organizador y la tabla de posiciones. -->
+<div class="pag" id="pMesas"><div class="barra"><div class="info" id="mInfo"></div><div class="chips" id="mChips"></div></div><div id="mLista" class="cols3"></div></div>
+<!-- Ranking: la clasificación mensual de la tienda. -->
+<div class="pag" id="pRank"><div class="barra"><div class="info" id="kInfo"></div><div class="chips" id="kChips"></div></div><div id="kLista" class="cols2"></div><div id="kEstado" class="vacio"></div></div>
+<!-- Sorteo: la rueda gira igual que en el celular, al mismo tiempo. -->
+<div class="pag" id="pSort">
+  <div id="sRueda"><canvas id="sCanvas" width="440" height="440"></canvas><div id="sPin"></div></div>
+  <div id="sInfo"><div id="sTitulo">Sorteo</div><div id="sVacio" class="vacio" style="display:none"><b>Todavía no hay sorteo</b>Cuando el organizador lo prepare, la rueda aparece acá sola.</div><div id="sGanador"></div><div id="sLista"></div><div id="sEstado"></div></div>
+</div>
+<div id="nav"><span id="tabT" class="on">Timer</span><span id="tabM">Mesas<i id="dot"></i></span><span id="tabR">Ranking</span><span id="tabS">Sorteo</span></div>
 <div id="aviso"><h2 id="avisoT">Esta sala no está disponible</h2><p id="avisoP">Revisa el enlace, o crea tu sala en byepass.cl</p></div>
 
 <script src="config.js?v=9"></script>
@@ -110,8 +184,11 @@
      inicial y también las reconexiones automáticas del navegador) es una
      «foto» del estado guardado, con su hora vieja: llega con enVivo = false. */
   var negada = false;
+  /* Devuelve { cerrar() }: el navegador deja pocas conexiones abiertas a la vez
+     por servidor (6 en HTTP/1.1), así que lo que no hace falta siempre (el
+     sorteo) se escucha solo mientras se mira. */
   function escuchar(ruta, alCambiar){
-    var valor = null;
+    var valor = null, cerrado = false, es = null, tic = null;
     if (window.EventSource){
       var esFoto = true;                     // se vuelve a poner en true en cada onopen
       var al = function(esPatch){ return function(e){
@@ -120,13 +197,14 @@
         var enVivo = !esFoto; esFoto = false;
         alCambiar(valor, enVivo); }; };
       var abrir = function(){
-        var es = new EventSource(url(ruta));
+        if (cerrado) return;
+        es = new EventSource(url(ruta));
         es.addEventListener("put", al(false));
         es.addEventListener("patch", al(true));
         es.addEventListener("cancel", function(){ es.close(); negada = true; noDisponible(); });
         es.onopen = function(){ esFoto = true; if (!negada) $("estado").innerHTML = S ? "" : "Esperando al organizador…"; };
         es.onerror = function(){
-          if (negada) return;
+          if (negada || cerrado) return;
           $("estado").innerHTML = S ? "Sin conexión — mostrando lo último recibido" : "Sin conexión, reintentando…";
           /* Cerrado del todo: o no hay permiso (sala que no existe o venció) o
              se cayó la red. Se pregunta cuál antes de reintentar. */
@@ -150,8 +228,9 @@
         x.onerror = function(){ $("estado").innerHTML = "Sin conexión, reintentando…"; };
         x.send();
       };
-      preguntar(); setInterval(preguntar, 3000);
+      preguntar(); tic = setInterval(preguntar, 3000);
     }
+    return { cerrar: function(){ cerrado = true; if (es) es.close(); clearInterval(tic); } };
   }
   function noDisponible(){
     if (INVITADO){ $("avisoT").innerHTML = "Esta sala de invitado terminó"; $("avisoP").innerHTML = "Las salas de invitado duran 24 horas. Crea la tuya en byepass.cl"; }
@@ -262,6 +341,7 @@
       if (!src && M.boxes) for (var k = 0; k < M.boxes.length; k++) if (M.boxes[k].id === b.id) src = M.boxes[k].src;
       if (!src) continue;
       var d = document.createElement("div"); d.className = "caja";
+      if (TAB && TAB !== "timer") d.style.display = "none";   // las cajas son del reloj, no de las otras pestañas
       d.style.left = (b.x / 1180 * 100) + "vw"; d.style.top = (b.y / 660 * 100) + "vh";
       d.style.width = (b.w / 1180 * 100) + "vw"; d.style.height = (b.h / 660 * 100) + "vh";
       var im = document.createElement("img"); im.src = src; if (b.flip) im.style.transform = "scaleX(-1)";
@@ -282,9 +362,18 @@
   /* ▌BLOQUE 6 · Nombre del torneo y ronda ═════════════════════════════════════════
      Lo saca de pairings. */
   /* ---------------- el torneo: nombre y ronda ---------------- */
-  escuchar("salas/" + SALA + "/pairings", function(P){
-    if (!P || !P.rounds){ $("titulo").innerHTML = ""; $("sub").innerHTML = ""; $("ronda").style.display = "none"; return; }
+  var P = null, selR = null, verPos = false, vistoP = 0, primeraP = true;   // lo publicado: lo usa también la pestaña Mesas
+  escuchar("salas/" + SALA + "/pairings", function(D){
+    P = (D && D.rounds) ? D : null;
+    if (!P){
+      $("titulo").innerHTML = ""; $("sub").innerHTML = ""; $("ronda").style.display = "none";
+      selR = null; verPos = false; pintarMesas(); return;
+    }
     var rounds = P.rounds.length != null ? P.rounds : Object.keys(P.rounds).map(function(k){ return P.rounds[k]; });
+    if (selR === null || selR < P.lastRound) selR = P.lastRound;          // una ronda nueva se muestra sola
+    if (!primeraP && TAB !== "mesas" && (P.updatedAt || 0) > vistoP) $("dot").style.display = "block";
+    primeraP = false;
+    pintarMesas();
     var etq = "Ronda " + P.lastRound + (P.rondasTotales ? " de " + P.rondasTotales : "");
     for (var i = 0; i < rounds.length; i++) if (rounds[i] && rounds[i].number === P.lastRound && rounds[i].etiqueta) etq = rounds[i].etiqueta;
     $("titulo").textContent = P.name || "";
@@ -292,6 +381,282 @@
     $("ronda").textContent = etq + (P.phase === "results" ? " · resultados" : " · en curso");
     $("ronda").style.display = "block";
   });
+
+  /* ▌BLOQUE 7 · Pestañas y control remoto ═════════════════════════════════════════
+     Timer · Mesas · Ranking · Sorteo. Flechas ← → cambian de pestaña, ↑ ↓ de página, OK elige la
+     ronda o el mes; también sirve el clic (control con puntero) y el dedo. */
+  /* ---------------- pestañas ---------------- */
+  var TIENDA = SALA.replace(/-t([2-9]|[1-9][0-9])$/, "");                        // igual que sala.js
+  var NUM_TIMER = +((/-t([2-9]|[1-9][0-9])$/.exec(SALA) || [0, 1])[1]);
+  var TAB = "timer";
+  var ORDEN = SIN_TIENDA ? ["timer", "mesas", "sorteo"] : ["timer", "mesas", "rank", "sorteo"];   // sin tienda no hay ranking
+  var IDS = { timer: ["tabT", null], mesas: ["tabM", "pMesas"], rank: ["tabR", "pRank"], sorteo: ["tabS", "pSort"] };
+  var PG = { mesas: 0, rank: 0 }, ultimoToque = 0, navT = null;
+  if (SIN_TIENDA) $("tabR").style.display = "none";
+
+  /* Firebase entrega las listas como arreglo o como objeto {0:…, 1:…}: acá, siempre arreglo. */
+  function lista(x){
+    if (!x) return [];
+    var a = x.length != null ? x : Object.keys(x).sort(function(p, q){ return p - q; }).map(function(k){ return x[k]; });
+    return a.filter(function(v){ return v != null; });
+  }
+  /* Tocar el DOM solo si cambió: las listas se repintan cada 10 s. */
+  function poner(el, html){ if (el._h !== html){ el._h = html; el.innerHTML = html; } }
+  /* El trozo de la lista que toca en esta página, y «Página x de y». */
+  function paginar(k, items, por, info){
+    var n = Math.max(1, Math.ceil(items.length / por));
+    PG[k] = ((PG[k] % n) + n) % n;
+    poner(info, n > 1 ? "Página " + (PG[k] + 1) + " de " + n : "");
+    return items.slice(PG[k] * por, PG[k] * por + por).join("");
+  }
+  function htmlFila(pos, nombre, meta, pts){
+    return '<div class="fila"><span class="pt">' + pts + '</span><span class="pos' + (pos <= 3 ? " p" + pos : "") + '">' + pos +
+           '</span><span class="nom">' + esc(nombre) + '</span><span class="met">' + esc(meta) + '</span></div>';
+  }
+  function htmlChips(opciones, activa){
+    return opciones.map(function(o){ return '<span data-o="' + esc(o[0]) + '"' + (o[0] === activa ? ' class="on"' : "") + '>' + esc(o[1]) + '</span>'; }).join("");
+  }
+
+  function mostrarNav(){
+    $("nav").className = ""; clearTimeout(navT);
+    if (TAB === "timer") navT = setTimeout(function(){ $("nav").className = "oculta"; }, 6000);   // el reloj se ve limpio
+  }
+  function mostrar(t){
+    if (ORDEN.indexOf(t) < 0) t = "timer";
+    TAB = t;
+    for (var k in IDS) if (IDS.hasOwnProperty(k)){
+      $(IDS[k][0]).className = k === t ? "on" : "";
+      if (IDS[k][1]) $(IDS[k][1]).className = "pag" + (k === t ? " ver" : "");
+    }
+    var reloj = t === "timer", cajas = document.querySelectorAll(".caja");
+    $("centro").style.display = reloj ? "" : "none";
+    $("estado").style.display = reloj ? "" : "none";
+    for (var i = 0; i < cajas.length; i++) cajas[i].style.display = reloj ? "" : "none";
+    mostrarNav();
+    escucharSorteo(t === "sorteo");
+    if (t === "mesas"){ $("dot").style.display = "none"; vistoP = P ? P.updatedAt || 0 : 0; pintarMesas(); }
+    else if (t === "rank") abrirRank();
+    else if (t === "sorteo") pintarRuleta();
+  }
+  function pagina(d){
+    if (TAB === "mesas"){ PG.mesas += d; pintarMesas(); }
+    else if (TAB === "rank"){ PG.rank += d; pintarRank(); }
+  }
+  function siguienteOpcion(){
+    if (TAB === "mesas"){
+      var o = opcionesMesas(), ahoraO = verPos ? "pos" : String(selR);
+      if (o.length) elegirMesas(o[(o.indexOf(ahoraO) + 1) % o.length]);
+    } else if (TAB === "rank" && MESES_RANK.length) elegirMes(MESES_RANK[(MESES_RANK.indexOf(mesSel) + 1) % MESES_RANK.length]);
+  }
+
+  var DEST = ["timer", "mesas", "rank", "sorteo"], BOT = ["tabT", "tabM", "tabR", "tabS"];
+  for (var b = 0; b < BOT.length; b++) (function(i){ $(BOT[i]).onclick = function(){ mostrar(DEST[i]); }; })(b);
+  document.addEventListener("keydown", function(e){
+    var c = e.keyCode, i = ORDEN.indexOf(TAB);
+    ultimoToque = Date.now(); mostrarNav();
+    if (c === 37 || c === 39) mostrar(ORDEN[(i + (c === 39 ? 1 : ORDEN.length - 1)) % ORDEN.length]);
+    else if (c === 38 || c === 40) pagina(c === 40 ? 1 : -1);
+    else if (c === 13) siguienteOpcion();
+    else return;
+    e.preventDefault();
+  });
+  document.addEventListener("mousemove", mostrarNav);
+  document.addEventListener("click", function(){ ultimoToque = Date.now(); });
+  /* Con nadie tocando, las listas largas pasan solas de página. */
+  setInterval(function(){ if (Date.now() - ultimoToque > 20000) pagina(1); }, 10000);
+
+  /* ▌BLOQUE 8 · Mesas ═════════════════════════════════════════════════════════════
+     Las rondas publicadas (chips) y, por ronda, las mesas con su resultado; «Posiciones» si hay
+     tabla. */
+  /* ---------------- mesas ---------------- */
+  function opcionesMesas(){
+    var o = lista(P && P.rounds).map(function(r){ return String(r.number); });
+    if (lista(P && P.standings).length) o.push("pos");
+    return o;
+  }
+  function elegirMesas(o){
+    if (o === "pos") verPos = true; else { verPos = false; selR = +o; }
+    PG.mesas = 0; pintarMesas();
+  }
+  $("mChips").onclick = function(e){ var o = e.target.getAttribute && e.target.getAttribute("data-o"); if (o) elegirMesas(o); };
+
+  function htmlMesa(m){
+    var emp = m.result === "Empate";
+    function jug(n, r, gana){
+      return '<div class="jug' + (gana ? " g" : "") + '">' + esc(n) + (r ? ' <small>' + r.w + '-' + r.l + '-' + r.t + '</small>' : "") +
+             (gana ? '<b>GANA</b>' : emp ? '<b>EMPATE</b>' : "") + '</div>';
+    }
+    return '<div class="mesa"><div class="mn">MESA<b>' + (m.p2 ? esc(m.table) : "—") + '</b></div>' +
+      jug(m.p1, m.p1rec, !!m.result && m.result === "Gana " + m.p1) +
+      (m.p2 ? jug(m.p2, m.p2rec, !!m.result && m.result === "Gana " + m.p2) : '<div class="jug"><small>BYE · descansa esta ronda</small></div>') + '</div>';
+  }
+  function pintarMesas(){
+    var rs = lista(P && P.rounds), pos = lista(P && P.standings);
+    if (!rs.length){
+      poner($("mChips"), ""); poner($("mInfo"), ""); $("mLista").className = "cols3";
+      poner($("mLista"), '<div class="vacio"><b>Aún no hay emparejamientos</b>Cuando el organizador publique la ronda, las mesas aparecen acá.</div>');
+      return;
+    }
+    if (verPos && !pos.length) verPos = false;
+    var chips = rs.map(function(r){ return [String(r.number), r.etiqueta || "R" + r.number]; });
+    if (pos.length) chips.push(["pos", "Posiciones"]);
+    poner($("mChips"), htmlChips(chips, verPos ? "pos" : String(selR)));
+    var items;
+    if (verPos){
+      $("mLista").className = "cols2";
+      items = pos.map(function(s){ return htmlFila(s.place, s.name, s.w + "-" + s.l + "-" + s.t, s.pts); });
+      poner($("mLista"), paginar("mesas", items, 14, $("mInfo")));
+    } else {
+      $("mLista").className = "cols3";
+      var ronda = null;
+      for (var i = 0; i < rs.length; i++) if (rs[i].number === selR) ronda = rs[i];
+      items = lista(ronda && ronda.matches).map(htmlMesa);
+      poner($("mLista"), paginar("mesas", items, 12, $("mInfo")));
+    }
+  }
+
+  /* ▌BLOQUE 9 · Ranking ═══════════════════════════════════════════════════════════
+     La clasificación mensual: historial y puntos de la tienda por REST (al abrir la pestaña) y la
+     cuenta de clasificacion.js, la misma del perfil de la tienda. */
+  /* ---------------- ranking ---------------- */
+  var CLAS = null, clasCargando = false, clasFallo = false;
+  var HIST = null, CFG = null, histT = 0, mesSel = null, MESES_RANK = [];
+
+  /* clasificacion.js es un módulo (export) y esta página no los tiene: se baja como texto, se le quita
+     el «export» y se corre como script de la página (la política de contenido deja los inline). */
+  function cargarClas(){
+    if (CLAS || clasCargando) return;
+    clasCargando = true;
+    var x = new XMLHttpRequest(); x.open("GET", "clasificacion.js?v=3");
+    x.overrideMimeType("text/plain; charset=utf-8");                  // el archivo lleva tildes y marcas combinadas en una regex
+    x.onload = function(){
+      try {
+        var s = document.createElement("script");
+        s.text = "(function(){" + x.responseText.replace(/^export /gm, "") +
+          "\nwindow.CLAS={clasificar:clasificar,mesesDe:mesesDe,nombreMes:nombreMes,deTimer:deTimer,PUNTOS_DEF:PUNTOS_DEF};})();";
+        document.head.appendChild(s);
+      } catch(e){}
+      CLAS = window.CLAS || null; clasFallo = !CLAS; pintarRank();
+    };
+    x.onerror = function(){ clasCargando = false; clasFallo = true; pintarRank(); };
+    x.send();
+  }
+  function obtener(ruta, ok, mal){
+    var u = url(ruta), x = new XMLHttpRequest();
+    x.open("GET", u + (u.indexOf("?") < 0 ? "?" : "&") + "t=" + Date.now());
+    x.onload = function(){ if (x.status === 200){ try { ok(JSON.parse(x.responseText)); return; } catch(e){} } mal(); };
+    x.onerror = mal; x.send();
+  }
+  function abrirRank(){
+    cargarClas();
+    pintarRank();
+    if (HIST && Date.now() - histT < 60000) return;                  // lo bajado hace menos de un minuto sirve
+    obtener("salas/" + TIENDA + "/config", function(v){
+      if (v && Object.prototype.toString.call(v.puntos) === "[object Array]") CFG = { puntos: v.puntos, resto: v.resto == null ? 1 : v.resto };
+      pintarRank();
+    }, function(){});
+    obtener("salas/" + TIENDA + "/historial", function(v){ HIST = v || {}; histT = Date.now(); pintarRank(); },
+      function(){ if (!HIST) { $("kEstado").innerHTML = "No se pudo cargar el ranking."; } });
+  }
+  function elegirMes(m){ mesSel = m; PG.rank = 0; pintarRank(); }
+  $("kChips").onclick = function(e){ var o = e.target.getAttribute && e.target.getAttribute("data-o"); if (o) elegirMes(o); };
+
+  function pintarRank(){
+    if (TAB !== "rank") return;
+    var vacio = function(txt){ poner($("kChips"), ""); poner($("kInfo"), ""); $("kLista").style.display = "none"; $("kEstado").style.display = ""; $("kEstado").innerHTML = txt; };
+    if (clasFallo) return vacio("Esta tele no puede calcular el ranking. Míralo en el celular.");
+    if (!CLAS || !HIST) return vacio("Cargando el ranking…");
+    var torneos = Object.keys(HIST).map(function(k){ return HIST[k]; }).filter(function(t){ return t && typeof t === "object"; });
+    torneos = CLAS.deTimer(torneos, NUM_TIMER);
+    if (!torneos.length) return vacio("<b>Todavía no hay torneos archivados</b>El ranking aparece cuando se archive el primero.");
+    $("kEstado").style.display = "none"; $("kLista").style.display = "";
+    MESES_RANK = CLAS.mesesDe(torneos);
+    if (!mesSel || MESES_RANK.indexOf(mesSel) < 0) mesSel = MESES_RANK[0];
+    poner($("kChips"), htmlChips(MESES_RANK.slice(0, 6).map(function(m){ return [m, CLAS.nombreMes(m)]; }), mesSel));
+    var filas = CLAS.clasificar(torneos, mesSel, CFG || CLAS.PUNTOS_DEF);
+    var items = filas.map(function(r, i){
+      return htmlFila(i + 1, r.name, r.torneos + (r.torneos === 1 ? " torneo" : " torneos") + (r.wr === null ? "" : " · " + r.wr.toFixed(0) + "% vict."), r.pts);
+    });
+    poner($("kLista"), paginar("rank", items, 14, $("kInfo")));
+  }
+
+  /* ▌BLOQUE 10 · Sorteo ═══════════════════════════════════════════════════════════
+     La ruleta: el organizador publica el giro con su hora de partida y los ángulos; cada pantalla
+     anima ESE giro con la hora calibrada. Solo se escucha con la pestaña abierta. */
+  /* ---------------- sorteo ---------------- */
+  var SORT = null, giroId = null, animando = false, rotActual = 0, TAU = Math.PI * 2;
+  var COLORES = ["#DDCC88", "#DDA288", "#DD88DD", "#AB88DD", "#88C1DD", "#88DDC1", "#88DD88", "#BADD88"];
+
+  function dibujarRueda(cv, items, rot){
+    var ctx = cv.getContext("2d"), R = cv.width / 2, N = items.length;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    if (!N) return;
+    var seg = TAU / N, fuente = Math.max(10, Math.min(20, 460 / N));
+    for (var i = 0; i < N; i++){
+      var a0 = rot + i * seg;
+      ctx.beginPath(); ctx.moveTo(R, R); ctx.arc(R, R, R - 4, a0, a0 + seg); ctx.closePath();
+      ctx.fillStyle = COLORES[i % COLORES.length]; ctx.fill();
+      ctx.strokeStyle = "rgba(14,15,24,.5)"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.save(); ctx.translate(R, R); ctx.rotate(a0 + seg / 2);
+      ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillStyle = "#10231E";
+      ctx.font = "600 " + fuente + "px Inter, Arial, sans-serif";
+      var nom = String(items[i]);
+      ctx.fillText(nom.length > 22 ? nom.slice(0, 21) + "…" : nom, R - 16, 0);
+      ctx.restore();
+    }
+    ctx.beginPath(); ctx.arc(R, R, R * 0.13, 0, TAU); ctx.fillStyle = "#0F2E2A"; ctx.fill();
+    ctx.strokeStyle = "rgba(243,255,251,.28)"; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  function arrancarGiro(){
+    var g = SORT && SORT.giro;
+    if (!g || !g.id || g.id === giroId) return;
+    giroId = g.id;
+    /* Quien abre la tele después de que la rueda paró no ve el giro de nuevo: aparece frenada en el ganador. */
+    if (ahora() > g.startAt + g.dur){ animando = false; rotActual = g.to; return; }
+    animando = true;
+    var raf = window.requestAnimationFrame || function(f){ return setTimeout(f, 33); };
+    function fin(){ animando = false; rotActual = g.to; pintarRuleta(); }
+    function paso(){
+      if (!animando) return;
+      var t = Math.min(1, Math.max(0, (ahora() - g.startAt) / g.dur));
+      rotActual = g.from + (g.to - g.from) * (1 - Math.pow(1 - t, 4));
+      pintarRuleta();
+      if (t < 1) raf(paso); else fin();
+    }
+    raf(paso);
+    /* Si la tele congela los cuadros, la rueda igual termina en el nombre correcto. */
+    setTimeout(function(){ if (animando) fin(); }, Math.max(0, g.startAt - ahora()) + g.dur + 600);
+  }
+
+  function pintarRuleta(){
+    if (TAB !== "sorteo") return;
+    var g = SORT && SORT.giro, gs = lista(SORT && SORT.ganadores);
+    var items = g && lista(g.items).length ? lista(g.items) : lista(SORT && SORT.items);
+    var vacio = !items.length && !gs.length;
+    $("sVacio").style.display = vacio ? "" : "none";
+    $("sRueda").style.display = vacio ? "none" : "";
+    if (vacio){ $("sTitulo").innerHTML = ""; $("sGanador").innerHTML = ""; $("sLista").innerHTML = ""; $("sEstado").innerHTML = ""; return; }
+    $("sTitulo").textContent = (SORT && SORT.titulo) || "Sorteo";
+    dibujarRueda($("sCanvas"), items, rotActual);
+    $("sGanador").innerHTML = animando ? '<div class="lbl">GIRANDO…</div>'
+      : g && g.ganador ? '<div class="lbl">GANADOR</div><div class="who">' + esc(g.ganador) + '</div>'
+      : '<div class="lbl">LISTO PARA GIRAR</div>';
+    $("sLista").innerHTML = gs.length ? '<div class="secLabel">GANADORES</div>' +
+      gs.map(function(x, i){ return '<div><div>' + (i + 1) + '. ' + esc(x.nombre) + '</div></div>'; }).join("") : "";
+    var quedan = lista(SORT && SORT.items).length;
+    $("sEstado").textContent = quedan ? quedan + (quedan === 1 ? " participante en la rueda" : " participantes en la rueda") : "Ya salieron todos los premios.";
+  }
+  /* Solo se escucha con la pestaña abierta (ver escuchar). Al volver, llega la foto de lo guardado:
+     arrancarGiro() la anima si el giro sigue en curso o la deja frenada si ya terminó. */
+  var sorteoEsc = null;
+  function escucharSorteo(sobre){
+    if (sobre && !sorteoEsc) sorteoEsc = escuchar("salas/" + SALA + "/sorteo", function(v){ SORT = v; arrancarGiro(); pintarRuleta(); });
+    else if (!sobre && sorteoEsc){ sorteoEsc.cerrar(); sorteoEsc = null; }
+  }
+
+  /* Se abre en la pestaña del enlace (#mesas, #ranking, #sorteo) o en el reloj. */
+  mostrar({ "#mesas": "mesas", "#ranking": "rank", "#sorteo": "sorteo" }[location.hash] || "timer");
 
   window.addEventListener("resize", function(){ dibujar(); pintarDiseno(); });
 })();
