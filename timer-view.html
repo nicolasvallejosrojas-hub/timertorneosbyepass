@@ -450,7 +450,7 @@ if (!new URLSearchParams(location.search).get("sala"))
 }
 import { resolver as palResolver, esOriginal as palEsOriginal, aplicar as palAplicarEn,
          alDia } from "./paleta.js?v=4";
-import { nombreMes, mesDe, mesesDe, clasificar, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=3";
+import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=5";
 
 /* ▌BLOQUE 5 · Arranque ══════════════════════════════════════════════════════════
    Conecta Firebase en modo lectura y calcula la hora del servidor. */
@@ -847,16 +847,20 @@ function renderPair(){
   const q = $("q").value.trim().toLowerCase();
 
   if (showStand){
-    let h = '<div class="secLabel">POSICIONES FINALES</div>';
-    P.standings.forEach(s => {
-      const hit = q && s.name.toLowerCase().includes(q);
-      const medalla = s.place <= 3 ? " pod"+s.place : "";
-      h += `<div class="frow${hit?" hlrow":""}"${q&&!hit?' style="opacity:.35"':''}>
-              <span class="fpos${medalla}">${s.place}</span>
-              <div class="fmid"><div class="fname">${esc(s.name)}</div>
-                <div class="fmeta">${s.w}-${s.l}-${s.t}${pctTxt(s)}</div></div>
-              <span class="fpts">${s.pts}</span>
-            </div>`;
+    /* Con varias categorías, una sección por cada una (Masters, Senior, Junior), cada una con su 1.º. */
+    let h = "";
+    porCategoria(P.standings).forEach(sec => {
+      h += '<div class="secLabel">' + (sec.nombre ? "POSICIONES · " + esc(sec.nombre.toUpperCase()) : "POSICIONES FINALES") + '</div>';
+      sec.filas.forEach(s => {
+        const hit = q && s.name.toLowerCase().includes(q);
+        const medalla = s.place <= 3 ? " pod"+s.place : "";
+        h += `<div class="frow${hit?" hlrow":""}"${q&&!hit?' style="opacity:.35"':''}>
+                <span class="fpos${medalla}">${s.place}</span>
+                <div class="fmid"><div class="fname">${esc(s.name)}</div>
+                  <div class="fmeta">${s.w}-${s.l}-${s.t}${pctTxt(s)}</div></div>
+                <span class="fpts">${s.pts}</span>
+              </div>`;
+      });
     });
     list.innerHTML = h;
     return;
@@ -967,28 +971,31 @@ function renderClas(soloTabla){
   }
 
   const delMes = torneos.filter(t => mesDe(t) === mesSel);
-  const filas = clasificar(torneos, mesSel, CFG);
+  /* Con categorías, una tabla por cada una (Masters, Senior, Junior), cada una con sus puntos. */
+  const secs = clasificarPorCategoria(torneos, mesSel, CFG);
 
-  pintarPodio(filas);
+  pintarPodio(secs.length === 1 ? secs[0].filas : []);   // el podio es de la tabla única
 
   let h = '<div class="sub" style="margin-bottom:10px">' + delMes.length +
           (delMes.length === 1 ? ' torneo' : ' torneos') + ' en ' + nombreMes(mesSel) + '</div>';
   h += '<div class="chead"><span>JUGADOR</span><span>PUNTOS</span></div>';
-  filas.forEach((r,i) => {
-    const pos = i+1, medalla = pos <= 3 ? " pod"+pos : "";
-    h += `<div class="crow" data-i="${i}">
+  let k = 0;   // el número de cada fila no se repite entre categorías: es lo que une la fila con su detalle
+  secs.forEach(sec => { if (sec.nombre) h += '<div class="secLabel" style="margin:14px 0 4px">' + esc(sec.nombre.toUpperCase()) + '</div>';
+  sec.filas.forEach((r,i) => {
+    const pos = i+1, medalla = pos <= 3 ? " pod"+pos : "", n = k++;
+    h += `<div class="crow" data-i="${n}">
             <span class="fpos${medalla}">${pos}</span>
             <div class="fmid"><div class="fname">${esc(r.name)}</div>
               <div class="fmeta">${r.torneos} ${r.torneos===1?'torneo':'torneos'}`
        + (r.wr===null ? '' : ' · ' + r.wr.toFixed(0) + '% vict.') + `</div></div>
             <span class="fpts">${r.pts}</span>
           </div>
-          <div class="cdet" data-d="${i}">
+          <div class="cdet" data-d="${n}">
             <div><span>TORNEOS</span><b>${r.torneos}</b></div>
             <div><span>MEJOR PUESTO</span><b class="ac">${r.mejor}º</b></div>
             <div><span>RÉCORD</span><b>${r.w}-${r.l}-${r.e}</b></div>
           </div>`;
-  });
+  }); });
   h += '<div class="chint">Toca una fila para ver el detalle.</div>';
   $("clasBox").innerHTML = h;
 

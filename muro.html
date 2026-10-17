@@ -539,11 +539,11 @@ import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./ag
 /* SALA es el timer que se está mirando (su reloj y sus mesas); TIENDA, la
    tienda de ese timer: historial, agenda, a quién sigo y mi ID compartido. */
 import { SALA, BASE, TIENDA, BASE_T, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=6";
-import { nombreMes, claveJugador } from "./clasificacion.js?v=3";
+import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=5";
 import { estoyEnLinea } from "./presencia.js?v=4";
 import { leerHistorial } from "./historial.js?v=1";
 import { vigilar } from "./mantenimiento.js?v=3";
-import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=6";
+import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=8";
 
 const $ = id => document.getElementById(id);
 
@@ -765,21 +765,23 @@ function pintarMuro(){
   }
 
   cont.innerHTML = torneos.map(({ t, sala }) => {
-    const top = (t.standings || []).slice(0, 4);
+    const secs = porCategoria(t.standings || []);
     const mia = (t.standings || []).find(esMia);
-    /* Si el jugador quedó fuera del top 4 igual se muestra su fila, porque es
-       lo que viene a buscar: en qué puesto quedó. */
-    const extra = (mia && mia.place > 4) ? mia : null;
-    const filas = top.concat(extra ? [extra] : []);
+    /* Si el jugador quedó fuera del top 4 (de su categoría, si el torneo las tuvo) igual se muestra
+       su fila, porque es lo que viene a buscar: en qué puesto quedó. */
+    const filas = secs.flatMap(sec => {
+      const yo = sec.filas.find(esMia);
+      return (sec.nombre ? [{ titulo: sec.nombre }] : []).concat(sec.filas.slice(0, 4), yo && yo.place > 4 ? [yo] : []);
+    });
     return '<article class="post">' +
       '<div class="cab"><div><div class="quien">' + esc(t.nombre || "Torneo") + '</div>' +
       '<div class="cuando">' + esc(nomT(sala)) + " · " + esc(fechaLegible(t.fecha)) + " · " +
       (t.jugadores || 0) + " jugadores · " + (t.rondas || 0) + " rondas</div></div></div>" +
-      (mia ? '<div class="texto">Quedaste <b>' + mia.place + "º</b> con " +
+      (mia ? '<div class="texto">Quedaste <b>' + mia.place + "º</b>" + (secs.length > 1 && mia.cat != null ? " en " + CATEGORIAS[mia.cat] : "") + " con " +
              (mia.pts || 0) + " puntos y un récord de " +
              (mia.w || 0) + "-" + (mia.l || 0) + "-" + (mia.t || 0) + ".</div>" : "") +
       '<table class="tabla"><caption>Clasificación final</caption><tbody>' +
-      filas.map(p =>
+      filas.map(p => p.titulo ? '<tr><td colspan="3" style="font-size:var(--t1);letter-spacing:.12em;font-weight:600;color:var(--rotulo);padding-top:10px">' + esc(p.titulo.toUpperCase()) + "</td></tr>" :
         '<tr' + (esMia(p) ? ' class="yo-fila"' : "") + '>' +
         '<td class="pos">' + p.place + "º</td>" +
         "<td>" + (p.reservado ? esc(esMia(p) ? "Tú · reservado" : p.name)
@@ -1303,9 +1305,13 @@ function pintarVivo(){
   if (tabla.length){
     /* Ocho cabe sin hacer scroll en un teléfono. Si el jugador quedó más abajo
        igual se muestra su fila: es lo que viene a ver. */
-    const mia = tabla.find(esMia);
-    const filas = tabla.slice(0, 8).concat(mia && mia.place > 8 ? [mia] : []);
-    $("vivoTabla").innerHTML = '<table class="tabla"><tbody>' + filas.map(p =>
+    /* Con varias categorías, las primeras 4 de cada una. */
+    const secs = porCategoria(tabla), tope = secs.length > 1 ? 4 : 8;
+    const filas = secs.flatMap(sec => {
+      const yo = sec.filas.find(esMia);
+      return (sec.nombre ? [{ titulo: sec.nombre }] : []).concat(sec.filas.slice(0, tope), yo && yo.place > tope ? [yo] : []);
+    });
+    $("vivoTabla").innerHTML = '<table class="tabla"><tbody>' + filas.map(p => p.titulo ? '<tr><td colspan="3" style="font-size:var(--t1);letter-spacing:.12em;font-weight:600;color:var(--rotulo);padding-top:10px">' + esc(p.titulo.toUpperCase()) + "</td></tr>" :
       "<tr" + (esMia(p) ? ' class="yo-fila"' : "") + ">" +
       '<td class="pos">' + p.place + "º</td><td>" + esc(p.name) + "</td>" +
       '<td class="pts">' + rec(p) + "</td></tr>").join("") + "</tbody></table>";

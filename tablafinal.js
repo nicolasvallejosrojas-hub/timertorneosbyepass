@@ -4,7 +4,7 @@
 /* ============================================================
    tablafinal.js — la tabla final como imagen para compartir
    ------------------------------------------------------------
-   Versión actual: v=1   (subir el ?v= al tocar este archivo)
+   Versión actual: v=2   (subir el ?v= al tocar este archivo)
 
    La dibuja en un canvas con las letras y los colores de la tele (lienzo
    oscuro, Inter, Newsreader) y la entrega como PNG: en el celular abre el
@@ -34,10 +34,19 @@ const fechaLarga = iso => {
   return (+m[3]) + " de " + MES[+m[2] - 1] + " de " + m[1];
 };
 
-/* filas: [{ puesto, nombre, w, l, t, pts, etapa? }] en orden. */
+const NOM_CAT = ["Junior", "Senior", "Masters"];     // cat: 0, 1, 2 (igual que clasificacion.js)
+
+/* filas: [{ puesto, nombre, w, l, t, pts, etapa?, cat? }] en orden. Con varias categorías (cat), un
+   título antes de cada una y cada una con su propio puesto. */
 export async function dibujarTabla({ torneo, fecha, tienda, filas }){
   await Promise.all(["700 56px Inter", "600 30px Inter", "400 26px Inter", "300 60px Newsreader"].map(f => document.fonts.load(f).catch(() => {})));
-  const H = CAB + filas.length * FILA + PIE;
+  const hayCats = filas.some(f => f.cat != null && f.cat !== filas[0].cat);
+  const lineas = [];
+  filas.forEach((f, i) => {
+    if (hayCats && (i === 0 || f.cat !== filas[i - 1].cat)) lineas.push({ titulo: NOM_CAT[f.cat] || "Sin categoría" });
+    lineas.push(f);
+  });
+  const H = CAB + lineas.length * FILA + PIE;
   const cv = document.createElement("canvas");
   cv.width = W; cv.height = H;
   const g = cv.getContext("2d");
@@ -58,8 +67,13 @@ export async function dibujarTabla({ torneo, fecha, tienda, filas }){
   g.textAlign = "left"; g.fillText("#", PAD, CAB - 26); g.fillText("JUGADOR", xNom, CAB - 26);
   g.textAlign = "right"; g.fillText("V-D-E", xRec, CAB - 26); g.fillText("PTS", xPts, CAB - 26);
 
-  filas.forEach((f, i) => {
+  lineas.forEach((f, i) => {
     const y = CAB + i * FILA, base = y + FILA / 2 + 10, podio = f.puesto <= 3;
+    if (f.titulo){
+      g.textAlign = "left"; g.font = "700 24px Inter"; g.fillStyle = C.ambar;
+      g.fillText(f.titulo.toUpperCase(), PAD, base);
+      return;
+    }
     if (podio){ g.fillStyle = f.puesto === 1 ? "rgba(244,91,69,.22)" : C.fila; g.beginPath(); g.roundRect(PAD - 20, y + 4, W - 2 * PAD + 40, FILA - 8, 14); g.fill(); }
     else if (i){ g.fillStyle = C.linea; g.fillRect(PAD - 20, y, W - 2 * PAD + 40, 1); }
     g.textAlign = "left";
@@ -83,7 +97,7 @@ export async function dibujarTabla({ torneo, fecha, tienda, filas }){
   });
 
   /* pie: la marca */
-  const yPie = CAB + filas.length * FILA + 96;
+  const yPie = CAB + lineas.length * FILA + 96;
   g.textAlign = "left"; g.font = "300 56px Newsreader";
   g.fillStyle = C.texto; g.fillText("Bye", PAD, yPie);
   const wBye = g.measureText("Bye").width;

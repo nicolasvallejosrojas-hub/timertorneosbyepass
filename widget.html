@@ -68,7 +68,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, connectDatabaseEmulator, ref, get, goOffline } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { TIENDA, nombreTienda, iniciales } from "./sala.js?v=6";
 import { estaVigente, urlGoogle, ordenar } from "./agenda.js?v=4";
-import { clasificar, mesesDe, nombreMes, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=3";
+import { clasificarPorCategoria, mesesDe, nombreMes, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=5";
 import { historialUnaVez } from "./historial.js?v=1";
 import { contarVisita } from "./presencia.js?v=4";
 
@@ -113,10 +113,14 @@ async function cargar(){
   if (!mes){ $("ranking").innerHTML = '<div class="vacio">Todavía no hay torneos archivados.</div>'; }
   else {
     $("titRanking").textContent = "Ranking de " + nombreMes(mes);
-    $("ranking").innerHTML = clasificar(torneos, mes, cfg).slice(0, 8).map((f, i) =>
+    /* Con categorías, las 3 primeras de cada una; si no, las 8 primeras. */
+    const secs = clasificarPorCategoria(torneos, mes, cfg), tope = secs.length > 1 ? 3 : 8;
+    $("ranking").innerHTML = secs.map(sec =>
+      (sec.nombre ? '<div style="margin:10px 0 4px;font-size:12px;letter-spacing:.12em;font-weight:600;opacity:.7">' + esc(sec.nombre.toUpperCase()) + "</div>" : "") +
+      sec.filas.slice(0, tope).map((f, i) =>
       '<div class="fila"><span class="pos' + (i === 0 ? " p1" : "") + '">' + (i + 1) + '</span><div class="txt"><b>' +
       esc(f.reservado ? "Jugador reservado" : f.name) + "</b><small>" + f.torneos + (f.torneos === 1 ? " torneo" : " torneos") +
-      '</small></div><span class="pts">' + f.pts + "<small>pts</small></span></div>").join("");
+      '</small></div><span class="pts">' + f.pts + "<small>pts</small></span></div>").join("")).join("");
   }
   await contarVisita(db, "widget", TIENDA);
 }

@@ -1350,8 +1350,8 @@ import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, no
 import { vigilar } from "./mantenimiento.js?v=3";
 import { estoyEnLinea } from "./presencia.js?v=4";
 import { barras } from "./graficos.js?v=2";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=6";
-import { claveJugador } from "./clasificacion.js?v=3";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=8";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=5";
 import { planClaves } from "./jugadores.js?v=1";
 import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=1";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
@@ -1360,7 +1360,7 @@ import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHisto
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
          revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=4";
-import { entregarTabla } from "./tablafinal.js?v=1";
+import { entregarTabla } from "./tablafinal.js?v=2";
 import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=6";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
@@ -2442,7 +2442,17 @@ function renderClock(){
     ultimoSeg = s;
   }
 }
-setInterval(() => { try { renderClock(); } catch(e){} }, 250);
+/* El latido viene de un Worker (reloj-worker.js) y no de un setInterval de la página: con la
+   pestaña oculta el navegador frena los temporizadores de la página (uno por segundo y, a los
+   5 minutos, uno por minuto) y la alarma del cero sonaba tarde. Un Worker sigue latiendo cada
+   250 ms. Si el navegador no lo deja, vuelve al setInterval de siempre. */
+let latidoPagina = null;
+const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){} }, 250); };
+try {
+  const w = new Worker("reloj-worker.js?v=1");
+  w.onmessage = () => { try { renderClock(); } catch(e){} };
+  w.onerror = latidoDePagina;
+} catch(e){ latidoDePagina(); }
 // Al volver a la pestaña se redibuja de inmediato, sin esperar el intervalo
 ["visibilitychange","pageshow","focus"].forEach(ev =>
   window.addEventListener(ev, () => { try { renderClock(); } catch(e){} }));
@@ -2905,12 +2915,13 @@ function showPreview(d){
       <td>${m.p2 ? esc(m.result) : "Bye"}</td></tr>`;
   });
   html += `</table>`;
-  if (d.standings.length){
-    html += `<div style="margin-top:14px;font-size:var(--t2)"><b>Posiciones</b></div>
+  /* Con varias categorías, una tabla por cada una (Masters, Senior, Junior), cada una con su 1.º. */
+  porCategoria(d.standings).forEach(sec => {
+    html += `<div style="margin-top:14px;font-size:var(--t2)"><b>Posiciones${sec.nombre ? " · " + esc(sec.nombre) : ""}</b></div>
       <table><tr><th>#</th><th>Jugador</th><th>V-D-E</th><th>Puntos</th></tr>`;
-    d.standings.forEach(s => html += `<tr><td>${s.place}</td><td>${esc(s.name)}</td><td>${s.w}-${s.l}-${s.t}</td><td>${s.pts}</td></tr>`);
+    sec.filas.forEach(s => html += `<tr><td>${s.place}</td><td>${esc(s.name)}</td><td>${s.w}-${s.l}-${s.t}</td><td>${s.pts}</td></tr>`);
     html += `</table>`;
-  }
+  });
   $("preview").innerHTML = html;
 }
 
@@ -3450,6 +3461,7 @@ async function archivarTorneo(){
     standings: parsed.standings.map((p, i) => {
       const e = ENLACES[String(ID_POR_PUESTO[i] || "")];
       const fila = { place:p.place, name:p.name, w:p.w, l:p.l, t:p.t, pts:p.pts };
+      if (p.cat != null) fila.cat = p.cat;   // 0 Junior, 1 Senior, 2 Masters: el puesto es dentro de su categoría
       if (e){
         fila.uid = e.uid;
         if (!e.publico){ fila.name = "Jugador reservado"; fila.reservado = true; }
@@ -3485,7 +3497,7 @@ $("tablaBtn").onclick = () => {
   entregarTabla({ torneo: parsed.name, fecha: $("archDate").value, tienda: nombreDeLaTienda(),
     filas: parsed.standings.map((p, i) => {
       const e = ENLACES[String(ID_POR_PUESTO[i] || "")];
-      return { puesto: p.place, nombre: e && !e.publico ? "Jugador reservado" : p.name, w: p.w, l: p.l, t: p.t, pts: p.pts };
+      return { puesto: p.place, nombre: e && !e.publico ? "Jugador reservado" : p.name, w: p.w, l: p.l, t: p.t, pts: p.pts, cat: p.cat };
     }) }).catch(() => { $("archMsg").innerHTML = '<span class="err">No se pudo armar la imagen.</span>'; });
 };
 

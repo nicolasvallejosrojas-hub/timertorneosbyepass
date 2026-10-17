@@ -6,9 +6,9 @@
 /* ============================================================
    clasificacion.js — la clasificación mensual de una tienda
    ------------------------------------------------------------
-   Versión actual: v=3   (subir el ?v= al tocar este archivo)
+   Versión actual: v=5   (subir el ?v= al tocar este archivo)
 
-   La usan la vista de jugadores (pestaña Ranking) y el perfil de la tienda.
+   La usan la vista de jugadores (pestaña Ranking), el perfil de la tienda y el widget.
    Vive acá para que las dos sumen igual: dos copias de esta cuenta terminan
    dando dos tablas distintas del mismo mes.
    ============================================================ */
@@ -63,13 +63,14 @@ export function puntosPorPuesto(place, cfg = PUNTOS_DEF){
 }
 
 /* Filas de la tabla del mes, ya ordenadas. */
-export function clasificar(torneos, mes, cfg = PUNTOS_DEF){
+export function clasificar(torneos, mes, cfg = PUNTOS_DEF, cat = null){
   const tabla = {};
   /* De más viejo a más nuevo: el nombre que queda en la fila es el del último
      torneo, que es como el jugador se escribe hoy. */
   torneos.filter(t => mesDe(t) === mes)
     .sort((x, y) => (x.fecha || "").localeCompare(y.fecha || "") || (x.creado || 0) - (y.creado || 0))
     .forEach(t => (t.standings || []).forEach(p => {
+    if (cat != null && (p.cat == null ? -1 : p.cat) !== cat) return;   // solo los de esa categoría (-1 = sin categoría)
     const k = claveJugador(p);
     if (!tabla[k]) tabla[k] = { name: p.name, uid: p.uid || null, reservado: !!p.reservado,
                                 pts: 0, torneos: 0, mejor: 99, w: 0, l: 0, e: 0 };
@@ -90,4 +91,27 @@ export function clasificar(torneos, mes, cfg = PUNTOS_DEF){
     r.wr = r.jugadas ? ((r.w + r.e / 2) / r.jugadas * 100) : null;
   });
   return filas;
+}
+
+export const CATEGORIAS = ["Junior", "Senior", "Masters"];
+/* [{ cat, nombre, filas }] con Masters primero. Con una sola categoría (o ninguna) vuelve una
+   sola sección sin nombre: no hay nada que dividir. */
+export function porCategoria(filas){
+  filas = filas || [];
+  const g = {};
+  filas.forEach(f => { const c = f.cat == null ? -1 : f.cat; (g[c] = g[c] || []).push(f); });
+  const cs = Object.keys(g).map(Number).sort((a, b) => b - a);
+  if (cs.length < 2) return [{ cat: null, nombre: "", filas }];
+  return cs.map(c => ({ cat: c, nombre: CATEGORIAS[c] || "Sin categoría", filas: g[c] }));
+}
+
+/* El ranking del mes por categoría: [{ cat, nombre, filas }] con Masters primero, cada una con sus propios
+   puntos (el puesto de cada torneo es dentro de su categoría). Si en el mes no hay categorías, o hay una
+   sola, vuelve una sola sección sin nombre: la tabla de siempre. Los torneos viejos, sin categoría,
+   quedan en «Sin categoría». */
+export function clasificarPorCategoria(torneos, mes, cfg = PUNTOS_DEF){
+  const cs = [...new Set(torneos.filter(t => mesDe(t) === mes).flatMap(t => Object.values(t.standings || {}))
+    .map(p => p.cat == null ? -1 : p.cat))].sort((a, b) => b - a);
+  if (cs.length < 2) return [{ cat: null, nombre: "", filas: clasificar(torneos, mes, cfg) }];
+  return cs.map(c => ({ cat: c, nombre: CATEGORIAS[c] || "Sin categoría", filas: clasificar(torneos, mes, cfg, c) }));
 }

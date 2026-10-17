@@ -8,7 +8,7 @@
 /* ============================================================
    insignias.js — el catálogo y la cuenta de las insignias
    ------------------------------------------------------------
-   Versión actual: v=6   (subir el ?v= al tocar este archivo)
+   Versión actual: v=8   (subir el ?v= al tocar este archivo)
 
    Dos tipos:
      · PERMANENTES: son de la cuenta. Cuentan los torneos de todas las tiendas
@@ -26,7 +26,7 @@
    Lo usan el muro (perfil propio y ajeno) y el panel (las de evento). No lee
    nada del navegador al cargarse, así que se puede probar con node.
    ============================================================ */
-import { clasificar, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=3";
+import { clasificarPorCategoria, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=5";
 
 /* ▌BLOQUE 1 · Catálogo e íconos ═════════════════════════════════════════════════
    Íconos SVG, medallas (permanentes) y parches (de tienda). */
@@ -251,11 +251,11 @@ export const AUTO = [
    clasificación que ven los jugadores, con los puntos de la tienda. */
 export function campeonesDelMes(hist, cfg, dia = hoy()){
   const torneos = Object.values(hist || {}), actual = dia.slice(0, 7);
-  /* Uno por mes y por tabla: cada timer tiene su clasificación. */
+  /* Uno por mes y por tabla (cada timer tiene su clasificación) y, si hubo categorías, uno por categoría. */
   return [...new Set(torneos.map(timerDe))].flatMap(n => {
     const ts = deTimer(torneos, n);
     return [...new Set(ts.map(mesDe).filter(Boolean))].filter(m => m < actual)
-      .map(mes => ({ mes, fila: clasificar(ts, mes, cfg || PUNTOS_DEF)[0] }));
+      .flatMap(mes => clasificarPorCategoria(ts, mes, cfg || PUNTOS_DEF).map(sec => ({ mes, fila: sec.filas[0] })));
   }).filter(c => c.fila).sort((a, b) => a.mes.localeCompare(b.mes));
 }
 

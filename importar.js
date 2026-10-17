@@ -176,6 +176,7 @@ const ATR = alias({
   numero: ["number", "numero"],
   puesto: ["place", "puesto", "lugar", "posicion"],
   tipo: ["type", "tipo"],
+  categoria: ["category", "categoria"],
 });
 const TERMINADA = new Set(["finished", "finalizado", "finalizada", "terminado", "terminada"]);
 /* El resultado de una partida en el XML: 1 y 8 gana el jugador 1, 2 y 10 el
@@ -247,15 +248,22 @@ function datosDeXml(texto){
   }); if (i === 0) finSuizo = n; });
   const suizas = usar.length > 1 ? finSuizo : 0;
 
-  /* La tabla final del archivo, si está terminada y es una sola. */
-  const fin = bajo(raiz, "tabla").flatMap(t => bajo(t, "grupo")).filter(g => TERMINADA.has(quitar(at(g, "tipo"))));
-  const puestos = fin.length === 1 ? bajo(fin[0], "jugador")
-    .sort((a, b) => (+at(a, "puesto") || 0) - (+at(b, "puesto") || 0)).map(p => at(p, "id")) : [];
+  /* La tabla final del archivo, si está terminada. Los archivos de TOM la traen una por categoría
+     (category 0 = Junior, 1 = Senior, 2 = Masters): cada jugador queda en la suya (cats) y, si
+     están todas, el orden del archivo es Masters, Senior y Junior, cada una por su puesto. */
+  const todas = bajo(raiz, "tabla").flatMap(t => bajo(t, "grupo"));
+  const fin = todas.filter(g => TERMINADA.has(quitar(at(g, "tipo"))));
+  const porPuesto = g => bajo(g, "jugador").sort((a, b) => (+at(a, "puesto") || 0) - (+at(b, "puesto") || 0)).map(p => at(p, "id"));
+  const catDe = g => /^[012]$/.test(at(g, "categoria")) ? +at(g, "categoria") : null;
+  const cats = {};
+  todas.forEach(g => { if (catDe(g) != null) bajo(g, "jugador").forEach(p => { if (at(p, "id")) cats[at(p, "id")] = catDe(g); }); });
+  const puestos = fin.length === 1 ? porPuesto(fin[0])
+    : fin.length > 1 && fin.every(g => catDe(g) != null) ? [...fin].sort((a, b) => catDe(b) - catDe(a)).flatMap(porPuesto) : [];
 
   const datos = hijo(raiz, "datos") || raiz;
   return { partidas, meta: {
     torneo: txt(datos, "nombre"), fecha: fechaMDA(txt(datos, "fecha")), tiempo: txt(datos, "tiempo"),
-    suizas: suizas ? String(suizas) : "", puestos, avisos, tal: true,
+    suizas: suizas ? String(suizas) : "", puestos, cats, avisos, tal: true,
     inscritos: Object.entries(nombre).filter(([id]) => !fuera.has(id)).map(([id, n]) => ({ donde: "lista de jugadores", nombre: n, id })) } };
 }
 
@@ -306,13 +314,14 @@ function construirTorneo(partidas, meta){
   if (meta.suizas && !(suizas >= 1 && suizas <= 20)){ suizas = 0; avisos.add("«suizas: " + meta.suizas + "» no es un número entre 1 y 20: todas las rondas se cuentan como suizas."); }
 
   /* 1. Cada lado de cada mesa, con nombre e ID limpios. «1.234.567» es 1234567. */
+  /* Si el ID son solo números con puntos, espacios o guiones, quedan los dígitos;
+     si trae letras, se deja tal cual (no se inventa un ID mezclando dígitos). */
+  const limpiarId = id => /^[\d.\s-]+$/.test(id) ? id.replace(/\D/g, "") : id;
   const lado = (nombre, id, donde) => {
     nombre = String(nombre || "").replace(/\s+/g, " ").trim();
     if (nombre.length > LARGO) throw new Error(donde + ": el nombre «" + nombre.slice(0, 30) + "…» pasa de " + LARGO + " letras");
     id = String(id || "").trim();
-    /* Si el ID son solo números con puntos, espacios o guiones, quedan los dígitos;
-       si trae letras, se deja tal cual (no se inventa un ID mezclando dígitos). */
-    const d = /^[\d.\s-]+$/.test(id) ? id.replace(/\D/g, "") : id;
+    const d = limpiarId(id);
     if (d && !/^\d{7,8}$/.test(d)) avisos.add("El ID «" + id + "» de " + nombre + " no tiene 7 u 8 dígitos: no se va a enlazar con su cuenta.");
     return { nombre: nombre || d, id: d, donde };
   };
@@ -409,6 +418,27 @@ function construirTorneo(partidas, meta){
     parsed.standings = orden.map((k, i) => ({ ...fila[k], place: i + 1 }));
     duelos = duelos.map(([r, a, b, g]) => [r, nuevo[ids[a]], nuevo[ids[b]], g]);
     ids = orden;
+  }
+  /* 6. Si el archivo dice la categoría de cada uno (cats), la tabla se divide: Masters, Senior y
+     Junior, cada una con su propio 1.º, 2.º… Así un Junior no sale «campeón» de la tabla de los
+     Masters. Las partidas y los ID se reordenan igual que la tabla. Con una sola categoría solo se
+     anota cuál es (el ranking del mes la separa); si a alguien le falta, la tabla queda como estaba. */
+  const catPor = {};
+  Object.entries(meta.cats || {}).forEach(([id, c]) => catPor[limpiarId(id)] = c);
+  const catFila = ids.map(k => catPor[k]);
+  if (catFila.some(c => c != null)){
+    if (catFila.some(c => c == null)) avisos.add("La tabla por categorías no incluye a todos: se deja junta.");
+    else if (new Set(catFila).size === 1) parsed.standings = parsed.standings.map((f, i) => ({ ...f, cat: catFila[i] }));   // una sola: se anota para el ranking del mes
+    else {
+      /* viejo[i]: el puesto de antes de quien queda i-ésimo; nuevo[v]: dónde queda el que estaba en v. */
+      const viejo = ids.map((k, i) => i).sort((a, b) => catFila[b] - catFila[a] || a - b), nuevo = [];
+      viejo.forEach((v, i) => nuevo[v] = i);
+      const lugar = {};
+      parsed.standings = viejo.map(v => ({ ...parsed.standings[v], cat: catFila[v], place: lugar[catFila[v]] = (lugar[catFila[v]] || 0) + 1 }));
+      duelos = duelos.map(([r, a, b, g]) => [r, nuevo[a], nuevo[b], g]);
+      ids = viejo.map(v => ids[v]);
+      avisos.add("La tabla se dividió en " + new Set(catFila).size + " categorías (Masters, Senior y Junior), cada una con su puesto.");
+    }
   }
   return { parsed, ids, duelos, avisos: [...avisos], torneo: t };
 }

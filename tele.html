@@ -8,8 +8,7 @@
       6. Nombre del torneo y ronda
       7. Pestañas y control remoto
       8. Mesas
-      9. Ranking
-     10. Sorteo
+      9. Sorteo
 -->
 <html lang="es">
 <head>
@@ -30,18 +29,15 @@
   Esta página es JavaScript de antes (var, function, sin módulos) y CSS sin
   inset, gap ni clamp. Lee Firebase por su API REST en vivo (EventSource) o,
   si ni eso hay, preguntando cada 3 segundos. Solo lee: reloj, diseño,
-  imágenes, el nombre del torneo, las mesas, el ranking y el sorteo. Si algo
+  imágenes, el nombre del torneo, las mesas y el sorteo. Si algo
   cambia en el formato de salas/<sala>/timer, /pairings o /sorteo, cambiarlo
   también acá.
 
-  Pestañas (como en timer-view.html): Timer · Mesas · Ranking · Sorteo. Se
-  cambian con las flechas ← → del control, o tocando/clic en la barra de abajo.
-  ↑ ↓ pasan de página y OK (Enter) elige la ronda o el mes. Si nadie toca nada,
-  las listas largas pasan solas de página.
-
-  El ranking usa clasificacion.js (la MISMA cuenta que el perfil de la tienda):
-  se baja como texto y se le quita el «export», porque aquí no hay módulos. Si
-  se sube la versión de clasificacion.js (?v=), subirla también en cargarClas().
+  Pestañas (como en timer-view.html): Timer · Mesas · Sorteo. Se cambian con
+  las flechas ← → del control, o tocando/clic en la barra de abajo. ↑ ↓ pasan
+  de página y OK (Enter) elige la ronda. Si nadie toca nada, las listas largas
+  pasan solas de página. No tiene Ranking a propósito: necesita la cuenta de
+  clasificacion.js (un módulo) y las teles no la corren; se ve en el celular.
 -->
 <style>
   html,body{margin:0;padding:0;height:100%;overflow:hidden;}
@@ -103,6 +99,8 @@
   .fila .pos.p1{color:#E0A800;} .fila .pos.p2{color:#8A97AD;} .fila .pos.p3{color:#C07A3A;}
   .fila .nom{display:inline-block;max-width:44%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;font-size:2.8vh;font-weight:600;}
   .fila .met{margin-left:1vw;font-size:2vh;color:#9DBDB4;}
+  .catT{height:4.6vh;line-height:4.6vh;margin:0 0 .8vh;font-size:2.2vh;letter-spacing:.18em;color:#FFB020;font-weight:600;text-transform:uppercase;overflow:hidden;
+    -webkit-column-break-inside:avoid;break-inside:avoid;-webkit-column-break-after:avoid;break-after:avoid;}
   .vacio{padding-top:12vh;text-align:center;color:#9DBDB4;font-size:3vh;}
   .vacio b{display:block;color:#F3FFFB;font-size:4vh;margin-bottom:1vh;}
 
@@ -129,14 +127,12 @@
 <div id="estado">Conectando…</div>
 <!-- Mesas: las rondas publicadas por el organizador y la tabla de posiciones. -->
 <div class="pag" id="pMesas"><div class="barra"><div class="info" id="mInfo"></div><div class="chips" id="mChips"></div></div><div id="mLista" class="cols3"></div></div>
-<!-- Ranking: la clasificación mensual de la tienda. -->
-<div class="pag" id="pRank"><div class="barra"><div class="info" id="kInfo"></div><div class="chips" id="kChips"></div></div><div id="kLista" class="cols2"></div><div id="kEstado" class="vacio"></div></div>
 <!-- Sorteo: la rueda gira igual que en el celular, al mismo tiempo. -->
 <div class="pag" id="pSort">
   <div id="sRueda"><canvas id="sCanvas" width="440" height="440"></canvas><div id="sPin"></div></div>
   <div id="sInfo"><div id="sTitulo">Sorteo</div><div id="sVacio" class="vacio" style="display:none"><b>Todavía no hay sorteo</b>Cuando el organizador lo prepare, la rueda aparece acá sola.</div><div id="sGanador"></div><div id="sLista"></div><div id="sEstado"></div></div>
 </div>
-<div id="nav"><span id="tabT" class="on">Timer</span><span id="tabM">Mesas<i id="dot"></i></span><span id="tabR">Ranking</span><span id="tabS">Sorteo</span></div>
+<div id="nav"><span id="tabT" class="on">Timer</span><span id="tabM">Mesas<i id="dot"></i></span><span id="tabS">Sorteo</span></div>
 <div id="aviso"><h2 id="avisoT">Esta sala no está disponible</h2><p id="avisoP">Revisa el enlace, o crea tu sala en byepass.cl</p></div>
 
 <script src="config.js?v=9"></script>
@@ -165,8 +161,11 @@
     var partes = ruta.split("/").filter(function(p){ return p; });
     if (!partes.length){
       if (!esPatch) return dato;
+      /* Un «patch» trae sus claves como RUTAS («rounds/0/matches/2/result»): es lo que manda Firebase
+         cuando el panel publica solo lo que cambió (update de varias rutas). Cada una se aplica como
+         un cambio en su lugar; guardarla como clave suelta dejaba la pantalla sin actualizarse. */
       obj = obj && typeof obj === "object" ? obj : {};
-      for (var k in dato) if (dato.hasOwnProperty(k)){ if (dato[k] === null) delete obj[k]; else obj[k] = dato[k]; }
+      for (var k in dato) if (dato.hasOwnProperty(k)) obj = aplicar(obj, "/" + k, dato[k], false);
       return obj;
     }
     obj = obj && typeof obj === "object" ? obj : {};
@@ -362,7 +361,7 @@
   /* ▌BLOQUE 6 · Nombre del torneo y ronda ═════════════════════════════════════════
      Lo saca de pairings. */
   /* ---------------- el torneo: nombre y ronda ---------------- */
-  var P = null, selR = null, verPos = false, vistoP = 0, primeraP = true;   // lo publicado: lo usa también la pestaña Mesas
+  var P = null, selR = null, ultimaRonda = null, verPos = false, vistoP = 0, primeraP = true;   // lo publicado: lo usa también la pestaña Mesas
   escuchar("salas/" + SALA + "/pairings", function(D){
     P = (D && D.rounds) ? D : null;
     if (!P){
@@ -370,7 +369,8 @@
       selR = null; verPos = false; pintarMesas(); return;
     }
     var rounds = P.rounds.length != null ? P.rounds : Object.keys(P.rounds).map(function(k){ return P.rounds[k]; });
-    if (selR === null || selR < P.lastRound) selR = P.lastRound;          // una ronda nueva se muestra sola
+    if (selR === null || P.lastRound !== ultimaRonda) selR = P.lastRound;   // una ronda nueva se muestra sola; un resultado nuevo no te saca de la que miras
+    ultimaRonda = P.lastRound;
     if (!primeraP && TAB !== "mesas" && (P.updatedAt || 0) > vistoP) $("dot").style.display = "block";
     primeraP = false;
     pintarMesas();
@@ -383,16 +383,13 @@
   });
 
   /* ▌BLOQUE 7 · Pestañas y control remoto ═════════════════════════════════════════
-     Timer · Mesas · Ranking · Sorteo. Flechas ← → cambian de pestaña, ↑ ↓ de página, OK elige la
-     ronda o el mes; también sirve el clic (control con puntero) y el dedo. */
+     Timer · Mesas · Sorteo. Flechas ← → cambian de pestaña, ↑ ↓ de página, OK elige la ronda;
+     también sirve el clic (control con puntero) y el dedo. */
   /* ---------------- pestañas ---------------- */
-  var TIENDA = SALA.replace(/-t([2-9]|[1-9][0-9])$/, "");                        // igual que sala.js
-  var NUM_TIMER = +((/-t([2-9]|[1-9][0-9])$/.exec(SALA) || [0, 1])[1]);
   var TAB = "timer";
-  var ORDEN = SIN_TIENDA ? ["timer", "mesas", "sorteo"] : ["timer", "mesas", "rank", "sorteo"];   // sin tienda no hay ranking
-  var IDS = { timer: ["tabT", null], mesas: ["tabM", "pMesas"], rank: ["tabR", "pRank"], sorteo: ["tabS", "pSort"] };
-  var PG = { mesas: 0, rank: 0 }, ultimoToque = 0, navT = null;
-  if (SIN_TIENDA) $("tabR").style.display = "none";
+  var ORDEN = ["timer", "mesas", "sorteo"];
+  var IDS = { timer: ["tabT", null], mesas: ["tabM", "pMesas"], sorteo: ["tabS", "pSort"] };
+  var PG = { mesas: 0 }, ultimoToque = 0, navT = null;
 
   /* Firebase entrega las listas como arreglo o como objeto {0:…, 1:…}: acá, siempre arreglo. */
   function lista(x){
@@ -435,21 +432,19 @@
     mostrarNav();
     escucharSorteo(t === "sorteo");
     if (t === "mesas"){ $("dot").style.display = "none"; vistoP = P ? P.updatedAt || 0 : 0; pintarMesas(); }
-    else if (t === "rank") abrirRank();
     else if (t === "sorteo") pintarRuleta();
   }
   function pagina(d){
     if (TAB === "mesas"){ PG.mesas += d; pintarMesas(); }
-    else if (TAB === "rank"){ PG.rank += d; pintarRank(); }
   }
   function siguienteOpcion(){
     if (TAB === "mesas"){
       var o = opcionesMesas(), ahoraO = verPos ? "pos" : String(selR);
       if (o.length) elegirMesas(o[(o.indexOf(ahoraO) + 1) % o.length]);
-    } else if (TAB === "rank" && MESES_RANK.length) elegirMes(MESES_RANK[(MESES_RANK.indexOf(mesSel) + 1) % MESES_RANK.length]);
+    }
   }
 
-  var DEST = ["timer", "mesas", "rank", "sorteo"], BOT = ["tabT", "tabM", "tabR", "tabS"];
+  var DEST = ["timer", "mesas", "sorteo"], BOT = ["tabT", "tabM", "tabS"];
   for (var b = 0; b < BOT.length; b++) (function(i){ $(BOT[i]).onclick = function(){ mostrar(DEST[i]); }; })(b);
   document.addEventListener("keydown", function(e){
     var c = e.keyCode, i = ORDEN.indexOf(TAB);
@@ -469,6 +464,7 @@
      Las rondas publicadas (chips) y, por ronda, las mesas con su resultado; «Posiciones» si hay
      tabla. */
   /* ---------------- mesas ---------------- */
+  var NOM_CAT = ["Junior", "Senior", "Masters"];                    // cat: 0, 1, 2
   function opcionesMesas(){
     var o = lista(P && P.rounds).map(function(r){ return String(r.number); });
     if (lista(P && P.standings).length) o.push("pos");
@@ -504,7 +500,13 @@
     var items;
     if (verPos){
       $("mLista").className = "cols2";
-      items = pos.map(function(s){ return htmlFila(s.place, s.name, s.w + "-" + s.l + "-" + s.t, s.pts); });
+      /* Con varias categorías (la tabla ya viene ordenada: Masters, Senior, Junior), un título antes de cada una. */
+      var hayCats = false, antes = null; items = [];
+      for (var c = 0; c < pos.length; c++) if (pos[c].cat != null && pos[c].cat !== pos[0].cat) hayCats = true;
+      pos.forEach(function(s){
+        if (hayCats && s.cat !== antes){ antes = s.cat; items.push('<div class="catT">' + esc(NOM_CAT[s.cat] || "Sin categoría") + '</div>'); }
+        items.push(htmlFila(s.place, s.name, s.w + "-" + s.l + "-" + s.t, s.pts));
+      });
       poner($("mLista"), paginar("mesas", items, 14, $("mInfo")));
     } else {
       $("mLista").className = "cols3";
@@ -515,72 +517,7 @@
     }
   }
 
-  /* ▌BLOQUE 9 · Ranking ═══════════════════════════════════════════════════════════
-     La clasificación mensual: historial y puntos de la tienda por REST (al abrir la pestaña) y la
-     cuenta de clasificacion.js, la misma del perfil de la tienda. */
-  /* ---------------- ranking ---------------- */
-  var CLAS = null, clasCargando = false, clasFallo = false;
-  var HIST = null, CFG = null, histT = 0, mesSel = null, MESES_RANK = [];
-
-  /* clasificacion.js es un módulo (export) y esta página no los tiene: se baja como texto, se le quita
-     el «export» y se corre como script de la página (la política de contenido deja los inline). */
-  function cargarClas(){
-    if (CLAS || clasCargando) return;
-    clasCargando = true;
-    var x = new XMLHttpRequest(); x.open("GET", "clasificacion.js?v=3");
-    x.overrideMimeType("text/plain; charset=utf-8");                  // el archivo lleva tildes y marcas combinadas en una regex
-    x.onload = function(){
-      try {
-        var s = document.createElement("script");
-        s.text = "(function(){" + x.responseText.replace(/^export /gm, "") +
-          "\nwindow.CLAS={clasificar:clasificar,mesesDe:mesesDe,nombreMes:nombreMes,deTimer:deTimer,PUNTOS_DEF:PUNTOS_DEF};})();";
-        document.head.appendChild(s);
-      } catch(e){}
-      CLAS = window.CLAS || null; clasFallo = !CLAS; pintarRank();
-    };
-    x.onerror = function(){ clasCargando = false; clasFallo = true; pintarRank(); };
-    x.send();
-  }
-  function obtener(ruta, ok, mal){
-    var u = url(ruta), x = new XMLHttpRequest();
-    x.open("GET", u + (u.indexOf("?") < 0 ? "?" : "&") + "t=" + Date.now());
-    x.onload = function(){ if (x.status === 200){ try { ok(JSON.parse(x.responseText)); return; } catch(e){} } mal(); };
-    x.onerror = mal; x.send();
-  }
-  function abrirRank(){
-    cargarClas();
-    pintarRank();
-    if (HIST && Date.now() - histT < 60000) return;                  // lo bajado hace menos de un minuto sirve
-    obtener("salas/" + TIENDA + "/config", function(v){
-      if (v && Object.prototype.toString.call(v.puntos) === "[object Array]") CFG = { puntos: v.puntos, resto: v.resto == null ? 1 : v.resto };
-      pintarRank();
-    }, function(){});
-    obtener("salas/" + TIENDA + "/historial", function(v){ HIST = v || {}; histT = Date.now(); pintarRank(); },
-      function(){ if (!HIST) { $("kEstado").innerHTML = "No se pudo cargar el ranking."; } });
-  }
-  function elegirMes(m){ mesSel = m; PG.rank = 0; pintarRank(); }
-  $("kChips").onclick = function(e){ var o = e.target.getAttribute && e.target.getAttribute("data-o"); if (o) elegirMes(o); };
-
-  function pintarRank(){
-    if (TAB !== "rank") return;
-    var vacio = function(txt){ poner($("kChips"), ""); poner($("kInfo"), ""); $("kLista").style.display = "none"; $("kEstado").style.display = ""; $("kEstado").innerHTML = txt; };
-    if (clasFallo) return vacio("Esta tele no puede calcular el ranking. Míralo en el celular.");
-    if (!CLAS || !HIST) return vacio("Cargando el ranking…");
-    var torneos = Object.keys(HIST).map(function(k){ return HIST[k]; }).filter(function(t){ return t && typeof t === "object"; });
-    torneos = CLAS.deTimer(torneos, NUM_TIMER);
-    if (!torneos.length) return vacio("<b>Todavía no hay torneos archivados</b>El ranking aparece cuando se archive el primero.");
-    $("kEstado").style.display = "none"; $("kLista").style.display = "";
-    MESES_RANK = CLAS.mesesDe(torneos);
-    if (!mesSel || MESES_RANK.indexOf(mesSel) < 0) mesSel = MESES_RANK[0];
-    poner($("kChips"), htmlChips(MESES_RANK.slice(0, 6).map(function(m){ return [m, CLAS.nombreMes(m)]; }), mesSel));
-    var filas = CLAS.clasificar(torneos, mesSel, CFG || CLAS.PUNTOS_DEF);
-    var items = filas.map(function(r, i){
-      return htmlFila(i + 1, r.name, r.torneos + (r.torneos === 1 ? " torneo" : " torneos") + (r.wr === null ? "" : " · " + r.wr.toFixed(0) + "% vict."), r.pts);
-    });
-    poner($("kLista"), paginar("rank", items, 14, $("kInfo")));
-  }
-
-  /* ▌BLOQUE 10 · Sorteo ═══════════════════════════════════════════════════════════
+  /* ▌BLOQUE 9 · Sorteo ════════════════════════════════════════════════════════════
      La ruleta: el organizador publica el giro con su hora de partida y los ángulos; cada pantalla
      anima ESE giro con la hora calibrada. Solo se escucha con la pestaña abierta. */
   /* ---------------- sorteo ---------------- */
@@ -655,8 +592,8 @@
     else if (!sobre && sorteoEsc){ sorteoEsc.cerrar(); sorteoEsc = null; }
   }
 
-  /* Se abre en la pestaña del enlace (#mesas, #ranking, #sorteo) o en el reloj. */
-  mostrar({ "#mesas": "mesas", "#ranking": "rank", "#sorteo": "sorteo" }[location.hash] || "timer");
+  /* Se abre en la pestaña del enlace (#mesas, #sorteo) o en el reloj. */
+  mostrar({ "#mesas": "mesas", "#sorteo": "sorteo" }[location.hash] || "timer");
 
   window.addEventListener("resize", function(){ dibujar(); pintarDiseno(); });
 })();
