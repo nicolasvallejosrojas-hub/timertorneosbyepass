@@ -64,6 +64,14 @@
   .fila + .fila::before{content:"";position:absolute;top:0;right:0;left:14px;height:1px;background:var(--divider);}
   a.fila:hover{background:var(--sup-alta);}
   .fila .txt{flex:1;min-width:0;}
+  /* publicar (solo quien organiza la tienda) */
+  .psForm{display:flex;flex-direction:column;gap:var(--e2);padding:var(--e3) 14px;border-bottom:1px solid var(--divider);}
+  .psForm textarea,.psForm input{width:100%;box-sizing:border-box;font:inherit;font-size:var(--t3);padding:10px 12px;}
+  .psForm textarea{min-height:84px;resize:vertical;}
+  .psAcc{display:flex;align-items:center;gap:var(--e3);justify-content:flex-end;}
+  .psAcc .nota{margin:0;flex:1;}
+  .psBorrar{flex:none;background:none;border:none;font:inherit;font-size:var(--t2);color:var(--apagado);cursor:pointer;min-height:44px;padding:0 6px;}
+  .psBorrar:hover{color:var(--negativo);}
   .fila b{display:block;font-weight:500;overflow-wrap:anywhere;}
   .fila small{display:block;font-size:var(--t2);color:var(--apagado);margin-top:1px;}
   .fila .der{color:var(--apagado);font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -238,7 +246,15 @@
           <div id="vivo"></div>
           <div id="timersT" class="oculto"><h2 class="gtit">Timers de la tienda</h2><div class="grupo" id="timersL"></div></div>
           <div id="rifasT" class="oculto"><h2 class="gtit">Rifas</h2><div class="grupo" id="rifasL"></div></div>
-          <div id="postsT" class="oculto"><h2 class="gtit">Publicaciones</h2><div class="grupo" id="postsL"></div></div>
+          <div id="postsT" class="oculto"><h2 class="gtit">Publicaciones</h2><div class="grupo">
+            <form class="psForm oculto" id="psForm" novalidate>
+              <textarea id="psTexto" maxlength="600" aria-label="Texto de la publicación"
+                placeholder="Escribe algo para tus jugadores: una fecha nueva, un cambio de horario, un premio especial."></textarea>
+              <input id="psEnlace" maxlength="300" placeholder="Enlace (opcional, https://…)" aria-label="Enlace de la publicación">
+              <div class="psAcc"><span class="nota" id="psMsg" role="status">Sale en el muro de quienes siguen la tienda.</span>
+                <button class="btn primario" type="submit" id="psPublicar">Publicar</button></div>
+            </form>
+            <div id="postsL"></div></div></div>
           <div class="dos">
             <div><h2 class="gtit"><span id="hClasCorta">Clasificación</span> <button data-ir="clas">Ver todo</button></h2>
               <div class="grupo" id="clasCorta"></div></div>
@@ -301,7 +317,7 @@
 <script src="config.js?v=9"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
-import { ref, onValue, get, set, update, remove, query, orderByChild, equalTo }
+import { ref, onValue, get, set, update, remove, query, orderByChild, equalTo, push, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { db, auth, enEmulador, urlCuenta, urlMuro, urlPanel } from "./sesion.js?v=14";
@@ -502,14 +518,8 @@ function perfil(){
   /* Las rifas abiertas de la tienda (rifa.html), salvo que ella las esconda: salas/<tienda>/config/rifa = false. */
   onValue(ref(db, "rifas/" + ID), s => { RIFAS = s.val() || {}; pintarRifas(); }, () => {});
   onValue(ref(db, "salas/" + ID + "/config/rifa"), s => { RIFAS_OFF = s.val() === false; pintarRifas(); }, () => {});
-  /* Lo que la tienda publica (posts/<tienda>, desde su panel): las 5 últimas. */
-  onValue(ref(db, "posts/" + ID), s => {
-    const ps = Object.values(s.val() || {}).filter(p => p && typeof p.texto === "string").sort((a, b) => (b.creado || 0) - (a.creado || 0)).slice(0, 5);
-    $("postsT").classList.toggle("oculto", !ps.length);
-    $("postsL").innerHTML = ps.map(p => '<div class="fila"><div class="txt"><b style="font-weight:400;white-space:pre-wrap;overflow-wrap:anywhere">' + esc(p.texto) + "</b><small>" +
-      new Date(p.creado || 0).toLocaleDateString("es-CL", { day: "numeric", month: "long" }) +
-      (/^https:\/\/\S+$/.test(p.enlace || "") ? ' · <a href="' + esc(p.enlace) + '" target="_blank" rel="noopener">Ver más</a>' : "") + "</small></div></div>").join("");
-  }, () => {});
+  /* Lo que la tienda publica (posts/<tienda>): las 5 últimas. Quien la organiza publica y borra desde acá. */
+  onValue(ref(db, "posts/" + ID), s => { POSTS_T = Object.entries(s.val() || {}); pintarPosts(); }, () => {});
   onValue(ref(db, "salas/" + ID + "/pairings"), s => { PAIR = s.val(); pintarVivo(); });
   onValue(ref(db, "salas/" + ID + "/config"), s => {
     const v = s.val(); if (v && Array.isArray(v.puntos)) CFG = { puntos: v.puntos, resto: v.resto ?? 1 };
@@ -537,6 +547,39 @@ function perfil(){
    grande de arriba es el 1. */
 const TIMERS = {};
 let NOMBRE1 = null;
+/* ------------------------------------------------------------ publicaciones
+   posts/<tienda>/<id> = { texto (hasta 600), enlace? (https), creado (hora del servidor) }. Salen acá y en el muro
+   de quienes siguen la tienda. Solo quien la organiza ve el cuadro para publicar y el «Borrar» (las reglas
+   tampoco dejan a nadie más). Se publica y se borra; no se edita. */
+let POSTS_T = [];
+function pintarPosts(){
+  const org = soyDeLaTienda();
+  const ps = POSTS_T.filter(([, p]) => p && typeof p.texto === "string").sort(([, a], [, b]) => (b.creado || 0) - (a.creado || 0)).slice(0, 5);
+  $("postsT").classList.toggle("oculto", !ps.length && !org);
+  $("psForm").classList.toggle("oculto", !org);
+  $("postsL").innerHTML = ps.map(([id, p]) => '<div class="fila"><div class="txt"><b style="font-weight:400;white-space:pre-wrap;overflow-wrap:anywhere">' + esc(p.texto) + "</b><small>" +
+    new Date(p.creado || 0).toLocaleDateString("es-CL", { day: "numeric", month: "long" }) +
+    (/^https:\/\/\S+$/.test(p.enlace || "") ? ' · <a href="' + esc(p.enlace) + '" target="_blank" rel="noopener">Ver más</a>' : "") + "</small></div>" +
+    (org ? '<button class="psBorrar" data-psborrar="' + esc(id) + '">Borrar</button>' : "") + "</div>").join("") ||
+    '<div class="fila"><div class="txt"><small>Todavía no publicas nada.</small></div></div>';
+  $("postsL").querySelectorAll("[data-psborrar]").forEach(b => b.onclick = () => {
+    if (confirm("¿Borrar esta publicación? Deja de verse acá y en el muro."))
+      remove(ref(db, "posts/" + ID + "/" + b.dataset.psborrar)).catch(() => $("psMsg").textContent = "No se pudo borrar. Revisa la conexión.");
+  });
+}
+$("psForm").onsubmit = async e => {
+  e.preventDefault();
+  const texto = $("psTexto").value.trim().slice(0, 600), enlace = $("psEnlace").value.trim();
+  if (!texto) return ($("psMsg").textContent = "Escribe algo para publicar.");
+  if (enlace && !/^https:\/\/\S+$/.test(enlace)) return ($("psMsg").textContent = "El enlace tiene que empezar con https://");
+  $("psPublicar").disabled = true; $("psMsg").textContent = "Publicando…";
+  try {
+    await push(ref(db, "posts/" + ID), { texto, ...(enlace ? { enlace: enlace.slice(0, 300) } : {}), creado: serverTimestamp() });
+    $("psTexto").value = ""; $("psEnlace").value = ""; $("psMsg").textContent = "Publicado: ya sale en el muro de quienes siguen la tienda.";
+  } catch(x){ $("psMsg").textContent = "No se pudo publicar. Revisa la conexión."; }
+  $("psPublicar").disabled = false;
+};
+
 let RIFAS = {}, RIFAS_OFF = false;
 function pintarRifas(){
   const abiertas = RIFAS_OFF ? [] : Object.entries(RIFAS).filter(([, r]) => r.estado === "abierta").sort(([a], [b]) => a < b ? -1 : 1);
@@ -605,6 +648,7 @@ function pintarAcciones(){
         (mia && mia.favorita ? '<span class="fav">' + ICO.estrellaLlena + "</span> Favorita" : ICO.estrella + " Favorita") + "</button>";
   }
   $("acciones").innerHTML = h;
+  pintarPosts();
   if ($("bSeguir")) $("bSeguir").onclick = () => accion(mia ? dejar : seguir);
   if ($("bFav")) $("bFav").onclick = () => accion(() => favorita(!(mia && mia.favorita)));
   if ($("bFotos")) $("bFotos").onclick = abrirFotos;
