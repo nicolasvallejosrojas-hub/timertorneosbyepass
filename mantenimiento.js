@@ -1,10 +1,11 @@
 /* ▌ÍNDICE de mantenimiento.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
     1. Pantalla de mantenimiento
+    2. Aviso para todos
 */
 /* ============================================================
    mantenimiento.js — la pantalla de «Cerrado por mantenimiento»
    ------------------------------------------------------------
-   Versión actual: v=3   (subir el ?v= al tocar este archivo)
+   Versión actual: v=4   (subir el ?v= al tocar este archivo)
 
    El cierre de verdad NO está acá: lo hacen las reglas de Firebase. Con
    sistema/mantenimiento/activo = true nadie lee ni escribe nada, salvo quien
@@ -15,6 +16,10 @@
    Quien administra entra con su correo y su clave de siempre (las verifica
    Firebase, no esta página), sigue viendo todo con un aviso, y desde ahí
    abre el sitio. Lo usan todas las páginas.
+
+   También muestra el aviso para todos (sistema/aviso, lo escribe herramientas.html):
+   una franja arriba con un texto, un enlace opcional y una fecha en que deja de verse.
+   El timer de pantalla (timer-view.html) no lo muestra: se proyecta en la tienda.
    ============================================================ */
 import { ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -57,7 +62,8 @@ const CSS = `
   background:var(--accion);color:var(--sobre-accion);}
 `;
 
-export function vigilar(db, auth){
+export function vigilar(db, auth, { aviso: conAvisoGeneral = true } = {}){
+  if (conAvisoGeneral) avisoGeneral(db);
   let activo = false, mensaje = "", admin = false, primera = true, authListo = false, seCerro = false;
   try { activo = localStorage.getItem(RECUERDO) === "1"; } catch(e){}
   const estilo = document.createElement("style");
@@ -131,4 +137,40 @@ export function vigilar(db, auth){
     pintar();
   });
   pintar();
+}
+
+/* ▌BLOQUE 2 · Aviso para todos ══════════════════════════════════════════════════
+   sistema/aviso = { texto, enlace?, desde, hasta }: franja arriba hasta «hasta» o hasta que la
+   persona la cierra (se recuerda «desde»). */
+const VISTO = "avisoVisto";
+const CSS_AVISO = `
+.avisoG{position:relative;z-index:9999;padding:10px 48px 10px 16px;background:#10231E;color:#F3FFFB;
+  font-size:14px;line-height:1.45;text-align:center;}
+.avisoG a{color:inherit;font-weight:600;text-decoration:underline;margin-left:6px;}
+.avisoG button{position:absolute;top:50%;right:4px;transform:translateY(-50%);width:44px;height:44px;border:none;
+  background:none;color:inherit;font-size:22px;line-height:1;cursor:pointer;}
+`;
+function avisoGeneral(db){
+  const caja = document.createElement("div"), estilo = document.createElement("style");
+  caja.className = "avisoG"; caja.setAttribute("role", "status");
+  estilo.textContent = CSS_AVISO; document.head.appendChild(estilo);
+  let visto = "";
+  try { visto = localStorage.getItem(VISTO) || ""; } catch(e){}
+  onValue(ref(db, "sistema/aviso"), s => {
+    const v = s.val();
+    caja.remove();
+    if (!v || typeof v.texto !== "string" || !(v.hasta > Date.now()) || visto === String(v.desde)) return;
+    caja.innerHTML = '<span></span><button type="button" aria-label="Cerrar el aviso">×</button>';
+    caja.querySelector("span").textContent = v.texto;
+    if (/^https:\/\/\S+$/.test(v.enlace || "")){
+      const a = document.createElement("a");
+      a.href = v.enlace; a.textContent = "Ver más"; a.rel = "noopener";
+      caja.querySelector("span").after(a);
+    }
+    caja.querySelector("button").onclick = () => {
+      visto = String(v.desde); caja.remove();
+      try { localStorage.setItem(VISTO, visto); } catch(e){}
+    };
+    document.body.prepend(caja);
+  }, () => {});
 }

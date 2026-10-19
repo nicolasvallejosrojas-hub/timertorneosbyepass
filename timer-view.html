@@ -422,7 +422,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { vigilar } from "./mantenimiento.js?v=3";
+import { vigilar } from "./mantenimiento.js?v=4";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
          MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=4";
@@ -468,7 +468,7 @@ if (typeof EMULADOR !== "undefined" && EMULADOR){
   connectAuthEmulator(auth, "http://" + EMULADOR.host + ":" + EMULADOR.auth, { disableWarnings: true });
   connectDatabaseEmulator(db, EMULADOR.host, EMULADOR.db);
 }
-vigilar(db, auth);   // la pantalla de mantenimiento
+vigilar(db, auth, { aviso: false });   // la pantalla de mantenimiento (sin el aviso para todos: se proyecta)
 estoyEnLinea(db, "timer", TIENDA);
 
 const $ = id => document.getElementById(id);

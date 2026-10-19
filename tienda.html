@@ -237,6 +237,7 @@
         <section data-sec="vivo">
           <div id="vivo"></div>
           <div id="timersT" class="oculto"><h2 class="gtit">Timers de la tienda</h2><div class="grupo" id="timersL"></div></div>
+          <div id="rifasT" class="oculto"><h2 class="gtit">Rifas</h2><div class="grupo" id="rifasL"></div></div>
           <div class="dos">
             <div><h2 class="gtit"><span id="hClasCorta">Clasificación</span> <button data-ir="clas">Ver todo</button></h2>
               <div class="grupo" id="clasCorta"></div></div>
@@ -302,7 +303,7 @@
 import { ref, onValue, get, set, update, remove, query, orderByChild, equalTo }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro, urlPanel } from "./sesion.js?v=12";
+import { db, auth, enEmulador, urlCuenta, urlMuro, urlPanel } from "./sesion.js?v=13";
 import { slug, tiendaDe, salaDeTimer, MAX_TIMERS, nombreTienda, iniciales } from "./sala.js?v=6";
 import { ordenar, estaVigente, fechaLegible, cuantoFalta, urlGoogle, MES_LARGO } from "./agenda.js?v=4";
 import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, PUNTOS_DEF, timerDe, deTimer, claveGlobal } from "./clasificacion.js?v=5";
@@ -497,6 +498,9 @@ function perfil(){
   onValue(ref(db, "fotos/" + ID + "/banner"), s => { FOTOS.banner = s.val(); pintarFotos(); }, () => {});
   onValue(ref(db, "fotos/" + ID + "/logo"), s => { FOTOS.logo = s.val(); pintarFotos(); }, () => {});
   onValue(ref(db, "salas/" + ID + "/timer/state"), s => { ESTADO = s.val(); pintarVivo(); pintarTimers(); });
+  /* Las rifas abiertas de la tienda (rifa.html), salvo que ella las esconda: salas/<tienda>/config/rifa = false. */
+  onValue(ref(db, "rifas/" + ID), s => { RIFAS = s.val() || {}; pintarRifas(); }, () => {});
+  onValue(ref(db, "salas/" + ID + "/config/rifa"), s => { RIFAS_OFF = s.val() === false; pintarRifas(); }, () => {});
   onValue(ref(db, "salas/" + ID + "/pairings"), s => { PAIR = s.val(); pintarVivo(); });
   onValue(ref(db, "salas/" + ID + "/config"), s => {
     const v = s.val(); if (v && Array.isArray(v.puntos)) CFG = { puntos: v.puntos, resto: v.resto ?? 1 };
@@ -524,6 +528,16 @@ function perfil(){
    grande de arriba es el 1. */
 const TIMERS = {};
 let NOMBRE1 = null;
+let RIFAS = {}, RIFAS_OFF = false;
+function pintarRifas(){
+  const abiertas = RIFAS_OFF ? [] : Object.entries(RIFAS).filter(([, r]) => r.estado === "abierta").sort(([a], [b]) => a < b ? -1 : 1);
+  $("rifasT").classList.toggle("oculto", !abiertas.length);
+  $("rifasL").innerHTML = abiertas.map(([n, r]) => {
+    const ocupados = Object.keys(r.tomados || {}).length;
+    return '<a class="fila" href="rifa.html?sala=' + encodeURIComponent(ID) + "&r=" + n + (enEmulador() ? "&emu=1" : "") + '"><div class="txt"><b>' + esc(r.titulo) +
+      "</b><small>" + ocupados + " de " + r.total + " números ocupados" + (r.premios ? " · " + Object.keys(r.premios).length + (Object.keys(r.premios).length === 1 ? " premio" : " premios") : "") + "</small></div>" + ICO.enlace + "</a>";
+  }).join("");
+}
 function pintarTimers(){
   const ns = Object.keys(TIMERS).map(Number).sort((a, b) => a - b);
   $("timersT").classList.toggle("oculto", !ns.length);

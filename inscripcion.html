@@ -230,7 +230,7 @@ Trainer: 40
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=12";
+import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=13";
 import { slug, nombreTienda } from "./sala.js?v=6";
 import { fechaLegible, urlGoogle } from "./agenda.js?v=4";
 import { leerLista, cuenta, division, hoja, imprimir, cargarEstandar, componer, norm, TEMPORADA } from "./listamazo.js?v=6";
@@ -464,13 +464,24 @@ function pintarCategorias(){
     : el && d && el !== d ? "Tu fecha de nacimiento corresponde a " + NOM_DIV[d] + "." : "Se marca sola según tu fecha de nacimiento.";
 }
 $("cats").onchange = pintarCategorias;
-/* Toma la primera plaza libre; si otra persona se adelanta (las reglas lo rechazan), la siguiente. */
+/* Toma la primera plaza libre; si otra persona se adelanta (las reglas lo rechazan), la siguiente.
+   Un cupo por cuenta: junto con la plaza se escribe quien/<uid> = "<categoría>/<n>", y las reglas no
+   dejan tomar otra mientras exista. */
+const yaTengo = () => (YO && (PLAZAS.quien || {})[YO.uid]) || "";
 async function plazaPara(div){
   if (suya(div)) return suya(div);
   await cargarPlazas();
+  const base = "cupos/" + T + "/" + E + "/", q = yaTengo();
+  if (q){
+    const [qd, qn] = q.split("/");
+    /* Mi plaza de otra categoría, sin inscripción (se cortó a medias): se suelta. Si la tienda ya la
+       liberó, el «ya tengo» quedó colgando: se borra. */
+    if ((PLAZAS[qd] || {})[qn] === YO.uid){ if (MIA) return ""; await update(ref(YO.db, base), { [q]: "", ["quien/" + YO.uid]: null }); }
+    else await set(ref(YO.db, base + "quien/" + YO.uid), null);
+  }
   const libresN = Object.entries(PLAZAS[div] || {}).filter(([, v]) => v === "").map(([n]) => n).sort((a, b) => a - b);
   for (const n of libresN){
-    try { await set(ref(YO.db, "cupos/" + T + "/" + E + "/" + div + "/" + n), YO.uid); return n; }
+    try { await update(ref(YO.db, base), { [div + "/" + n]: YO.uid, ["quien/" + YO.uid]: div + "/" + n }); return n; }
     catch(e){ if (!/permission/i.test((e && (e.code || e.message)) || "")) throw e; }
   }
   return "";
@@ -543,7 +554,7 @@ $("form").onsubmit = async e => {
       if (!antes) nueva = dato.cupo;
     }
     try { await set(ref(YO.db, ruta(YO.uid)), dato); }
-    catch(err){ if (nueva) set(ref(YO.db, "cupos/" + T + "/" + E + "/" + d.division + "/" + nueva), "").catch(() => {}); throw err; }
+    catch(err){ if (nueva) update(ref(YO.db, "cupos/" + T + "/" + E), { [d.division + "/" + nueva]: "", ["quien/" + YO.uid]: null }).catch(() => {}); throw err; }
     MIA = dato; pintarMia(); cargarPlazas();
     $("yaInscrito").scrollIntoView({ block: "center", behavior: "smooth" });
   } catch(err){
@@ -563,6 +574,7 @@ $("anular").onclick = async () => {
   try {
     const cambios = { [ruta(YO.uid)]: null }, n = MIA.division && suya(MIA.division);
     if (n) cambios["cupos/" + T + "/" + E + "/" + MIA.division + "/" + n] = "";
+    if (yaTengo()) cambios["cupos/" + T + "/" + E + "/quien/" + YO.uid] = null;
     await update(ref(YO.db), cambios);
     MIA = null; $("acepta").checked = false; await cargarPlazas(); pintarMia(); }
   catch(err){ error("No se pudo anular. Revisa la conexión y vuelve a intentarlo."); }

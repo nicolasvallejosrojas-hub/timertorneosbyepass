@@ -411,7 +411,24 @@
     <div class="grupo">
       <h2>Tu cuenta</h2>
       <div class="filas">
-        <div class="filaj"><span class="k">Correo</span><span class="v" id="ajCorreo"></span></div>
+        <div id="edCorreo">
+          <button class="filaj" type="button" aria-expanded="false" aria-controls="formCorreo">
+            <span class="k">Correo</span><span class="v" id="ajCorreo"></span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg></button>
+          <form class="edicion oculto" id="formCorreo" novalidate>
+            <label class="campo"><span>Correo nuevo</span>
+              <input type="email" id="nuevoCorreo" autocomplete="email" maxlength="120">
+              <span class="pista">Te mandamos un enlace a ese correo. El cambio recién vale cuando lo abras; mientras, sigues entrando con el de ahora.</span>
+            </label>
+            <label class="campo"><span>Tu contraseña</span>
+              <input type="password" id="claveCorreo" autocomplete="current-password">
+              <span class="pista">Para que nadie que encuentre tu sesión abierta te cambie el correo.</span>
+            </label>
+            <div class="aviso mal oculto" id="errCorreo" role="alert"></div>
+            <div class="acciones"><button class="fant" type="button" data-cancelar>Cancelar</button>
+              <button class="btn primario" type="submit">Mandar el enlace</button></div>
+          </form>
+        </div>
         <button class="filaj" type="button" id="ajClave"><span class="k">Contraseña</span>
           <span class="v">Cambiar</span>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg></button>
@@ -472,6 +489,7 @@
               <span class="pista">El de 7 u 8 dígitos con que te inscriben en los torneos oficiales.
                 Revísalo bien: una vez guardado, no se puede cambiar.</span>
             </label>
+            <div class="aviso oculto" id="avisoCorregir">Tienes permiso para corregir tu ID <b>una vez</b>. Revísalo bien: después vuelve a quedar fijo.</div>
             <div class="aviso mal oculto" id="errId" role="alert"></div>
             <div class="acciones"><button class="fant" type="button" data-cancelar>Cancelar</button>
               <button class="btn primario" type="submit">Guardar</button></div>
@@ -578,14 +596,14 @@
 import { ref, get, set, remove, update, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail,
-         verifyPasswordResetCode, confirmPasswordReset, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+         verifyPasswordResetCode, confirmPasswordReset, applyActionCode, checkActionCode, verifyBeforeUpdateEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=4";
 import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=6";   // BASE: el timer; BASE_T: su tienda
 /* La conexión, los enlaces con ?emu y ?sala, los errores en castellano, la
    contraseña y el registro viven en sesion.js: la portada registra igual. */
 import { db, auth, urlPanel, urlMuro, urlCuenta, decir, ID_OK, CORREO_OK, revisarClave, claveOk,
          textoFalta, errorNacimiento, registrar, params, codigoInvitacion, betaActiva, revisarCodigo,
-         normCodigo, CODIGO_OK } from "./sesion.js?v=12";
+         normCodigo, CODIGO_OK } from "./sesion.js?v=13";
 import { estoyEnLinea } from "./presencia.js?v=4";
 estoyEnLinea(db, "cuenta");
 
@@ -603,7 +621,8 @@ const VISTAS = { ingresar:"vIngresar", crear:"vCrear", ajustes:"vAjustes", olvid
    cambiar la contraseña o confirmar el correo. */
 const Q = new URLSearchParams(location.search);
 const OOB = Q.get("oobCode");
-const ACCION = OOB && { resetPassword: "nueva", verifyEmail: "confirma" }[Q.get("mode")];
+const MODO = Q.get("mode");
+const ACCION = OOB && { resetPassword: "nueva", verifyEmail: "confirma", verifyAndChangeEmail: "confirma", recoverEmail: "confirma" }[MODO];
 /* Nombres viejos que siguen llegando por enlaces guardados: la portada ya no
    existe (la entrada es «Entra») y el perfil ahora vive en el muro; lo que
    quedó acá son los ajustes. */
@@ -747,7 +766,30 @@ if (ACCION === "nueva"){
 
 /* Confirmar el correo. El enlace sirve con o sin sesión abierta en este
    teléfono: la cuenta queda confirmada igual. */
-if (ACCION === "confirma") (async () => {
+/* Cambiar el correo (verifyAndChangeEmail, el enlace que llega al correo NUEVO) o deshacerlo
+   (recoverEmail, el aviso que llega al correo de ANTES, por si no fue el dueño). */
+if (ACCION === "confirma" && MODO !== "verifyEmail") (async () => {
+  let err = null, info = null;
+  try { info = await checkActionCode(auth, OOB); await applyActionCode(auth, OOB); } catch(e){ err = e; }
+  const correo = info && info.data && info.data.email;
+  const s = $("cfSeguir");
+  if (MODO === "verifyAndChangeEmail"){
+    /* El correo cambió: la sesión de antes ya no vale; se entra con el nuevo. */
+    if (!err) await signOut(auth).catch(() => {});
+    $("cfTitulo").textContent = err ? "Este enlace ya no sirve" : "Correo cambiado";
+    $("cfTexto").textContent = !err ? "Tu cuenta ahora usa " + correo + ". Entra de nuevo con ese correo y tu misma contraseña."
+      : /action-code/.test(err.code) ? "Ya se usó o venció. Si no alcanzaste a cambiarlo, pídelo de nuevo desde tus ajustes." : decir(err);
+    s.href = urlCuenta("ingresar"); s.textContent = "Entrar";
+  } else {
+    $("cfTitulo").textContent = err ? "Este enlace ya no sirve" : "Volviste a tu correo";
+    $("cfTexto").textContent = !err ? "Tu cuenta vuelve a usar " + correo + ". Si no fuiste tú quien pidió el cambio, cambia tu contraseña ahora."
+      : /action-code/.test(err.code) ? "Ya se usó o venció." : decir(err);
+    s.href = urlCuenta("olvide"); s.textContent = "Cambiar mi contraseña";
+  }
+  s.classList.remove("oculto");
+})();
+
+if (ACCION === "confirma" && MODO === "verifyEmail") (async () => {
   let err = null;
   try { await applyActionCode(auth, OOB); } catch(e){ err = e; }
   await auth.authStateReady();
@@ -932,10 +974,13 @@ function pintarAjustes(){
   const nac = /^(\d{4})-(\d{2})-(\d{2})$/.exec(p.nacimiento || "");
   $("ajNac").textContent = nac ? +nac[3] + " de " + MES_LARGO[+nac[2] - 1] + " de " + nac[1]
                                : (p.anio ? "Año " + p.anio : "—");
-  $("idFijo").classList.toggle("oculto", !p.playerId);
-  $("edId").classList.toggle("oculto", !!p.playerId);
+  /* Con permiso del administrador (permisoId/<uid>), el ID fijo se puede corregir una vez. */
+  const corrige = !!p.playerId && PERMISO_ID;
+  $("idFijo").classList.toggle("oculto", !p.playerId || corrige);
+  $("edId").classList.toggle("oculto", !!p.playerId && !corrige);
+  $("avisoCorregir").classList.toggle("oculto", !corrige);
   $("ajIdFijo").textContent = p.playerId || "";
-  $("ajId").textContent = "Agregar";
+  $("ajId").textContent = corrige ? p.playerId + " · corregir" : "Agregar";
   $("ajPublico").checked = !!p.publico;
   pintarOtrosIds();
   pintarPrivacidad();
@@ -1053,7 +1098,7 @@ function abrir(cont, abierto){
 function editable(id, valorActual){
   const cont = $(id);
   cont.querySelector("button.filaj").onclick = () => {
-    ["edNombre", "edNac", "edId"].forEach(o => { if (o !== id) abrir($(o), false); });
+    ["edNombre", "edNac", "edId", "edCorreo"].forEach(o => { if (o !== id) abrir($(o), false); });
     cont.querySelector("input").value = valorActual();
     aviso(cont.querySelector(".aviso").id, "");
     abrir(cont, true);
@@ -1063,6 +1108,29 @@ function editable(id, valorActual){
 editable("edNombre", () => (perfil && perfil.nombre) || usuario.displayName || "");
 editable("edNac",    () => (perfil && perfil.nacimiento) || "");
 editable("edId",     () => "");
+editable("edCorreo", () => "");
+
+/* Cambiar el correo: Firebase pide un ingreso reciente (la contraseña) y manda un enlace al correo
+   nuevo; recién al abrirlo cambia. Al de antes le llega un aviso para deshacerlo. */
+$("formCorreo").onsubmit = async e => {
+  e.preventDefault(); aviso("errCorreo", "");
+  const nuevo = $("nuevoCorreo").value.trim(), clave = $("claveCorreo").value;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nuevo)) return aviso("errCorreo", "Escribe un correo válido.");
+  if (nuevo.toLowerCase() === String(usuario.email || "").toLowerCase()) return aviso("errCorreo", "Es el mismo correo que ya tienes.");
+  if (!clave) return aviso("errCorreo", "Escribe tu contraseña.");
+  const b = $("formCorreo").querySelector("[type=submit]"); b.disabled = true;
+  try {
+    await reauthenticateWithCredential(usuario, EmailAuthProvider.credential(usuario.email, clave));
+    await verifyBeforeUpdateEmail(usuario, nuevo);
+    $("claveCorreo").value = ""; abrir($("edCorreo"), false);
+    aviso("msgCuenta", "Te mandamos un enlace a " + nuevo + ". Ábrelo para terminar el cambio; mientras, sigues entrando con " + usuario.email + ".");
+  } catch(err){
+    aviso("errCorreo", /wrong-password|invalid-credential|invalid-login/.test(err.code || "") ? "La contraseña no es esa."
+      : /email-already-in-use/.test(err.code || "") ? "Ese correo ya tiene una cuenta."
+      : /too-many-requests/.test(err.code || "") ? "Demasiados intentos. Espera un rato y vuelve a probar." : decir(err));
+  }
+  b.disabled = false;
+};
 
 /* El nombre y la preferencia de clasificación también viven en el enlace de
    cada tienda con la que el jugador compartió su ID, que es lo único que el
@@ -1111,11 +1179,29 @@ $("formId").onsubmit = async e => {
   e.preventDefault();
   const v = $("nuevoId").value.trim();
   if (!ID_OK(v)) return aviso("errId", "El ID de jugador son 7 u 8 dígitos.");
+  if (perfil && perfil.playerId && PERMISO_ID) return corregirId(v);
   try {
     await guardar({ playerId: v }, "msgTorneo", "ID guardado.");
     abrir($("edId"), false);
   } catch(err){ aviso("errId", "No se pudo guardar. Revisa la conexión."); }
 };
+
+/* Corregir el ID (con permiso): el perfil, el enlace de cada tienda con la que lo compartió y el
+   permiso, en UNA escritura. Las reglas aceptan el cambio solo si el permiso se gasta en esa misma. */
+let PERMISO_ID = false;
+async function corregirId(v){
+  if (v === perfil.playerId) return aviso("errId", "Es el mismo ID que ya tienes.");
+  if (!confirm("¿Cambiar tu ID de " + perfil.playerId + " a " + v + "? Después vuelve a quedar fijo.")) return;
+  const rutas = { ["usuarios/" + usuario.uid + "/playerId"]: v, ["permisoId/" + usuario.uid]: null };
+  const tiendas = perfil.tiendas || {};
+  Object.keys(tiendas).filter(s => tiendas[s] && tiendas[s].compartirId).forEach(s => rutas["enlaces/" + s + "/" + usuario.uid + "/playerId"] = v);
+  try {
+    await update(ref(db), rutas);
+    PERMISO_ID = false; perfil = Object.assign({}, perfil, { playerId: v });
+    abrir($("edId"), false); pintarAjustes();
+    aviso("msgTorneo", "ID corregido. Tus tiendas lo reciben al tiro y tus torneos se enlazan la próxima vez que abran su panel.");
+  } catch(err){ aviso("errId", "No se pudo corregir. Puede que el permiso ya no esté: pídelo de nuevo."); }
+}
 
 $("ajPublico").onchange = async e => {
   const v = e.target.checked;
@@ -1403,6 +1489,7 @@ onAuthStateChanged(auth, async u => {
   if (u){
     if (registrando) return;   // crearCuenta() se encarga de salir al muro
     if (ACCION) return;        // esas vistas salen solas cuando terminan
+    try { PERMISO_ID = (await get(ref(db, "permisoId/" + u.uid))).val() === true; } catch(e){ PERMISO_ID = false; }
     try { perfil = (await get(ref(db, "usuarios/" + u.uid))).val(); }
     catch(e){ perfil = null; }
     pintarAjustes();

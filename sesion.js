@@ -8,7 +8,7 @@
 /* ============================================================
    sesion.js — entrar y crear cuenta
    ------------------------------------------------------------
-   Versión actual: v=9   (subir el ?v= al tocar este archivo)
+   Versión actual: v=13  (subir el ?v= al tocar este archivo)
 
    Lo usan la portada (index.html), que tiene el registro a la vista, y la
    cuenta (cuenta.html), con sus tres pasos. Vive acá para que las reglas de
@@ -23,7 +23,7 @@ import { getDatabase, connectDatabaseEmulator, ref, set, get, update, increment 
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, updateProfile, sendEmailVerification }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { SALA } from "./sala.js?v=6";
-import { vigilar } from "./mantenimiento.js?v=3";
+import { vigilar } from "./mantenimiento.js?v=4";
 
 /* ▌BLOQUE 1 · Firebase y enlaces ════════════════════════════════════════════════
    app, db, auth compartidos; params() conserva ?emu y ?sala en los enlaces. */

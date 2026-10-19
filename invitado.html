@@ -118,14 +118,16 @@ $("abrir").onclick = async () => {
   $("abrir").disabled = true; $("msg").className = "msg"; $("msg").textContent = "Abriendo tu sala…";
   try {
     const u = auth.currentUser || (await signInAnonymously(auth)).user;
-    /* La sala anterior de este navegador se borra al abrir otra. */
-    const vieja = guardada();
+    /* La sala anterior de esta cuenta se borra al abrir otra (las reglas dejan una por cuenta:
+       invitadoDe/<uid>). Si el navegador olvidó cuál era, se pregunta a la base. */
+    let vieja = guardada();
+    if (!/^inv-[a-z0-9]{6}$/.test(vieja)) vieja = (await get(ref(db, "invitadoDe/" + u.uid)).then(s => s.val()).catch(() => "")) || "";
     if (/^inv-[a-z0-9]{6}$/.test(vieja))
       await update(ref(db), { ["salas/" + vieja]: null, ["jugadores/" + vieja]: null, ["invitados/" + vieja]: null }).catch(() => {});
     for (let i = 0; i < 4; i++){
       const c = codigo(), vence = now() + HORAS_INVITADO * 3600000;
       try {
-        await update(ref(db), { ["salas/" + c + "/owner"]: u.uid, ["salas/" + c + "/vence"]: vence, ["invitados/" + c]: vence });
+        await update(ref(db), { ["salas/" + c + "/owner"]: u.uid, ["salas/" + c + "/vence"]: vence, ["invitados/" + c]: vence, ["invitadoDe/" + u.uid]: c });
         try { localStorage.setItem(CLAVE, c); } catch(e){}
         return irA(c);
       } catch(e){ /* el código ya existía: se prueba otro */ }

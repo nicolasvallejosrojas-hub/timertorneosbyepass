@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!-- ▌ÍNDICE de rifa.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Marcado
+      3. Módulos
+      4. Arranque y variables
+      5. La rifa
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B7F6C">
+<meta name="description" content="Rifa de una tienda: premios y números disponibles.">
+<title>Rifa — ByePass</title>
+<link rel="stylesheet" href="estilo.css?v=12">
+<!-- ▌BLOQUE 1 · Estilos — Grilla de cuadros redondeados numerados, premios y el código. -->
+<style>
+  /* La rifa de una tienda. Los números se ven sin cuenta. Para elegirlos hace falta el código de un solo
+     uso que la tienda entrega a quien le pagó por su enlace de pago: ByePass no cobra nada. */
+  body{min-height:100vh;}
+  .sup{display:flex;align-items:center;min-height:56px;padding:0 var(--e4);}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto);text-decoration:none;}
+  .marca b{font-weight:300;color:var(--accion-texto);}
+  main{max-width:720px;margin:0 auto;padding:var(--e4) var(--e4) var(--e6);box-sizing:border-box;display:flex;flex-direction:column;gap:var(--e4);}
+  h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
+  .meta{font-size:var(--t3);color:var(--apagado);line-height:1.6;margin:var(--e1) 0 0;}
+  .estado{font-size:var(--t2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);}
+  .estado.cerrado{color:var(--rotulo);}
+  .caja{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
+  .caja h2{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:0;}
+  .premios{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--e2);}
+  .premios li{display:flex;gap:var(--e3);align-items:baseline;font-size:var(--t4);}
+  .premios .pos{flex:none;min-width:1.6em;font-weight:700;color:var(--accion-texto);}
+  .premios .gana{margin-left:auto;font-size:var(--t2);font-weight:700;color:var(--ok);white-space:nowrap;}
+  .barra{height:8px;border-radius:999px;background:var(--sup-alta);overflow:hidden;}
+  .barra b{display:block;height:100%;background:var(--accion);}
+  .rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px;}
+  .rejilla button{min-height:52px;border-radius:14px;border:1.5px solid var(--divider);background:var(--sup);color:var(--texto);
+    font:inherit;font-size:var(--t4);font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;}
+  .rejilla button:disabled{cursor:default;}
+  .rejilla button.ocupado{background:var(--sup-alta);color:var(--apagado);border-color:transparent;text-decoration:line-through;opacity:.7;}
+  .rejilla button.pick{background:var(--accion);border-color:var(--accion);color:var(--sobre-accion);}
+  .rejilla button.mio{background:var(--ok);border-color:var(--ok);color:#fff;text-decoration:none;opacity:1;}
+  .rejilla button.gano{box-shadow:0 0 0 3px var(--accion-texto);}
+  .rejilla button:focus-visible{outline:3px solid var(--accion-texto);outline-offset:2px;}
+  .leyenda{display:flex;flex-wrap:wrap;gap:var(--e3);font-size:var(--t2);color:var(--apagado);}
+  .leyenda i{display:inline-block;width:14px;height:14px;border-radius:5px;border:1.5px solid var(--divider);vertical-align:-2px;margin-right:5px;}
+  .leyenda .o{background:var(--sup-alta);border-color:transparent;} .leyenda .p{background:var(--accion);border-color:var(--accion);}
+  .campo{display:grid;gap:4px;font-size:var(--t2);color:var(--apagado);}
+  .campo input{width:100%;box-sizing:border-box;font-size:var(--t4);padding:12px;}
+  #codigo{text-transform:uppercase;letter-spacing:.12em;font-weight:700;}
+  .fila{display:flex;gap:var(--e3);flex-wrap:wrap;align-items:center;}
+  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
+  .aviso{padding:var(--e3);border-radius:var(--radio);background:var(--sup-alta);font-size:var(--t3);line-height:1.5;}
+  .aviso.mal{color:var(--negativo);} .aviso.bien{color:var(--ok);font-weight:600;}
+  main a:not(.btn){color:var(--accion-texto);}
+  .oculto{display:none !important;}
+</style>
+</head>
+<body>
+  <!-- ▌BLOQUE 2 · Marcado — Premios, grilla de números, código y elección. -->
+  <header class="sup"><a class="marca" href="index.html" id="inicio">Bye<b>Pass</b></a></header>
+  <main>
+    <div>
+      <div class="estado" id="estado">Cargando…</div>
+      <h1 id="titulo">Rifa</h1>
+      <p class="meta" id="tienda"></p>
+    </div>
+    <div class="aviso mal oculto" id="noHay" role="alert"></div>
+
+    <div id="rifa" class="oculto" style="display:flex;flex-direction:column;gap:var(--e4)">
+      <div class="caja" id="cajaPremios"><h2>Premios</h2><ul class="premios" id="premios"></ul></div>
+
+      <div class="caja">
+        <h2>Números <span id="cuenta" style="text-transform:none;letter-spacing:0"></span></h2>
+        <div class="barra" aria-hidden="true"><b id="avance" style="width:0"></b></div>
+        <div class="rejilla" id="rejilla" role="group" aria-label="Números de la rifa"></div>
+        <div class="leyenda"><span><i></i>Libre</span><span><i class="o"></i>Ocupado</span><span><i class="p"></i>Tu elección</span></div>
+      </div>
+
+      <div class="caja" id="cajaComprar">
+        <h2>Quiero participar</h2>
+        <p class="pista" id="pasos">1. Paga en el sitio de la tienda. 2. La tienda te entrega un código. 3. Pon el código acá y elige tus números.</p>
+        <div class="fila"><a class="btn primario oculto" id="pagar" target="_blank" rel="noopener noreferrer">Ir a pagar (sitio de la tienda)</a></div>
+        <form id="formCodigo" novalidate class="campo">
+          <label for="codigo">Tu código</label>
+          <div class="fila"><input id="codigo" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD-2345" aria-describedby="errCodigo" style="flex:1;min-width:0">
+            <button class="btn" id="usarCodigo" type="submit">Usar código</button></div>
+        </form>
+        <div class="aviso mal oculto" id="errCodigo" role="alert"></div>
+
+        <form id="formElegir" novalidate class="campo oculto">
+          <div class="aviso" id="elige" role="status"></div>
+          <label>Tu nombre<input id="nombre" maxlength="40" autocomplete="name"></label>
+          <label>Contacto para avisarte si ganas (opcional)<input id="contacto" maxlength="80" placeholder="WhatsApp, Instagram o correo" autocomplete="off"></label>
+          <div class="aviso mal oculto" id="errElegir" role="alert"></div>
+          <div class="fila"><button class="btn primario" id="confirmar" type="submit">Confirmar mis números</button>
+            <button class="btn" id="cancelar" type="button">Cancelar</button></div>
+        </form>
+        <div class="aviso bien oculto" id="listo" role="status"></div>
+      </div>
+    </div>
+
+    <p class="pista">La rifa, los premios y el cobro son de la tienda: ByePass solo muestra los números y no cobra, no recibe dinero ni
+      entrega premios. Lo que escribes acá lo ve solo la tienda. Más en la <a href="privacidad.html">política de privacidad</a>.</p>
+  </main>
+
+<script src="config.js?v=9"></script>
+<!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sala y la app «invitado». -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, connectDatabaseEmulator, ref, get, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, connectAuthEmulator, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { slug, nombreTienda } from "./sala.js?v=6";
+
+const $ = id => document.getElementById(id);
+/* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
+   Tienda y rifa de la URL; sesión anónima aparte, pedida recién al confirmar. */
+const q = new URLSearchParams(location.search);
+const T = slug(q.get("sala")), R = /^[1-3]$/.test(q.get("r") || "") ? q.get("r") : "";
+const EMU = typeof EMULADOR !== "undefined" && EMULADOR;
+if (EMU) $("inicio").href = "index.html?emu=1";
+
+/* Sesión anónima aparte de cualquier cuenta (la misma «app invitado» de las inscripciones). Se pide recién al confirmar. */
+const app = initializeApp(FIREBASE_CONFIG, "invitado");
+const db = getDatabase(app), auth = getAuth(app);
+if (EMU){
+  connectAuthEmulator(auth, "http://" + EMULADOR.host + ":" + EMULADOR.auth, { disableWarnings: true });
+  connectDatabaseEmulator(db, EMULADOR.host, EMULADOR.db);
+}
+
+let RF = null, ELIGE = null, MIOS = [];   // ELIGE: { codigo, cantidad, marcados:Set }
+const base = "rifas/" + T + "/" + R;
+const bonito = c => c.slice(0, 4) + "-" + c.slice(4);
+const limpio = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+function fin(msg){ $("estado").textContent = ""; $("noHay").textContent = msg; $("noHay").classList.remove("oculto"); }
+if (!T || !R) fin("Este enlace de rifa no está completo. Pídele a la tienda que te lo mande otra vez.");
+else {
+  get(ref(db, "tiendas/" + T + "/perfil")).then(s => {
+    const p = s.val(); if (!p) return;
+    $("tienda").innerHTML = 'De <a href="tienda.html?sala=' + encodeURIComponent(T) + (EMU ? "&emu=1" : "") + '">' + esc(nombreTienda(p, T)) + "</a>";
+  }).catch(() => {});
+  onValue(ref(db, base), s => { RF = s.val(); pintar(); }, () => fin("No se pudo cargar la rifa. Revisa tu conexión."));
+}
+
+/* ▌BLOQUE 5 · La rifa ═══════════════════════════════════════════════════════════
+   Premios, avance y grilla en vivo; el código da N números y se toman en una sola escritura. */
+function pintar(){
+  if (!RF){ $("rifa").classList.add("oculto"); return fin("Esta rifa no existe o la tienda la retiró."); }
+  $("noHay").classList.add("oculto");
+  const tom = RF.tomados || {}, n = Object.keys(tom).length, abierta = RF.estado === "abierta";
+  $("estado").textContent = abierta ? "Rifa abierta" : "Rifa cerrada";
+  $("estado").classList.toggle("cerrado", !abierta);
+  $("titulo").textContent = RF.titulo; document.title = RF.titulo + " — ByePass";
+  const gana = {};
+  const premios = Object.entries(RF.premios || {}).sort(([a], [b]) => a - b);
+  premios.forEach(([, p]) => { if (p.ganador) gana[p.ganador] = true; });
+  $("cajaPremios").classList.toggle("oculto", !premios.length);
+  $("premios").innerHTML = premios.map(([i, p]) => '<li><span class="pos">' + (+i + 1) + '.</span><span>' + esc(p.texto) + "</span>" +
+    (p.ganador ? '<span class="gana">Ganó el Nº ' + p.ganador + "</span>" : "") + "</li>").join("");
+  $("cuenta").textContent = "· " + n + " de " + RF.total + " ocupados";
+  $("avance").style.width = Math.round(n / RF.total * 100) + "%";
+  const pagar = $("pagar");
+  pagar.classList.toggle("oculto", !RF.enlace || !abierta);
+  if (RF.enlace) pagar.href = RF.enlace;
+  $("cajaComprar").classList.toggle("oculto", !abierta && !MIOS.length);
+  $("formCodigo").classList.toggle("oculto", !abierta || !!ELIGE);
+  $("pasos").classList.toggle("oculto", !abierta);
+  let h = "";
+  for (let i = 1; i <= RF.total; i++){
+    const ocupado = !!tom[i], mio = MIOS.includes(i), pick = ELIGE && ELIGE.marcados.has(i);
+    const cls = (mio ? "ocupado mio" : ocupado ? "ocupado" : pick ? "pick" : "") + (gana[i] ? " gano" : "");
+    h += '<button type="button" class="' + cls + '" data-n="' + i + '"' + (ocupado || !ELIGE ? " disabled" : "") + (ELIGE && !ocupado ? ' aria-pressed="' + !!pick + '"' : "") +
+      ' aria-label="Número ' + i + ", " + (mio ? "tuyo" : ocupado ? "ocupado" : pick ? "elegido" : "libre") + (gana[i] ? ", ganador" : "") + '">' + i + "</button>";
+  }
+  $("rejilla").innerHTML = h;
+  $("rifa").classList.remove("oculto");
+  $("rifa").style.display = "flex";
+}
+
+$("rejilla").onclick = e => {
+  const b = e.target.closest("button[data-n]"); if (!b || !ELIGE) return;
+  const n = +b.dataset.n;
+  if (ELIGE.marcados.has(n)) ELIGE.marcados.delete(n);
+  else if (ELIGE.marcados.size < ELIGE.cantidad) ELIGE.marcados.add(n);
+  else return avisoElegir("Ya marcaste los " + ELIGE.cantidad + " que te da el código. Quita uno para cambiarlo.");
+  avisoElegir(""); textoElige(); pintar();
+  $("rejilla").querySelector('[data-n="' + n + '"]').focus();   // pintar() redibuja la grilla: se devuelve el foco
+};
+const textoElige = () => $("elige").textContent = "Tu código da " + ELIGE.cantidad + (ELIGE.cantidad === 1 ? " número" : " números") +
+  ". Marcados: " + (ELIGE.marcados.size ? [...ELIGE.marcados].sort((a, b) => a - b).join(", ") : "ninguno") + " (" + ELIGE.marcados.size + " de " + ELIGE.cantidad + ").";
+const avisoElegir = t => { $("errElegir").textContent = t; $("errElegir").classList.toggle("oculto", !t); };
+const errCodigo = t => { $("errCodigo").textContent = t; $("errCodigo").classList.toggle("oculto", !t); };
+
+$("codigo").oninput = e => { const v = limpio(e.target.value).slice(0, 8); e.target.value = v.length > 4 ? v.slice(0, 4) + "-" + v.slice(4) : v; };
+
+$("formCodigo").onsubmit = async e => {
+  e.preventDefault(); errCodigo("");
+  const c = limpio($("codigo").value);
+  if (c.length !== 8) return errCodigo("El código tiene 8 letras y números, como ABCD-2345.");
+  $("usarCodigo").disabled = true;
+  try {
+    const [cant, ts] = await Promise.all([get(ref(db, "rifaCodigos/" + T + "/" + R + "/" + c)), get(ref(db, "rifaUsos/" + T + "/" + R + "/" + c + "/ts"))]);
+    if (!cant.exists()) errCodigo("Ese código no existe en esta rifa. Revisa que esté bien escrito.");
+    else if (ts.exists()){
+      /* Ya usado: se muestran los números que quedaron a su nombre, si siguen tomados. */
+      const mios = Object.entries(RF.tomados || {}).filter(([, v]) => v === c).map(([k]) => +k).sort((a, b) => a - b);
+      if (mios.length){ MIOS = mios; pintar(); mostrarListo("Ese código ya se usó. Sus números: " + mios.join(", ") + "."); }
+      else errCodigo("Ese código ya se usó.");
+    } else {
+      ELIGE = { codigo: c, cantidad: cant.val(), marcados: new Set() };
+      $("formElegir").classList.remove("oculto"); $("formCodigo").classList.add("oculto"); $("listo").classList.add("oculto");
+      textoElige(); pintar(); $("nombre").focus();
+    }
+  } catch(x){ errCodigo("No se pudo revisar el código. Revisa tu conexión."); }
+  $("usarCodigo").disabled = false;
+};
+const mostrarListo = t => { $("listo").textContent = t; $("listo").classList.remove("oculto"); };
+
+$("cancelar").onclick = () => { ELIGE = null; $("formElegir").classList.add("oculto"); avisoElegir(""); pintar(); };
+
+$("formElegir").onsubmit = async e => {
+  e.preventDefault(); avisoElegir("");
+  const nombre = $("nombre").value.trim(), contacto = $("contacto").value.trim();
+  if (ELIGE.marcados.size !== ELIGE.cantidad) return avisoElegir("Te faltan números: marcaste " + ELIGE.marcados.size + " de " + ELIGE.cantidad + ".");
+  if (!nombre) return avisoElegir("Escribe tu nombre.");
+  const nums = [...ELIGE.marcados].sort((a, b) => a - b), c = ELIGE.codigo, numeros = {}, rutas = {};
+  nums.forEach((n, i) => { numeros[i + 1] = n; rutas[base + "/tomados/" + n] = c; });
+  rutas["rifaUsos/" + T + "/" + R + "/" + c] = { nombre, ...(contacto ? { contacto } : {}), ts: serverTimestamp(), numeros };
+  $("confirmar").disabled = true;
+  try {
+    if (!auth.currentUser) await signInAnonymously(auth);
+    await update(ref(db), rutas);
+    MIOS = nums; ELIGE = null; $("formElegir").classList.add("oculto");
+    mostrarListo("Listo, tus números son: " + nums.join(", ") + ". Guarda esta pantalla: si ganas, la tienda te avisa.");
+    pintar();
+  } catch(x){
+    /* Si alguien tomó uno justo antes, la escritura entera se rechaza y el código no se gasta. */
+    avisoElegir("No se pudo guardar. Puede que alguien haya tomado uno de esos números justo antes: revisa la grilla, elige otros e inténtalo de nuevo.");
+    ELIGE.marcados = new Set([...ELIGE.marcados].filter(n => !(RF.tomados || {})[n])); textoElige(); pintar();
+  }
+  $("confirmar").disabled = false;
+};
+</script>
+</body>
+</html>

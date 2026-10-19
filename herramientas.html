@@ -4,13 +4,16 @@
       2. Diálogo de borrar tienda
       3. Módulos
       4. Arranque
-      5. Mantenimiento
+      5. Mantenimiento y aviso para todos
       6. Salas de invitado
       7. Beta cerrada
       8. Tiendas
       9. Cifras, buzón y cuentas
      10. Solicitudes de tienda
      11. Borrar una tienda
+     12. ¿Qué está publicado?
+     13. Uso de la base
+     14. Limpieza
 -->
 <html lang="es">
 <head>
@@ -51,7 +54,7 @@
   .mantCaja{display:grid;grid-template-columns:1fr auto;gap:var(--e3) var(--e4);align-items:center;padding:var(--e4);}
   .mantCaja b{display:block;font-size:var(--t4);font-weight:600;}
   .mantCaja small{display:block;font-size:var(--t2);color:var(--apagado);line-height:1.5;margin-top:2px;}
-  .mantCaja input{grid-column:1 / -1;width:100%;}
+  .mantCaja input, .mantCaja select{grid-column:1 / -1;width:100%;}
   .mantCaja.cerrado b{color:var(--negativo);}
   .mantCaja .btn{min-height:44px;}
 
@@ -106,6 +109,18 @@
   .uid{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--t1);overflow-wrap:anywhere;}
   @media (max-width:600px){ .cifras{grid-template-columns:repeat(2,1fr);} }
 
+  /* ---------------------------------------------------------- publicado y uso de la base */
+  .barraAcc{display:flex;flex-wrap:wrap;align-items:center;gap:var(--e2) var(--e3);padding:var(--e4);}
+  .barraAcc .btn{min-height:40px;}
+  .linea{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:10px 14px;position:relative;align-items:baseline;}
+  .linea + .linea::before{content:"";position:absolute;top:0;right:0;left:14px;height:1px;background:var(--divider);}
+  .linea i{font-style:normal;font-weight:700;}
+  .linea.ok i{color:var(--ok);} .linea.mal i{color:var(--negativo);} .linea.aviso i{color:var(--accion-texto);}
+  .linea small{grid-column:2;font-size:var(--t2);color:var(--apagado);line-height:1.45;}
+  .medidor{height:10px;border-radius:999px;background:var(--sup-alta);overflow:hidden;margin:0 var(--e4) var(--e4);}
+  .medidor b{display:block;height:100%;background:var(--accion);}
+  .peso{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;}
+
   /* ---------------------------------------------------------- borrar */
   dialog.hoja{border:none;border-radius:22px;padding:var(--e4) var(--e5) var(--e5);max-width:480px;width:calc(100% - 32px);
     background:var(--pagina);color:var(--texto);}
@@ -148,6 +163,22 @@
       </div>
       <p class="nota"><a href="estadisticas.html" data-link="estadisticas">Ver las estadísticas completas</a>: visitas, cuentas, torneos y tiendas en el tiempo.</p>
 
+      <h2 class="gtit">¿Qué está publicado?</h2>
+      <div class="grupo">
+        <div class="barraAcc"><button class="btn primario" id="pubRevisar">Revisar el sitio</button>
+          <span class="nota" id="pubEstado" style="margin:0">Compara la versión de cada archivo de byepass.cl con la que piden las páginas, y prueba si las reglas nuevas ya están publicadas.</span></div>
+        <div id="pubLista"></div>
+      </div>
+
+      <h2 class="gtit">Uso de la base <span id="usoResumen"></span></h2>
+      <div class="grupo">
+        <div class="barraAcc"><button class="btn primario" id="usoMedir">Medir</button>
+          <span class="nota" id="usoEstado" style="margin:0">Baja cada tienda y sala para ver cuánto ocupa. Tarda un poco y descarga varios MB: úsalo con wifi.</span></div>
+        <div id="usoMedidor"></div>
+        <div id="usoLista"></div>
+      </div>
+      <p class="nota" style="margin:var(--e2) var(--e3) 0">El plan gratis de Firebase guarda hasta 1 GB. Las salas de invitado se pueden borrar desde acá; las tiendas, desde «Todas las tiendas».</p>
+
       <h2 class="gtit">Buzón de sugerencias y reportes <span id="bzResumen"></span></h2>
       <div class="grupo" id="bzLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
       <p class="nota" style="margin:var(--e2) var(--e3) 0">Llegan desde Ajustes → Escríbenos (los enlaces «Sugerencias» del sitio).
@@ -159,6 +190,24 @@
         <button class="btn" id="mantBtn" disabled>…</button>
         <input id="mantMensaje" maxlength="200" placeholder="Mensaje para los jugadores (opcional)" aria-label="Mensaje de mantenimiento">
       </div></div>
+
+      <h2 class="gtit">Aviso para todos</h2>
+      <div class="grupo"><div class="mantCaja" id="avG">
+        <div><b id="avEstado">…</b><small id="avDesc"></small></div>
+        <button class="btn" id="avBtn" disabled>…</button>
+        <input id="avTexto" maxlength="200" placeholder="Texto del aviso (ej.: Este sábado no hay torneos)" aria-label="Texto del aviso">
+        <input id="avEnlace" type="url" maxlength="300" placeholder="Enlace (opcional, https://…)" aria-label="Enlace del aviso">
+        <select id="avDura" aria-label="Cuánto dura el aviso"><option value="1">Se ve 1 día</option><option value="3">Se ve 3 días</option>
+          <option value="7" selected>Se ve 1 semana</option><option value="30">Se ve 1 mes</option></select>
+      </div></div>
+      <p class="nota" style="margin:var(--e2) var(--e3) 0">Una franja arriba de la portada, las cuentas, las tiendas, el muro y el panel. Cada persona la puede cerrar. El timer de pantalla no la muestra.</p>
+
+      <h2 class="gtit">Limpieza</h2>
+      <div class="grupo">
+        <div class="barraAcc"><button class="btn primario" id="limBuscar">Buscar</button>
+          <span class="nota" id="limEstado" style="margin:0">Inscripciones de torneos de hace más de 30 días o de eventos que ya no existen. Guardan nombre, correo y fecha de nacimiento: la política de privacidad dice que se borran.</span></div>
+        <div id="limLista"></div>
+      </div>
 
       <h2 class="gtit">Beta cerrada <span id="btResumen"></span></h2>
       <div class="grupo"><div class="mantCaja" id="beta">
@@ -193,7 +242,7 @@
         «Panel» entra al panel del organizador de esa tienda.</p>
 
       <h2 class="gtit">Cuentas <span id="cuResumen"></span></h2>
-      <input type="search" id="cuBuscar" placeholder="Busca una cuenta por nombre" aria-label="Buscar cuentas">
+      <input type="search" id="cuBuscar" placeholder="Busca una cuenta por nombre o ID de jugador" aria-label="Buscar cuentas">
       <div class="grupo" id="cuLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
       <p class="nota" style="margin:var(--e2) var(--e3) 0">Eliminar borra sus datos del sitio. El acceso (correo y contraseña) vive
         en Firebase y se borra desde la consola: al eliminar te queda su UID para buscarlo ahí.</p>
@@ -219,7 +268,7 @@
 <script type="module">
 import { ref, onValue, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=12";
+import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=13";
 import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=6";
 import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=4";
 estoyEnLinea(db, "herramientas");
@@ -257,8 +306,8 @@ onAuthStateChanged(auth, async u => {
   pintarTiendas();
 });
 
-/* ▌BLOQUE 5 · Mantenimiento ═════════════════════════════════════════════════════
-   Activa o desactiva sistema/mantenimiento con un mensaje. */
+/* ▌BLOQUE 5 · Mantenimiento y aviso para todos ══════════════════════════════════
+   Activa o desactiva sistema/mantenimiento con un mensaje, y publica o quita sistema/aviso. */
 /* ------------------------------------------------------------ mantenimiento
    Lo que cierra de verdad son las reglas: con el sitio cerrado, nadie que no
    administre lee ni escribe nada. */
@@ -279,7 +328,31 @@ function escucharMantenimiento(){
     $("mantBtn").classList.toggle("primario", cerrado);
     $("mantBtn").disabled = false;
   }, () => {});
+  onValue(ref(db, "sistema/aviso"), s => {
+    AVISO = s.val();
+    const vivo = !!AVISO && AVISO.hasta > Date.now();
+    $("avEstado").textContent = vivo ? "Aviso publicado" : "Sin aviso";
+    $("avDesc").textContent = vivo ? "«" + AVISO.texto + "» · se ve hasta el " + new Date(AVISO.hasta).toLocaleString("es-CL", { dateStyle: "medium", timeStyle: "short" })
+      : "Escribe un texto corto y publícalo: lo ven todas las páginas hasta la fecha que elijas.";
+    $("avBtn").textContent = vivo ? "Quitar el aviso" : "Publicar";
+    $("avBtn").classList.toggle("primario", !vivo);
+    $("avBtn").disabled = false;
+  }, () => {});
 }
+/* ------------------------------------------------------------ aviso para todos
+   sistema/aviso: lo muestra mantenimiento.js arriba de cada página. */
+let AVISO = null;
+$("avBtn").onclick = async () => {
+  const vivo = !!AVISO && AVISO.hasta > Date.now();
+  const texto = $("avTexto").value.trim().slice(0, 200), enlace = $("avEnlace").value.trim();
+  if (!vivo && !texto) return $("avDesc").textContent = "Escribe el texto del aviso.";
+  if (!vivo && enlace && !/^https:\/\/\S+$/.test(enlace)) return $("avDesc").textContent = "El enlace tiene que empezar con https://";
+  const ahora = Date.now(), v = { texto, desde: ahora, hasta: ahora + Number($("avDura").value) * 864e5 };
+  if (enlace) v.enlace = enlace.slice(0, 300);
+  $("avBtn").disabled = true;
+  try { await set(ref(db, "sistema/aviso"), vivo ? null : v); if (!vivo){ $("avTexto").value = ""; $("avEnlace").value = ""; } }
+  catch(e){ $("avBtn").disabled = false; $("avDesc").textContent = "No se pudo guardar. Revisa la conexión."; }
+};
 $("mantBtn").onclick = async () => {
   const cerrar = MANT.activo !== true;
   if (cerrar && !confirm("¿Cerrar TODO el sitio por mantenimiento? Nadie que no administre va a poder entrar a ninguna página ni a ninguna tienda hasta que lo abras.")) return;
@@ -526,20 +599,30 @@ const CONSOLA = "https://console.firebase.google.com/project/timer-y-qrs-pokemon
 function pintarCuentas(){
   const q = $("cuBuscar").value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const filas = Object.entries(CU).map(([uid, c]) => ({ uid, ...c }))
-    .filter(c => !q || String(c.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(q))
+    .filter(c => !q || String(c.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(q) || String(c.playerId || "") === q)
     .sort((a, b) => (b.creado || 0) - (a.creado || 0));
   $("cuResumen").textContent = q ? filas.length + " de " + Object.keys(CU).length : "";
   $("cuLista").innerHTML = filas.slice(0, 50).map(c => {
     const dueno = Object.entries(TODAS).filter(([, t]) => ((t.miembros || {})[c.uid] || {}).rol === "dueno").map(([id, t]) => nombreTienda(t.perfil, id));
     const datos = [c.creado && "desde el " + new Date(c.creado).toLocaleDateString("es-CL"),
-      c.playerId ? "con ID de jugador" : "sin ID", Object.keys(c.tiendas || {}).length + " tiendas seguidas",
+      c.playerId ? "ID " + c.playerId + (PERMISOS[c.uid] ? " (puede corregirlo)" : "") : "sin ID", Object.keys(c.tiendas || {}).length + " tiendas seguidas",
       dueno.length && "dueño de " + dueno.join(", ")].filter(Boolean).join(" · ");
     return '<div class="tfila"><span class="logoT" style="--c:var(--sup-alta);color:var(--texto)" aria-hidden="true">' + esc(iniciales(c.nombre)) + "</span>" +
       "<div><b>" + esc(c.nombre || "Sin nombre") + "</b><small>" + esc(datos) + '</small><small class="uid">' + esc(c.uid) + "</small></div><span></span>" +
-      '<div class="acc"><button class="btn chico peligro" data-cuborrar="' + esc(c.uid) + '">Eliminar cuenta</button></div></div>';
+      '<div class="acc">' + (c.playerId ? '<button class="btn chico" data-permiso="' + esc(c.uid) + '">' + (PERMISOS[c.uid] ? "Quitar el permiso de corregir el ID" : "Permitir corregir el ID (una vez)") + "</button>" : "") +
+      '<button class="btn chico peligro" data-cuborrar="' + esc(c.uid) + '">Eliminar cuenta</button></div></div>';
   }).join("") || '<div class="nota" style="padding:var(--e4)">' + (q ? "Ninguna cuenta con ese nombre." : "Todavía no hay cuentas.") + "</div>";
   $("cuLista").querySelectorAll("[data-cuborrar]").forEach(b => b.onclick = () => eliminarCuenta(b.dataset.cuborrar));
+  /* El permiso es de un solo uso: lo gasta la cuenta al corregir su ID (cuenta.html, Ajustes). */
+  $("cuLista").querySelectorAll("[data-permiso]").forEach(b => b.onclick = async () => {
+    const uid = b.dataset.permiso, c = CU[uid] || {};
+    if (!PERMISOS[uid] && !confirm("¿Dejar que «" + (c.nombre || uid) + "» corrija su ID de jugador (" + c.playerId + ") una vez?\n\nLo cambia desde su cuenta, en Ajustes.")) return;
+    try { await set(ref(db, "permisoId/" + uid), PERMISOS[uid] ? null : true); } catch(e){ alert("No se pudo cambiar el permiso. Revisa la conexión."); }
+  });
 }
+/* Quién tiene permiso para corregir su ID (permisoId/<uid> = true). */
+let PERMISOS = {};
+onAuthStateChanged(auth, u => { if (u) onValue(ref(db, "permisoId"), s => { PERMISOS = s.val() || {}; if (Object.keys(CU || {}).length) pintarCuentas(); }, () => {}); });
 async function eliminarCuenta(uid){
   const c = CU[uid] || {}, nom = c.nombre || uid;
   const duenas = Object.entries(TODAS).filter(([, t]) => ((t.miembros || {})[uid] || {}).rol === "dueno");
@@ -550,6 +633,7 @@ async function eliminarCuenta(uid){
   if (escrito.trim() !== String(c.nombre || "").trim()) return alert("El nombre no coincide. No se borró nada.");
   const rutas = {};
   ["usuarios", "perfilPublico", "altas", "organiza", "solicitudes", "beta/testers"].forEach(n => rutas[n + "/" + uid] = null);
+  if (PERMISOS[uid]) rutas["permisoId/" + uid] = null;
   /* Su timer personal (mi-xxxxxx) y la base de jugadores de ese timer. */
   const miSala = c.sala;
   if (/^mi-[a-z0-9]{6}$/.test(miSala || "")) { rutas["salas/" + miSala] = null; rutas["jugadores/" + miSala] = null; }
@@ -677,6 +761,160 @@ $("dbSi").onclick = async () => {
     $("dbMsg").textContent = "No se pudo eliminar (no se borró nada). El respaldo ya quedó descargado.";
     $("dbSi").disabled = false;
   }
+};
+
+/* ▌BLOQUE 12 · ¿Qué está publicado? ═════════════════════════════════════════════
+   Compara el ?v= que piden las páginas de byepass.cl con la versión de cada archivo, y prueba si
+   las reglas nuevas ya están publicadas. */
+const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "timer-view.html", "tele.html", "admin.html", "inscripcion.html",
+                 "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html"];
+/* El archivo tal como está publicado ahora (sin copias guardadas). */
+const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
+/* Lo que pide un archivo: «./clasificacion.js?v=5», «estilo.css?v=12»… → [archivo, versión]. */
+const pide = txt => [...String(txt).matchAll(/["'(]\.?\/?([a-z0-9-]+\.(?:js|css))\?v=(\d+)/g)].map(m => [m[1], +m[2]]);
+const versionDe = txt => { const m = /Versión actual: v=(\d+)/.exec(txt || ""); return m ? +m[1] : null; };
+const lineaPub = (tipo, titulo, det) => '<div class="linea ' + tipo + '"><i>' + (tipo === "ok" ? "✓" : tipo === "mal" ? "✗" : "!") + "</i><b>" + esc(titulo) + "</b>" + (det ? "<small>" + esc(det) + "</small>" : "") + "</div>";
+
+/* Las reglas no se pueden leer desde la página: se prueban. Lo que se escribe se borra al tiro. */
+async function probarReglas(){
+  const uid = auth.currentUser.uid, S = "zz-comprobar-reglas", puede = p => p.then(() => true, () => false);
+  await puede(set(ref(db, "salas/" + S + "/owner"), uid));
+  const cat = await puede(set(ref(db, "salas/" + S + "/pairings/standings/0"), { place: 1, name: "Prueba", w: 0, l: 0, t: 0, pts: 0, cat: 2 }));
+  const timerAbierto = await puede(set(ref(db, "salas/" + S + "/timer/basura"), "x"));
+  const indice = await puede(set(ref(db, "invitadoDe/" + uid), "inv-zzzzzz"));
+  await puede(remove(ref(db, "invitadoDe/" + uid)));
+  await puede(remove(ref(db, "salas/" + S)));
+  return [
+    cat ? lineaPub("ok", "Reglas de categorías (17-10)", "Aceptan la categoría en la tabla final.")
+        : lineaPub("mal", "Reglas de categorías (17-10): no están publicadas", "Publica reglas-firebase.json: sin esto, publicar o archivar un torneo con categorías falla."),
+    !timerAbierto && indice ? lineaPub("ok", "Reglas de seguridad (19-10)", "timer cerrado, un cupo y una sala de invitado por cuenta.")
+        : lineaPub("mal", "Reglas de seguridad (19-10): no están publicadas", "Publica reglas-firebase.json junto con admin.html, inscripcion.html e invitado.html."),
+  ];
+}
+
+$("pubRevisar").onclick = async () => {
+  $("pubRevisar").disabled = true; $("pubEstado").textContent = "Revisando…"; $("pubLista").innerHTML = "";
+  /* quién pide qué: archivo → [{ quien, v }], recorriendo páginas y, adentro, los módulos que importan */
+  const textos = {}, piden = {}, cola = [...PAGS_SITIO];
+  while (cola.length){
+    const a = cola.shift();
+    if (a in textos) continue;
+    textos[a] = await bajar(a);
+    $("pubEstado").textContent = "Revisando " + a + "…";
+    pide(textos[a] || "").forEach(([f, v]) => { (piden[f] = piden[f] || []).push({ quien: a, v }); if (f.endsWith(".js") && !(f in textos)) cola.push(f); });
+  }
+  const lineas = [];
+  PAGS_SITIO.filter(p => textos[p] === null).forEach(p => lineas.push(lineaPub("mal", p + " no se pudo bajar", "¿Está subido?")));
+  Object.keys(piden).sort().forEach(f => {
+    const pub = textos[f] !== undefined ? versionDe(textos[f]) : null, lista = piden[f];
+    if (textos[f] === null) return lineas.push(lineaPub("mal", f + " no está en el sitio", "Lo piden " + [...new Set(lista.map(x => x.quien))].join(", ") + ". Súbelo."));
+    const max = Math.max(...lista.map(x => x.v));
+    if (pub != null && pub < max) return lineas.push(lineaPub("mal", "Falta subir " + f, "Publicado: v=" + pub + ". " + lista.filter(x => x.v > pub).map(x => x.quien).join(", ") + " pide v=" + max + "."));
+    const viejos = lista.filter(x => x.v < (pub != null ? pub : max));
+    if (viejos.length) return lineas.push(lineaPub("aviso", "Páginas con " + f + " viejo", "Súbelas de nuevo: " + [...new Set(viejos.map(x => x.quien + " (pide v=" + x.v + ")"))].join(", ") + ". Va la v=" + (pub != null ? pub : max) + "."));
+  });
+  if (!lineas.length) lineas.push(lineaPub("ok", "Archivos al día", "Cada página pide la misma versión que está publicada."));
+  try { lineas.push(...await probarReglas()); } catch(e){ lineas.push(lineaPub("aviso", "No se pudieron probar las reglas", "Revisa la conexión.")); }
+  $("pubLista").innerHTML = lineas.join("");
+  $("pubEstado").textContent = "Revisado a las " + new Date().toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", hour12: false });
+  $("pubRevisar").disabled = false;
+};
+
+/* ▌BLOQUE 13 · Uso de la base ═══════════════════════════════════════════════════
+   Cuánto ocupa cada tienda, timer, sala personal y sala de invitado, y lo global; las salas de
+   invitado se borran desde acá. */
+const MB = n => n < 1048576 ? Math.max(1, Math.round(n / 1024)) + " KB" : (n / 1048576).toFixed(1) + " MB";
+const pesoDe = v => v == null ? 0 : new Blob([JSON.stringify(v)]).size;
+const PARTES = [["timer", "imágenes y diseño"], ["historial", "historial"], ["pairings", "mesas"], ["torneo", "torneo de la página"], ["sorteo", "sorteo"], ["agenda", "agenda"]];
+
+$("usoMedir").onclick = async () => {
+  $("usoMedir").disabled = true; $("usoLista").innerHTML = ""; $("usoMedidor").innerHTML = "";
+  const tiendas = TODAS && Object.keys(TODAS).length ? TODAS : ((await get(ref(db, "tiendas")).catch(() => null))?.val() || {});
+  const [inv, usu] = await Promise.all([get(ref(db, "invitados")).then(x => x.val() || {}, () => ({})), get(ref(db, "usuarios")).then(x => x.val() || {}, () => ({}))]);
+  /* qué medir: [sala, a quién pertenece, tipo] */
+  const salas = [];
+  Object.keys(tiendas).forEach(t => { for (let n = 1; n <= MAX_TIMERS; n++) salas.push([salaDeTimer(t, n), t, "tienda"]); });
+  Object.keys(inv).forEach(c => salas.push([c, "invitado", "invitado"]));
+  Object.values(usu).forEach(u => { if (u && /^mi-[a-z0-9]{6}$/.test(u.sala || "")) salas.push([u.sala, u.nombre || "cuenta", "personal"]); });
+  const filas = [];
+  let total = 0, i = 0;
+  for (const [sala, de, tipo] of salas){
+    $("usoEstado").textContent = "Midiendo " + (++i) + " de " + salas.length + "…";
+    const v = (await get(ref(db, "salas/" + sala)).catch(() => null))?.val();
+    if (!v) continue;
+    const peso = pesoDe(v);
+    total += peso;
+    filas.push({ sala, de, tipo, peso, partes: PARTES.map(([k, nom]) => [nom, pesoDe(v[k])]).filter(([, p]) => p > 2048) });
+  }
+  /* además de las salas: lo de cada tienda fuera de su sala y lo global */
+  const extra = [];
+  for (const [nodo, nom] of [["fotos", "fotos de tiendas"], ["jugadores", "bases de jugadores"], ["usuarios", "cuentas"], ["presencia", "en línea"], ["stats", "estadísticas"], ["buzon", "buzón"], ["altas", "altas"]]){
+    $("usoEstado").textContent = "Midiendo " + nom + "…";
+    let p = 0;
+    if (nodo === "usuarios") p = pesoDe(usu);
+    else if (nodo === "fotos" || nodo === "jugadores"){ for (const t of Object.keys(tiendas)) p += pesoDe((await get(ref(db, nodo + "/" + t)).catch(() => null))?.val()); }
+    else p = pesoDe((await get(ref(db, nodo)).catch(() => null))?.val());
+    total += p; extra.push([nom, p]);
+  }
+  filas.sort((a, b) => b.peso - a.peso);
+  const pct = Math.min(100, total / 1073741824 * 100);
+  $("usoResumen").textContent = MB(total) + " de 1 GB";
+  $("usoMedidor").innerHTML = '<div class="medidor" title="' + pct.toFixed(1) + ' %"><b style="width:' + Math.max(.5, pct) + '%"></b></div>';
+  const TIPO = { tienda: "Tienda", invitado: "Sala de invitado", personal: "Mi timer" };
+  $("usoLista").innerHTML = filas.slice(0, 25).map(f =>
+    '<div class="tfila"><span class="logoT" style="width:34px;height:34px;font-size:12px">' + esc(f.tipo === "tienda" ? iniciales(nombreTienda((tiendas[f.de] || {}).perfil || null, f.de)) : f.tipo === "invitado" ? "IN" : "MI") + "</span>" +
+    "<div><b>" + esc(f.sala) + "</b><small>" + esc(TIPO[f.tipo] + (f.tipo === "tienda" ? "" : " · " + f.de)) +
+    (f.partes.length ? " · " + esc(f.partes.map(([n, p]) => n + " " + MB(p)).join(", ")) : "") + "</small></div>" +
+    '<span class="peso">' + MB(f.peso) + "</span>" +
+    '<div class="acc">' + (f.tipo === "invitado" ? '<button class="btn peligro" data-borrar-inv="' + esc(f.sala) + '">Borrar esta sala</button>'
+      : '<a class="btn" href="' + aPanel(f.sala) + '">Panel</a>') + "</div></div>").join("") +
+    '<div class="linea"><i>·</i><b>Fuera de las salas</b><small>' + esc(extra.map(([n, p]) => n + " " + MB(p)).join(" · ")) + "</small></div>";
+  $("usoLista").querySelectorAll("[data-borrar-inv]").forEach(b => b.onclick = async () => {
+    const c = b.dataset.borrarInv;
+    if (!confirm("¿Borrar la sala de invitado " + c + "? Quien la usa la pierde.")) return;
+    try { await update(ref(db), { ["salas/" + c]: null, ["jugadores/" + c]: null, ["invitados/" + c]: null }); b.closest(".tfila").remove(); }
+    catch(e){ alert("No se pudo borrar. Revisa la conexión."); }
+  });
+  $("usoEstado").textContent = salas.length + " salas revisadas. Ordenadas de mayor a menor (las 25 más grandes).";
+  $("usoMedir").disabled = false;
+};
+
+/* ▌BLOQUE 14 · Limpieza ═════════════════════════════════════════════════════════
+   Borra las inscripciones (y sus plazas) de torneos de hace más de 30 días o cuyo evento ya no
+   existe: lo promete privacidad.html §8. */
+const PLAZO_INSC = 30 * 864e5;
+/* Los eventos de una tienda con inscripciones o plazas que ya no sirven. Sin fecha de inicio
+   no se toca (no se puede saber si pasó). */
+const vencidos = (agenda, ins, cup, ahora) => [...new Set(Object.keys(ins || {}).concat(Object.keys(cup || {})))]
+  .filter(ev => { const e = (agenda || {})[ev]; return !e || (typeof e.inicioMs === "number" && e.inicioMs < ahora - PLAZO_INSC); });
+let LIMPIAR = {};
+$("limBuscar").onclick = async () => {
+  $("limBuscar").disabled = true; $("limLista").innerHTML = ""; LIMPIAR = {};
+  const leer = r => get(ref(db, r)).then(x => x.val(), () => null);
+  const [tiendas, ins, cup] = await Promise.all([TODAS && Object.keys(TODAS).length ? TODAS : leer("tiendas"), leer("inscripciones"), leer("cupos")]);
+  const filas = [];
+  let personas = 0;
+  for (const t of new Set(Object.keys(ins || {}).concat(Object.keys(cup || {})))){
+    const agenda = await leer("salas/" + t + "/agenda");
+    const evs = vencidos(agenda, (ins || {})[t], (cup || {})[t], Date.now());
+    if (!evs.length) continue;
+    const n = evs.reduce((a, ev) => a + Object.keys(((ins || {})[t] || {})[ev] || {}).length, 0);
+    evs.forEach(ev => { LIMPIAR["inscripciones/" + t + "/" + ev] = null; LIMPIAR["cupos/" + t + "/" + ev] = null; });
+    personas += n;
+    filas.push('<div class="linea aviso"><i>·</i><b>' + esc(nombreTienda(((tiendas || {})[t] || {}).perfil || null, t)) + "</b><small>" +
+      evs.length + (evs.length === 1 ? " evento · " : " eventos · ") + n + (n === 1 ? " inscripción" : " inscripciones") + "</small></div>");
+  }
+  $("limLista").innerHTML = filas.join("") + (filas.length ? '<div class="barraAcc"><button class="btn peligro" id="limBorrar">Borrar ' + personas +
+    (personas === 1 ? " inscripción" : " inscripciones") + "</button></div>" : "");
+  $("limEstado").textContent = filas.length ? "Esto encontré. Borrarlas no cambia los resultados de los torneos."
+    : "No hay nada que limpiar.";
+  if (filas.length) $("limBorrar").onclick = async () => {
+    if (!confirm("¿Borrar " + personas + " inscripciones vencidas? No se pueden recuperar.")) return;
+    $("limBorrar").disabled = true;
+    try { await update(ref(db), LIMPIAR); $("limLista").innerHTML = ""; $("limEstado").textContent = "Listo: se borraron " + personas + " inscripciones."; }
+    catch(e){ $("limBorrar").disabled = false; $("limEstado").textContent = "No se pudo borrar. Revisa la conexión."; }
+  };
+  $("limBuscar").disabled = false;
 };
 </script>
 </body>

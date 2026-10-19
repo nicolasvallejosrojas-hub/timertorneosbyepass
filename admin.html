@@ -39,7 +39,8 @@
      37. Paleta del sistema
      38. Estadísticas de la tienda
      39. Widget para la web de la tienda
-     40. Conexión
+     40. Rifas
+     41. Conexión
 -->
 <html lang="es">
 <head>
@@ -107,6 +108,13 @@
   .grid2 input{width:100%;font-size:var(--t3);padding:9px 10px;margin-top:4px;}
   .grid2 input[type=color]{height:38px;padding:3px;}
   .grid2 select{width:100%;font-size:var(--t3);padding:9px 10px;margin-top:4px;}
+  .rifa{border-top:1px solid var(--divider);padding:12px 0;}
+  .rifa:first-of-type{border-top:none;}
+  .rifa .cod{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:var(--t2);flex-wrap:wrap;}
+  .rifa .cod code{font-family:var(--fuente-mono,monospace);font-size:var(--t3);font-weight:700;letter-spacing:.08em;}
+  .rifa .cod.usado code{color:var(--apagado);text-decoration:line-through;}
+  .rifa .gan{font-size:var(--t2);padding:3px 0;}
+  #rfForm{margin-top:12px;} #rfForm textarea{width:100%;font-size:var(--t3);padding:9px 10px;margin-top:4px;box-sizing:border-box;min-height:90px;}
   .miembro{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--divider);}
   .miembro:first-child{border-top:none;}
   .miembro .txt{flex:1;min-width:0;}
@@ -1232,6 +1240,28 @@
       <span id="pfMsg" class="muted"></span></div>
     <div id="pfSoloDueno" class="muted" style="margin-top:10px" hidden>El perfil lo edita el dueño de la tienda.</div>
   </div>
+  <div class="card" id="rifaCard">
+    <div class="row"><h2 class="h2p" style="margin:0">Rifas</h2><span style="flex:1"></span><span class="muted" id="rfCuenta"></span></div>
+    <div class="muted" style="margin-top:4px">La rifa y sus premios los defines tú, y el cobro lo haces por tu enlace de pago: ByePass
+      no cobra, no recibe dinero ni entrega premios. Quien paga recibe de ti un <b>código de un solo uso</b> que le deja elegir esa
+      cantidad de números en la página de la rifa. Las rifas con venta de números están reguladas en Chile y suelen necesitar
+      autorización: revisa qué te exige la ley antes de venderlos.</div>
+    <label class="chk" style="margin-top:8px"><input type="checkbox" id="rfMostrar"> Mostrar las rifas en el perfil de la tienda</label>
+    <div id="rfLista"></div>
+    <form id="rfForm" hidden novalidate>
+      <div class="grid2">
+        <label>Título<input id="rfTitulo" maxlength="80" placeholder="Rifa pro-viaje al Regional"></label>
+        <label>Cantidad de números (1 a 500)<input id="rfTotal" type="number" min="1" max="500" inputmode="numeric"></label>
+      </div>
+      <label style="display:block;margin-top:8px">Enlace de pago (opcional, https)
+        <input id="rfEnlace" maxlength="300" style="width:100%;font-size:var(--t3);padding:9px 10px;margin-top:4px;box-sizing:border-box" placeholder="https://…"></label>
+      <label style="display:block;margin-top:8px">Premios (uno por línea, hasta 10)
+        <textarea id="rfPremios" placeholder="1.º lugar: caja de sobres&#10;2.º lugar: playmat"></textarea></label>
+      <div class="row" style="margin-top:10px"><button id="rfGuardar" type="submit">Guardar rifa</button>
+        <button id="rfCancelar" class="sec" type="button">Cancelar</button><span id="rfFormMsg" class="muted"></span></div>
+    </form>
+    <div class="row" style="margin-top:12px"><button id="rfNueva" class="sec">Crear una rifa</button><span id="rfMsg" class="muted"></span></div>
+  </div>
   <div class="card">
     <h2 class="h2p">Organizadores</h2>
     <div id="miembrosLista"></div>
@@ -1347,7 +1377,7 @@ import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAu
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
          MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=4";
 import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=6";
-import { vigilar } from "./mantenimiento.js?v=3";
+import { vigilar } from "./mantenimiento.js?v=4";
 import { estoyEnLinea } from "./presencia.js?v=4";
 import { barras } from "./graficos.js?v=2";
 import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=8";
@@ -1696,7 +1726,7 @@ onAuthStateChanged(auth, async u => {
   let publicado = null, salaNueva = false;
   try { publicado = (await get(T)).val(); salaNueva = !publicado; } catch(e){}
   soyDueno = true;
-  if (!SIN_TIENDA){ escucharTienda(u); escucharTimers(); }
+  if (!SIN_TIENDA){ escucharTienda(u); escucharTimers(); escucharRifas(); }
 
   if (soyDueno){
     $("salaMsg").innerHTML = "";
@@ -1820,7 +1850,9 @@ async function crearTimer(){
     await update(ref(db, "salas/" + id), { tienda: TIENDA, nombre });
     const t1 = (await get(ref(db, BASE_T + "/timer"))).val() || {};
     const diseno = {};
-    ["theme", "media", "mediaVersion"].forEach(k => { if (t1[k] !== undefined) diseno[k] = t1[k]; });
+    if (t1.theme) diseno.theme = temaPublicable(t1.theme);
+    if (t1.media) diseno.media = mediaPublicable(t1.media);
+    if (t1.mediaVersion !== undefined) diseno.mediaVersion = t1.mediaVersion;
     if (Object.keys(diseno).length) await update(ref(db, "salas/" + id + "/timer"), diseno);
     irA(id);
   } catch(e){ $("timersMsg").textContent = "No se pudo crear. Revisa la conexión."; }
@@ -2275,12 +2307,28 @@ function vistaMedia(v){
   return { bgImage: v.bgImage||"",
            boxes:(v.boxes||[]).filter(b => b.src).map(b => ({ id:b.id, src:b.src })) };
 }
+/* Lo que se publica pasa por temaPublicable / mediaPublicable: solo los campos que aceptan las reglas,
+   hasta MAX_CAJAS cajas por vista y, en la sala de invitado, sin imágenes (las reglas las rechazan ahí).
+   Así un diseño guardado por un panel viejo, con otros campos, se sigue pudiendo publicar. */
+const MAX_CAJAS = 20;
+const CAMPOS_VISTA = ["bgType", "bgColor1", "bgColor2", "bgDir", "hasBg", "bgBrightness", "bgOpacity"];
+function temaPublicable(th){
+  const vista = v => v && Object.assign(Object.fromEntries(CAMPOS_VISTA.filter(k => v[k] !== undefined && !Number.isNaN(v[k])).map(k => [k, v[k]])),
+    { boxes: (v.boxes || []).slice(0, MAX_CAJAS).map(b => ({ id: b.id, x: b.x, y: b.y, w: b.w, h: b.h, flip: !!b.flip })) });
+  const p = th.paleta, manual = p && p.manual ? Object.fromEntries(Object.entries(p.manual).filter(([k]) => PAL_TOKENS.includes(k))) : {};
+  return { desktop: vista(th.desktop), mobile: vista(th.mobile), ...(p ? { paleta: { accion: p.accion, base: p.base, manual } } : {}),
+           updatedAt: th.updatedAt || Date.now() };
+}
+function mediaPublicable(m){
+  const vista = v => ({ bgImage: INVITADO ? "" : (v && v.bgImage) || "",
+                        boxes: INVITADO ? [] : ((v && v.boxes) || []).slice(0, MAX_CAJAS).map(b => ({ id: b.id, src: b.src })) });
+  return { logo: INVITADO ? "" : (m && m.logo) || "", desktop: vista(m && m.desktop), mobile: vista(m && m.mobile) };
+}
 function snapTheme(){
-  return { desktop: vistaLimpia(st.desktop), mobile: vistaLimpia(st.mobile),
-           paleta: st.paleta, updatedAt: Date.now() };
+  return temaPublicable({ desktop: vistaLimpia(st.desktop), mobile: vistaLimpia(st.mobile), paleta: st.paleta, updatedAt: Date.now() });
 }
 function snapMedia(){
-  return { logo: st.logo||"", desktop: vistaMedia(st.desktop), mobile: vistaMedia(st.mobile) };
+  return mediaPublicable({ logo: st.logo, desktop: vistaMedia(st.desktop), mobile: vistaMedia(st.mobile) });
 }
 
 let backupWarned = false;
@@ -2629,6 +2677,7 @@ function renderImgs(){
 }
 
 function agregarCaja(x,y){
+  if (V().boxes.length >= MAX_CAJAS){ alert("Caben hasta " + MAX_CAJAS + " cajas de imagen por pantalla."); return null; }
   const v = V(), dim = SIZES[st.view], id = v.nextId++;
   v.boxes.push({ id,
     x: Math.max(0, Math.min(x!=null ? x : dim.w/2-75, dim.w-150)),
@@ -2709,7 +2758,7 @@ $("canvas").addEventListener("contextmenu", e => {
   const r = $("canvas").getBoundingClientRect();
   const x = (e.clientX-r.left)/escala, y = (e.clientY-r.top)/escala;
   abrirMenu(e.clientX, e.clientY, [
-    {label:"Agregar cajita aquí",  fn: () => { const id = agregarCaja(x-75, y-100); pedirImagen(id); }},
+    {label:"Agregar cajita aquí",  fn: () => { const id = agregarCaja(x-75, y-100); if (id != null) pedirImagen(id); }},
     {label:"Agregar cajita vacía", fn: () => agregarCaja(x-75, y-100)}
   ]);
 });
@@ -4006,7 +4055,8 @@ function dibujarRueda(cv, items, rotacion){
   ctx.strokeStyle = "rgba(233,233,237,.28)"; ctx.lineWidth = 2; ctx.stroke();
 }
 
-const leerItems = () => ($("rItems").value || "").split("\n").map(s => s.trim()).filter(Boolean);
+const leerItems = () => ($("rItems").value || "").split("\n").map(s => s.trim().slice(0, 80)).filter(Boolean);
+const MAX_RUEDA = 500;
 
 function pintarRuleta(){
   // Mientras haya un giro publicado se dibuja esa misma rueda, para que la
@@ -4026,6 +4076,7 @@ function pintarRuleta(){
 }
 
 async function publicarSorteo(){
+  if ((SORT.items || []).length > MAX_RUEDA){ $("rMsg").innerHTML = '<span class="err">Caben hasta ' + MAX_RUEDA + " nombres en la rueda.</span>"; return; }
   try { await set(R_SORT, SORT); }
   catch(e){ $("rMsg").innerHTML = '<span class="err">'+(e.code||e.message)+'</span>'; }
 }
@@ -4033,7 +4084,7 @@ async function publicarSorteo(){
 // La lista se guarda sola mientras se escribe, sin machacar Firebase en cada tecla
 let sortTimer = null;
 function guardarLista(){
-  SORT.titulo = ($("rTitulo").value || "").trim() || "Sorteo";
+  SORT.titulo = (($("rTitulo").value || "").trim() || "Sorteo").slice(0, 80);
   SORT.items  = leerItems();
   pintarRuleta();
   clearTimeout(sortTimer);
@@ -4244,7 +4295,7 @@ const catDe = nac => division(nac).toLowerCase();
 const catF = f => f.division ? NOM_DIV[f.division] : division(f.nacimiento);
 async function planCupos(id, cupos, existe){
   const [sl, ins] = existe ? await Promise.all([get(ref(db, "cupos/" + TIENDA + "/" + id)), get(ref(db, "inscripciones/" + TIENDA + "/" + id))]) : [null, null];
-  const S = (sl && sl.val()) || {}, I = (ins && ins.val()) || {}, up = {};
+  const S = (sl && sl.val()) || {}, I = (ins && ins.val()) || {}, up = {}, asignado = {};
   for (const d of DIVS){
     const n = cupos[d], viejas = S[d] || {}, base = "cupos/" + TIENDA + "/" + id + "/" + d;
     if (!n){ if (Object.keys(viejas).length) up[base] = null; continue; }
@@ -4255,11 +4306,16 @@ async function planCupos(id, cupos, existe){
     const plazas = {}, sin = [];
     for (const u of todos){ const k = Object.keys(viejas).find(x => viejas[x] === u); if (k && +k <= n && !plazas[k]) plazas[k] = u; else sin.push(u); }
     for (let k = 1; k <= n; k++) if (!plazas[k]) plazas[k] = sin.shift() || "";
+    Object.entries(plazas).forEach(([k, u]) => { if (u) asignado[u] = d + "/" + k; });
     for (let k = 1; k <= Math.max(n, ...Object.keys(viejas).map(Number)); k++){
       const nuevo = k <= n ? plazas[k] : null;
       if ((viejas[k] === undefined ? null : viejas[k]) !== nuevo) up[base + "/" + k] = nuevo;
     }
   }
+  /* quien/<uid>: la plaza de cada uno (un cupo por cuenta). Se borra el de quien se quedó sin plaza. */
+  const Q = S.quien || {}, baseQ = "cupos/" + TIENDA + "/" + id + "/quien/";
+  Object.entries(asignado).forEach(([u, p]) => { if (Q[u] !== p) up[baseQ + u] = p; });
+  Object.keys(Q).forEach(u => { if (!asignado[u]) up[baseQ + u] = null; });
   return { up };
 }
 
@@ -4395,7 +4451,7 @@ function pintarInscritos(){
   const cupos = ev.inscripcion.cupos || {}, porCat = { junior: 0, senior: 0, masters: 0 };
   filas.forEach(f => porCat[f.division || catDe(f.nacimiento)]++);
   /* plazas tomadas por alguien que no llegó a inscribirse (se cortó la conexión): se pueden liberar */
-  const sueltas = Object.entries(PLZ || {}).flatMap(([d, m]) => Object.entries(m).filter(([, v]) => v && !INSC[v]).map(([n]) => d + "/" + n));
+  const sueltas = Object.entries(PLZ || {}).filter(([d]) => DIVS.includes(d)).flatMap(([d, m]) => Object.entries(m).filter(([, v]) => v && !INSC[v]).map(([n]) => d + "/" + n));
   c.innerHTML =
     '<div class="row" style="align-items:center;gap:8px">' +
       '<input readonly id="inscUrl" value="' + esc(urlInscripcion(ev)) + '" style="flex:1;min-width:220px">' +
@@ -4436,11 +4492,15 @@ function pintarInscritos(){
     if (d.i === "todas") imprimir(filas.map(f => hoja(f, paraHoja(ev), BASE_E)));
     if (d.i === "csv") bajarCsvInscritos(ev, filas);
     if (d.i === "liberar"){
-      try { await update(ref(db), Object.fromEntries(sueltas.map(k => ["cupos/" + TIENDA + "/" + ev.id + "/" + k, ""]))); } catch(err){ alert(mensajeConexion(err)); }
+      /* la plaza queda libre y su dueño, sin el «ya tengo cupo» (quien/<uid>) */
+      const base = "cupos/" + TIENDA + "/" + ev.id + "/", cambios = {};
+      sueltas.forEach(k => { const [cat, n] = k.split("/"), u = (PLZ[cat] || {})[n]; cambios[base + k] = ""; if (u && (PLZ.quien || {})[u]) cambios[base + "quien/" + u] = null; });
+      try { await update(ref(db), cambios); } catch(err){ alert(mensajeConexion(err)); }
     }
     if (d.quitar && INSC[d.quitar] && confirm("¿Quitar a " + INSC[d.quitar].nombre + " " + INSC[d.quitar].apellido + " de «" + ev.titulo + "»? Se borra su lista y se libera su cupo.")){
       const cambios = { ["inscripciones/" + TIENDA + "/" + ev.id + "/" + d.quitar]: null };
-      Object.entries(PLZ || {}).forEach(([cat, m]) => Object.entries(m).forEach(([n, v]) => { if (v === d.quitar) cambios["cupos/" + TIENDA + "/" + ev.id + "/" + cat + "/" + n] = ""; }));
+      Object.entries(PLZ || {}).filter(([cat]) => DIVS.includes(cat)).forEach(([cat, m]) => Object.entries(m).forEach(([n, v]) => { if (v === d.quitar) cambios["cupos/" + TIENDA + "/" + ev.id + "/" + cat + "/" + n] = ""; }));
+      if ((PLZ.quien || {})[d.quitar]) cambios["cupos/" + TIENDA + "/" + ev.id + "/quien/" + d.quitar] = null;
       try { await update(ref(db), cambios); } catch(err){ alert(mensajeConexion(err)); }
     }
   };
@@ -4884,7 +4944,154 @@ $("wgCopiar").onclick = () => navigator.clipboard.writeText($("wgCodigo").value)
   () => { $("wgMsg").textContent = "Copiado ✓"; setTimeout(() => $("wgMsg").textContent = "", 2000); },
   () => { $("wgCodigo").select(); $("wgMsg").textContent = "Cópialo con Ctrl+C."; });
 
-/* ▌BLOQUE 40 · Conexión ═════════════════════════════════════════════════════════
+/* ▌BLOQUE 40 · Rifas ════════════════════════════════════════════════════════════
+   Hasta tres rifas por tienda: premios, números, códigos de un solo uso (rifaCodigos / rifaUsos) y
+   sorteo. */
+/* ------------------------------------------------------------ rifas
+   rifas/<tienda>/<1..3>: título, total, enlace de pago, estado, premios y tomados/<n> (el código con que se tomó).
+   rifaCodigos/<tienda>/<r>/<código> = cuántos números deja tomar. rifaUsos/<tienda>/<r>/<código> = quién lo usó y
+   qué números (solo la tienda lo lee). Lo que cuida que un código sirva una vez y por N números son las reglas.
+   La tienda entrega el código a quien le pagó por su enlace de pago; ByePass no toca el dinero. */
+const RF = { rifas: {}, cods: {}, usos: {}, editando: null };
+const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";   // sin I, O, 0 ni 1: no se confunden al dictarlos
+const urlRifa = r => carpeta() + "rifa.html?sala=" + TIENDA + "&r=" + r + conEmu();
+const nuevoCodigo = () => Array.from({ length: 8 }, () => ALFABETO[azar(ALFABETO.length)]).join("");
+const pCod = c => c.slice(0, 4) + "-" + c.slice(4);
+
+function escucharRifas(){
+  const antes = () => { if (RF.editando === null) pintarRifas(); };
+  onValue(ref(db, "rifas/" + TIENDA), s => { RF.rifas = s.val() || {}; antes(); }, () => {});
+  /* Las reglas dejan a la tienda leer cada rifa por separado, no la carpeta entera. */
+  ["1", "2", "3"].forEach(r => {
+    onValue(ref(db, "rifaCodigos/" + TIENDA + "/" + r), s => { RF.cods[r] = s.val() || {}; antes(); }, () => {});
+    onValue(ref(db, "rifaUsos/" + TIENDA + "/" + r), s => { RF.usos[r] = s.val() || {}; antes(); }, () => {});
+  });
+  onValue(ref(db, BASE_T + "/config/rifa"), s => { $("rfMostrar").checked = s.val() !== false; }, () => {});
+  $("rfMostrar").onchange = e => update(ref(db, BASE_T + "/config"), { rifa: e.target.checked ? null : false })
+    .catch(() => { e.target.checked = !e.target.checked; $("rfMsg").textContent = "No se pudo guardar. Revisa la conexión."; });
+  $("rfNueva").onclick = () => abrirFormRifa(null);
+  $("rfCancelar").onclick = () => cerrarFormRifa();
+  $("rfForm").onsubmit = guardarRifa;
+}
+const tomadosDe = r => Object.keys((r && r.tomados) || {}).map(Number).sort((a, b) => a - b);
+const usoDe = (r, cod) => (RF.usos[r] || {})[cod] || null;
+
+function pintarRifas(){
+  const ids = Object.keys(RF.rifas).sort();
+  $("rfCuenta").textContent = ids.length + " de 3";
+  $("rfNueva").disabled = ids.length >= 3;
+  $("rfLista").innerHTML = ids.map(r => {
+    const rf = RF.rifas[r], tom = tomadosDe(rf), cods = Object.entries(RF.cods[r] || {}).sort(([a], [b]) => a < b ? -1 : 1);
+    const libres = cods.filter(([c]) => !usoDe(r, c)), premios = Object.entries(rf.premios || {}).sort(([a], [b]) => a - b);
+    const nombreDe = n => { const c = rf.tomados[n], u = usoDe(r, c); return u ? u.nombre + (u.contacto ? " · " + u.contacto : "") : "—"; };
+    return '<div class="rifa" data-r="' + esc(r) + '"><div class="row"><b style="flex:1">' + esc(rf.titulo) + '</b>' +
+        '<span class="muted">' + tom.length + " de " + rf.total + " números · " + (rf.estado === "abierta" ? "abierta" : "cerrada") + "</span></div>" +
+      '<div class="row" style="margin-top:6px"><a href="' + esc(urlRifa(r)) + '" target="_blank" rel="noopener">Ver la rifa</a>' +
+        '<button class="small sec" data-copiarlink="' + esc(r) + '">Copiar enlace</button>' +
+        '<button class="small sec" data-estado="' + esc(r) + '">' + (rf.estado === "abierta" ? "Cerrar la rifa" : "Reabrir la rifa") + "</button>" +
+        '<button class="small sec" data-editar="' + esc(r) + '">Editar</button>' +
+        '<button class="small sec" data-borrar="' + esc(r) + '">Borrar</button></div>' +
+      '<div class="muted" style="margin-top:10px"><b>Premios</b></div>' +
+      (premios.length ? premios.map(([i, p]) => '<div class="gan">' + esc(p.texto) + " — " +
+        (p.ganador ? "<b>Nº " + p.ganador + "</b> · " + esc(nombreDe(p.ganador)) + ' <button class="small sec" data-quitar="' + esc(r + "/" + i) + '">Quitar</button>'
+          : '<button class="small" data-sortear="' + esc(r + "/" + i) + '"' + (tom.length ? "" : " disabled") + ">Sortear</button>") + "</div>").join("")
+        : '<div class="muted">Sin premios cargados: edita la rifa para agregarlos.</div>') +
+      '<div class="muted" style="margin-top:10px"><b>Códigos</b> · ' + libres.length + " sin usar, " + (cods.length - libres.length) + " usados</div>" +
+      '<div class="row" style="margin-top:6px"><label>Números por código <input type="number" min="1" max="10" value="1" data-cn="' + esc(r) + '" style="width:64px"></label>' +
+        '<label>Cuántos códigos <input type="number" min="1" max="50" value="1" data-cc="' + esc(r) + '" style="width:64px"></label>' +
+        '<button class="small" data-generar="' + esc(r) + '">Generar</button>' +
+        (libres.length ? '<button class="small sec" data-copiarlibres="' + esc(r) + '">Copiar los sin usar</button>' : "") + "</div>" +
+      cods.map(([c, n]) => { const u = usoDe(r, c);
+        return '<div class="cod' + (u ? " usado" : "") + '"><code>' + esc(pCod(c)) + "</code><span class=\"muted\">" + n + (n === 1 ? " número" : " números") +
+          (u ? " · " + esc(u.nombre) + (u.contacto ? " (" + esc(u.contacto) + ")" : "") + ": Nº " + Object.values(u.numeros || {}).sort((a, b) => a - b).join(", ") : "") + "</span>" +
+          (u ? '<button class="small sec" data-liberar="' + esc(r + "/" + c) + '">Liberar</button>'
+             : '<button class="small sec" data-copiarcod="' + esc(c) + '">Copiar</button><button class="small sec" data-borrarcod="' + esc(r + "/" + c) + '">Borrar</button>') + "</div>"; }).join("") + "</div>";
+  }).join("") || '<div class="muted" style="margin-top:10px">Todavía no creas ninguna rifa.</div>';
+  const L = $("rfLista"), on = (sel, f) => L.querySelectorAll(sel).forEach(b => b.onclick = () => f(b));
+  on("[data-copiarlink]", b => { navigator.clipboard?.writeText(urlRifa(b.dataset.copiarlink)); b.textContent = "Copiado"; });
+  on("[data-estado]", b => update(ref(db, "rifas/" + TIENDA + "/" + b.dataset.estado), { estado: RF.rifas[b.dataset.estado].estado === "abierta" ? "cerrada" : "abierta" }).catch(falloRifa));
+  on("[data-editar]", b => abrirFormRifa(b.dataset.editar));
+  on("[data-borrar]", b => borrarRifa(b.dataset.borrar));
+  on("[data-generar]", b => generarCodigos(b.dataset.generar));
+  on("[data-copiarlibres]", b => { const r = b.dataset.copiarlibres;
+    navigator.clipboard?.writeText(Object.keys(RF.cods[r] || {}).filter(c => !usoDe(r, c)).map(pCod).join("\n")); b.textContent = "Copiados"; });
+  on("[data-copiarcod]", b => { navigator.clipboard?.writeText(pCod(b.dataset.copiarcod)); b.textContent = "Copiado"; });
+  on("[data-borrarcod]", b => { const [r, c] = b.dataset.borrarcod.split("/");
+    remove(ref(db, "rifaCodigos/" + TIENDA + "/" + r + "/" + c)).catch(falloRifa); });
+  on("[data-liberar]", b => liberarUso(...b.dataset.liberar.split("/")));
+  on("[data-sortear]", b => sortear(...b.dataset.sortear.split("/")));
+  on("[data-quitar]", b => { const [r, i] = b.dataset.quitar.split("/");
+    remove(ref(db, "rifas/" + TIENDA + "/" + r + "/premios/" + i + "/ganador")).catch(falloRifa); });
+}
+const falloRifa = () => { $("rfMsg").textContent = "No se pudo guardar. Revisa la conexión."; };
+
+function abrirFormRifa(r){
+  const rf = r && RF.rifas[r];
+  RF.editando = r || "nueva";
+  $("rfTitulo").value = rf ? rf.titulo : ""; $("rfTotal").value = rf ? rf.total : 100; $("rfEnlace").value = rf ? rf.enlace || "" : "";
+  $("rfPremios").value = rf ? Object.entries(rf.premios || {}).sort(([a], [b]) => a - b).map(([, p]) => p.texto).join("\n") : "";
+  $("rfFormMsg").textContent = ""; $("rfForm").hidden = false; $("rfNueva").disabled = true; $("rfTitulo").focus();
+}
+function cerrarFormRifa(){ RF.editando = null; $("rfForm").hidden = true; pintarRifas(); }
+
+async function guardarRifa(e){
+  e.preventDefault();
+  const msg = t => $("rfFormMsg").innerHTML = '<span class="err">' + t + "</span>";
+  const titulo = $("rfTitulo").value.trim(), total = Math.round(+$("rfTotal").value), enlace = $("rfEnlace").value.trim();
+  const premios = $("rfPremios").value.split("\n").map(x => x.trim().slice(0, 100)).filter(Boolean);
+  if (!titulo) return msg("Ponle un título.");
+  if (!(total >= 1 && total <= 500)) return msg("La cantidad de números va de 1 a 500.");
+  if (enlace && !/^https:\/\/\S+$/.test(enlace)) return msg("El enlace de pago tiene que empezar con https://");
+  if (premios.length > 10) return msg("Hasta 10 premios.");
+  const nueva = RF.editando === "nueva", r = nueva ? ["1", "2", "3"].find(x => !RF.rifas[x]) : RF.editando;
+  if (!r) return msg("Ya tienes tres rifas.");
+  const antes = RF.rifas[r] || {};
+  if (tomadosDe(antes).some(n => n > total)) return msg("Ya hay números tomados más allá del " + total + ". Libéralos primero.");
+  const prem = {};
+  premios.forEach((t, i) => { const o = (antes.premios || {})[i]; prem[i] = { texto: t, ...(o && o.texto === t && o.ganador ? { ganador: o.ganador } : {}) }; });
+  const rutas = { ["rifas/" + TIENDA + "/" + r + "/titulo"]: titulo, ["rifas/" + TIENDA + "/" + r + "/total"]: total,
+    ["rifas/" + TIENDA + "/" + r + "/enlace"]: enlace || null, ["rifas/" + TIENDA + "/" + r + "/premios"]: premios.length ? prem : null };
+  if (nueva){ rutas["rifas/" + TIENDA + "/" + r + "/estado"] = "abierta"; rutas["rifas/" + TIENDA + "/" + r + "/creado"] = Date.now(); }
+  $("rfGuardar").disabled = true;
+  try { await conTimeout(update(ref(db), rutas), 15000); cerrarFormRifa(); }
+  catch(x){ msg(mensajeConexion(x)); }
+  $("rfGuardar").disabled = false;
+}
+
+async function generarCodigos(r){
+  const L = $("rfLista"), n = Math.round(+L.querySelector('[data-cn="' + r + '"]').value), c = Math.round(+L.querySelector('[data-cc="' + r + '"]').value);
+  if (!(n >= 1 && n <= 10) || !(c >= 1 && c <= 50)) return ($("rfMsg").textContent = "Números por código: 1 a 10. Códigos a generar: 1 a 50.");
+  const rutas = {};
+  while (Object.keys(rutas).length < c){ const k = nuevoCodigo(); if (!(RF.cods[r] || {})[k]) rutas["rifaCodigos/" + TIENDA + "/" + r + "/" + k] = n; }
+  try { await update(ref(db), rutas); $("rfMsg").textContent = ""; } catch(e){ falloRifa(); }
+}
+
+/* Soltar un uso: el código vuelve a servir y sus números quedan libres. Sirve para un reembolso o un error. */
+async function liberarUso(r, cod){
+  const u = usoDe(r, cod); if (!u) return;
+  if (!confirm("¿Liberar el código " + pCod(cod) + "? Los números de " + u.nombre + " quedan libres y el código vuelve a servir.")) return;
+  const rutas = { ["rifaUsos/" + TIENDA + "/" + r + "/" + cod]: null };
+  Object.values(u.numeros || {}).forEach(n => rutas["rifas/" + TIENDA + "/" + r + "/tomados/" + n] = null);
+  try { await update(ref(db), rutas); } catch(e){ falloRifa(); }
+}
+
+async function borrarRifa(r){
+  const rf = RF.rifas[r]; if (!rf) return;
+  if (!confirm("¿Borrar la rifa «" + rf.titulo + "» con sus códigos y los números tomados? No se puede deshacer.")) return;
+  try { await update(ref(db), { ["rifas/" + TIENDA + "/" + r]: null, ["rifaCodigos/" + TIENDA + "/" + r]: null, ["rifaUsos/" + TIENDA + "/" + r]: null }); }
+  catch(e){ falloRifa(); }
+}
+
+/* Sortea un premio entre los números tomados que todavía no ganaron nada. */
+async function sortear(r, i){
+  const rf = RF.rifas[r], ya = new Set(Object.values(rf.premios || {}).map(p => p.ganador).filter(Boolean));
+  const quedan = tomadosDe(rf).filter(n => !ya.has(n));
+  if (!quedan.length) return ($("rfMsg").textContent = "No quedan números tomados sin premio.");
+  const n = quedan[azar(quedan.length)];
+  try { await set(ref(db, "rifas/" + TIENDA + "/" + r + "/premios/" + i + "/ganador"), n); } catch(e){ falloRifa(); }
+}
+
+/* ▌BLOQUE 41 · Conexión ═════════════════════════════════════════════════════════
    Muestra el aviso de «sin señal» y avisa al cerrar la pestaña si quedaron cambios sin enviar. */
 /* =========================================================
    Sin señal. Firebase guarda lo que se escribe sin conexión y lo manda solo
