@@ -40,7 +40,8 @@
      38. Estadísticas de la tienda
      39. Widget para la web de la tienda
      40. Rifas
-     41. Conexión
+     41. Publicaciones
+     42. Conexión
 -->
 <html lang="es">
 <head>
@@ -1240,6 +1241,17 @@
       <span id="pfMsg" class="muted"></span></div>
     <div id="pfSoloDueno" class="muted" style="margin-top:10px" hidden>El perfil lo edita el dueño de la tienda.</div>
   </div>
+  <div class="card" id="postCard">
+    <div class="row"><h2 class="h2p" style="margin:0">Publicaciones</h2><span style="flex:1"></span><span class="muted" id="psCuenta"></span></div>
+    <div class="muted" style="margin-top:4px">Lo que publiques sale en el inicio (el muro) de quienes siguen la tienda y en su perfil:
+      una fecha nueva, un cambio de horario, un premio especial. Texto y un enlace opcional.</div>
+    <label style="display:block;margin-top:10px">Texto
+      <textarea id="psTexto" maxlength="600" style="width:100%;font-size:var(--t3);padding:9px 10px;margin-top:4px;box-sizing:border-box;min-height:90px" placeholder="Este sábado hay League Challenge en formato Expandido. Inscripciones abiertas hasta el viernes."></textarea></label>
+    <label style="display:block;margin-top:8px">Enlace (opcional, https)
+      <input id="psEnlace" maxlength="300" style="width:100%;font-size:var(--t3);padding:9px 10px;margin-top:4px;box-sizing:border-box" placeholder="https://…"></label>
+    <div class="row" style="margin-top:10px"><button id="psPublicar">Publicar</button><span id="psMsg" class="muted"></span></div>
+    <div id="psLista" style="margin-top:6px"></div>
+  </div>
   <div class="card" id="rifaCard">
     <div class="row"><h2 class="h2p" style="margin:0">Rifas</h2><span style="flex:1"></span><span class="muted" id="rfCuenta"></span></div>
     <div class="muted" style="margin-top:4px">La rifa y sus premios los defines tú, y el cobro lo haces por tu enlace de pago: ByePass
@@ -1372,7 +1384,7 @@
      versiones. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
          MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=4";
@@ -1726,7 +1738,7 @@ onAuthStateChanged(auth, async u => {
   let publicado = null, salaNueva = false;
   try { publicado = (await get(T)).val(); salaNueva = !publicado; } catch(e){}
   soyDueno = true;
-  if (!SIN_TIENDA){ escucharTienda(u); escucharTimers(); escucharRifas(); }
+  if (!SIN_TIENDA){ escucharTienda(u); escucharTimers(); escucharRifas(); escucharPublicaciones(); }
 
   if (soyDueno){
     $("salaMsg").innerHTML = "";
@@ -5091,7 +5103,38 @@ async function sortear(r, i){
   try { await set(ref(db, "rifas/" + TIENDA + "/" + r + "/premios/" + i + "/ganador"), n); } catch(e){ falloRifa(); }
 }
 
-/* ▌BLOQUE 41 · Conexión ═════════════════════════════════════════════════════════
+/* ▌BLOQUE 41 · Publicaciones ════════════════════════════════════════════════════
+   Lo que la tienda publica para sus jugadores (posts/<tienda>): sale en su perfil y en el muro de
+   quienes la siguen. */
+/* ------------------------------------------------------------ publicaciones
+   posts/<tienda>/<id> = { texto (hasta 600), enlace? (https), creado (hora del servidor) }. Se publica y se
+   borra; no se edita. Las reglas dejan escribir solo a quien organiza la tienda. */
+function escucharPublicaciones(){
+  onValue(ref(db, "posts/" + TIENDA), s => {
+    const ps = Object.entries(s.val() || {}).sort(([, a], [, b]) => (b.creado || 0) - (a.creado || 0));
+    $("psCuenta").textContent = ps.length ? ps.length + (ps.length === 1 ? " publicada" : " publicadas") : "";
+    $("psLista").innerHTML = ps.slice(0, 10).map(([id, p]) => '<div class="miembro"><div class="txt"><b style="font-weight:400;white-space:pre-wrap">' + esc(p.texto) +
+      '</b><small>' + new Date(p.creado || 0).toLocaleString("es-CL", { dateStyle: "medium", timeStyle: "short" }) + (p.enlace ? " · " + esc(p.enlace) : "") +
+      '</small></div><button class="small sec" data-psborrar="' + esc(id) + '">Borrar</button></div>').join("");
+    $("psLista").querySelectorAll("[data-psborrar]").forEach(b => b.onclick = () => {
+      if (confirm("¿Borrar esta publicación? Deja de verse en el muro y en el perfil."))
+        remove(ref(db, "posts/" + TIENDA + "/" + b.dataset.psborrar)).catch(() => $("psMsg").textContent = "No se pudo borrar. Revisa la conexión.");
+    });
+  }, () => {});
+  $("psPublicar").onclick = async () => {
+    const texto = $("psTexto").value.trim().slice(0, 600), enlace = $("psEnlace").value.trim();
+    if (!texto) return ($("psMsg").innerHTML = '<span class="err">Escribe algo para publicar.</span>');
+    if (enlace && !/^https:\/\/\S+$/.test(enlace)) return ($("psMsg").innerHTML = '<span class="err">El enlace tiene que empezar con https://</span>');
+    $("psPublicar").disabled = true; $("psMsg").textContent = "Publicando…";
+    try {
+      await conTimeout(push(ref(db, "posts/" + TIENDA), { texto, ...(enlace ? { enlace: enlace.slice(0, 300) } : {}), creado: serverTimestamp() }), 15000);
+      $("psTexto").value = ""; $("psEnlace").value = ""; $("psMsg").innerHTML = '<span class="ok">Publicado ✓ ya lo ven tus jugadores</span>';
+    } catch(e){ $("psMsg").innerHTML = '<span class="err">' + mensajeConexion(e) + "</span>"; }
+    $("psPublicar").disabled = false;
+  };
+}
+
+/* ▌BLOQUE 42 · Conexión ═════════════════════════════════════════════════════════
    Muestra el aviso de «sin señal» y avisa al cerrar la pestaña si quedaron cambios sin enviar. */
 /* =========================================================
    Sin señal. Firebase guarda lo que se escribe sin conexión y lo manda solo

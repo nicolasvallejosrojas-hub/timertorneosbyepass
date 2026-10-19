@@ -238,6 +238,7 @@
           <div id="vivo"></div>
           <div id="timersT" class="oculto"><h2 class="gtit">Timers de la tienda</h2><div class="grupo" id="timersL"></div></div>
           <div id="rifasT" class="oculto"><h2 class="gtit">Rifas</h2><div class="grupo" id="rifasL"></div></div>
+          <div id="postsT" class="oculto"><h2 class="gtit">Publicaciones</h2><div class="grupo" id="postsL"></div></div>
           <div class="dos">
             <div><h2 class="gtit"><span id="hClasCorta">Clasificación</span> <button data-ir="clas">Ver todo</button></h2>
               <div class="grupo" id="clasCorta"></div></div>
@@ -303,7 +304,7 @@
 import { ref, onValue, get, set, update, remove, query, orderByChild, equalTo }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro, urlPanel } from "./sesion.js?v=13";
+import { db, auth, enEmulador, urlCuenta, urlMuro, urlPanel } from "./sesion.js?v=14";
 import { slug, tiendaDe, salaDeTimer, MAX_TIMERS, nombreTienda, iniciales } from "./sala.js?v=6";
 import { ordenar, estaVigente, fechaLegible, cuantoFalta, urlGoogle, MES_LARGO } from "./agenda.js?v=4";
 import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, PUNTOS_DEF, timerDe, deTimer, claveGlobal } from "./clasificacion.js?v=5";
@@ -501,6 +502,14 @@ function perfil(){
   /* Las rifas abiertas de la tienda (rifa.html), salvo que ella las esconda: salas/<tienda>/config/rifa = false. */
   onValue(ref(db, "rifas/" + ID), s => { RIFAS = s.val() || {}; pintarRifas(); }, () => {});
   onValue(ref(db, "salas/" + ID + "/config/rifa"), s => { RIFAS_OFF = s.val() === false; pintarRifas(); }, () => {});
+  /* Lo que la tienda publica (posts/<tienda>, desde su panel): las 5 últimas. */
+  onValue(ref(db, "posts/" + ID), s => {
+    const ps = Object.values(s.val() || {}).filter(p => p && typeof p.texto === "string").sort((a, b) => (b.creado || 0) - (a.creado || 0)).slice(0, 5);
+    $("postsT").classList.toggle("oculto", !ps.length);
+    $("postsL").innerHTML = ps.map(p => '<div class="fila"><div class="txt"><b style="font-weight:400;white-space:pre-wrap;overflow-wrap:anywhere">' + esc(p.texto) + "</b><small>" +
+      new Date(p.creado || 0).toLocaleDateString("es-CL", { day: "numeric", month: "long" }) +
+      (/^https:\/\/\S+$/.test(p.enlace || "") ? ' · <a href="' + esc(p.enlace) + '" target="_blank" rel="noopener">Ver más</a>' : "") + "</small></div></div>").join("");
+  }, () => {});
   onValue(ref(db, "salas/" + ID + "/pairings"), s => { PAIR = s.val(); pintarVivo(); });
   onValue(ref(db, "salas/" + ID + "/config"), s => {
     const v = s.val(); if (v && Array.isArray(v.puntos)) CFG = { puntos: v.puntos, resto: v.resto ?? 1 };

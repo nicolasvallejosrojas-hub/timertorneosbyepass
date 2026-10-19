@@ -8,7 +8,7 @@
 /* ============================================================
    sesion.js — entrar y crear cuenta
    ------------------------------------------------------------
-   Versión actual: v=13  (subir el ?v= al tocar este archivo)
+   Versión actual: v=14  (subir el ?v= al tocar este archivo)
 
    Lo usan la portada (index.html), que tiene el registro a la vista, y la
    cuenta (cuenta.html), con sus tres pasos. Vive acá para que las reglas de
@@ -56,7 +56,8 @@ export function params(){
   return s ? "?" + s : "";
 }
 export const urlPanel  = () => "admin.html" + params();
-export const urlMuro   = h => "muro.html" + params() + (h ? "#" + h : "");
+/* El muro no es de una tienda: solo lleva el ?emu. */
+export const urlMuro   = h => "muro.html" + (enEmulador() ? "?emu=1" : "") + (h ? "#" + h : "");
 export const urlCuenta = h => "cuenta.html" + params() + (h ? "#" + h : "");
 
 /* ▌BLOQUE 2 · Mensajes de error ═════════════════════════════════════════════════

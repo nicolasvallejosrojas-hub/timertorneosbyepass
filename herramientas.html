@@ -268,7 +268,7 @@
 <script type="module">
 import { ref, onValue, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=13";
+import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=14";
 import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=6";
 import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=4";
 estoyEnLinea(db, "herramientas");
@@ -700,7 +700,7 @@ function pintarSolicitudes(){
    todo o no se borra nada. Lo de cada jugador (a quién sigue, su vitrina)
    queda en su cuenta, que nadie más puede tocar; las páginas ignoran una
    tienda que ya no existe. */
-const NODOS = ["tiendas", "salas", "invitaciones", "enlaces", "idsHistorial", "fotos", "jugadores"];
+const NODOS = ["tiendas", "salas", "invitaciones", "enlaces", "idsHistorial", "fotos", "jugadores", "posts", "rifas", "rifaCodigos", "rifaUsos"];
 let BORRAR = null;
 async function abrirBorrar(id){
   BORRAR = null;

@@ -210,7 +210,16 @@
     border-bottom:1px solid var(--divider);align-items:flex-start;}
   .post .quien{font-weight:700;}
   .post .cuando{font-size:var(--t2);color:var(--apagado);margin-top:1px;}
-  .post .texto{padding:var(--e3);line-height:1.55;}
+  .post .texto{padding:var(--e3);line-height:1.55;overflow-wrap:anywhere;}
+  .post .quien a{color:inherit;text-decoration:none;}
+  .post .sig{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+    background:var(--c);color:#fff;font-size:14px;font-weight:700;letter-spacing:-.02em;}
+  /* «En vivo ahora»: una fila por tienda con el timer en uso */
+  .vivoT{display:block;color:inherit;text-decoration:none;padding:var(--e2) 0;}
+  .vivoT + .vivoT{border-top:1px solid var(--divider);}
+  .vivoT b{font-weight:600;}
+  .vivoSub{font-size:var(--t2);color:var(--apagado);margin:2px 0 0 18px;}
+  #vivoElegir{display:flex;flex-wrap:wrap;margin-bottom:var(--e3);}
   .tabla{width:100%;border-collapse:collapse;font-size:var(--t3);}
   .tabla caption{text-align:left;font-size:var(--t1);letter-spacing:.09em;
     text-transform:uppercase;color:var(--rotulo);padding:0 var(--e3) var(--e2);}
@@ -254,7 +263,7 @@
   .seg{display:inline-flex;background:var(--campo);border-radius:10px;padding:3px;}
   .seg button{border:none;background:none;font:inherit;font-size:var(--t2);color:var(--apagado);padding:7px 14px;
     border-radius:8px;cursor:pointer;min-height:34px;}
-  .seg button[aria-selected="true"]{background:var(--sup);color:var(--texto);font-weight:600;box-shadow:0 1px 3px rgba(16,35,30,.12);}
+  .seg button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--sup);color:var(--texto);font-weight:600;box-shadow:0 1px 3px rgba(16,35,30,.12);}
   .insGrupo{padding:var(--e4) var(--e3);}
   .insGrupo + .insGrupo{border-top:1px solid var(--divider);}
   .insGrupo h3{font-size:var(--t1);letter-spacing:.08em;text-transform:uppercase;color:var(--rotulo);font-weight:600;margin:0 0 var(--e4);}
@@ -391,7 +400,6 @@
 
     <div class="bloque">
       <ul class="menu">
-        <li><a href="timer-view.html" id="aTimer">Ver el timer</a></li>
         <li><a href="tienda.html" id="aTiendas">Tiendas</a></li>
         <li class="oculto" id="liPanel"><a href="admin.html" id="aPanel">Panel del organizador</a></li>
         <li class="oculto" id="liPedir"><a href="cuenta.html#tienda" id="aPedir">Pedir una tienda</a></li>
@@ -493,6 +501,7 @@
 
     <section id="tabVivo" class="oculto" aria-labelledby="hVivo">
       <h1 class="solo-lector" id="hVivo">En vivo</h1>
+      <div class="seg" id="vivoElegir" role="group" aria-label="Tienda en vivo" hidden></div>
       <div class="bloque">
         <h2>Ahora</h2>
         <div class="cuerpo" id="vivoGrande" aria-live="polite"></div>
@@ -531,14 +540,12 @@
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, serverTimestamp }
+import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, serverTimestamp, query, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signOut, onAuthStateChanged, sendEmailVerification }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=4";
-/* SALA es el timer que se está mirando (su reloj y sus mesas); TIENDA, la
-   tienda de ese timer: historial, agenda, a quién sigo y mi ID compartido. */
-import { SALA, BASE, TIENDA, BASE_T, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=6";
+import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=6";
 import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=5";
 import { estoyEnLinea } from "./presencia.js?v=4";
 import { leerHistorial } from "./historial.js?v=1";
@@ -546,6 +553,12 @@ import { vigilar } from "./mantenimiento.js?v=4";
 import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=8";
 
 const $ = id => document.getElementById(id);
+/* El muro es el inicio de cada persona y no depende de una tienda. El ?sala= solo cuenta con #jugador=
+   (la búsqueda de jugadores del directorio): es la tienda donde buscar a esa persona. Cualquier otra
+   sala se ignora y la dirección queda sin ella. Hasta el 19-10-2026 el muro abría siempre una tienda
+   (la del enlace o la favorita) y su «En vivo» era el de esa tienda aunque uno no jugara ahí. */
+const MIRA = new URLSearchParams(location.search).get("sala") && /^#jugador=/.test(location.hash) ? TIENDA : null;
+if (location.search.includes("sala=")){ const u0 = new URL(location.href); u0.searchParams.delete("sala"); history.replaceState(null, "", u0); }
 
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
    Firebase, enlaces con ?emu y ?sala, perfil pedido por #jugador, estado global. */
@@ -558,27 +571,24 @@ if (typeof EMULADOR !== "undefined" && EMULADOR){
   connectDatabaseEmulator(db, EMULADOR.host, EMULADOR.db);
 }
 vigilar(db, auth);   // la pantalla de mantenimiento
-estoyEnLinea(db, "muro", TIENDA);
+estoyEnLinea(db, "muro", MIRA || undefined);
 /* muro.html?sala=X#jugador=<nombre> abre el perfil de ese jugador (lo usa la
    búsqueda de jugadores del directorio). Se lee antes de que verTab limpie el #. */
 let JUG_PEDIDO = (/^#jugador=(.+)$/.exec(location.hash) || [])[1];
 try { JUG_PEDIDO = JUG_PEDIDO && decodeURIComponent(JUG_PEDIDO); } catch(e){ JUG_PEDIDO = null; }
 
 const qs   = (typeof EMULADOR !== "undefined" && EMULADOR) ? "?emu=1" : "";
-/* El ?emu=1 y la sala viajan en los enlaces: si se pierden, el jugador saltaria
-   a la base real o a otra sala sin enterarse. */
-const conSala = p => p + (SALA !== "principal" ? (p.includes("?") ? "&" : "?") + "sala=" + SALA : "");
-$("aTimer").href  = conSala("timer-view.html" + qs);
+/* El ?emu=1 viaja en los enlaces: si se pierde, el jugador saltaría a la base real sin enterarse. */
 $("aTiendas").href = "tienda.html" + qs;
 /* El perfil público de una tienda. */
 const aTienda = x => "tienda.html" + (qs ? qs + "&" : "?") + "sala=" + encodeURIComponent(x);
-$("aCuenta").href = conSala("cuenta.html" + qs) + "#ajustes";
-$("aAjustes").href = conSala("cuenta.html" + qs) + "#ajustes";
+$("aCuenta").href = "cuenta.html" + qs + "#ajustes";
+$("aAjustes").href = "cuenta.html" + qs + "#ajustes";
 $("aPanel").href = "admin.html" + qs;
 $("aPedir").href = "cuenta.html" + qs + "#tienda";
 $("aHerr").href = "herramientas.html" + qs;
 
-let usuario = null, perfil = null, HIST = null, ESTADO = null, PAIR = null, filtro = "";
+let usuario = null, perfil = null, HIST = null, filtro = "";
 let TIENDAS = null, errTienda = "";
 
 /* ▌BLOQUE 5 · Pestañas ══════════════════════════════════════════════════════════
@@ -647,7 +657,7 @@ function torneosDeMisTiendas(){
   const out = [];
   misSalas().forEach(s => {
     cargarTienda(s);
-    const h = s === TIENDA && !(TD[s] && TD[s].hist) ? HIST : TD[s] && TD[s].hist;
+    const h = s === MIRA && !(TD[s] && TD[s].hist) ? HIST : TD[s] && TD[s].hist;
     Object.values(h || {}).forEach(t => out.push({ t, sala: s }));
   });
   return out;
@@ -738,7 +748,8 @@ function pintarFicha(){
 }
 
 /* ▌BLOQUE 8 · Inicio: publicaciones ═════════════════════════════════════════════
-   Los torneos de mis tiendas como publicaciones, con la tabla final y mi resultado. */
+   Las publicaciones de mis tiendas (posts/) y su último torneo archivado, del más nuevo al más
+   viejo. */
 /* ------------------------------------------------------------
    El muro: un torneo archivado es una publicación
    ------------------------------------------------------------ */
@@ -754,17 +765,19 @@ function pintarMuro(){
     .filter(({ t }) => !filtro || (t.standings || []).some(p => norm(p.name).includes(filtro)));
   const torneos = filtro ? todos : todos.slice(0, 1);
   const nomT = s => nombreTienda(TD[s] && TD[s].tienda && TD[s].tienda.perfil, s);
+  escucharPosts();
+  const posts = filtro ? [] : listaPosts();
 
-  if (!torneos.length){
+  if (!torneos.length && !posts.length){
     cont.innerHTML = '<div class="bloque"><div class="vacio">' +
       (filtro
         ? "Nadie con ese nombre aparece en los torneos archivados."
-        : "Todavía no hay torneos archivados en tus tiendas.<br>Cuando el organizador cierre una fecha, va a aparecer acá.") +
+        : "Todavía no hay publicaciones ni torneos archivados en tus tiendas.<br>Cuando una tienda publique algo o cierre una fecha, va a aparecer acá.") +
       "</div></div>";
     return;
   }
 
-  cont.innerHTML = torneos.map(({ t, sala }) => {
+  const tarjetaTorneo = ({ t, sala }) => {
     const secs = porCategoria(t.standings || []);
     const mia = (t.standings || []).find(esMia);
     /* Si el jugador quedó fuera del top 4 (de su categoría, si el torneo las tuvo) igual se muestra
@@ -792,7 +805,45 @@ function pintarMuro(){
       '<div class="pie">' + (filtro ? "Publicado por el organizador de la tienda." :
         'Es el más reciente. <a href="' + aTienda(sala) + '#torneos">Ver todos los torneos de ' + esc(nomT(sala)) + "</a>") +
       "</div></article>";
-  }).join("");
+  };
+  /* Publicaciones y el último torneo, del más nuevo al más viejo. */
+  cont.innerHTML = torneos.map(x => ({ k: x.t.creado || Date.parse(x.t.fecha || "") || 0, h: tarjetaTorneo(x) }))
+    .concat(posts.map(x => ({ k: x.p.creado || 0, h: tarjetaPost(x) })))
+    .sort((a, b) => b.k - a.k).map(x => x.h).join("");
+}
+
+/* ------------------------------------------------------------
+   Publicaciones de las tiendas: posts/<tienda>/<id> = { texto, enlace?, creado }, las escribe la tienda en su
+   panel. Las de mis tiendas (las 10 últimas de cada una); si no sigo ni organizo ninguna, las de todas.
+   ponytail: sin tiendas seguidas se lee posts/ entero; con muchas tiendas, un índice de las recientes.
+   ------------------------------------------------------------ */
+const POSTS = {}, offPosts = {};
+let POSTS_TODAS = null;
+function escucharPosts(){
+  if (TIENDAS === null) return;
+  const salas = misSalas();
+  if (!salas.length){
+    if (POSTS_TODAS === null){ POSTS_TODAS = {}; onValue(ref(db, "posts"), s => { POSTS_TODAS = s.val() || {}; pintarMuro(); }, () => {}); }
+    return;
+  }
+  salas.forEach(t => { if (!offPosts[t]) offPosts[t] = onValue(query(ref(db, "posts/" + t), limitToLast(10)), s => { POSTS[t] = s.val() || {}; pintarMuro(); }, () => { POSTS[t] = {}; }); });
+}
+function listaPosts(){
+  const salas = misSalas(), fuente = salas.length ? Object.fromEntries(salas.map(t => [t, POSTS[t]])) : (POSTS_TODAS || {});
+  return Object.entries(fuente).flatMap(([t, ps]) => Object.entries(ps || {}).map(([id, p]) => ({ t, id, p })))
+    .filter(x => x.p && typeof x.p.texto === "string").sort((a, b) => (b.p.creado || 0) - (a.p.creado || 0)).slice(0, 20);
+}
+const haceCuanto = ms => { const m = Math.round((Date.now() - ms) / 60000);
+  return m < 1 ? "recién" : m < 60 ? "hace " + m + " min" : m < 1440 ? "hace " + Math.round(m / 60) + " h" : m < 2880 ? "ayer"
+    : new Date(ms).toLocaleDateString("es-CL", { day: "numeric", month: "short" }); };
+function tarjetaPost({ t, p }){
+  const perf = (TD[t] && TD[t].tienda && TD[t].tienda.perfil) || PERF_T[t] || null, n = nombreTienda(perf, t);
+  return '<article class="post"><div class="cab"><span class="sig" style="--c:' + esc((perf && perf.color) || COLOR_TIENDA) + '" aria-hidden="true">' +
+    esc(iniciales(n)) + '</span><div><div class="quien"><a href="' + aTienda(t) + '">' + esc(n) + '</a></div><div class="cuando">' +
+    esc(haceCuanto(p.creado || 0)) + "</div></div></div>" +
+    '<div class="texto">' + esc(p.texto).replace(/\n/g, "<br>") + "</div>" +
+    (/^https:\/\/\S+$/.test(p.enlace || "") ? '<div class="pie"><a href="' + esc(p.enlace) + '" target="_blank" rel="noopener">Ver más</a></div>' : "") +
+    "</article>";
 }
 
 /* ▌BLOQUE 9 · Mi perfil ═════════════════════════════════════════════════════════
@@ -890,7 +941,7 @@ function cargarTienda(sala){
 }
 const cargada = s => !!TD[s] && TD[s].hist !== undefined && TD[s].cfg !== undefined && TD[s].tienda !== undefined;
 let ORGANIZA = {};   // organiza/<uid>: las tiendas que organizo
-const misSalas = () => [...new Set([TIENDA, ...Object.keys(TIENDAS || {}), ...Object.keys(ORGANIZA)])];
+const misSalas = () => [...new Set([MIRA, ...Object.keys(TIENDAS || {}), ...Object.keys(ORGANIZA)])].filter(Boolean);
 let pintura = 0;
 function repintarInsignias(){
   cancelAnimationFrame(pintura);
@@ -970,7 +1021,7 @@ function pintarInsigniasPropias(){
     const items = marcarOcultas(ganadasPrimero(g.items)), n = items.filter(i => i.ok).length;
     return '<div class="insGrupo"><div class="tiendaCab"><span class="logoT" style="background:' + esc(colorTienda(g.color)[1]) +
       '">' + esc(iniciales(g.nombre)) + "</span><div><b>" + esc(g.nombre) + "</b><small>" + n + " de " + items.length +
-      " ganadas" + (g.sala === TIENDA ? " · la que estás mirando" : "") + "</small></div></div>" +
+      " ganadas" + (g.sala === MIRA ? " · la que estás mirando" : "") + "</small></div></div>" +
       (items.length ? grilla(items) : '<div class="vacio">Esta tienda no tiene insignias activas.</div>') + "</div>";
   }).join("");
   pintarVitrina($("pfVitrina"), VITRINA, r.porClave, true);
@@ -1162,7 +1213,7 @@ function pintarMisTiendas(){
   const nom = x => nombreTienda(PERFILES[x], x);
   /* Favoritas arriba; después la que estás mirando y el resto por nombre. */
   const salas = Object.keys(t).sort((a, b) => (!!t[b].favorita - !!t[a].favorita) ||
-    (a === TIENDA ? -1 : b === TIENDA ? 1 : nom(a).localeCompare(nom(b))));
+    (a === MIRA ? -1 : b === MIRA ? 1 : nom(a).localeCompare(nom(b))));
   $("pfTiendas").innerHTML = TIENDAS === null
     ? '<div class="vacio">Cargando…</div>'
     : salas.length
@@ -1170,8 +1221,8 @@ function pintarMisTiendas(){
        Tiendas, junto a sus botones. */
     ? '<table class="tabla"><tbody>' + salas.map(x =>
         '<tr><td><a href="' + aTienda(x) + '">' + esc(nom(x)) + "</a>" +
-        (x === TIENDA ? '<div class="rec">la que estás mirando</div>' : "") + "</td>" +
-        '<td class="res">' + (x === TIENDA ? "" : t[x].compartirId ? "compartes tu ID" : "sin ID compartido") + "</td>" +
+        (x === MIRA ? '<div class="rec">la que estás mirando</div>' : "") + "</td>" +
+        '<td class="res">' + (x === MIRA ? "" : t[x].compartirId ? "compartes tu ID" : "sin ID compartido") + "</td>" +
         '<td class="res" style="width:36px"><button class="estrella' + (t[x].favorita ? " on" : "") + '" data-fav="' +
         esc(x) + '" aria-pressed="' + !!t[x].favorita + '" aria-label="Favorita: ' + esc(nom(x)) + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z"/></svg></button></td></tr>').join("") +
         "</tbody></table>"
@@ -1182,7 +1233,8 @@ function pintarMisTiendas(){
 }
 
 /* ▌BLOQUE 13 · En vivo ══════════════════════════════════════════════════════════
-   La ronda que se está jugando: mi mesa, la ronda completa y cómo va la tabla. */
+   Todas las tiendas con el timer en uso: mi mesa donde juego y, en la pestaña, la tienda que elijo
+   con su ronda y su tabla. */
 /* ------------------------------------------------------------
    En vivo
    ------------------------------------------------------------
@@ -1199,15 +1251,12 @@ const rec = r => r ? r.w + "-" + r.l + "-" + r.t + " · " + (r.pts || 0) + " pts
 
 /* La ronda vigente es la última publicada: el torneo se republica completo cada
    vez, así que la de más abajo del arreglo es siempre la de ahora. */
-function rondaActual(){
-  return (PAIR && PAIR.rounds && PAIR.rounds.length)
-    ? PAIR.rounds[PAIR.rounds.length - 1] : null;
-}
+const rondaActual = P => (P && P.rounds && P.rounds.length) ? P.rounds[P.rounds.length - 1] : null;
 
 /* Mi partida de esta ronda. Cruza por nombre, igual que el historial, y con el
    mismo límite: si la tienda me inscribió con otro nombre, no me encuentro. */
-function miPartida(){
-  const r = rondaActual(), yo = perfil ? norm(perfil.nombre) : "";
+function miPartida(P){
+  const r = rondaActual(P), yo = perfil ? norm(perfil.nombre) : "";
   if (!r || !yo) return null;
   for (const m of (r.matches || [])){
     const soy1 = norm(m.p1) === yo, soy2 = m.p2 && norm(m.p2) === yo;
@@ -1235,57 +1284,87 @@ function miMesaHtml(mp, angosto){
     (mp.resultado ? " · " + esc(mp.resultado) : "") + "</div></div>";
 }
 
-function pintarVivo(){
-  const hayTimer  = !!(ESTADO && (ESTADO.endTime || ESTADO.remaining != null));
-  const corriendo = !!(ESTADO && !ESTADO.paused && ESTADO.endTime);
-  const r   = rondaActual();
-  const mp  = miPartida();
-  const yo  = perfil ? norm(perfil.nombre) : "";
-  /* "results" quiere decir que la ronda ya tiene todos los resultados
-     cargados; mientras falte uno sigue en curso. */
-  const enCurso = !!r && PAIR.phase !== "results";
-  const alTimer = conSala("timer-view.html" + qs);
-
-  /* ---- columna derecha: una línea, y mi mesa si estoy jugando ---- */
+/* Todas las tiendas con el timer usado en las últimas 3 horas (o corriendo), no solo las que sigo: el muro
+   no es de una tienda. De cada tienda se escucha timer/state (unos 200 bytes); las mesas (pairings, unos
+   15 KB por ronda) solo de las que están en vivo, y llegan una vez por publicación, no por segundo.
+   ponytail: un oyente por tienda y solo su timer 1; con cientos de tiendas, un índice de salas activas. */
+const RECIENTE = 3 * 3600e3;
+const EST = {}, PAIRS = {}, PERF_T = {}, offPair = {};
+let VIVO_SEL = null, desfase = 0;
+const ahoraSrv = () => Date.now() + desfase;
+function escucharVivo(){
+  onValue(ref(db, ".info/serverTimeOffset"), s => desfase = s.val() || 0);
+  onValue(ref(db, "tiendas"), s => {
+    const ts = s.val() || {};
+    Object.keys(ts).forEach(t => {
+      PERF_T[t] = ts[t] && ts[t].perfil;
+      if (t in EST) return;
+      EST[t] = null;
+      onValue(ref(db, "salas/" + t + "/timer/state"), x => { EST[t] = x.val(); cambioVivo(); }, () => {});
+    });
+    cambioVivo();
+  }, () => pintarVivo());
+}
+const corre = t => !!(EST[t] && !EST[t].paused && EST[t].endTime);
+const enVivo = t => !!EST[t] && (corre(t) || ahoraSrv() - (EST[t].updatedAt || 0) < RECIENTE);
+function vivas(){
+  const mias = new Set(misSalas());
+  return Object.keys(EST).filter(enVivo).sort((a, b) => (corre(b) - corre(a)) || (mias.has(b) - mias.has(a)) ||
+    ((EST[b].updatedAt || 0) - (EST[a].updatedAt || 0)));
+}
+/* Las mesas solo de las que están en vivo: al dejar de estarlo se suelta su oyente. */
+function cambioVivo(){
+  const v = new Set(vivas());
+  v.forEach(t => { if (!offPair[t]) offPair[t] = onValue(ref(db, "salas/" + t + "/pairings"), s => { PAIRS[t] = s.val(); pintarVivo(); }, () => {}); });
+  Object.keys(offPair).forEach(t => { if (!v.has(t)){ offPair[t](); delete offPair[t]; delete PAIRS[t]; } });
+  pintarVivo();
+}
+const nomTienda = t => nombreTienda((TD[t] && TD[t].tienda && TD[t].tienda.perfil) || PERF_T[t], t);
+const alTimerDe = t => "timer-view.html" + (qs ? qs + "&" : "?") + "sala=" + encodeURIComponent(t);
+function estadoDe(t){
+  const E = EST[t], P = PAIRS[t], r = rondaActual(P);
+  const hayTimer = !!(E && (E.endTime || E.remaining != null)), corriendo = corre(t);
+  /* "results" quiere decir que la ronda ya tiene todos los resultados cargados; mientras falte uno sigue en curso. */
+  const enCurso = !!r && P.phase !== "results";
   const nomR = r ? r.etiqueta || "Ronda " + r.number : "";   // las del top cut traen su nombre
-  const linea = r ? nomR + (enCurso ? " · en curso" : " · resultados")
-              : hayTimer ? (corriendo ? "Ronda en curso" : "Timer en pausa")
-              : "No hay nada corriendo ahora";
-  $("vivoChico").innerHTML =
-    '<div class="vivo"><span class="punto' + (corriendo || enCurso ? " si" : "") +
-    '"></span>' + esc(linea) + "</div>" +
-    (mp ? miMesaHtml(mp, true) : "") +
-    (r || hayTimer
-      ? '<div style="margin-top:var(--e2)"><a class="btn primario ancho" href="' +
-        alTimer + '">Entrar al timer</a></div>'
-      : "");
+  const linea = r ? nomR + (enCurso ? " · en curso" : " · resultados") : corriendo ? "Ronda en curso" : hayTimer ? "Timer en pausa" : "Timer usado hace poco";
+  return { P, r, hayTimer, corriendo, enCurso, nomR, linea, mp: miPartida(P) };
+}
 
-  /* ---- pestaña: el encabezado y mi partida ---- */
-  $("vivoGrande").innerHTML = r
-    ? '<div style="font-weight:700">' + esc(PAIR.name || "Torneo") + "</div>" +
-      '<div style="font-size:var(--t2);color:var(--apagado);margin-top:2px">' + esc(nomR) +
-      (enCurso ? " · en curso" : " · resultados publicados") + "</div>" +
-      (mp ? miMesaHtml(mp)
-          : '<div class="vivo" style="margin-top:var(--e2)">' +
-            (yo ? "No apareces en esta ronda."
-                : "Completa tu nombre en la cuenta para encontrar tu mesa.") + "</div>") +
+function pintarVivo(){
+  const ts = vivas(), yo = perfil ? norm(perfil.nombre) : "";
+
+  /* ---- columna derecha: una fila por tienda en vivo, y mi mesa donde esté jugando ---- */
+  $("vivoChico").innerHTML = ts.length
+    ? ts.slice(0, 5).map(t => { const x = estadoDe(t);
+        return '<a class="vivoT" href="' + alTimerDe(t) + '"><div class="vivo"><span class="punto' + (x.corriendo || x.enCurso ? " si" : "") +
+          '"></span><b>' + esc(nomTienda(t)) + '</b></div><div class="vivoSub">' + esc(x.linea) + "</div>" + (x.mp ? miMesaHtml(x.mp, true) : "") + "</a>"; }).join("") +
+      '<div style="margin-top:var(--e2)"><button class="btn ancho" id="bVerVivo">' + (ts.length > 5 ? "Ver las " + ts.length + " tiendas" : "Ver la ronda y la tabla") + "</button></div>"
+    : '<div class="vivo"><span class="punto"></span>No hay nada corriendo ahora</div>';
+  if ($("bVerVivo")) $("bVerVivo").onclick = () => verTab("vivo");
+
+  /* ---- pestaña: elijo la tienda (por defecto, donde juego; si no, una que sigo; si no, la primera) ---- */
+  if (!ts.includes(VIVO_SEL)) VIVO_SEL = ts.find(t => estadoDe(t).mp) || ts.find(t => misSalas().includes(t)) || ts[0] || null;
+  $("vivoElegir").hidden = ts.length < 2;
+  $("vivoElegir").innerHTML = ts.length < 2 ? "" : ts.map(t => '<button type="button" data-vsel="' + esc(t) + '" aria-pressed="' + (t === VIVO_SEL) + '">' +
+    esc(nomTienda(t)) + "</button>").join("");
+  $("vivoElegir").querySelectorAll("[data-vsel]").forEach(b => b.onclick = () => { VIVO_SEL = b.dataset.vsel; pintarVivo(); });
+
+  const t = VIVO_SEL, x = t ? estadoDe(t) : null, P = x && x.P, r = x && x.r, mp = x && x.mp;
+  $("vivoGrande").innerHTML = !t
+    ? '<div class="vacio">No hay ningún torneo en curso.<br>Cuando una tienda use su timer o publique los emparejamientos, aparece acá.</div>'
+    : '<div style="font-weight:700">' + esc(nomTienda(t)) + (r ? " · " + esc(P.name || "Torneo") : "") + "</div>" +
+      '<div style="font-size:var(--t2);color:var(--apagado);margin-top:2px">' + esc(r ? x.nomR + (x.enCurso ? " · en curso" : " · resultados publicados") : x.linea) + "</div>" +
+      (r ? (mp ? miMesaHtml(mp)
+               : '<div class="vivo" style="margin-top:var(--e2)">' + (yo ? "No apareces en esta ronda." : "Completa tu nombre en la cuenta para encontrar tu mesa.") + "</div>") : "") +
       '<p style="margin:var(--e3) 0 0;color:var(--apagado);font-size:var(--t2)">' +
-      (corriendo ? "El reloj está corriendo."
-       : hayTimer ? "El reloj está en pausa." : "El reloj no está corriendo.") + "</p>" +
-      '<div style="margin-top:var(--e2)"><a class="btn primario" href="' + alTimer +
-      '">Ver el reloj en vivo</a></div>'
-    : hayTimer
-      ? '<div class="vivo">' + (corriendo ? "Hay una ronda en curso en esta sala."
-                                          : "El timer está en pausa.") + "</div>" +
-        '<div style="margin-top:var(--e2)"><a class="btn primario" href="' + alTimer +
-        '">Ver el reloj en vivo</a></div>'
-      : '<div class="vacio">No hay ningún torneo en curso.<br>' +
-        "Cuando el organizador publique los emparejamientos, la ronda aparece acá.</div>";
+      (x.corriendo ? "El reloj está corriendo." : x.hayTimer ? "El reloj está en pausa." : "El reloj no está corriendo.") + "</p>" +
+      '<div style="margin-top:var(--e2)"><a class="btn primario" href="' + alTimerDe(t) + '">Ver el reloj en vivo</a></div>';
 
   /* ---- la ronda completa, para mirar al resto ---- */
   $("bRonda").classList.toggle("oculto", !r);
   if (r){
-    $("hRonda").textContent = nomR;
+    $("hRonda").textContent = x.nomR;
     $("vivoRonda").innerHTML = '<table class="tabla"><tbody>' +
       (r.matches || []).map(m => {
         const mia = yo && (norm(m.p1) === yo || (m.p2 && norm(m.p2) === yo));
@@ -1299,19 +1378,16 @@ function pintarVivo(){
       }).join("") + "</tbody></table>";
   }
 
-  /* ---- cómo va la tabla ---- */
-  const tabla = (PAIR && PAIR.standings) || [];
+  /* ---- cómo va la tabla: con varias categorías, las primeras 4 de cada una; mi fila siempre ---- */
+  const tabla = (P && P.standings) || [];
   $("bPosic").classList.toggle("oculto", !tabla.length);
   if (tabla.length){
-    /* Ocho cabe sin hacer scroll en un teléfono. Si el jugador quedó más abajo
-       igual se muestra su fila: es lo que viene a ver. */
-    /* Con varias categorías, las primeras 4 de cada una. */
     const secs = porCategoria(tabla), tope = secs.length > 1 ? 4 : 8;
     const filas = secs.flatMap(sec => {
       const yo = sec.filas.find(esMia);
       return (sec.nombre ? [{ titulo: sec.nombre }] : []).concat(sec.filas.slice(0, tope), yo && yo.place > tope ? [yo] : []);
     });
-    $("vivoTabla").innerHTML = '<table class="tabla"><tbody>' + filas.map(p => p.titulo ? '<tr><td colspan="3" style="font-size:var(--t1);letter-spacing:.12em;font-weight:600;color:var(--rotulo);padding-top:10px">' + esc(p.titulo.toUpperCase()) + "</td></tr>" :
+    $("vivoTabla").innerHTML = '<table class="tabla"><tbody>' + filas.map(p => p.titulo ? '<tr><td colspan="3" style="font-size:var(--t1);letter-spacing:.12em;font-weight:600;color:var(--rotulo);padding-top:10px">' + esc(p.titulo) + "</td></tr>" :
       "<tr" + (esMia(p) ? ' class="yo-fila"' : "") + ">" +
       '<td class="pos">' + p.place + "º</td><td>" + esc(p.name) + "</td>" +
       '<td class="pts">' + rec(p) + "</td></tr>").join("") + "</tbody></table>";
@@ -1331,7 +1407,7 @@ function pintarVivo(){
    El orden es usuarios/<uid>/tiendas/<id>/orden. Las que no tienen van al
    final: primero la favorita, después por nombre.
    ------------------------------------------------------------ */
-const refTienda = () => ref(db, "usuarios/" + usuario.uid + "/tiendas/" + TIENDA);
+const refTienda = () => ref(db, "usuarios/" + usuario.uid + "/tiendas/" + MIRA);
 let ordenando = false;
 
 async function conAviso(f){
@@ -1369,15 +1445,15 @@ async function mover(id, paso){
 
 function pintarTienda(){
   const t = TIENDAS || {}, ids = misTiendasOrden();
-  const org = usuario && TD[TIENDA] && TD[TIENDA].tienda && (TD[TIENDA].tienda.miembros || {})[usuario.uid];
+  const org = usuario && MIRA && TD[MIRA] && TD[MIRA].tienda && (TD[MIRA].tienda.miembros || {})[usuario.uid];
   let h = "";
   if (TIENDAS === null){
     h = '<div class="mtPie">Cargando…</div>';
   } else {
     /* La tienda de este enlace, si no la sigo ni la organizo. */
-    const esta = perfilT(TIENDA);
-    if (esta && !t[TIENDA] && !org)
-      h += '<div class="mtPie"><b>' + esc(nombreTienda(esta, TIENDA)) + "</b>: síguela para tenerla a mano y que tus resultados lleguen a tu perfil." +
+    const esta = MIRA && perfilT(MIRA);
+    if (esta && !t[MIRA] && !org)
+      h += '<div class="mtPie"><b>' + esc(nombreTienda(esta, MIRA)) + "</b>: síguela para tenerla a mano y que tus resultados lleguen a tu perfil." +
            '<button class="btn primario ancho" id="bSeguir" style="margin-top:var(--e2)">Seguir</button></div>';
     h += ids.map((s, i) => {
       const p = perfilT(s), n = nombreTienda(p, s);
@@ -1391,7 +1467,7 @@ function pintarTienda(){
     }).join("");
     if (!ids.length && !h) h = '<div class="mtPie">Todavía no sigues ninguna tienda. <a href="' + $("aTiendas").href + '">Busca la tuya</a>.</div>';
     else if (ids.length) h += '<div class="mtPie">Compartir tu ID o dejar de seguir: en <a href="' +
-      conSala("cuenta.html" + qs) + '#privacidad">Ajustes → Privacidad</a>.</div>';
+      "cuenta.html" + qs + '#privacidad">Ajustes → Privacidad</a>.</div>';
   }
   if (errTienda) h += '<div class="aviso mal" style="margin:0 var(--e3) var(--e3)">' + esc(errTienda) + "</div>";
   /* Repintar no le quita la flecha a quien ordena con el teclado (también
@@ -1506,7 +1582,7 @@ onAuthStateChanged(auth, async u => {
   if (!u){
     /* Sin sesión esta pantalla no tiene nada que mostrar: es el muro de
        alguien. Se vuelve a la portada, que sí funciona sin cuenta. */
-    location.replace(conSala("cuenta.html" + qs));
+    location.replace("cuenta.html" + qs);
     return;
   }
   usuario = u;
@@ -1546,33 +1622,21 @@ onAuthStateChanged(auth, async u => {
 
   onValue(ref(db, "usuarios/" + u.uid + "/tiendas"), s => {
     TIENDAS = s.val() || {};
-    /* Sin ?sala= en el enlace, el muro abre la tienda favorita (o la primera
-       que sigue), no una sala que no es de nadie. */
-    const ids = Object.keys(TIENDAS);
-    if (!new URLSearchParams(location.search).get("sala") && ids.length){
-      const u2 = new URL(location.href);
-      u2.searchParams.set("sala", ids.find(x => TIENDAS[x] && TIENDAS[x].favorita) || ids[0]);
-      return location.replace(u2);
-    }
-    pintarTienda(); repintarInsignias();
+    pintarTienda(); repintarInsignias(); cambioVivo();
   }, () => { TIENDAS = {}; pintarTienda(); repintarInsignias(); });
 
-  leerHistorial(db, TIENDA, h => {
+  /* El historial de la tienda del enlace, si vino una (para encontrar al jugador pedido); las demás
+     llegan por cargarTienda. */
+  const conHist = h => {
     HIST = h;
     pintarFicha(); pintarMuro(); pintarPerfil(); pintarJugador();
     if (JUG_PEDIDO){ const n = JUG_PEDIDO; JUG_PEDIDO = null; verJugador(n); }
-  }, () => { HIST = {}; pintarMuro(); });
+  };
+  if (MIRA) leerHistorial(db, MIRA, conHist, () => { HIST = {}; pintarMuro(); });
+  else conHist({});
 
-  onValue(ref(db, BASE + "/timer/state"), s => { ESTADO = s.val(); pintarVivo(); },
-          () => { ESTADO = null; pintarVivo(); });
-
-  /* El mismo nodo que lee la pantalla proyectada. Es el paquete más pesado de
-     los cuatro —una ronda de 40 jugadores son unos 15 KB— pero llega una vez
-     por publicación, no por segundo. */
-  onValue(ref(db, BASE + "/pairings"), s => { PAIR = s.val(); pintarVivo(); },
-          () => { PAIR = null; pintarVivo(); });
-
-  setInterval(pintarProximo, 60000);
+  escucharVivo();
+  setInterval(() => { pintarProximo(); cambioVivo(); }, 60000);   // lo «reciente» de En vivo vence con el tiempo
 });
 
 verTab(location.hash.slice(1) || "inicio");
