@@ -987,6 +987,8 @@
     <datalist id="archJuegos"></datalist>
     <button id="archiveBtn" disabled>Archivar torneo</button>
     <button class="sec" id="tablaBtn" disabled>Descargar la tabla (imagen)</button>
+    <select id="tablaFmt" hidden aria-label="Formato de la tabla" style="font-size:var(--t3);padding:8px 10px">
+      <option value="general">Tabla general</option><option value="cats">Por categoría</option></select>
   </div>
   <div id="archMsg" class="muted" style="margin-top:6px"></div>
 </div>
@@ -1383,7 +1385,7 @@ import { barras } from "./graficos.js?v=2";
 import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=8";
 import { claveJugador, porCategoria } from "./clasificacion.js?v=5";
 import { planClaves } from "./jugadores.js?v=1";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=1";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=2";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
          GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=2";
@@ -2937,6 +2939,8 @@ let ID_POR_PUESTO = [];
    reservado» y el ID no viaja— y g: 1 ganó a, 2 ganó b, 0 empate, 3 doble
    derrota. Vive fuera de `parsed` por lo mismo que ID_POR_PUESTO. */
 let DUELOS = [];
+/* Con la tabla dividida por categoría, la general (todos juntos): la imagen puede salir de cualquiera de las dos. */
+let GENERAL = null;
 
 /* ▌BLOQUE 26 · Vista previa y publicación de emparejamientos ════════════════════
    Muestra lo leído del archivo (aplicarLectura, con los avisos de importar.js), y publica en
@@ -2987,6 +2991,7 @@ function aplicarLectura(fuente, nombre, { autoPublicar = false, silencioso = fal
   try {
     const r = typeof fuente === "string" ? importarTexto(fuente) : importarArchivo(fuente);
     parsed = r.parsed; ID_POR_PUESTO = r.ids; DUELOS = r.duelos; AVISOS = r.avisos;
+    GENERAL = r.general; $("tablaFmt").hidden = !GENERAL;
     showPreview(parsed);
     if (parsed.rondasTotales) $("rondasTot").value = parsed.rondasTotales;
     $("publishBtn").disabled = false;
@@ -3543,10 +3548,13 @@ $("archiveBtn").onclick = archivarTorneo;
 const nombreDeLaTienda = () => SIN_TIENDA ? "" : nombreTienda((TIENDA_P || {}).perfil || null, TIENDA);
 $("tablaBtn").onclick = () => {
   if (!parsed) return;
+  /* General (si la hay y está elegida): todos juntos, sin títulos de categoría. Si no, la del archivo. */
+  const gen = GENERAL && $("tablaFmt").value === "general";
+  const [filas, idsF] = gen ? [GENERAL.filas, GENERAL.ids] : [parsed.standings, ID_POR_PUESTO];
   entregarTabla({ torneo: parsed.name, fecha: $("archDate").value, tienda: nombreDeLaTienda(),
-    filas: parsed.standings.map((p, i) => {
-      const e = ENLACES[String(ID_POR_PUESTO[i] || "")];
-      return { puesto: p.place, nombre: e && !e.publico ? "Jugador reservado" : p.name, w: p.w, l: p.l, t: p.t, pts: p.pts, cat: p.cat };
+    filas: filas.map((p, i) => {
+      const e = ENLACES[String(idsF[i] || "")];
+      return { puesto: p.place, nombre: e && !e.publico ? "Jugador reservado" : p.name, w: p.w, l: p.l, t: p.t, pts: p.pts, cat: gen ? undefined : p.cat };
     }) }).catch(() => { $("archMsg").innerHTML = '<span class="err">No se pudo armar la imagen.</span>'; });
 };
 

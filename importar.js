@@ -7,7 +7,7 @@
 /* =========================================================
    importar.js — el torneo desde el archivo que sea
    ---------------------------------------------------------
-   Versión actual: v=1   (subir el ?v= al tocar este archivo)
+   Versión actual: v=2   (subir el ?v= al tocar este archivo)
 
    Entra un archivo con el torneo y se buscan adentro los datos de las
    personas y las partidas: quién es quién (nombre e ID), las mesas de cada
@@ -408,6 +408,10 @@ function construirTorneo(partidas, meta){
      desempates (clasificacion) y las partidas por puesto (aHistorial). */
   const parsed = aPairings(t);
   let ids = clasificacion(t).map(p => p.id), duelos = aHistorial(t).partidas;
+  /* La tabla general: todos juntos por puntos y desempates, antes de que el archivo la ordene o la divida.
+     Se devuelve solo si la tabla terminó dividida por categoría, para la imagen «Tabla general». */
+  const general = { filas: parsed.standings.map(f => ({ ...f })), ids: ids.slice() };
+  let dividida = false;
   /* 5. Si el archivo trae la tabla final con todos, manda su orden. */
   const orden = (meta.puestos || []).filter(k => jug[k]);
   if (orden.length === ids.length && new Set(orden).size === orden.length){
@@ -438,9 +442,10 @@ function construirTorneo(partidas, meta){
       duelos = duelos.map(([r, a, b, g]) => [r, nuevo[a], nuevo[b], g]);
       ids = viejo.map(v => ids[v]);
       avisos.add("La tabla se dividió en " + new Set(catFila).size + " categorías (Masters, Senior y Junior), cada una con su puesto.");
+      dividida = true;
     }
   }
-  return { parsed, ids, duelos, avisos: [...avisos], torneo: t };
+  return { parsed, ids, duelos, avisos: [...avisos], torneo: t, general: dividida ? general : null };
 }
 
 /* Puertas de entrada: el texto (pegado o leído) o el archivo (ArrayBuffer). */
