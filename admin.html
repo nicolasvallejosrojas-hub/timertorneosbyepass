@@ -1070,6 +1070,13 @@
     <input type="file" id="recCatArchivos" multiple style="display:none">
     <span id="recCatMsg" class="muted"></span>
   </div>
+  <div class="muted" style="margin-top:12px">¿El ranking junta a jugadores distintos o le suma a alguien torneos que no jugó?
+    Rehaz las claves: se borran las que unen a cada persona entre torneos y se vuelven a calcular desde los ID
+    guardados. No cambia nombres, récords, categorías ni puestos.</div>
+  <div class="row" style="margin-top:6px;align-items:center">
+    <button class="small sec" id="recClavesBtn">Rehacer las claves de jugadores</button>
+    <span id="recClavesMsg" class="muted"></span>
+  </div>
   </div><!-- /recBox -->
 </div>
 </div>
@@ -3472,8 +3479,12 @@ function escucharEnlaces(){
    panel del organizador, que es quien puede leer los dos lados. Los torneos
    archivados antes del 29-09-2026 no guardaron ID: esos siguen por nombre. */
 let IDS_HIST = {}, enlazando = false;
+/* Mientras se reescribe un torneo (recuperar categorías, rehacer claves) no se enlaza: la tabla y sus
+   ID llegan por dos oyentes distintos y, entre uno y otro, el orden de la tabla y el de los ID no
+   calzan. Así se cruzaron las claves el 20-10-2026 (cada una cayó en la fila de otra persona). */
+let reescribiendo = false;
 async function enlazarPasados(){
-  if (enlazando) return;
+  if (enlazando || reescribiendo) return;
   const rutas = {};
   Object.entries(IDS_HIST).forEach(([tid, ids]) => {
     const t = HIST_P[tid];
@@ -3649,6 +3660,33 @@ function calzaSinOrden(viejas, nuevas){
   return viejas.every(p => p.reservado || ((usados[filaRecCat(p)] = (usados[filaRecCat(p)] || 0) + 1) <= (nn[filaRecCat(p)] || 0)));
 }
 $("recCatBtn").onclick = () => $("recCatArchivos").click();
+
+/* Rehacer las claves: todas las de la tienda fuera y de nuevo con planClaves desde idsHistorial, en una
+   sola escritura y sin enlazar en medio. Al final, cuántas claves quedaron con más de un nombre
+   (suele ser la misma persona escrita distinto; si son muchas, algún ID quedó mal). */
+$("recClavesBtn").onclick = async () => {
+  if (!confirm("¿Rehacer las claves de los jugadores de todos los torneos archivados?\n\nNo cambia nombres, récords, categorías ni puestos: solo cómo se junta a cada persona entre torneos.")) return;
+  $("recClavesBtn").disabled = true; $("recClavesMsg").textContent = "Rehaciendo…";
+  const limpio = {}, rutas = {};
+  Object.entries(HIST_P || {}).forEach(([tid, t]) => {
+    limpio[tid] = { ...t, standings: (t.standings || []).map(({ clave, claveN, ...f }) => f) };
+    (t.standings || []).forEach((f, i) => { const r = "historial/" + tid + "/standings/" + i;
+      if (f.clave !== undefined) rutas[r + "/clave"] = null; if (f.claveN !== undefined) rutas[r + "/claveN"] = null; });
+  });
+  const plan = planClaves(limpio, IDS_HIST);   // { "<torneo>/standings/<i>/clave": valor }
+  Object.entries(plan).forEach(([r, v]) => rutas["historial/" + r] = v);
+  reescribiendo = true;
+  try {
+    await conTimeout(update(ref(db, BASE_T), { ...rutas, historialVer: Date.now() }), 20000);
+    const nombres = {};
+    Object.entries(limpio).forEach(([tid, t]) => t.standings.forEach((f, i) => { const c = plan[tid + "/standings/" + i + "/clave"];
+      if (c && !f.reservado) (nombres[c] = nombres[c] || new Set()).add(nomRec(f.name)); }));
+    const raras = Object.values(nombres).filter(x => x.size > 1).length;
+    $("recClavesMsg").textContent = "Listo: claves rehechas." + (raras ? " " + raras + (raras === 1 ? " clave junta" : " claves juntan") +
+      " nombres escritos distinto: revisa que sean la misma persona." : "");
+  } catch(e){ $("recClavesMsg").textContent = mensajeConexion(e); }
+  finally { reescribiendo = false; $("recClavesBtn").disabled = false; }
+};
 $("recCatArchivos").onchange = async e => {
   const archivos = [...e.target.files]; e.target.value = "";
   if (!archivos.length) return;
@@ -3677,13 +3715,19 @@ $("recCatArchivos").onchange = async e => {
         });
         const ids = {};
         r.ids.forEach((id, i) => { if (/^[0-9]{7,8}$/.test(String(id || ""))) ids[i] = String(id); });
-        /* historialVer nuevo: los celulares que guardaron el historial lo bajan de nuevo. */
-        await update(ref(db, BASE_T), { ["historial/" + tid + "/standings"]: standings, ["historial/" + tid + "/partidas"]: r.duelos, historialVer: Date.now() });
-        if (Object.keys(ids).length) await set(ref(db, "idsHistorial/" + TIENDA + "/" + tid), ids).catch(() => {});
+        /* La tabla, sus partidas y sus ID en UNA escritura, y sin enlazar en medio (ver enlazarPasados).
+           Las filas nuevas van sin clave: enlazarPasados les pone la de su ID al terminar.
+           historialVer nuevo: los celulares que guardaron el historial lo bajan de nuevo. */
+        reescribiendo = true;
+        try {
+          await update(ref(db), { [BASE_T + "/historial/" + tid + "/standings"]: standings, [BASE_T + "/historial/" + tid + "/partidas"]: r.duelos,
+            ["idsHistorial/" + TIENDA + "/" + tid]: Object.keys(ids).length ? ids : null, [BASE_T + "/historialVer"]: Date.now() });
+        } finally { reescribiendo = false; }
       }
       ok++;
     } catch(err){ sin.push(f.name); }
   }
+  enlazarPasados();   // ya con la tabla y los ID nuevos juntos
   $("recCatMsg").textContent = (ok ? ok + (ok === 1 ? " torneo quedó con sus categorías." : " torneos quedaron con sus categorías.") : "") +
     (sinCat.length ? " Sin categorías en el archivo: " + sinCat.join(", ") + "." : "") +
     (sin.length ? " Sin torneo archivado que calce: " + sin.join(", ") + "." : "");
