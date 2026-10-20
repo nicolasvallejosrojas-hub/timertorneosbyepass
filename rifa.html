@@ -70,15 +70,6 @@
     <div class="aviso mal oculto" id="noHay" role="alert"></div>
 
     <div id="rifa" class="oculto" style="display:flex;flex-direction:column;gap:var(--e4)">
-      <div class="caja" id="cajaPremios"><h2>Premios</h2><ul class="premios" id="premios"></ul></div>
-
-      <div class="caja">
-        <h2>Números <span id="cuenta" style="text-transform:none;letter-spacing:0"></span></h2>
-        <div class="barra" aria-hidden="true"><b id="avance" style="width:0"></b></div>
-        <div class="rejilla" id="rejilla" role="group" aria-label="Números de la rifa"></div>
-        <div class="leyenda"><span><i></i>Libre</span><span><i class="o"></i>Ocupado</span><span><i class="p"></i>Tu elección</span></div>
-      </div>
-
       <div class="caja" id="cajaComprar">
         <h2>Quiero participar</h2>
         <p class="pista" id="pasos">1. Paga en el sitio de la tienda. 2. La tienda te entrega un código. 3. Pon el código acá y elige tus números.</p>
@@ -99,6 +90,15 @@
             <button class="btn" id="cancelar" type="button">Cancelar</button></div>
         </form>
         <div class="aviso bien oculto" id="listo" role="status"></div>
+      </div>
+
+      <div class="caja" id="cajaPremios"><h2>Premios</h2><ul class="premios" id="premios"></ul></div>
+
+      <div class="caja">
+        <h2>Números <span id="cuenta" style="text-transform:none;letter-spacing:0"></span></h2>
+        <div class="barra" aria-hidden="true"><b id="avance" style="width:0"></b></div>
+        <div class="rejilla" id="rejilla" role="group" aria-label="Números de la rifa"></div>
+        <div class="leyenda"><span><i></i>Libre</span><span><i class="o"></i>Ocupado</span><span><i class="p"></i>Tu elección</span></div>
       </div>
     </div>
 
@@ -187,7 +187,9 @@ $("rejilla").onclick = e => {
   else if (ELIGE.marcados.size < ELIGE.cantidad) ELIGE.marcados.add(n);
   else return avisoElegir("Ya marcaste los " + ELIGE.cantidad + " que te da el código. Quita uno para cambiarlo.");
   avisoElegir(""); textoElige(); pintar();
-  $("rejilla").querySelector('[data-n="' + n + '"]').focus();   // pintar() redibuja la grilla: se devuelve el foco
+  $("rejilla").querySelector('[data-n="' + n + '"]').focus();
+  /* Con todos los números marcados, de vuelta al cuadro de arriba para poner el nombre y confirmar. */
+  if (ELIGE.marcados.size === ELIGE.cantidad){ $("formElegir").scrollIntoView({ behavior: "smooth", block: "start" }); $("nombre").focus({ preventScroll: true }); }   // pintar() redibuja la grilla: se devuelve el foco
 };
 const textoElige = () => $("elige").textContent = "Tu código da " + ELIGE.cantidad + (ELIGE.cantidad === 1 ? " número" : " números") +
   ". Marcados: " + (ELIGE.marcados.size ? [...ELIGE.marcados].sort((a, b) => a - b).join(", ") : "ninguno") + " (" + ELIGE.marcados.size + " de " + ELIGE.cantidad + ").";
@@ -212,7 +214,7 @@ $("formCodigo").onsubmit = async e => {
     } else {
       ELIGE = { codigo: c, cantidad: cant.val(), marcados: new Set() };
       $("formElegir").classList.remove("oculto"); $("formCodigo").classList.add("oculto"); $("listo").classList.add("oculto");
-      textoElige(); pintar(); $("nombre").focus();
+      textoElige(); pintar(); $("rejilla").scrollIntoView({ behavior: "smooth", block: "start" });   // el cuadro va arriba y la grilla abajo
     }
   } catch(x){ errCodigo("No se pudo revisar el código. Revisa tu conexión."); }
   $("usarCodigo").disabled = false;
