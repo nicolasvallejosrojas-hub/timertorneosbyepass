@@ -407,11 +407,11 @@ function construirTorneo(partidas, meta){
   /* torneo.js hace el resto: la hoja que ven los jugadores (aPairings), la tabla con
      desempates (clasificacion) y las partidas por puesto (aHistorial). */
   const parsed = aPairings(t);
-  let ids = clasificacion(t).map(p => p.id), duelos = aHistorial(t).partidas;
-  /* La tabla general: todos juntos por puntos y desempates, antes de que el archivo la ordene o la divida.
-     Se devuelve solo si la tabla terminó dividida por categoría, para la imagen «Tabla general». */
-  const general = { filas: parsed.standings.map(f => ({ ...f })), ids: ids.slice() };
-  let dividida = false;
+  const cl = clasificacion(t);
+  let ids = cl.map(p => p.id), duelos = aHistorial(t).partidas;
+  /* % de victorias de los rivales y de los rivales de los rivales de cada uno (5.3.3), para la tabla general. */
+  const pct = Object.fromEntries(cl.map(p => [p.id, [p.pts || 0, p.owp || 0, p.oowp || 0]]));
+  let general = null;
   /* 5. Si el archivo trae la tabla final con todos, manda su orden. */
   const orden = (meta.puestos || []).filter(k => jug[k]);
   if (orden.length === ids.length && new Set(orden).size === orden.length){
@@ -442,10 +442,26 @@ function construirTorneo(partidas, meta){
       duelos = duelos.map(([r, a, b, g]) => [r, nuevo[a], nuevo[b], g]);
       ids = viejo.map(v => ids[v]);
       avisos.add("La tabla se dividió en " + new Set(catFila).size + " categorías (Masters, Senior y Junior), cada una con su puesto.");
-      dividida = true;
+      /* La tabla general, para la imagen: las categorías juntas. Dentro de cada una manda el orden del
+         archivo (el de TOM); entre ellas, el mejor que queda al frente de cada una por puntos, % de
+         victorias de los rivales y % de los rivales de los rivales. El archivo no trae esos %: los
+         calcula torneo.js con la regla oficial. A igualdad total, la categoría mayor primero. */
+      const colas = {};
+      parsed.standings.forEach((f, i) => (colas[f.cat] = colas[f.cat] || []).push(i));
+      const orden = Object.keys(colas).sort((a, b) => b - a).map(c => colas[c]);
+      const mejor = (a, b) => { const x = pct[ids[a]] || [0, 0, 0], y = pct[ids[b]] || [0, 0, 0];
+        for (let k = 0; k < 3; k++) if (Math.abs(x[k] - y[k]) > 1e-9) return x[k] > y[k];
+        return false; };
+      general = { filas: [], ids: [] };
+      while (orden.some(c => c.length)){
+        let cola = null;
+        for (const c of orden) if (c.length && (!cola || mejor(c[0], cola[0]))) cola = c;
+        const i = cola.shift();
+        general.filas.push({ ...parsed.standings[i], cat: undefined, place: general.filas.length + 1 }); general.ids.push(ids[i]);
+      }
     }
   }
-  return { parsed, ids, duelos, avisos: [...avisos], torneo: t, general: dividida ? general : null };
+  return { parsed, ids, duelos, avisos: [...avisos], torneo: t, general };
 }
 
 /* Puertas de entrada: el texto (pegado o leído) o el archivo (ArrayBuffer). */
