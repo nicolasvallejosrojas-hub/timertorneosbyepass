@@ -178,6 +178,13 @@
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .retirado{color:var(--apagado);}
   details.plegable{margin-top:14px;border-top:1px solid var(--divider);padding-top:10px;}
+  /* corregir a mano el orden de la tabla general (solo para la imagen) */
+  .ordenG{list-style:none;margin:8px 0;padding:0;max-height:420px;overflow:auto;}
+  .ordenG li{display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--divider);font-size:var(--t3);}
+  .ordenG li b{min-width:2em;color:var(--apagado);font-variant-numeric:tabular-nums;}
+  .ordenG li span{flex:1;min-width:0;}
+  .ordenG li small{color:var(--apagado);}
+  .ordenG button{min-width:40px;min-height:36px;}
   details.plegable summary{cursor:pointer;font-size:var(--t3);font-weight:600;}
   #bjBuscar{width:100%;font-size:var(--t3);padding:10px 12px;margin-top:10px;}
   @media (max-width:640px){
@@ -990,6 +997,12 @@
     <select id="tablaFmt" hidden aria-label="Formato de la tabla" style="font-size:var(--t3);padding:8px 10px">
       <option value="general">Tabla general</option><option value="cats">Por categoría</option></select>
   </div>
+  <details class="plegable" id="tablaOrdenar" hidden><summary>Corregir el orden de la tabla general</summary>
+    <div class="muted" style="margin-top:6px">Si no calza con TOM, sube o baja a quien corresponda. Solo cambia la imagen:
+      lo que se archiva y ven los jugadores no se toca.</div>
+    <ol class="ordenG" id="tablaOrdenLista"></ol>
+    <button class="sec small" id="tablaOrdenReset" type="button">Volver al orden calculado</button>
+  </details>
   <div id="archMsg" class="muted" style="margin-top:6px"></div>
 </div>
 </div><!-- /modoArchivo -->
@@ -2940,7 +2953,29 @@ let ID_POR_PUESTO = [];
    derrota. Vive fuera de `parsed` por lo mismo que ID_POR_PUESTO. */
 let DUELOS = [];
 /* Con la tabla dividida por categoría, la general (todos juntos): la imagen puede salir de cualquiera de las dos. */
-let GENERAL = null;
+let GENERAL = null, GENERAL0 = null;   // GENERAL0: el orden calculado, para volver a él
+/* La lista para corregir a mano el orden de la tabla general (↑ ↓). Cambia GENERAL, que solo usa la imagen. */
+const NOM_CAT_G = ["Junior", "Senior", "Masters"];
+function pintarOrdenGeneral(){
+  const ver = !!GENERAL && $("tablaFmt").value === "general";
+  $("tablaOrdenar").hidden = !ver;
+  if (!ver) return;
+  const L = $("tablaOrdenLista");
+  L.innerHTML = GENERAL.filas.map((p, i) => '<li><b>' + (i + 1) + '.</b><span>' + esc(p.name) + ' <small>· ' + (p.pts || 0) + " pts · " +
+    (p.w || 0) + "-" + (p.l || 0) + "-" + (p.t || 0) + (p.categoria != null ? " · " + NOM_CAT_G[p.categoria] : "") + "</small></span>" +
+    '<button class="sec small" data-gsube="' + i + '" aria-label="Subir a ' + esc(p.name) + '"' + (i ? "" : " disabled") + ">↑</button>" +
+    '<button class="sec small" data-gbaja="' + i + '" aria-label="Bajar a ' + esc(p.name) + '"' + (i < GENERAL.filas.length - 1 ? "" : " disabled") + ">↓</button></li>").join("");
+  const mover = (i, j) => {
+    if (j < 0 || j >= GENERAL.filas.length) return;
+    [GENERAL.filas[i], GENERAL.filas[j]] = [GENERAL.filas[j], GENERAL.filas[i]];
+    [GENERAL.ids[i], GENERAL.ids[j]] = [GENERAL.ids[j], GENERAL.ids[i]];
+    pintarOrdenGeneral();
+    const b = L.querySelector("[data-" + (j < i ? "gsube" : "gbaja") + '="' + j + '"]');   // el foco sigue al jugador movido
+    (b && !b.disabled ? b : L.querySelector("[data-" + (j < i ? "gbaja" : "gsube") + '="' + j + '"]')).focus();
+  };
+  L.querySelectorAll("[data-gsube]").forEach(b => b.onclick = () => mover(+b.dataset.gsube, +b.dataset.gsube - 1));
+  L.querySelectorAll("[data-gbaja]").forEach(b => b.onclick = () => mover(+b.dataset.gbaja, +b.dataset.gbaja + 1));
+}
 
 /* ▌BLOQUE 26 · Vista previa y publicación de emparejamientos ════════════════════
    Muestra lo leído del archivo (aplicarLectura, con los avisos de importar.js), y publica en
@@ -2991,7 +3026,8 @@ function aplicarLectura(fuente, nombre, { autoPublicar = false, silencioso = fal
   try {
     const r = typeof fuente === "string" ? importarTexto(fuente) : importarArchivo(fuente);
     parsed = r.parsed; ID_POR_PUESTO = r.ids; DUELOS = r.duelos; AVISOS = r.avisos;
-    GENERAL = r.general; $("tablaFmt").hidden = !GENERAL;
+    GENERAL = r.general; GENERAL0 = GENERAL && { filas: GENERAL.filas.slice(), ids: GENERAL.ids.slice() };
+    $("tablaFmt").hidden = !GENERAL; pintarOrdenGeneral();
     showPreview(parsed);
     if (parsed.rondasTotales) $("rondasTot").value = parsed.rondasTotales;
     $("publishBtn").disabled = false;
@@ -3546,15 +3582,17 @@ $("archiveBtn").onclick = archivarTorneo;
    sale como «Jugador reservado», igual que en lo que se archiva. */
 /* En la sala de invitado no hay tienda: la imagen dice «Tabla final». */
 const nombreDeLaTienda = () => SIN_TIENDA ? "" : nombreTienda((TIENDA_P || {}).perfil || null, TIENDA);
+$("tablaFmt").onchange = pintarOrdenGeneral;
+$("tablaOrdenReset").onclick = () => { if (GENERAL0){ GENERAL = { filas: GENERAL0.filas.slice(), ids: GENERAL0.ids.slice() }; pintarOrdenGeneral(); } };
 $("tablaBtn").onclick = () => {
   if (!parsed) return;
   /* General (si la hay y está elegida): todos juntos, sin títulos de categoría. Si no, la del archivo. */
-  const gen = GENERAL && $("tablaFmt").value === "general";
+  const gen = GENERAL && $("tablaFmt").value === "general";   // en el orden que quedó (calculado o corregido a mano)
   const [filas, idsF] = gen ? [GENERAL.filas, GENERAL.ids] : [parsed.standings, ID_POR_PUESTO];
   entregarTabla({ torneo: parsed.name, fecha: $("archDate").value, tienda: nombreDeLaTienda(),
     filas: filas.map((p, i) => {
       const e = ENLACES[String(idsF[i] || "")];
-      return { puesto: p.place, nombre: e && !e.publico ? "Jugador reservado" : p.name, w: p.w, l: p.l, t: p.t, pts: p.pts, cat: gen ? undefined : p.cat };
+      return { puesto: gen ? i + 1 : p.place, nombre: e && !e.publico ? "Jugador reservado" : p.name, w: p.w, l: p.l, t: p.t, pts: p.pts, cat: gen ? undefined : p.cat };
     }) }).catch(() => { $("archMsg").innerHTML = '<span class="err">No se pudo armar la imagen.</span>'; });
 };
 

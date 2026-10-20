@@ -457,7 +457,7 @@ function construirTorneo(partidas, meta){
         let cola = null;
         for (const c of orden) if (c.length && (!cola || mejor(c[0], cola[0]))) cola = c;
         const i = cola.shift();
-        general.filas.push({ ...parsed.standings[i], cat: undefined, place: general.filas.length + 1 }); general.ids.push(ids[i]);
+        general.filas.push({ ...parsed.standings[i], cat: undefined, categoria: parsed.standings[i].cat, place: general.filas.length + 1 }); general.ids.push(ids[i]);
       }
     }
   }
