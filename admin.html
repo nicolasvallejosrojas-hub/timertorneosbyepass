@@ -1062,6 +1062,14 @@
     <input type="file" id="recArchivos" multiple style="display:none">
     <span id="recMsg" class="muted"></span>
   </div>
+  <div class="muted" style="margin-top:12px">¿Archivaste torneos con Junior, Senior y Masters antes de que la tabla se
+    dividiera por categoría? Sube sus archivos y cada uno queda con su categoría y su puesto dentro de ella, para el
+    ranking del mes. No hay que borrarlos ni volver a archivarlos.</div>
+  <div class="row" style="margin-top:6px;align-items:center">
+    <button class="small sec" id="recCatBtn">Recuperar categorías desde archivos</button>
+    <input type="file" id="recCatArchivos" multiple style="display:none">
+    <span id="recCatMsg" class="muted"></span>
+  </div>
   </div><!-- /recBox -->
 </div>
 </div>
@@ -3622,6 +3630,62 @@ $("recArchivos").onchange = async e => {
     catch(err){ sin.push(f.name); }
   }
   $("recMsg").textContent = (ok ? ok + (ok === 1 ? " torneo recuperado." : " torneos recuperados.") : "") +
+    (sin.length ? " Sin torneo archivado que calce: " + sin.join(", ") + "." : "");
+};
+
+/* Torneos archivados antes de que la tabla se dividiera por categoría: su archivo se lee de nuevo y se
+   busca su torneo del historial por nombre, cantidad de jugadores y las filas (nombre y récord), sin
+   importar el orden —el archivado está en el orden de antes—. Se rehace su tabla como al archivar hoy:
+   cada categoría con su puesto, las partidas en el orden nuevo y los ID. El uid de cada fila sale del
+   enlace de su ID con la tienda, igual que al archivar; sin ID, se conserva el de la fila de antes. */
+const filaRecCat = p => nomRec(p.name) + "|" + p.w + "-" + p.l + "-" + p.t;
+const recRecCat = p => p.w + "-" + p.l + "-" + p.t;
+function calzaSinOrden(viejas, nuevas){
+  if (viejas.length !== nuevas.length) return false;
+  const cuenta = (xs, k) => xs.reduce((m, p) => (m[k(p)] = (m[k(p)] || 0) + 1, m), {});
+  const rv = cuenta(viejas, recRecCat), rn = cuenta(nuevas, recRecCat);
+  if (Object.keys(rv).some(k => rv[k] !== rn[k])) return false;
+  const nn = cuenta(nuevas, filaRecCat), usados = {};
+  return viejas.every(p => p.reservado || ((usados[filaRecCat(p)] = (usados[filaRecCat(p)] || 0) + 1) <= (nn[filaRecCat(p)] || 0)));
+}
+$("recCatBtn").onclick = () => $("recCatArchivos").click();
+$("recCatArchivos").onchange = async e => {
+  const archivos = [...e.target.files]; e.target.value = "";
+  if (!archivos.length) return;
+  $("recCatMsg").textContent = "Leyendo…";
+  let ok = 0; const sin = [], sinCat = [];
+  for (const f of archivos){
+    let r;
+    try { r = importarArchivo(await f.arrayBuffer()); } catch(err){ sin.push(f.name); continue; }
+    const d = r.parsed;
+    if (!d.standings.some(p => p.cat != null)){ sinCat.push(f.name); continue; }
+    let cand = Object.entries(HIST_P).filter(([, t]) => t.nombre === d.name && calzaSinOrden(t.standings || [], d.standings));
+    if (cand.length > 1 && d.fecha) cand = cand.filter(([, t]) => t.fecha === d.fecha);
+    if (!cand.length){ sin.push(f.name); continue; }
+    try {
+      for (const [tid, t] of cand){
+        /* la fila de antes de cada persona (por nombre y récord), para conservar su uid si no tiene ID */
+        const antes = {}; (t.standings || []).forEach(p => (antes[filaRecCat(p)] = antes[filaRecCat(p)] || []).push(p));
+        const standings = d.standings.map((p, i) => {
+          const fila = { place: p.place, name: p.name, w: p.w, l: p.l, t: p.t, pts: p.pts };
+          if (p.cat != null) fila.cat = p.cat;
+          const e = ENLACES[String(r.ids[i] || "")], vieja = (antes[filaRecCat(p)] || []).shift();
+          const uid = e ? e.uid : vieja && vieja.uid, reservado = e ? !e.publico : vieja && vieja.reservado;
+          if (uid) fila.uid = uid;
+          if (reservado){ fila.name = "Jugador reservado"; fila.reservado = true; }
+          return fila;
+        });
+        const ids = {};
+        r.ids.forEach((id, i) => { if (/^[0-9]{7,8}$/.test(String(id || ""))) ids[i] = String(id); });
+        /* historialVer nuevo: los celulares que guardaron el historial lo bajan de nuevo. */
+        await update(ref(db, BASE_T), { ["historial/" + tid + "/standings"]: standings, ["historial/" + tid + "/partidas"]: r.duelos, historialVer: Date.now() });
+        if (Object.keys(ids).length) await set(ref(db, "idsHistorial/" + TIENDA + "/" + tid), ids).catch(() => {});
+      }
+      ok++;
+    } catch(err){ sin.push(f.name); }
+  }
+  $("recCatMsg").textContent = (ok ? ok + (ok === 1 ? " torneo quedó con sus categorías." : " torneos quedaron con sus categorías.") : "") +
+    (sinCat.length ? " Sin categorías en el archivo: " + sinCat.join(", ") + "." : "") +
     (sin.length ? " Sin torneo archivado que calce: " + sin.join(", ") + "." : "");
 };
 

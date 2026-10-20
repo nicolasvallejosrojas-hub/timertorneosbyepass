@@ -233,10 +233,10 @@
      verdad; el orden en pantalla es 2 · 1 · 3. Los colores salen de la paleta
      (oro, plata, bronce del sistema) y no del rojo y verde de la referencia,
      que pelearían con el amarillo de acción. */
-  #podio{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:7px;align-items:end;
+  .podio{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:7px;align-items:end;
          margin:4px 0 22px;position:relative;padding-bottom:5px;}
   /* Una base para que los tres bloques se apoyen en algo y no floten */
-  #podio::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;
+  .podio::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;
     background:var(--sup-alta);border-radius:0 0 var(--radio) var(--radio);}
   .pod{display:flex;flex-direction:column;align-items:center;min-width:0;}
   .podNom{font-size:var(--t2);font-weight:600;text-align:center;line-height:1.25;
@@ -250,8 +250,6 @@
   .p1 .podCaja{height:104px;background:var(--podio1);font-size:var(--d2);}
   .p2 .podCaja{height:76px; background:var(--podio2);font-size:var(--d3);}
   .p3 .podCaja{height:58px; background:var(--podio3);font-size:var(--d3);}
-  /* Con uno o dos jugadores el podio se ve raro, así que ahí no se muestra */
-  #podio.hide{display:none;}
 
   /* =========================================================
      Sorteo
@@ -371,7 +369,6 @@
     <label for="mes" class="solo-lectores">Mes de la clasificación</label>
     <select id="mes"></select>
   </div>
-  <div id="podio" class="hide"></div>
   <div id="clasBox"></div>
   <div id="cstatus">Conectando&hellip;</div>
 </div>
@@ -935,19 +932,19 @@ $("mes").onchange = e => { mesSel = e.target.value; renderClas(true); };
 
 /* El podio repite a los tres primeros que ya están en la tabla de abajo. No
    es información nueva: es para que se vea de un vistazo quién va ganando el
-   mes, que es lo que el jugador viene a mirar. */
-function pintarPodio(filas){
-  const caja = $("podio");
-  if (filas.length < 3){ caja.className = "hide"; caja.innerHTML = ""; return; }
-  caja.className = "";
+   mes, que es lo que el jugador viene a mirar. Con categorías, uno por cada una
+   (hasta el 20-10-2026 desaparecía en ese caso). Con uno o dos jugadores se ve
+   raro, así que ahí no va. */
+function podioHtml(filas){
+  if (filas.length < 3) return "";
   const orden = [filas[1], filas[0], filas[2]];       // en pantalla: 2 · 1 · 3
   const puesto = [2, 1, 3];
-  caja.innerHTML = orden.map((r, i) =>
+  return '<div class="podio">' + orden.map((r, i) =>
     '<div class="pod p' + puesto[i] + '">' +
       '<div class="podNom">' + esc(r.name) + '</div>' +
       '<div class="podPts">' + r.pts + ' pts</div>' +
       '<div class="podCaja">' + puesto[i] + '</div>' +
-    '</div>').join("");
+    '</div>').join("") + "</div>";
 }
 
 function renderClas(soloTabla){
@@ -956,7 +953,6 @@ function renderClas(soloTabla){
   const torneos = deTimer(Object.values(HIST), numTimer(SALA));
   if (!torneos.length){
     $("clasBox").innerHTML = "";
-    $("podio").className = "hide";
     $("cstatus").textContent = "Todavía no hay torneos archivados.";
     $("mes").style.display = "none";
     return;
@@ -974,13 +970,12 @@ function renderClas(soloTabla){
   /* Con categorías, una tabla por cada una (Masters, Senior, Junior), cada una con sus puntos. */
   const secs = clasificarPorCategoria(torneos, mesSel, CFG);
 
-  pintarPodio(secs.length === 1 ? secs[0].filas : []);   // el podio es de la tabla única
-
   let h = '<div class="sub" style="margin-bottom:10px">' + delMes.length +
           (delMes.length === 1 ? ' torneo' : ' torneos') + ' en ' + nombreMes(mesSel) + '</div>';
   h += '<div class="chead"><span>JUGADOR</span><span>PUNTOS</span></div>';
   let k = 0;   // el número de cada fila no se repite entre categorías: es lo que une la fila con su detalle
   secs.forEach(sec => { if (sec.nombre) h += '<div class="secLabel" style="margin:14px 0 4px">' + esc(sec.nombre.toUpperCase()) + '</div>';
+  h += podioHtml(sec.filas);
   sec.filas.forEach((r,i) => {
     const pos = i+1, medalla = pos <= 3 ? " pod"+pos : "", n = k++;
     h += `<div class="crow" data-i="${n}">
