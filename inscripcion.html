@@ -156,7 +156,7 @@
         <label class="campo"><span>Correo electrónico</span>
           <input id="correo" type="email" autocomplete="email" maxlength="120" required></label>
         <label class="campo"><span>ID de jugador de Play! Pokémon</span>
-          <input id="playerId" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="7 u 8 números" required></label>
+          <input id="playerId" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="6 a 8 números" required></label>
         <label class="campo"><span>Nickname</span>
           <input id="nick" autocomplete="nickname" maxlength="40" required></label>
         <div class="dos">
@@ -224,15 +224,15 @@ Trainer: 40
     </form>
   </main>
 
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sesion, sala, agenda y listamazo. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=14";
+import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=15";
 import { slug, nombreTienda } from "./sala.js?v=6";
-import { fechaLegible, urlGoogle } from "./agenda.js?v=4";
+import { fechaLegible, urlGoogle } from "./agenda.js?v=5";
 import { leerLista, cuenta, division, hoja, imprimir, cargarEstandar, componer, norm, TEMPORADA } from "./listamazo.js?v=6";
 
 const $ = id => document.getElementById(id);
@@ -511,7 +511,7 @@ function leer(){
   if (d.lista.length > 6000) return { error: "La lista es demasiado larga: revisa que no se haya pegado dos veces." };
   d.playerId = d.playerId.replace(/\D/g, "");
   if (!CORREO_OK(d.correo)) return { error: "Revisa el correo: no tiene un formato válido." };
-  if (!ID_OK(d.playerId)) return { error: "El ID de jugador son 7 u 8 números. Está en tu cuenta de Play! Pokémon." };
+  if (!ID_OK(d.playerId)) return { error: "El ID de jugador son de 6 a 8 números. Está en tu cuenta de Play! Pokémon." };
   if (!d.nick) return { error: "Escribe tu nickname." };
   if (!d.nombre || !d.apellido) return { error: "Escribe tu nombre y tu apellido." };
   const n = errorNacimiento(d.nacimiento); if (n) return { error: n };

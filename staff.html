@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<!-- ▌ÍNDICE de staff.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Marcado
+      3. Módulos
+      4. Arranque y variables
+      5. Pedir entrar y chat
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B7F6C">
+<meta name="robots" content="noindex">
+<title>Staff de la sala — ByePass</title>
+<link rel="stylesheet" href="estilo.css?v=12">
+<!-- ▌BLOQUE 1 · Estilos — Formularios, espera y chat del staff. -->
+<style>
+  /* Para el staff de un torneo (jueces y ayudantes que no organizan la tienda). Se entra con el código que da el
+     organizador, con un nombre y sin cuenta; el organizador admite o rechaza. Admitido, tiene el reloj de la ronda con su
+     alarma, las mesas, un cronómetro para dar tiempo extra a una mesa, y el chat de la sala. */
+  body{min-height:100vh;}
+  .sup{display:flex;align-items:center;min-height:56px;padding:0 var(--e4);}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto);text-decoration:none;}
+  .marca b{font-weight:300;color:var(--accion-texto);}
+  main{max-width:640px;margin:0 auto;padding:var(--e4) var(--e4) 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:var(--e4);}
+  h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
+  .meta{font-size:var(--t3);color:var(--apagado);line-height:1.6;margin:var(--e1) 0 0;}
+  .caja{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
+  .campo{display:grid;gap:4px;font-size:var(--t2);color:var(--apagado);}
+  .campo input,.campo select{width:100%;box-sizing:border-box;font-size:var(--t4);padding:12px;}
+  #codigo{text-transform:uppercase;letter-spacing:.14em;font-weight:700;}
+  .fila{display:flex;gap:var(--e3);flex-wrap:wrap;align-items:center;}
+  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
+  .aviso{padding:var(--e3);border-radius:var(--radio);background:var(--sup-alta);font-size:var(--t3);line-height:1.5;}
+  .aviso.mal{color:var(--negativo);}
+  .estado{font-size:var(--t2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);}
+  .estado.espera{color:var(--rotulo);}
+  .oculto{display:none !important;}
+  main a:not(.btn){color:var(--accion-texto);}
+
+  /* el reloj */
+  .reloj{font-family:var(--fuente-reloj);font-weight:300;font-size:clamp(84px,26vw,170px);line-height:1;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+  .reloj.neg{color:var(--negativo);}
+  .reloj.pausa{opacity:.55;}
+  .rondaT{text-align:center;font-size:var(--t4);font-weight:600;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+  .chip{font-size:var(--t2);padding:4px 12px;border-radius:999px;background:var(--sup-alta);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .chip b{font-weight:700;margin-left:4px;}
+  .chip button{min-height:28px;min-width:28px;padding:0;border:none;border-radius:50%;background:transparent;font-size:16px;line-height:1;cursor:pointer;color:inherit;}
+
+  /* las mesas */
+  .mesaF{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--divider);}
+  .mesaF:first-of-type{border-top:none;}
+  .mesaF .n{font-size:var(--d3);font-weight:700;min-width:1.6em;font-variant-numeric:tabular-nums;}
+  .mesaF .jug{font-size:var(--t3);line-height:1.35;min-width:0;overflow-wrap:anywhere;}
+  .mesaF .jug small{color:var(--apagado);display:block;font-variant-numeric:tabular-nums;}
+  .mesaF .res{grid-column:2;font-size:var(--t2);color:var(--apagado);}
+  .mesaF .ex{grid-column:2;}
+
+  /* tiempo por mesa */
+  .crono{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;padding:12px;border-radius:var(--radio);background:var(--sup-alta);}
+  .crono .m{font-size:var(--d3);font-weight:700;}
+  .crono .t{font-family:var(--fuente-reloj);font-size:var(--d3);font-weight:300;font-variant-numeric:tabular-nums;text-align:right;}
+  .crono .acc{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .crono input[type=number]{width:5em;font-size:var(--t4);padding:8px;text-align:center;}
+
+  /* el chat */
+  .feed{display:flex;flex-direction:column;gap:6px;height:min(52vh,420px);overflow:auto;padding:4px 2px;}
+  .msg{align-self:flex-start;max-width:92%;background:var(--sup-alta);border-radius:14px;padding:7px 12px;}
+  .msg.mio{align-self:flex-end;background:color-mix(in srgb, var(--accion) 16%, var(--sup));}
+  .msg .quien{font-size:var(--t2);color:var(--apagado);}
+  .msg .quien b{color:var(--texto);font-weight:600;}
+  .msg p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;}
+  .enviar{display:flex;gap:8px;}
+  .enviar input{flex:1;min-width:0;font-size:var(--t4);padding:12px;}
+
+  /* la barra de abajo */
+  #nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:4px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+    background:var(--sup);border-top:1px solid var(--divider);}
+  #nav button{flex:1;max-width:150px;min-height:48px;border:none;border-radius:12px;background:transparent;font:inherit;font-size:var(--t2);font-weight:600;color:var(--apagado);cursor:pointer;position:relative;}
+  #nav button.on{background:var(--sup-alta);color:var(--accion-texto);}
+  .insig{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:999px;background:var(--accion);color:var(--sobre-accion);font-size:12px;font-weight:700;line-height:18px;text-align:center;}
+  .insig[hidden]{display:none;}
+</style>
+</head>
+<body>
+  <!-- ▌BLOQUE 2 · Marcado — Código, nombre, espera y chat. -->
+  <header class="sup"><a class="marca" href="index.html">Bye<b>Pass</b></a></header>
+  <main>
+    <div id="cabeza">
+      <div class="estado espera" id="estado" role="status">Staff de la sala</div>
+      <h1 id="titulo">Entra al staff</h1>
+      <p class="meta" id="sub">Con el código que te dio el organizador del torneo.</p>
+    </div>
+
+    <form class="caja" id="formCodigo" novalidate>
+      <label class="campo"><span>Código de staff</span>
+        <input id="codigo" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ej. 7KQ2BD" aria-describedby="errCodigo"></label>
+      <div class="aviso mal oculto" id="errCodigo" role="alert"></div>
+      <div class="fila"><button class="btn primario" type="submit" id="btnCodigo">Continuar</button></div>
+    </form>
+
+    <form class="caja oculto" id="formNombre" novalidate>
+      <label class="campo"><span>Tu nombre</span>
+        <input id="nombre" maxlength="60" autocomplete="name" placeholder="Nombre y apellido"></label>
+      <p class="pista">No necesitas cuenta. El organizador verá tu nombre y decidirá si te admite.</p>
+      <div class="aviso mal oculto" id="errNombre" role="alert"></div>
+      <div class="fila"><button class="btn primario" type="submit" id="btnNombre">Pedir entrar</button>
+        <button class="btn" type="button" id="btnOtro">Cambiar el código</button></div>
+    </form>
+
+    <div class="caja oculto" id="espera">
+      <div class="aviso" id="avisoEspera" role="status">Esperando que el organizador te admita. Deja esta página abierta: cuando te admita, el reloj, las mesas y el chat aparecen solos.</div>
+      <div class="fila"><button class="btn" type="button" id="btnAvisosEspera">Avisarme cuando me admitan</button>
+        <button class="btn" type="button" id="btnCancelar">Cancelar la solicitud</button></div>
+    </div>
+
+    <!-- Ya admitido: el reloj, las mesas, el tiempo por mesa y el chat. -->
+    <div class="oculto" id="app" style="display:flex;flex-direction:column;gap:var(--e4)">
+      <label class="campo oculto" id="campoTimer"><span>Timer</span><select id="selTimer" aria-label="Timer de la tienda"></select></label>
+
+      <section id="vReloj" class="caja" aria-label="Reloj de la ronda">
+        <div class="rondaT" id="rondaT">Ronda</div>
+        <div class="reloj" id="reloj" role="timer" aria-live="off">--:--</div>
+        <div class="chips" id="chips"></div>
+        <div class="fila" style="justify-content:center">
+          <button class="btn" type="button" id="btnSonido">Activar sonido de la alarma</button>
+        </div>
+        <p class="pista" style="text-align:center" id="pistaReloj">Suena al llegar a cero mientras esta página esté abierta.</p>
+      </section>
+
+      <section id="vMesas" class="caja oculto" aria-label="Mesas">
+        <label class="campo"><span>Buscar una mesa o un jugador</span><input id="buscar" type="search" placeholder="Número de mesa o nombre" autocomplete="off"></label>
+        <div id="listaMesas"></div>
+      </section>
+
+      <section id="vTiempo" class="caja oculto" aria-label="Tiempo por mesa">
+        <p class="pista">Toma el tiempo que dedicas a una mesa (una consulta, un llamado al juez) y dáselo de vuelta como tiempo extra:
+          la tele y los celulares lo muestran.</p>
+        <div class="fila">
+          <label class="campo" style="flex:none"><span>Mesa</span><input id="mesaT" type="number" min="1" max="999" inputmode="numeric" style="width:6em"></label>
+          <button class="btn primario" type="button" id="btnCrono">Tomar el tiempo</button>
+        </div>
+        <div class="fila">
+          <label class="campo" style="flex:none"><span>O dar directo</span>
+            <select id="minDirecto"><option value="1">+1 min</option><option value="2">+2 min</option><option value="3" selected>+3 min</option><option value="5">+5 min</option><option value="10">+10 min</option></select></label>
+          <button class="btn" type="button" id="btnDirecto" style="align-self:end">Dar tiempo</button>
+        </div>
+        <div class="aviso oculto" id="msgTiempo" role="status"></div>
+        <div id="cronos" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="dados"></div>
+      </section>
+
+      <section id="vChat" class="caja oculto" aria-label="Chat de la sala">
+        <div class="feed" id="feed" role="log" aria-live="polite" aria-label="Mensajes de la sala"></div>
+        <form class="enviar" id="formEnviar" novalidate>
+          <input id="texto" maxlength="500" autocomplete="off" placeholder="Escribe un mensaje" aria-label="Mensaje">
+          <button class="btn primario" type="submit">Enviar</button>
+        </form>
+        <div class="aviso mal oculto" id="errEnviar" role="alert"></div>
+        <div class="fila"><button class="btn" type="button" id="btnAvisos">Activar avisos</button>
+          <button class="btn" type="button" id="btnSalir">Salir del staff</button></div>
+      </section>
+    </div>
+
+    <p class="pista" id="avisosMsg" role="status"></p>
+    <p class="pista">Lo que escribes lo ven el organizador y el staff de esta sala. Más en la <a href="privacidad.html">política de privacidad</a>.</p>
+  </main>
+
+  <nav id="nav" class="oculto" aria-label="Secciones del staff">
+    <button type="button" data-v="Reloj" class="on">Reloj</button>
+    <button type="button" data-v="Mesas">Mesas</button>
+    <button type="button" data-v="Tiempo">Tiempo</button>
+    <button type="button" data-v="Chat">Chat<span class="insig" id="badgeChat" hidden></span></button>
+  </nav>
+
+<script src="config.js?v=10"></script>
+<!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y la app «staff» (sesión anónima aparte). -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, connectDatabaseEmulator, ref, get, set, push, remove, onValue, query, limitToLast, serverTimestamp, runTransaction }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=1";
+
+const $ = id => document.getElementById(id);
+/* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
+   Sesión anónima aparte; recuerda la tienda, el código y el nombre en este navegador. */
+const EMU = typeof EMULADOR !== "undefined" && EMULADOR;
+/* Sesión anónima aparte de cualquier cuenta (app «staff»): se recuerda en este navegador para volver. */
+const app = initializeApp(FIREBASE_CONFIG, "staff");
+const db = getDatabase(app), auth = getAuth(app);
+if (EMU){
+  connectAuthEmulator(auth, "http://" + EMULADOR.host + ":" + EMULADOR.auth, { disableWarnings: true });
+  connectDatabaseEmulator(db, EMULADOR.host, EMULADOR.db);
+}
+const LS = { tienda: "staff:tienda", codigo: "staff:codigo", nombre: "staff:nombre", sala: "staff:sala", sonido: "staff:sonido" };
+const guardado = k => { try { return localStorage.getItem(k) || ""; } catch(e){ return ""; } };
+const guardar = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch(e){} };
+const limpio = v => String(v || "").toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g, "").slice(0, 6);
+const hora = ms => new Date(ms || 0).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+const error = (id, t) => { $(id).textContent = t; $(id).classList.toggle("oculto", !t); };
+const fmt = s => (s < 0 ? "-" : "") + String(Math.floor(Math.abs(s) / 60)).padStart(2, "0") + ":" + String(Math.abs(s) % 60).padStart(2, "0");
+
+let TIENDA = guardado(LS.tienda), CODIGO = guardado(LS.codigo), NOMBRE_T = "", offEstado = null, offChat = null, vistos = null, nuevos = 0, UID = "";
+const TITULO = document.title;
+
+function paso(cual){
+  ["formCodigo", "formNombre", "espera", "app"].forEach(id => $(id).classList.toggle("oculto", id !== cual));
+  $("nav").classList.toggle("oculto", cual !== "app");
+  $("cabeza").classList.toggle("oculto", cual === "app");
+}
+function cabecera(estado, titulo, sub, espera){
+  $("estado").textContent = estado; $("estado").classList.toggle("espera", !!espera);
+  $("titulo").textContent = titulo; $("sub").textContent = sub;
+}
+async function nombreTienda(t){
+  try { return (await get(ref(db, "tiendas/" + t + "/perfil/nombre"))).val() || t; } catch(e){ return t; }
+}
+function inicio(){
+  detener(); paso("formCodigo");
+  cabecera("Staff de la sala", "Entra al staff", "Con el código que te dio el organizador del torneo.", true);
+  $("codigo").value = CODIGO && !TIENDA ? CODIGO : $("codigo").value;
+}
+function detener(){
+  if (offEstado){ offEstado(); offEstado = null; }
+  if (offChat){ offChat(); offChat = null; }
+  soltarSala(); clearInterval(latido); latido = null;
+  vistos = null; nuevos = 0; document.title = TITULO;
+}
+
+/* ▌BLOQUE 5 · Pedir entrar y chat ═══════════════════════════════════════════════
+   Del código a la tienda, el nombre como solicitud pendiente, la espera de la admisión y el chat
+   de la sala. */
+/* 1 · el código: dice de qué tienda es */
+async function buscarCodigo(c){
+  error("errCodigo", "");
+  if (c.length !== 6) return error("errCodigo", "El código tiene 6 letras y números, como 7KQ2BD.");
+  $("btnCodigo").disabled = true;
+  try {
+    const t = (await get(ref(db, "staffCodigos/" + c))).val();
+    if (typeof t !== "string") return error("errCodigo", "Ese código no existe o ya no sirve. Pídele el vigente al organizador.");
+    TIENDA = t; CODIGO = c; NOMBRE_T = await nombreTienda(t);
+    paso("formNombre");
+    cabecera(NOMBRE_T, "Staff de " + NOMBRE_T, "Pon tu nombre y el organizador decide si te admite.", true);
+    $("nombre").value = $("nombre").value || guardado(LS.nombre); $("nombre").focus();
+  } catch(e){ error("errCodigo", "No se pudo revisar el código. Revisa tu conexión."); }
+  finally { $("btnCodigo").disabled = false; }
+}
+$("codigo").oninput = e => { e.target.value = limpio(e.target.value); error("errCodigo", ""); };
+$("formCodigo").onsubmit = e => { e.preventDefault(); buscarCodigo(limpio($("codigo").value)); };
+$("btnOtro").onclick = () => { TIENDA = ""; inicio(); $("codigo").focus(); };
+
+/* 2 · el nombre: queda como pendiente */
+$("formNombre").onsubmit = async e => {
+  e.preventDefault(); error("errNombre", "");
+  const nombre = $("nombre").value.trim().replace(/\s+/g, " ").slice(0, 60);
+  if (!nombre) return error("errNombre", "Escribe tu nombre.");
+  $("btnNombre").disabled = true;
+  try {
+    const u = auth.currentUser || (await signInAnonymously(auth)).user;
+    try { await set(ref(db, "salaStaff/" + TIENDA + "/miembros/" + u.uid), { nombre, estado: "pendiente", codigo: CODIGO, creado: serverTimestamp() }); }
+    catch(err){
+      /* Si ya había una solicitud o un acceso de antes, se sigue con ese; si no, el código no sirvió. */
+      const ya = (await get(ref(db, "salaStaff/" + TIENDA + "/miembros/" + u.uid)).catch(() => null));
+      if (!ya || !ya.exists()) throw err;
+    }
+    guardar(LS.tienda, TIENDA); guardar(LS.codigo, CODIGO); guardar(LS.nombre, nombre);
+    observar(u.uid);
+  } catch(err){ error("errNombre", "No se pudo pedir entrar. Puede que el organizador haya cambiado el código: vuelve a pedírselo."); }
+  finally { $("btnNombre").disabled = false; }
+};
+
+/* 3 · mirar mi solicitud: pendiente → espera; admitido → la app; sin nada → ya no tengo acceso */
+async function observar(uid){
+  detener(); UID = uid;
+  NOMBRE_T = NOMBRE_T || await nombreTienda(TIENDA);
+  let tuvoAcceso = false;
+  renovarPush({ app, db, uid, tienda: TIENDA, rol: "staff" });   // si ya estaban activos, el token vigente
+  if (pushActivo(TIENDA)){ $("btnAvisos").textContent = "Avisos activados"; $("btnAvisosEspera").textContent = "Avisos activados"; }
+  offEstado = onValue(ref(db, "salaStaff/" + TIENDA + "/miembros/" + uid), s => {
+    const m = s.val();
+    if (m && m.estado === "admitido"){ tuvoAcceso = true; abrirApp(uid, m); return; }
+    if (offChat){ offChat(); offChat = null; }
+    soltarSala();
+    if (m){
+      paso("espera"); cabecera(NOMBRE_T, "Esperando al organizador", "Hola, " + m.nombre + ".", true);
+      return;
+    }
+    /* Sin entrada: el organizador me rechazó o me quitó (o nunca hubo). */
+    guardar(LS.tienda, ""); TIENDA = "";
+    inicio();
+    error("errCodigo", tuvoAcceso ? "El organizador te quitó del staff. Si fue un error, pide entrar otra vez." : "El organizador no admitió tu solicitud.");
+  }, () => { error("errCodigo", "No se pudo leer tu estado. Revisa tu conexión."); });
+}
+$("btnCancelar").onclick = () => salir();
+$("btnSalir").onclick = () => { if (confirm("¿Salir del staff? Dejas de ver el reloj y el chat y tendrías que pedir entrar otra vez.")) salir(); };
+async function salir(){
+  const u = auth.currentUser;
+  if (u && TIENDA) await desactivarPush({ app, db, uid: u.uid, tienda: TIENDA });
+  try { if (u && TIENDA) await remove(ref(db, "salaStaff/" + TIENDA + "/miembros/" + u.uid)); } catch(e){}
+  detener(); guardar(LS.tienda, ""); TIENDA = ""; inicio();
+}
+
+/* ------------------------------------------------------------ la app: pestañas */
+let vista = "Reloj";
+function verVista(v){
+  vista = v;
+  ["Reloj", "Mesas", "Tiempo", "Chat"].forEach(x => $("v" + x).classList.toggle("oculto", x !== v));
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  if (v === "Chat"){ nuevos = 0; $("badgeChat").hidden = true; document.title = TITULO; $("feed").scrollTop = $("feed").scrollHeight; }
+  pintar();
+}
+document.querySelectorAll("#nav button").forEach(b => b.onclick = () => verVista(b.dataset.v));
+
+/* ------------------------------------------------------------ el timer de la tienda
+   Un staff sirve a la tienda; la tienda puede tener hasta 5 timers (<tienda>, <tienda>-t2 …). Los demás se reconocen
+   porque su salas/<id>/tienda dice de quién son. */
+let SALA = "", TIMERS = [], offSala = [], S = null, EXTRAS = {}, LLAMADA = null, PAIR = null, offset = 0, latido = null, alarmado = null, CRONOS = {};
+const salaDe = n => n > 1 ? TIENDA + "-t" + n : TIENDA;
+async function descubrirTimers(){
+  const ids = [TIENDA];
+  await Promise.all([2, 3, 4, 5].map(n => get(ref(db, "salas/" + salaDe(n) + "/tienda")).then(s => { if (s.val() === TIENDA) ids.push(salaDe(n)); }, () => {})));
+  const nombres = await Promise.all(ids.map(id => get(ref(db, "salas/" + id + "/nombre")).then(s => s.val(), () => null)));
+  TIMERS = ids.map((id, i) => ({ id, nombre: nombres[i] || "Timer " + (id === TIENDA ? 1 : id.slice(TIENDA.length + 2)) }));
+  $("selTimer").innerHTML = TIMERS.map(t => '<option value="' + esc(t.id) + '">' + esc(t.nombre) + "</option>").join("");
+  $("campoTimer").classList.toggle("oculto", TIMERS.length < 2);
+  const guardada = guardado(LS.sala);
+  elegirSala(TIMERS.some(t => t.id === guardada) ? guardada : TIENDA);
+}
+$("selTimer").onchange = e => elegirSala(e.target.value);
+function soltarSala(){ offSala.forEach(f => f()); offSala = []; }
+function elegirSala(id){
+  SALA = id; guardar(LS.sala, id); $("selTimer").value = id;
+  soltarSala(); S = null; EXTRAS = {}; LLAMADA = null; PAIR = null; alarmado = null;
+  try { CRONOS = JSON.parse(guardado("staff:crono:" + id) || "{}"); } catch(e){ CRONOS = {}; }
+  offSala.push(onValue(ref(db, ".info/serverTimeOffset"), s => offset = s.val() || 0));
+  offSala.push(onValue(ref(db, "salas/" + id + "/timer/state"), s => { S = s.val(); pintar(); }, () => {}));
+  offSala.push(onValue(ref(db, "salas/" + id + "/timer/extras"), s => { EXTRAS = s.val() || {}; pintar(); }, () => {}));
+  offSala.push(onValue(ref(db, "salas/" + id + "/timer/llamada"), s => { LLAMADA = typeof s.val() === "number" ? s.val() : null; pintar(); }, () => {}));
+  offSala.push(onValue(ref(db, "salas/" + id + "/pairings"), s => { PAIR = s.val(); pintar(); }, () => {}));
+  pintar();
+}
+const ahora = () => Date.now() + offset;
+const segs = () => !S ? null : (S.paused || !S.endTime) ? Math.round(S.remaining ?? 0) : Math.round((S.endTime - ahora()) / 1000);
+const rondaAct = () => PAIR && PAIR.rounds && PAIR.rounds.length ? PAIR.rounds[PAIR.rounds.length - 1] : null;
+
+/* ------------------------------------------------------------ sonido de la alarma
+   Suena al llegar a cero (una vez por ronda) mientras esta página esté abierta. El navegador pide un toque para
+   permitir el sonido: por eso el botón. Un push de «Ronda terminada» avisa aunque la página esté cerrada. */
+let ctx = null;
+const sonidoOn = () => guardado(LS.sonido) === "1";
+function audio(){ if (!ctx){ const C = window.AudioContext || window.webkitAudioContext; if (C) ctx = new C(); } if (ctx && ctx.state === "suspended") ctx.resume(); return ctx; }
+function pitido(f, d){
+  try { const a = audio(); if (!a) return; const o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = f;
+    g.gain.setValueAtTime(.0001, a.currentTime); g.gain.exponentialRampToValueAtTime(.35, a.currentTime + .02); g.gain.exponentialRampToValueAtTime(.0001, a.currentTime + d);
+    o.start(); o.stop(a.currentTime + d + .05); } catch(e){}
+}
+function alarma(){ pitido(880, .35); setTimeout(() => pitido(880, .35), 420); setTimeout(() => pitido(880, .5), 840); try { navigator.vibrate && navigator.vibrate([300, 150, 300, 150, 500]); } catch(e){} }
+$("btnSonido").onclick = () => { if (sonidoOn()){ guardar(LS.sonido, ""); } else { guardar(LS.sonido, "1"); alarma(); } pintar(); };
+document.addEventListener("pointerdown", () => { if (sonidoOn()) audio(); }, { passive: true });
+
+/* ------------------------------------------------------------ pintar (cuatro veces por segundo y con cada cambio) */
+let ultimo = {};
+const poner = (id, h) => { if (ultimo[id] !== h){ ultimo[id] = h; $(id).innerHTML = h; } };
+function pintar(){
+  if ($("app").classList.contains("oculto")) return;
+  const sec = segs(), r = rondaAct();
+  /* alarma: al cruzar el cero con el reloj corriendo (y no por entrar a la página con la ronda ya vencida) */
+  if (S && !S.paused && S.endTime && sec !== null && sec <= 0 && sec >= -3 && alarmado !== S.endTime){
+    alarmado = S.endTime; if (sonidoOn()) alarma();
+  } else if (S && S.endTime && sec !== null && sec < -3 && alarmado !== S.endTime) alarmado = S.endTime;
+  const el = $("reloj");
+  el.textContent = sec === null ? "--:--" : fmt(sec);
+  el.classList.toggle("neg", sec !== null && sec < 0); el.classList.toggle("pausa", !!(S && (S.paused || !S.endTime)));
+  const nom = r ? (r.etiqueta || "Ronda " + r.number) + (PAIR.rondasTotales && !r.etiqueta ? " de " + PAIR.rondasTotales : "") : "";
+  $("rondaT").textContent = (nom || "Reloj de la ronda") + (S ? (S.paused || !S.endTime ? " · en pausa" : "") : " · esperando al organizador");
+  const ext = Object.keys(EXTRAS).filter(m => EXTRAS[m] > 0).sort((a, b) => a - b);
+  poner("chips", (LLAMADA === null ? "" : '<span class="chip">Llamada a mesas<b>' + fmt(Math.max(0, Math.floor((ahora() - LLAMADA) / 1000))) + "</b></span>") +
+    ext.map(m => { const resto = (sec || 0) + EXTRAS[m] * 60; return '<span class="chip">Mesa ' + esc(m) + "<b>" + ((sec || 0) > 0 ? "+" + EXTRAS[m] + " min" : resto > 0 ? fmt(resto) : "tiempo") + "</b></span>"; }).join(""));
+  $("btnSonido").textContent = sonidoOn() ? "Sonido de la alarma: activado" : "Activar sonido de la alarma";
+  if (vista === "Mesas") pintarMesas(r);
+  if (vista === "Tiempo") pintarTiempo();
+}
+function pintarMesas(r){
+  const q = $("buscar").value.trim().toLowerCase(), rec = x => x ? x.w + "-" + x.l + "-" + x.t + " · " + (x.pts || 0) + " pts" : "";
+  const ms = ((r && r.matches) || []).filter(m => !q || String(m.table) === q || String(m.p1 || "").toLowerCase().includes(q) || String(m.p2 || "").toLowerCase().includes(q));
+  poner("listaMesas", !r ? '<div class="pista">Todavía no hay emparejamientos. Cuando el organizador los publique, aparecen acá.</div>' :
+    ms.length ? ms.map(m => '<div class="mesaF"><span class="n">' + esc(m.p2 ? m.table : "—") + '</span><div class="jug">' + esc(m.p1) + "<small>" + rec(m.p1rec) + "</small>" +
+      (m.p2 ? esc(m.p2) + "<small>" + rec(m.p2rec) + "</small>" : "<small>Bye</small>") + "</div>" +
+      (m.p2 ? '<button class="btn" data-tiempo="' + esc(m.table) + '">Tiempo</button>' : "") +
+      '<span class="res">' + esc(m.result || "") + "</span>" +
+      (EXTRAS[m.table] ? '<span class="chip ex">+' + EXTRAS[m.table] + " min dados</span>" : "") + "</div>").join("")
+      : '<div class="pista">Ninguna mesa calza con «' + esc(q) + '».</div>');
+  $("listaMesas").querySelectorAll("[data-tiempo]").forEach(b => b.onclick = () => { $("mesaT").value = b.dataset.tiempo; verVista("Tiempo"); $("mesaT").focus(); });
+}
+$("buscar").oninput = () => pintar();
+
+/* ------------------------------------------------------------ tiempo por mesa
+   Cronómetro por mesa (en este aparato, recordado si se recarga) y «dar» el tiempo: suma minutos a
+   timer/extras/<mesa> (tope 60). Las reglas dejan al staff admitido escribir solo esa parte. */
+const msg = (t, mal) => { $("msgTiempo").textContent = t; $("msgTiempo").classList.toggle("oculto", !t); $("msgTiempo").classList.toggle("mal", !!mal); };
+const guardarCronos = () => guardar("staff:crono:" + SALA, Object.keys(CRONOS).length ? JSON.stringify(CRONOS) : "");
+const mesaValida = () => { const m = parseInt($("mesaT").value, 10); return m >= 1 && m <= 999 ? m : 0; };
+async function darTiempo(mesa, min){
+  min = Math.max(1, Math.min(60, Math.round(min)));
+  try {
+    const r = await runTransaction(ref(db, "salas/" + SALA + "/timer/extras/" + mesa), cur => Math.min(60, (typeof cur === "number" ? cur : 0) + min));
+    msg("Mesa " + mesa + ": +" + min + " min" + (r.snapshot.val() !== min ? " (en total " + r.snapshot.val() + " min)" : "") + ".", false);
+    return true;
+  } catch(e){ msg("No se pudo dar el tiempo. Revisa tu conexión o si sigues en el staff.", true); return false; }
+}
+$("btnCrono").onclick = () => {
+  const m = mesaValida(); if (!m) return ($("mesaT").focus(), msg("Escribe el número de mesa.", true));
+  if (CRONOS[m]) return msg("Ya estás tomando el tiempo de la mesa " + m + ".", true);
+  CRONOS[m] = { t0: ahora() }; guardarCronos(); msg(""); $("mesaT").value = ""; pintar();
+};
+$("btnDirecto").onclick = async () => {
+  const m = mesaValida(); if (!m) return ($("mesaT").focus(), msg("Escribe el número de mesa.", true));
+  if (await darTiempo(m, +$("minDirecto").value)) $("mesaT").value = "";
+};
+const minutosDe = c => Math.max(1, Math.min(60, Math.ceil(((c.fin || ahora()) - c.t0) / 60000)));
+function pintarTiempo(){
+  const ms = Object.keys(CRONOS).sort((a, b) => a - b);
+  /* si se está escribiendo en una casilla del cronómetro, no se redibuja (se perdería lo escrito) */
+  if (!($("cronos").contains(document.activeElement) && document.activeElement.tagName === "INPUT")){
+    poner("cronos", ms.map(m => { const c = CRONOS[m], seg = Math.max(0, Math.floor(((c.fin || ahora()) - c.t0) / 1000));
+      return '<div class="crono"><span class="m">Mesa ' + esc(m) + '</span><span class="t">' + fmt(seg) + "</span>" +
+        '<div class="acc">' + (c.fin
+          ? '<label style="display:flex;align-items:center;gap:6px">Dar <input type="number" min="1" max="60" value="' + (c.min || minutosDe(c)) + '" data-cmin="' + esc(m) + '" inputmode="numeric"> min</label>' +
+            '<button class="btn primario" data-cdar="' + esc(m) + '">Dar tiempo</button>'
+          : '<button class="btn primario" data-cstop="' + esc(m) + '">Detener</button>') +
+        '<button class="btn" data-cdesc="' + esc(m) + '">Descartar</button></div></div>'; }).join(""));
+    $("cronos").querySelectorAll("[data-cstop]").forEach(b => b.onclick = () => { const c = CRONOS[b.dataset.cstop]; c.fin = ahora(); c.min = minutosDe(c); guardarCronos(); ultimo.cronos = null; pintar(); });
+    $("cronos").querySelectorAll("[data-cdesc]").forEach(b => b.onclick = () => { delete CRONOS[b.dataset.cdesc]; guardarCronos(); ultimo.cronos = null; pintar(); });
+    $("cronos").querySelectorAll("[data-cdar]").forEach(b => b.onclick = async () => {
+      const m = b.dataset.cdar, n = parseInt($("cronos").querySelector('[data-cmin="' + m + '"]').value, 10);
+      if (!(n >= 1 && n <= 60)) return msg("Los minutos van de 1 a 60.", true);
+      if (await darTiempo(m, n)){ delete CRONOS[m]; guardarCronos(); ultimo.cronos = null; pintar(); }
+    });
+  }
+  const ext = Object.keys(EXTRAS).filter(m => EXTRAS[m] > 0).sort((a, b) => a - b);
+  poner("dados", ext.length ? '<div class="pista" style="margin:6px 0">Tiempo dado en esta ronda (toca × para quitarlo si fue un error):</div><div class="chips" style="justify-content:flex-start">' +
+    ext.map(m => '<span class="chip">Mesa ' + esc(m) + "<b>+" + EXTRAS[m] + ' min</b><button data-quitar="' + esc(m) + '" aria-label="Quitar el tiempo de la mesa ' + esc(m) + '">×</button></span>').join("") + "</div>" : "");
+  $("dados").querySelectorAll("[data-quitar]").forEach(b => b.onclick = () => remove(ref(db, "salas/" + SALA + "/timer/extras/" + b.dataset.quitar)).then(() => msg("Quitaste el tiempo de la mesa " + b.dataset.quitar + "."), () => msg("No se pudo quitar.", true)));
+}
+
+/* ------------------------------------------------------------ el chat */
+function abrirApp(uid, m){
+  const primera = $("app").classList.contains("oculto");
+  paso("app"); cabecera(NOMBRE_T, "Staff de " + NOMBRE_T, "Estás en el staff como " + m.nombre + ".", false);
+  if (!primera) return;
+  verVista(vista);
+  descubrirTimers();
+  clearInterval(latido); latido = setInterval(pintar, 250);
+  if (offChat) return;
+  offChat = onValue(query(ref(db, "salaChat/" + TIENDA), limitToLast(100)), s => {
+    const ms = Object.entries(s.val() || {}).map(([id, x]) => ({ id, ...x })).sort((a, b) => (a.t || 0) - (b.t || 0));
+    if (vistos !== null) ms.filter(x => !vistos.has(x.id) && x.uid !== uid).forEach(x => avisar(x));
+    vistos = new Set(ms.map(x => x.id));
+    const abajo = $("feed").scrollHeight - $("feed").scrollTop - $("feed").clientHeight < 60;
+    $("feed").innerHTML = ms.length ? ms.map(x => '<div class="msg' + (x.uid === uid ? " mio" : "") + '"><div class="quien"><b>' + esc(x.nombre) + "</b>" +
+      (x.rol === "org" ? " · organizador" : "") + " · " + hora(x.t) + "</div><p>" + esc(x.texto) + "</p></div>").join("")
+      : '<div class="pista" style="padding:10px">Todavía no hay mensajes. Escribe el primero.</div>';
+    if (abajo || !$("feed").dataset.listo){ $("feed").scrollTop = $("feed").scrollHeight; $("feed").dataset.listo = "1"; }
+  }, () => error("errEnviar", "No se pudo leer el chat. Revisa tu conexión."));
+}
+/* Mensaje nuevo de otra persona: número en la pestaña, y con la página oculta, título, pitido y notificación. */
+function avisar(m){
+  if (vista === "Chat" && !document.hidden) return;
+  nuevos++; $("badgeChat").hidden = false; $("badgeChat").textContent = nuevos;
+  if (document.hidden){
+    document.title = "(" + nuevos + ") " + TITULO;
+    if (sonidoOn()) pitido(740, .12);
+    if ("Notification" in window && Notification.permission === "granted")
+      try { new Notification((m.rol === "org" ? "Organizador" : m.nombre), { body: String(m.texto).slice(0, 140), tag: "staff-chat" }); } catch(e){}
+  } else if (sonidoOn()) pitido(740, .1);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && vista === "Chat"){ nuevos = 0; $("badgeChat").hidden = true; document.title = TITULO; } });
+
+/* Avisos: el permiso del navegador (con la página abierta) y el push del servidor, que llega con la página cerrada
+   (push.js): mensajes del chat, que te admitan y que termine la ronda. En iPhone solo con ByePass instalada en la
+   pantalla de inicio. */
+async function activarAvisos(btn, etiqueta){
+  if (!("Notification" in window)) return ($("avisosMsg").textContent = "Este navegador no avisa.");
+  const u = auth.currentUser; if (!u || !TIENDA) return;
+  $("avisosMsg").textContent = "";
+  const razon = await activarPush({ app, db, uid: u.uid, tienda: TIENDA, rol: "staff" });
+  if (!razon){ btn.textContent = "Avisos activados"; $("avisosMsg").textContent = "Listo: te avisaremos de los mensajes y de que termine la ronda aunque cierres esta página."; return; }
+  if (Notification.permission === "default") await Notification.requestPermission().catch(() => {});
+  btn.textContent = Notification.permission === "granted" ? "Avisos con la página abierta" : etiqueta;
+  $("avisosMsg").textContent = razon;
+}
+$("btnAvisos").onclick = () => activarAvisos($("btnAvisos"), "Activar avisos");
+$("btnAvisosEspera").onclick = () => activarAvisos($("btnAvisosEspera"), "Avisarme cuando me admitan");
+$("formEnviar").onsubmit = async e => {
+  e.preventDefault(); error("errEnviar", "");
+  const u = auth.currentUser, texto = $("texto").value.trim().slice(0, 500);
+  if (!u || !texto) return;
+  try {
+    await set(push(ref(db, "salaChat/" + TIENDA)), { uid: u.uid, nombre: guardado(LS.nombre) || "Staff", rol: "staff", texto, t: serverTimestamp() });
+    $("texto").value = "";
+  } catch(err){ error("errEnviar", "No se pudo enviar. Revisa tu conexión o si sigues en el staff."); }
+};
+
+/* arranque: si ya había entrado, se retoma; si viene con ?c=, se busca ese código */
+const primera = new Promise(r => { const off = onAuthStateChanged(auth, u => { off(); r(u); }); });
+(async () => {
+  const u = await primera, c = limpio(new URLSearchParams(location.search).get("c"));
+  if (u && TIENDA){ $("formCodigo").classList.add("oculto"); return observar(u.uid); }
+  inicio();
+  if (c){ $("codigo").value = c; buscarCodigo(c); }
+})();
+</script>
+</body>
+</html>

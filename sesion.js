@@ -8,7 +8,7 @@
 /* ============================================================
    sesion.js — entrar y crear cuenta
    ------------------------------------------------------------
-   Versión actual: v=14  (subir el ?v= al tocar este archivo)
+   Versión actual: v=15  (subir el ?v= al tocar este archivo)
 
    Lo usan la portada (index.html), que tiene el registro a la vista, y la
    cuenta (cuenta.html), con sus tres pasos. Vive acá para que las reglas de
@@ -93,7 +93,7 @@ export const decir = e => {
 /* ------------------------------------------------------------
    Lo que se valida
    ------------------------------------------------------------ */
-export const ID_OK = v => /^[0-9]{7,8}$/.test(v);
+export const ID_OK = v => /^[0-9]{6,8}$/.test(v);   // hay ID de Play! Pokémon de 6 dígitos
 export const CORREO_OK = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 /* Fuerza de la contraseña. Nota honesta sobre el criterio: la guía moderna

@@ -21,6 +21,23 @@
    ========================================================= */
 const CAJA = "copias-1";
 
+/* Avisos push (FCM, solo datos): el servidor manda { title, body, url, tag } y acá se muestran. Lo usa el staff de
+   sala (functions/index.js). Tocar el aviso abre o enfoca la página que dice «url». */
+self.addEventListener("push", e => {
+  let p = {}; try { p = e.data ? e.data.json() : {}; } catch(x){}
+  const d = p.data || p, n = p.notification || {};
+  e.waitUntil(self.registration.showNotification(d.title || n.title || "ByePass", {
+    body: d.body || n.body || "", tag: d.tag || undefined, icon: "icono-192.png", data: { url: d.url || "./" } }));
+});
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || "./", self.registration.scope).href;
+  e.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(ws => {
+    const w = ws.find(c => c.url.split("#")[0] === url.split("#")[0]);
+    return w ? w.focus() : clients.openWindow(url);
+  }));
+});
+
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(clients.claim()));
 

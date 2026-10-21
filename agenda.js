@@ -12,7 +12,7 @@
    Un evento en Firebase se ve así:
 
      salas/<sala>/agenda/<id> = {
-       titulo:   "Torneo mensual Primer Bloque",
+       titulo:   "Torneo mensual",
        detalle:  "Inscripción 15:30. Cupos limitados.",
        lugar:    "Tienda X, Av. Siempreviva 742",
        fecha:    "2026-10-04",     // lo que escribió el organizador
@@ -33,7 +33,7 @@
    páginas usen, hay que SUBIR EL NÚMERO en las dos, o el navegador de un
    jugador que ya visitó el sitio va a mezclar el HTML nuevo con este archivo
    viejo y la página se cae entera con "does not provide an export named X".
-   Versión actual: v=4
+   Versión actual: v=5
    ========================================================= */
 
 /* ▌BLOQUE 1 · Fechas y vigencia ═════════════════════════════════════════════════

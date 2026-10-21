@@ -60,15 +60,15 @@
   <div class="pie"><a id="pie" target="_blank" rel="noopener">Ver todo en <span class="marca">Bye<span>Pass</span></span></a></div>
 </main>
 
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <!-- ▌BLOQUE 2 · Script — Lee una vez la agenda y el historial de la tienda, arma el ranking del mes y suelta
      la conexión. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, goOffline } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { TIENDA, nombreTienda, iniciales } from "./sala.js?v=6";
-import { estaVigente, urlGoogle, ordenar } from "./agenda.js?v=4";
-import { clasificarPorCategoria, mesesDe, nombreMes, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=5";
+import { estaVigente, urlGoogle, ordenar } from "./agenda.js?v=5";
+import { clasificarPorCategoria, mesesDe, nombreMes, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=6";
 import { historialUnaVez } from "./historial.js?v=1";
 import { contarVisita } from "./presencia.js?v=4";
 

@@ -265,6 +265,7 @@
         <section data-sec="clas" class="oculto">
           <select id="tablaSel" class="oculto" aria-label="Tabla de clasificación"></select>
           <select id="mesSel" aria-label="Mes de la clasificación"></select>
+          <select id="vistaSel" class="oculto" aria-label="Qué tabla ver"><option value="cat">Por categoría</option><option value="general">General</option></select>
           <h2 class="gtit" id="hClas">Clasificación</h2>
           <div class="grupo" id="clasTodo"></div>
           <p class="nota" style="margin:var(--e2) var(--e3) 0" id="clasNota"></p>
@@ -314,17 +315,17 @@
     <a href="terminos.html">Términos</a> ·
     <a href="privacidad.html">Privacidad</a> · ByePass © 2026</p></footer>
 
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
 import { ref, onValue, get, set, update, remove, query, orderByChild, equalTo, push, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro, urlPanel } from "./sesion.js?v=14";
+import { db, auth, enEmulador, urlCuenta, urlMuro, urlPanel } from "./sesion.js?v=15";
 import { slug, tiendaDe, salaDeTimer, MAX_TIMERS, nombreTienda, iniciales } from "./sala.js?v=6";
-import { ordenar, estaVigente, fechaLegible, cuantoFalta, urlGoogle, MES_LARGO } from "./agenda.js?v=4";
-import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, PUNTOS_DEF, timerDe, deTimer, claveGlobal } from "./clasificacion.js?v=5";
-import { norm } from "./insignias.js?v=8";
+import { ordenar, estaVigente, fechaLegible, cuantoFalta, urlGoogle, MES_LARGO } from "./agenda.js?v=5";
+import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, timerDe, deTimer, claveGlobal } from "./clasificacion.js?v=6";
+import { norm } from "./insignias.js?v=9";
 import { estoyEnLinea } from "./presencia.js?v=4";
 import { leerHistorial, historialUnaVez } from "./historial.js?v=1";
 
@@ -817,8 +818,11 @@ function filasClas(filas, n){
   }).join("");
 }
 /* La clasificación del mes: una tabla por categoría si el mes las tuvo; si no, la de siempre. n: cuántas filas de cada una. */
+/* General o por categoría (se recuerda en este navegador, igual que en el timer). */
+let VISTA = "cat";
+try { VISTA = localStorage.getItem(VISTA_RANKING) === "general" ? "general" : "cat"; } catch(e){}
 function seccionesClas(ts, mes, n){
-  return clasificarPorCategoria(ts, mes, CFG).map(sec =>
+  return rankingDelMes(ts, mes, CFG, VISTA).map(sec =>
     (sec.nombre ? '<div class="catClas" style="margin:12px 0 4px;font-size:var(--t1);letter-spacing:.12em;font-weight:600;opacity:.7">' + esc(sec.nombre.toUpperCase()) + "</div>" : "") +
     filasClas(sec.filas, n)).join("");
 }
@@ -840,6 +844,8 @@ function pintarClas(){
   }
   if (!mesSel || !meses.includes(mesSel)) mesSel = meses[0];
   $("mesSel").classList.remove("oculto");
+  $("vistaSel").classList.toggle("oculto", clasificarPorCategoria(ts, mesSel, CFG).length < 2);
+  $("vistaSel").value = VISTA;
   $("mesSel").innerHTML = meses.map(m => '<option value="' + m + '"' + (m === mesSel ? " selected" : "") + ">" + nombreMes(m) + "</option>").join("");
   $("hClasCorta").textContent = "Clasificación de " + nombreMes(meses[0]).split(" ")[0] + de;
   $("clasCorta").innerHTML = seccionesClas(ts, meses[0], 5);
@@ -849,6 +855,7 @@ function pintarClas(){
   $("clasNota").textContent = n + (n === 1 ? " torneo" : " torneos") + " en " + nombreMes(mesSel) + ".";
 }
 $("mesSel").onchange = e => { mesSel = e.target.value; pintarClas(); };
+$("vistaSel").onchange = e => { VISTA = e.target.value; try { localStorage.setItem(VISTA_RANKING, VISTA); } catch(x){} pintarClas(); };
 $("tablaSel").onchange = e => { TABLA = +e.target.value; mesSel = null; pintarClas(); };
 
 /* ▌BLOQUE 11 · Torneos y agenda ═════════════════════════════════════════════════

@@ -376,8 +376,8 @@
             sí, no se cambia una vez guardado.</p>
         </div>
         <label class="campo"><span>ID de Play! Pokémon <span class="opcional">— opcional</span></span>
-          <input type="text" id="crId" inputmode="numeric" placeholder="7 u 8 dígitos" maxlength="8">
-          <span class="pista">El número de 7 u 8 dígitos con que te inscriben en los torneos oficiales.
+          <input type="text" id="crId" inputmode="numeric" placeholder="6 a 8 dígitos" maxlength="8">
+          <span class="pista">Tu ID de Play! Pokémon para Pokémon TCG: el número de 6 a 8 dígitos con que te inscriben en los torneos oficiales.
             Con él tus resultados llegan solos a tu perfil. Los ID de otros juegos van en tus ajustes.</span>
         </label>
         <div class="filas">
@@ -485,8 +485,8 @@
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg></button>
           <form class="edicion oculto" id="formId" novalidate>
             <label class="campo"><span>ID de Play! Pokémon</span>
-              <input type="text" id="nuevoId" inputmode="numeric" placeholder="7 u 8 dígitos" maxlength="8">
-              <span class="pista">El de 7 u 8 dígitos con que te inscriben en los torneos oficiales.
+              <input type="text" id="nuevoId" inputmode="numeric" placeholder="6 a 8 dígitos" maxlength="8">
+              <span class="pista">Tu ID de Play! Pokémon para Pokémon TCG: el de 6 a 8 dígitos con que te inscriben en los torneos oficiales.
                 Revísalo bien: una vez guardado, no se puede cambiar.</span>
             </label>
             <div class="aviso oculto" id="avisoCorregir">Tienes permiso para corregir tu ID <b>una vez</b>. Revísalo bien: después vuelve a quedar fijo.</div>
@@ -502,20 +502,18 @@
       <div class="aviso oculto" id="msgTorneo" role="status"></div>
     </div>
 
-    <!-- Desde el 30-09-2026: los ID de otros juegos de cartas. Solo los ve su dueño.
-         Mitos y Leyendas usa CL + números; el resto se escribe libre. -->
+    <!-- Desde el 30-09-2026: los ID de otros juegos de cartas. Solo los ve su dueño. El nombre del juego
+         se escribe libre (hasta el 20-10-2026 había una opción fija para un juego, que confundía). -->
     <div class="grupo">
       <h2>Tus ID de otros juegos</h2>
       <p class="pista" style="margin:0 0 var(--e2)">Si juegas otros juegos de cartas, deja acá tu ID de cada uno para tenerlos a mano.
         Solo tú los ves.</p>
       <div class="filas" id="otrosIds"></div>
       <form class="edicion" id="formOtroId" novalidate>
-        <label class="campo"><span>Juego</span>
-          <select id="oiJuego"><option value="mitos-y-leyendas">Mitos y Leyendas</option><option value="otro">Otro juego</option></select></label>
-        <label class="campo oculto" id="oiNombreCampo"><span>Nombre del juego</span>
+        <label class="campo" id="oiNombreCampo"><span>Nombre del juego</span>
           <input type="text" id="oiNombre" maxlength="40" autocomplete="off"></label>
         <label class="campo"><span>Tu ID</span>
-          <input type="text" id="oiId" maxlength="30" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CL y números, por ejemplo CL1234"></label>
+          <input type="text" id="oiId" maxlength="30" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Tu ID en ese juego"></label>
         <div class="aviso mal oculto" id="errOi" role="alert"></div>
         <div class="acciones"><button class="btn primario" type="submit">Agregar</button></div>
       </form>
@@ -590,20 +588,20 @@
 </div>
 </main>
 
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y de sesion.js. -->
 <script type="module">
 import { ref, get, set, remove, update, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail,
          verifyPasswordResetCode, confirmPasswordReset, applyActionCode, checkActionCode, verifyBeforeUpdateEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=4";
+import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=5";
 import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=6";   // BASE: el timer; BASE_T: su tienda
 /* La conexión, los enlaces con ?emu y ?sala, los errores en castellano, la
    contraseña y el registro viven en sesion.js: la portada registra igual. */
 import { db, auth, urlPanel, urlMuro, urlCuenta, decir, ID_OK, CORREO_OK, revisarClave, claveOk,
          textoFalta, errorNacimiento, registrar, params, codigoInvitacion, betaActiva, revisarCodigo,
-         normCodigo, CODIGO_OK } from "./sesion.js?v=14";
+         normCodigo, CODIGO_OK } from "./sesion.js?v=15";
 import { estoyEnLinea } from "./presencia.js?v=4";
 estoyEnLinea(db, "cuenta");
 
@@ -868,7 +866,7 @@ function errorPaso(n){
   }
   if (n === 3){
     const id = $("crId").value.trim();
-    if (id && !ID_OK(id)) return ["crId", "El ID de jugador son 7 u 8 dígitos, o déjalo vacío."];
+    if (id && !ID_OK(id)) return ["crId", "El ID de jugador son de 6 a 8 dígitos, o déjalo vacío."];
   }
   return null;
 }
@@ -988,10 +986,8 @@ function pintarAjustes(){
 
 /* ------------------------------------------------------------ ID de otros juegos
    usuarios/<uid>/otrosIds/<clave> = { juego, id }. La clave es el nombre del
-   juego como slug, así el mismo juego no queda dos veces. Mitos y Leyendas
-   tiene formato conocido (CL + números); lo demás se valida suelto. Las
-   reglas repiten estas mismas condiciones. */
-const MITOS = "mitos-y-leyendas";
+   juego como slug, así el mismo juego no queda dos veces. El ID se valida
+   suelto. Las reglas repiten estas mismas condiciones. */
 const claveJuego = n => n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
 function pintarOtrosIds(){
@@ -1006,20 +1002,12 @@ function pintarOtrosIds(){
     } catch(e){ aviso("errOi", "No se pudo quitar. Revisa la conexión."); }
   });
 }
-$("oiJuego").onchange = () => {
-  const otro = $("oiJuego").value === "otro";
-  $("oiNombreCampo").classList.toggle("oculto", !otro);
-  $("oiId").placeholder = otro ? "Tu ID en ese juego" : "CL y números, por ejemplo CL1234";
-};
 $("formOtroId").onsubmit = async e => {
   e.preventDefault();
   aviso("errOi", "");
-  const otro = $("oiJuego").value === "otro";
-  const juego = otro ? $("oiNombre").value.trim().replace(/\s+/g, " ") : "Mitos y Leyendas";
-  const k = otro ? claveJuego(juego) : MITOS;
+  const juego = $("oiNombre").value.trim().replace(/\s+/g, " "), k = claveJuego(juego);
   const id = $("oiId").value.trim().toUpperCase().replace(/\s+/g, "");
-  if (otro && (juego.length < 2 || !k)) return aviso("errOi", "Escribe el nombre del juego.");
-  if (k === MITOS && !/^CL[0-9]{3,12}$/.test(id)) return aviso("errOi", "El ID de Mitos y Leyendas es CL seguido de números, por ejemplo CL1234.");
+  if (juego.length < 2 || !k) return aviso("errOi", "Escribe el nombre del juego.");
   if (!/^[A-Z0-9-]{3,30}$/.test(id)) return aviso("errOi", "El ID lleva de 3 a 30 letras, números o guiones.");
   try {
     const v = { juego, id };
@@ -1178,7 +1166,7 @@ $("formNac").onsubmit = async e => {
 $("formId").onsubmit = async e => {
   e.preventDefault();
   const v = $("nuevoId").value.trim();
-  if (!ID_OK(v)) return aviso("errId", "El ID de jugador son 7 u 8 dígitos.");
+  if (!ID_OK(v)) return aviso("errId", "El ID de jugador son de 6 a 8 dígitos.");
   if (perfil && perfil.playerId && PERMISO_ID) return corregirId(v);
   try {
     await guardar({ playerId: v }, "msgTorneo", "ID guardado.");

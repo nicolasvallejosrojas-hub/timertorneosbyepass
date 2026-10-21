@@ -263,12 +263,12 @@
       <button class="btn" id="dbSi" disabled>Descargar respaldo y eliminar</button></div>
   </dialog>
 
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
 import { ref, onValue, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=14";
+import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=15";
 import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=6";
 import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=4";
 estoyEnLinea(db, "herramientas");
@@ -700,7 +700,7 @@ function pintarSolicitudes(){
    todo o no se borra nada. Lo de cada jugador (a quién sigue, su vitrina)
    queda en su cuenta, que nadie más puede tocar; las páginas ignoran una
    tienda que ya no existe. */
-const NODOS = ["tiendas", "salas", "invitaciones", "enlaces", "idsHistorial", "fotos", "jugadores", "posts", "rifas", "rifaCodigos", "rifaUsos"];
+const NODOS = ["tiendas", "salas", "invitaciones", "enlaces", "idsHistorial", "fotos", "jugadores", "posts", "rifas", "rifaCodigos", "rifaUsos", "salaStaff", "salaChat", "fcmTokens"];
 let BORRAR = null;
 async function abrirBorrar(id){
   BORRAR = null;
@@ -727,6 +727,7 @@ async function abrirBorrar(id){
     mm + (mm === 1 ? " organizador" : " organizadores") + " y las invitaciones pendientes",
     en + (en === 1 ? " ID de jugador compartido" : " IDs de jugador compartidos"),
     bj + (bj === 1 ? " jugador en su base" : " jugadores en su base") + " (los de los torneos de la página)",
+    "Su staff de sala con el chat, sus rifas y sus publicaciones",
     "El perfil, la verificación, las insignias de la tienda, el banner y el logo",
   ].map(x => "<li>" + esc(x) + "</li>").join("");
   BORRAR = { id, datos };
@@ -751,6 +752,8 @@ $("dbSi").onclick = async () => {
   /* El espejo de «qué tiendas organizo» de cada miembro, y del dueño de antes. */
   Object.keys((datos.tiendas || {}).miembros || {}).forEach(uid => rutas["organiza/" + uid + "/" + id] = null);
   if (datos.salas && typeof datos.salas.owner === "string") rutas["organiza/" + datos.salas.owner + "/" + id] = null;
+  /* El código de staff vive también en un índice por código (staffCodigos/<código> = <tienda>). */
+  if (datos.salaStaff && typeof datos.salaStaff.codigo === "string") rutas["staffCodigos/" + datos.salaStaff.codigo] = null;
   $("dbMsg").textContent = "Eliminando…";
   try {
     await update(ref(db), rutas);
@@ -767,10 +770,10 @@ $("dbSi").onclick = async () => {
    Compara el ?v= que piden las páginas de byepass.cl con la versión de cada archivo, y prueba si
    las reglas nuevas ya están publicadas. */
 const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "timer-view.html", "tele.html", "admin.html", "inscripcion.html",
-                 "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html"];
+                 "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html"];
 /* El archivo tal como está publicado ahora (sin copias guardadas). */
 const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
-/* Lo que pide un archivo: «./clasificacion.js?v=5», «estilo.css?v=12»… → [archivo, versión]. */
+/* Lo que pide un archivo: «./clasificacion.js?v=6», «estilo.css?v=12»… → [archivo, versión]. */
 const pide = txt => [...String(txt).matchAll(/["'(]\.?\/?([a-z0-9-]+\.(?:js|css))\?v=(\d+)/g)].map(m => [m[1], +m[2]]);
 const versionDe = txt => { const m = /Versión actual: v=(\d+)/.exec(txt || ""); return m ? +m[1] : null; };
 const lineaPub = (tipo, titulo, det) => '<div class="linea ' + tipo + '"><i>' + (tipo === "ok" ? "✓" : tipo === "mal" ? "✗" : "!") + "</i><b>" + esc(titulo) + "</b>" + (det ? "<small>" + esc(det) + "</small>" : "") + "</div>";

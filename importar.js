@@ -7,7 +7,7 @@
 /* =========================================================
    importar.js — el torneo desde el archivo que sea
    ---------------------------------------------------------
-   Versión actual: v=2   (subir el ?v= al tocar este archivo)
+   Versión actual: v=3   (subir el ?v= al tocar este archivo)
 
    Entra un archivo con el torneo y se buscan adentro los datos de las
    personas y las partidas: quién es quién (nombre e ID), las mesas de cada
@@ -34,7 +34,7 @@
      resultados). Si trae la tabla final, se respeta su orden; si trae más de
      un grupo con los mismos jugadores, los siguientes son el top cut.
 
-   La persona es su ID de Play! Pokémon (7 u 8 dígitos). Sin ID, su nombre; si
+   La persona es su ID de Play! Pokémon (6 a 8 dígitos). Sin ID, su nombre; si
    ese nombre trae ID en otra fila, es esa persona.
    En la tabla, quien aparece desde una ronda posterior a la primera llegó tarde
    y pierde las anteriores; quien deja de aparecer se retiró (torneo.js).
@@ -43,7 +43,7 @@
    DOMParser del navegador: esa prueba se corre abriendo el mismo archivo ahí.
    ========================================================= */
 import { aPairings, aHistorial, clasificacion, EMPATE, DOBLE } from "./torneo.js?v=2";
-import { normNombre } from "./jugadores.js?v=1";
+import { normNombre } from "./jugadores.js?v=2";
 
 /* ▌BLOQUE 1 · Columnas y metadatos ══════════════════════════════════════════════
    Alias de las cabeceras (español o inglés) y de las líneas # (torneo, fecha, tiempo, suizas,
@@ -322,7 +322,7 @@ function construirTorneo(partidas, meta){
     if (nombre.length > LARGO) throw new Error(donde + ": el nombre «" + nombre.slice(0, 30) + "…» pasa de " + LARGO + " letras");
     id = String(id || "").trim();
     const d = limpiarId(id);
-    if (d && !/^\d{7,8}$/.test(d)) avisos.add("El ID «" + id + "» de " + nombre + " no tiene 7 u 8 dígitos: no se va a enlazar con su cuenta.");
+    if (d && !/^\d{6,8}$/.test(d)) avisos.add("El ID «" + id + "» de " + nombre + " no tiene de 6 a 8 dígitos: no se va a enlazar con su cuenta.");
     return { nombre: nombre || d, id: d, donde };
   };
   partidas.forEach(p => { p.A = lado(p.j1, p.id1, p.donde); p.B = p.j2 ? lado(p.j2, p.id2, p.donde) : null; });

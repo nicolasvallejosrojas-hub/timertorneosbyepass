@@ -536,7 +536,7 @@
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -544,13 +544,13 @@ import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, s
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signOut, onAuthStateChanged, sendEmailVerification }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=4";
+import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=5";
 import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=6";
-import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=5";
+import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=6";
 import { estoyEnLinea } from "./presencia.js?v=4";
 import { leerHistorial } from "./historial.js?v=1";
 import { vigilar } from "./mantenimiento.js?v=4";
-import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=8";
+import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=9";
 
 const $ = id => document.getElementById(id);
 /* El muro es el inicio de cada persona y no depende de una tienda. El ?sala= solo cuenta con #jugador=

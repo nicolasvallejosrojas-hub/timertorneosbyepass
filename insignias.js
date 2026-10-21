@@ -8,7 +8,7 @@
 /* ============================================================
    insignias.js — el catálogo y la cuenta de las insignias
    ------------------------------------------------------------
-   Versión actual: v=8   (subir el ?v= al tocar este archivo)
+   Versión actual: v=9   (subir el ?v= al tocar este archivo)
 
    Dos tipos:
      · PERMANENTES: son de la cuenta. Cuentan los torneos de todas las tiendas
@@ -26,7 +26,7 @@
    Lo usan el muro (perfil propio y ajeno) y el panel (las de evento). No lee
    nada del navegador al cargarse, así que se puede probar con node.
    ============================================================ */
-import { clasificarPorCategoria, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=5";
+import { clasificarPorCategoria, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=6";
 
 /* ▌BLOQUE 1 · Catálogo e íconos ═════════════════════════════════════════════════
    Íconos SVG, medallas (permanentes) y parches (de tienda). */

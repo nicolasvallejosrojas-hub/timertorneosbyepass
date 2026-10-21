@@ -40,7 +40,8 @@
      38. Estadísticas de la tienda
      39. Widget para la web de la tienda
      40. Rifas
-     41. Conexión
+     41. Llamada, staff y chat
+     42. Conexión
 -->
 <html lang="es">
 <head>
@@ -178,6 +179,12 @@
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .retirado{color:var(--apagado);}
   details.plegable{margin-top:14px;border-top:1px solid var(--divider);padding-top:10px;}
+  /* las rondas del torneo, arriba y a la vista (archivo y página) */
+  .rondasBox{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:10px 0;padding:10px 12px;border-radius:var(--radio);
+    background:var(--sup-alta);box-shadow:inset 0 0 0 1px var(--accion);}
+  .rondasBox label{margin:0;font-weight:600;white-space:nowrap;}
+  .rondasBox input{width:70px;margin-left:6px;font-size:var(--t4);font-weight:700;text-align:center;}
+  .rondasBox .muted{flex:1;min-width:200px;}
   /* corregir a mano el orden de la tabla general (solo para la imagen) */
   .ordenG{list-style:none;margin:8px 0;padding:0;max-height:420px;overflow:auto;}
   .ordenG li{display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--divider);font-size:var(--t3);}
@@ -498,6 +505,24 @@
   .exChip{display:inline-flex;align-items:center;gap:4px;font-size:var(--t2);padding:3px 4px 3px 11px;border-radius:999px;
     background:color-mix(in srgb, var(--franja) 14%, transparent);font-variant-numeric:tabular-nums;}
   .exChip button{min-height:28px;min-width:28px;padding:0;border-radius:50%;background:transparent;font-size:16px;line-height:1;}
+  /* Llamada a mesas, debajo del tiempo extra. */
+  #llamadaBox{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--divider);}
+  #llamadaBox b{font-size:var(--t3);font-weight:600;margin-right:4px;}
+  #llamadaTiempo{font-family:var(--fuente-reloj);font-size:var(--d3);font-weight:300;min-width:3.4em;font-variant-numeric:tabular-nums;color:var(--apagado);}
+  #llamadaTiempo.on{color:var(--accion-texto);}
+  /* Pestaña Chat: mensajes de la sala y entre tiendas. */
+  .chatFeed{display:flex;flex-direction:column;gap:6px;max-height:360px;min-height:120px;overflow:auto;padding:6px 2px;}
+  .msg{align-self:flex-start;max-width:min(92%,560px);background:var(--sup-alta);border-radius:14px;padding:7px 12px;}
+  .msg.mio{align-self:flex-end;background:color-mix(in srgb, var(--accion) 16%, var(--sup));}
+  .msg .quien{font-size:var(--t2);color:var(--apagado);}
+  .msg .quien b{color:var(--texto);font-weight:600;}
+  .msg p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;}
+  .msg button{min-height:28px;padding:0 8px;font-size:var(--t1);margin-left:6px;}
+  .chatForm{display:flex;gap:8px;margin-top:8px;}
+  .chatForm input{flex:1;min-width:0;font-size:var(--t3);padding:10px 12px;}
+  .stCod{font-family:var(--fuente-mono,monospace);font-size:var(--d3);font-weight:700;letter-spacing:.14em;}
+  .insig{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:999px;background:var(--accion);color:var(--sobre-accion);font-size:12px;font-weight:700;line-height:18px;text-align:center;}
+  .insig[hidden]{display:none;}
   /* Estadísticas de la tienda: cifras, gráficos (graficos.js) y barras. */
   .etCifras{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
   .etCifra{background:var(--pagina);border-radius:var(--radio);padding:10px 12px;}
@@ -638,6 +663,7 @@
   <button id="tabC">Calendario</button>
   <button id="tabO">Tienda</button>
   <button id="tabE">Estadísticas</button>
+  <button id="tabM">Chat<span class="insig" id="chatBadge" hidden></span></button>
 </nav>
 
 <!-- El reloj a mano en las otras pestañas: publicando emparejamientos o girando
@@ -713,6 +739,13 @@
         <span id="exLista" style="display:contents"></span>
       </div>
       <div class="hint" style="margin-top:0">Para una consulta larga al juez: la tele y los celulares muestran cuánto le queda a esa mesa. Reiniciar el reloj lo borra.</div>
+      <div id="llamadaBox">
+        <b>Llamada a mesas</b>
+        <span id="llamadaTiempo" aria-live="off">--:--</span>
+        <button class="tbtn" id="llamadaIr">Iniciar llamada</button>
+        <button class="tbtn" id="llamadaFin" hidden>Reiniciar</button>
+      </div>
+      <div class="hint" style="margin-top:0">Cuenta cuánto lleva la llamada a los jugadores; la tele también lo muestra. Se apaga sola al iniciar la ronda.</div>
     </section>
 
     <!-- Lo que ve la sala. En «Diseñar la pantalla» ocupa todo el ancho y suma
@@ -948,6 +981,11 @@
     Sirve el que guarda tu programa de torneos, un <b>CSV</b> o <b>.txt</b> (en Excel, Guardar como &rsaquo; CSV) o las celdas pegadas abajo.
     Si lo armas t&uacute;: una fila por mesa con ronda, mesa, jugador 1, ID, jugador 2, ID y resultado.
     <button class="small sec" id="plantillaBtn" type="button">Descargar plantilla</button></div>
+  <div class="rondasBox">
+    <label>Rondas suizas <input type="number" id="rondasTot" min="0" max="20"></label>
+    <span class="muted" id="rondasHint">Se calculan solas con la cantidad de jugadores al cargar el archivo (como pide el manual).
+      Cámbialas si tu torneo tiene otras: se leen «Ronda 2 de 3» en la pantalla y en los celulares.</span>
+  </div>
   <div id="drop">
     <div class="ico"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor"
       stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -963,13 +1001,6 @@
     <button class="small sec" id="pegadoBtn" type="button">Leer lo pegado</button>
   </details>
   <label class="chk"><input type="checkbox" id="autoPub"> Publicar automáticamente al cargar el archivo</label>
-  <div class="row" style="margin-top:10px;align-items:center">
-    <label style="margin:0;white-space:nowrap">Rondas totales
-      <input type="number" id="rondasTot" min="0" max="20" style="width:64px;margin-left:6px">
-    </label>
-    <span class="muted" style="flex:1">Para que se lea &laquo;Ronda 2 de 6&raquo; en la pantalla y en los celulares.
-      Si el archivo trae <code># suizas</code>, se llena solo. D&eacute;jalo vac&iacute;o si no lo quieres mostrar.</span>
-  </div>
   <div id="parseMsg" class="muted" style="margin-top:8px"></div>
   <div id="preview"></div>
   <div class="row" style="margin-top:12px">
@@ -1162,7 +1193,7 @@
       <button id="evPlBorrar" class="small sec" hidden>Borrar plantilla</button>
     </div>
     <label>T&iacute;tulo
-      <input id="evTit" style="width:100%;margin-top:4px" placeholder="Torneo mensual Primer Bloque" maxlength="80">
+      <input id="evTit" style="width:100%;margin-top:4px" placeholder="Torneo mensual" maxlength="80">
     </label>
     <label>Juego <span class="muted">(opcional &mdash; los jugadores filtran la agenda por juego)</span>
       <input id="evJuego" list="evJuegos" style="width:100%;margin-top:4px" placeholder="El nombre del juego, igual cada vez" maxlength="40">
@@ -1348,11 +1379,60 @@
   </div>
 </div>
 
-<!-- ▌BLOQUE 9 · Pestaña Estadísticas (marcado) — Cifras y gráficos de la tienda: torneos, jugadores, visitas.
-     -->
 <!-- ============================================================
      ESTADÍSTICAS de la tienda: torneos, jugadores y visitas
      ============================================================ -->
+<div class="panel hide" id="panelM">
+  <div class="card">
+    <div class="row" style="align-items:center">
+      <div class="seg" role="group" aria-label="Canal del chat">
+        <button id="chS" class="on" aria-pressed="true">Staff de la sala<span class="insig" id="badgeS" hidden></span></button>
+        <button id="chT" aria-pressed="false">Entre tiendas<span class="insig" id="badgeT" hidden></span></button>
+      </div>
+      <span style="flex:1"></span>
+      <button class="small sec" id="chAvisos" type="button">Activar avisos</button>
+    </div>
+    <div class="muted" id="chAvisosMsg" style="margin-top:6px"></div>
+  </div>
+
+  <div id="chatStaff">
+    <div class="card">
+      <h2 class="h2p">Staff de la sala</h2>
+      <div class="muted" style="margin-top:4px">Jueces y ayudantes de tu torneo, sin que tengan que ser organizadores de la tienda. Les das un código;
+        ellos piden entrar con su nombre y tú los admites o los rechazas. Los admitidos conversan contigo en el chat de abajo.</div>
+      <div id="stCodigo" style="margin-top:10px"></div>
+      <div id="stPend"></div>
+      <div id="stMiem"></div>
+    </div>
+    <div class="card">
+      <div class="row" style="align-items:center"><h2 class="h2p" style="margin:0;flex:1">Chat de la sala</h2>
+        <button class="small sec" id="stVaciar" type="button">Vaciar el chat</button></div>
+      <div class="chatFeed" id="feedS" role="log" aria-live="polite" aria-label="Mensajes de la sala"></div>
+      <form class="chatForm" id="formS" novalidate>
+        <input id="txtS" maxlength="500" autocomplete="off" placeholder="Escribe un mensaje para el staff" aria-label="Mensaje para el staff">
+        <button type="submit">Enviar</button>
+      </form>
+      <div id="msgS" class="muted"></div>
+    </div>
+  </div>
+
+  <div id="chatTiendas" hidden>
+    <div class="card">
+      <h2 class="h2p">Entre tiendas</h2>
+      <div class="muted" style="margin-top:4px">Un canal común de quienes organizan tiendas en ByePass: para consultarse, coordinar fechas o pedir una mano.
+        Solo lo ven organizadores. Se guardan los últimos mensajes; la administración puede borrar y silenciar.</div>
+      <div class="chatFeed" id="feedT" role="log" aria-live="polite" aria-label="Mensajes entre tiendas"></div>
+      <form class="chatForm" id="formT" novalidate>
+        <input id="txtT" maxlength="500" autocomplete="off" placeholder="Escribe a las otras tiendas" aria-label="Mensaje para las otras tiendas">
+        <button type="submit">Enviar</button>
+      </form>
+      <div id="msgT" class="muted"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ▌BLOQUE 9 · Pestaña Estadísticas (marcado) — Cifras y gráficos de la tienda: torneos, jugadores, visitas.
+     -->
 <div class="panel hide" id="panelE">
   <div class="card">
     <div class="row" style="align-items:center"><h2 class="h2p" style="margin:0;flex:1">Estadísticas de la tienda</h2>
@@ -1396,24 +1476,25 @@
 <div id="menu"></div>
 <input type="file" accept="image/*" id="fBox" style="display:none">
 
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <!-- ▌BLOQUE 10 · Módulos que usa el panel — Imports de Firebase y de los módulos compartidos (sala, agenda,
      insignias, torneo, paleta, listamazo, etc.). Cada uno lleva su ?v= para que el navegador no mezcle
      versiones. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=4";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=5";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=1";
 import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=6";
 import { vigilar } from "./mantenimiento.js?v=4";
 import { estoyEnLinea } from "./presencia.js?v=4";
 import { barras } from "./graficos.js?v=2";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=8";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=5";
-import { planClaves } from "./jugadores.js?v=1";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=2";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=9";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=6";
+import { planClaves } from "./jugadores.js?v=2";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=3";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
          GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=2";
@@ -1585,7 +1666,7 @@ async function abrirMiTimer(u){
 }
 
 if (SIN_TIENDA){
-  ["tabC", "tabO", "tabE", "timerSel"].forEach(id => $(id).hidden = true);
+  ["tabC", "tabO", "tabE", "tabM", "timerSel"].forEach(id => $(id).hidden = true);
   $("fLogo").closest("section").hidden = true;
   ["archiveBtn", "archFechaLbl", "archJuegoLbl"].forEach(id => $(id).hidden = true);
   $("archTxt").textContent = "Cuando termine el torneo, descarga la tabla final como imagen para compartirla.";
@@ -1756,7 +1837,7 @@ onAuthStateChanged(auth, async u => {
   let publicado = null, salaNueva = false;
   try { publicado = (await get(T)).val(); salaNueva = !publicado; } catch(e){}
   soyDueno = true;
-  if (!SIN_TIENDA){ escucharTienda(u); escucharTimers(); escucharRifas(); }
+  if (!SIN_TIENDA){ escucharTienda(u); escucharTimers(); escucharRifas(); escucharChat(u); }
 
   if (soyDueno){
     $("salaMsg").innerHTML = "";
@@ -2087,7 +2168,7 @@ $("ieCrear").onclick = async () => {
    etc.). */
 /* Una entrada por pestaña: agregar una más es agregar una línea acá y el
    botón en el HTML, no seis toggles repartidos. */
-const PESTANAS = { t:"panelT", p:"panelP", s:"panelS", c:"panelC", o:"panelO", e:"panelE" };
+const PESTANAS = { t:"panelT", p:"panelP", s:"panelS", c:"panelC", o:"panelO", e:"panelE", m:"panelM" };
 function switchTab(t){
   for (const [k, panel] of Object.entries(PESTANAS)){
     $(panel).classList.toggle("hide", k !== t);
@@ -2099,6 +2180,7 @@ function switchTab(t){
   if (t === "c") renderAgenda();
   if (t === "e") pintarEstTienda();
   if (t === "o") pintarWidget();
+  if (t === "m") abrirChat();
 }
 Object.keys(PESTANAS).forEach(k => $("tab" + k.toUpperCase()).onclick = () => switchTab(k));
 
@@ -2412,7 +2494,8 @@ function fmt(sec){
 
 function startPause(){
   ensureAudio();
-  if (st.paused){ st.endTime = now() + st.remaining*1000; st.paused = false; alarmFired = false; }
+  if (st.paused){ st.endTime = now() + st.remaining*1000; st.paused = false; alarmFired = false;
+    if (typeof LLAMADA === "number") remove(R_LLAMADA).catch(() => {}); }   // empezó la ronda: la llamada terminó
   else { st.remaining = currentSec(); st.endTime = null; st.paused = true; }
   publishState(); renderClock();
 }
@@ -3044,7 +3127,14 @@ function aplicarLectura(fuente, nombre, { autoPublicar = false, silencioso = fal
     GENERAL = r.general; GENERAL0 = GENERAL && { filas: GENERAL.filas.slice(), ids: GENERAL.ids.slice() };
     $("tablaFmt").hidden = !GENERAL; pintarOrdenGeneral();
     showPreview(parsed);
-    if (parsed.rondasTotales) $("rondasTot").value = parsed.rondasTotales;
+    /* Las rondas de ESTE torneo: las que el organizador escribió para él; si no, las del archivo; si no, las
+       del manual por cantidad de jugadores. Hasta el 20-10-2026 se recordaba el último número escrito
+       para la sala, y un torneo de 4 heredaba las 4 rondas de otro. */
+    const sug = rondasSugeridas(parsed.standings.length), puestas = rondasManuales(parsed.name);
+    $("rondasTot").value = puestas || parsed.rondasTotales || sug;
+    $("rondasHint").textContent = puestas ? "Las escribiste tú para este torneo. El manual pide " + sug + " para " + parsed.standings.length + " jugadores."
+      : parsed.rondasTotales ? "Las dice el archivo. El manual pide " + sug + " para " + parsed.standings.length + " jugadores."
+      : "Calculadas para " + parsed.standings.length + " jugadores, como pide el manual. Cámbialas si tu torneo tiene otras.";
     $("publishBtn").disabled = false;
     $("archiveBtn").disabled = false; $("tablaBtn").disabled = false;
     $("archDate").value = parsed.fecha || new Date().toISOString().slice(0,10);
@@ -3092,13 +3182,16 @@ drop.addEventListener("drop", e => {
 });
 ["dragover","drop"].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
 
-/* Cuántas rondas va a tener el torneo: el archivo casi nunca lo dice (salvo
-   «# suizas») y por cantidad de jugadores no calza en los torneos de tienda
-   (hay de 38 jugadores con 4 rondas). Así que lo escribe el organizador y se
-   recuerda por sala, porque casi siempre es el mismo número. */
-try { $("rondasTot").value = localStorage.getItem(LS("rondas")) || ""; } catch(e){}
+/* Cuántas rondas va a tener el torneo: el archivo casi nunca lo dice (salvo «# suizas»), así que se
+   calculan por cantidad de jugadores (el manual) y el organizador las cambia si su torneo tiene otras
+   (hay torneos de tienda de 38 jugadores a 4 rondas). Lo que escribe se recuerda para ESE torneo (por
+   su nombre), no para la sala: así un torneo no hereda las rondas de otro. */
+const rondasManuales = nombre => { try { return parseInt(localStorage.getItem(LS("rondas:" + nombre)), 10) || 0; } catch(e){ return 0; } };
 $("rondasTot").onchange = () => {
-  try { localStorage.setItem(LS("rondas"), $("rondasTot").value); } catch(e){}
+  if (!parsed) return;
+  const v = parseInt($("rondasTot").value, 10);
+  try { if (v > 0 && v <= 20) localStorage.setItem(LS("rondas:" + parsed.name), String(v)); else localStorage.removeItem(LS("rondas:" + parsed.name)); } catch(e){}
+  $("rondasHint").textContent = v > 0 ? "Las escribiste tú para este torneo." : "Vacío: la pantalla no dice de cuántas rondas es el torneo.";
 };
 
 /* =========================================================
@@ -3582,7 +3675,7 @@ async function archivarTorneo(){
   };
   const enlazadas = registro.standings.filter(f => f.uid).length;
   const ids = {};
-  ID_POR_PUESTO.forEach((id, i) => { if (/^[0-9]{7,8}$/.test(String(id || ""))) ids[i] = String(id); });
+  ID_POR_PUESTO.forEach((id, i) => { if (/^[0-9]{6,8}$/.test(String(id || ""))) ids[i] = String(id); });
   try {
     const clave = push(R_HIST).key;
     await conTimeout(set(ref(db, BASE_T + "/historial/" + clave), registro), 15000);
@@ -3635,7 +3728,7 @@ $("recArchivos").onchange = async e => {
       d.standings.every((b, i) => mismaFila(t.standings[i], b)));
     if (cand.length > 1 && d.fecha) cand = cand.filter(([, t]) => t.fecha === d.fecha);
     const v = {};
-    ids.forEach((id, i) => { if (/^[0-9]{7,8}$/.test(String(id || ""))) v[i] = String(id); });
+    ids.forEach((id, i) => { if (/^[0-9]{6,8}$/.test(String(id || ""))) v[i] = String(id); });
     if (!cand.length || !Object.keys(v).length){ sin.push(f.name); continue; }
     try { await Promise.all(cand.map(([tid]) => set(ref(db, "idsHistorial/" + TIENDA + "/" + tid), v))); ok++; }
     catch(err){ sin.push(f.name); }
@@ -3714,7 +3807,7 @@ $("recCatArchivos").onchange = async e => {
           return fila;
         });
         const ids = {};
-        r.ids.forEach((id, i) => { if (/^[0-9]{7,8}$/.test(String(id || ""))) ids[i] = String(id); });
+        r.ids.forEach((id, i) => { if (/^[0-9]{6,8}$/.test(String(id || ""))) ids[i] = String(id); });
         /* La tabla, sus partidas y sus ID en UNA escritura, y sin enlazar en medio (ver enlazarPasados).
            Las filas nuevas van sin clave: enlazarPasados les pone la de su ID al terminar.
            historialVer nuevo: los celulares que guardaron el historial lo bajan de nuevo. */
@@ -3859,13 +3952,12 @@ function pintarTorneo(){
   if (!n){
     /* Inscripción: todavía no hay rondas. */
     const k = ids.length, sug = rondasSugeridas(k);
+    h += '<div class="rondasBox"><label>Rondas suizas <input type="number" id="tnRondas" min="1" max="20" placeholder="' + sug + '" value="' + (TN.rondas || "") + '"></label>' +
+      '<span class="muted">' + (TN.rondas ? "Fijas en " + TN.rondas + ". Bórralas para que se calculen solas." : "Automático: " + sug + " para " + k + (k === 1 ? " jugador" : " jugadores") + ", como pide el manual. Escribe otro número si tu torneo tiene otras.") + "</span></div>";
     h += '<div class="muted" style="margin-top:4px">' + k + (k === 1 ? " inscrito" : " inscritos") +
       ". Búscalos abajo, en los jugadores de la tienda.</div>" +
       (k ? '<div class="chips">' + ids.sort((a, b) => J[a].nombre.localeCompare(J[b].nombre)).map(id =>
         '<span class="chip">' + esc(J[id].nombre) + '<button data-quitar="' + esc(id) + '" aria-label="Quitar a ' + esc(J[id].nombre) + '">×</button></span>').join("") + "</div>" : "") +
-      '<div class="row" style="margin-top:12px"><label style="margin:0">Rondas <input type="number" id="tnRondas" min="1" max="20" ' +
-      'style="width:70px;margin-left:6px" placeholder="' + sug + '" value="' + (TN.rondas || "") + '"></label>' +
-      '<span class="muted" style="flex:1">' + (TN.rondas ? "Fijas en " + TN.rondas + "." : "Automático: " + sug + " para " + k + " jugadores, como pide el manual.") + "</span></div>" +
       '<div class="row" style="margin-top:8px">' + selCorte() + '<span class="muted" style="flex:1">' +
       (TN.corte ? "Después del suizo, los " + TN.corte + " primeros de la tabla juegan eliminación directa." : "Se puede cambiar hasta que termine el suizo.") + "</span></div>" +
       '<div class="row" style="margin-top:12px"><button id="tnEmparejar"' + (k < 2 ? " disabled" : "") + ">Emparejar la ronda 1</button>" +
@@ -3874,6 +3966,9 @@ function pintarTorneo(){
     const act = rs[n - 1], antes = resumen(TN, n - 1), pend = act.mesas.filter(m => m.b && m.r == null).length;
     const cortes = delCorte(TN), enCorte = cortes.length > 0, corteAct = esDelCorte(act);
     const titulo = corteAct ? "Top " + cortes[0].mesas.length * 2 + " · " + nombreCorte(act.mesas.length * 2) : "Ronda " + n + " de " + tot;
+    /* Durante el suizo las rondas se pueden corregir (no menos que las ya jugadas). */
+    if (!enCorte && !TN.archivado) h += '<div class="rondasBox"><label>Rondas suizas <input type="number" id="tnRondas" min="' + n + '" max="20" value="' + tot + '"></label>' +
+      '<span class="muted">El manual pide ' + rondasSugeridas(ids.length) + " para " + ids.length + " jugadores. Si te equivocaste, cámbialas acá.</span></div>";
     h += '<div style="margin-top:6px;font-size:var(--t3)"><b>' + titulo + "</b> · " +
       (pend ? '<span class="warnc">' + pend + (pend === 1 ? " mesa sin resultado" : " mesas sin resultado") + "</span>"
             : '<span class="ok">todos los resultados anotados</span>') + "</div>" +
@@ -3968,7 +4063,9 @@ function enlazarTorneo(){
   b.querySelectorAll("[data-volver]").forEach(x => x.onclick = () =>
     escribirT({ [rutaT("jugadores/" + x.dataset.volver + "/drop")]: 0 }).catch(tnFallo));
   if ($("tnRondas")) $("tnRondas").onchange = e => {
-    const v = parseInt(e.target.value, 10);
+    const v = parseInt(e.target.value, 10), jugadas = rondasDe(TN).filter(r => !esDelCorte(r)).length;
+    /* Antes de empezar, vacío = automático; ya empezado, no menos que las rondas jugadas. */
+    if (jugadas && !(v >= jugadas && v <= 20)){ alert((jugadas === 1 ? "Ya se jugó 1 ronda" : "Ya se jugaron " + jugadas + " rondas") + ": pon " + jugadas + " o más (hasta 20)."); return pintarTorneo(); }
     escribirT({ [rutaT("rondas")]: v >= 1 && v <= 20 ? v : 0 }, false).catch(tnFallo);
   };
   if ($("tnCorteSel")) $("tnCorteSel").onchange = e =>
@@ -5245,7 +5342,183 @@ async function sortear(r, i){
   try { await set(ref(db, "rifas/" + TIENDA + "/" + r + "/premios/" + i + "/ganador"), n); } catch(e){ falloRifa(); }
 }
 
-/* ▌BLOQUE 41 · Conexión ═════════════════════════════════════════════════════════
+/* ▌BLOQUE 41 · Llamada, staff y chat ════════════════════════════════════════════
+   Cronómetro de llamada a mesas (timer/llamada), el staff de la tienda con su código, solicitudes
+   y chat (salaStaff, salaChat) y el chat entre tiendas (chatTiendas). */
+/* ------------------------------------------------------------ llamada a mesas
+   timer/llamada = la hora del servidor en que empezó la llamada; sin valor, no hay. La tele y los celulares
+   la muestran (timer-view). Cuenta con la hora del servidor, así se ve igual en todos los aparatos. */
+const R_LLAMADA = ref(db, BASE + "/timer/llamada");
+let LLAMADA = null;
+onValue(R_LLAMADA, s => { LLAMADA = typeof s.val() === "number" ? s.val() : null; pintarLlamada(); }, () => {});
+function pintarLlamada(){
+  const act = LLAMADA !== null, sec = act ? Math.max(0, Math.floor((Date.now() + offset - LLAMADA) / 1000)) : null;
+  $("llamadaTiempo").textContent = act ? fmt(sec) : "--:--";
+  $("llamadaTiempo").classList.toggle("on", act);
+  $("llamadaIr").hidden = act; $("llamadaFin").hidden = !act;
+}
+setInterval(pintarLlamada, 1000);
+$("llamadaIr").onclick = () => set(R_LLAMADA, serverTimestamp()).catch(e => { $("syncMsg").innerHTML = '<span class="err">No se pudo iniciar: ' + esc(e.code || e.message) + "</span>"; });
+$("llamadaFin").onclick = () => remove(R_LLAMADA).catch(() => {});
+
+/* ------------------------------------------------------------ chat: lo común */
+const ALFABETO_STAFF = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";   // sin I, O, 0 ni 1: no se confunden al dictarlos
+const horaChat = ms => new Date(ms || 0).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+let canalChat = "staff", ES_ADMIN = false, NOM_TIENDA = {}, SILENCIADAS = {};
+const chNuevos = { staff: 0, tiendas: 0 };
+const vistos = { staff: null, tiendas: null };   // las claves ya vistas (null = todavía no llegó la primera carga)
+
+/* Avisos: un pitido y el número en la pestaña; con la página oculta, también la notificación del navegador
+   si la persona la activó (los avisos con la página cerrada, por push, son aparte). */
+function avisarChat(canal, m){
+  const mirando = !document.hidden && !$("panelM").classList.contains("hide") && canalChat === canal;
+  if (mirando) return;
+  chNuevos[canal]++; pintarInsignias();
+  try { ensureAudio(); beep(740, .08); setTimeout(() => beep(990, .1), 110); } catch(e){}
+  if (document.hidden && "Notification" in window && Notification.permission === "granted")
+    try { new Notification(canal === "staff" ? "Staff · " + m.nombre : m.nombre + " · " + nomTiendaDe(m.tienda), { body: String(m.texto).slice(0, 140), tag: "chat-" + canal }); } catch(e){}
+}
+function pintarInsignias(){
+  const t = chNuevos.staff + chNuevos.tiendas;
+  $("chatBadge").hidden = !t; $("chatBadge").textContent = t;
+  $("badgeS").hidden = !chNuevos.staff; $("badgeS").textContent = chNuevos.staff;
+  $("badgeT").hidden = !chNuevos.tiendas; $("badgeT").textContent = chNuevos.tiendas;
+}
+const nomTiendaDe = t => NOM_TIENDA[t] || (get(ref(db, "tiendas/" + t + "/perfil/nombre")).then(s => { NOM_TIENDA[t] = s.val() || t; pintarChatTiendas(); }, () => {}), t);
+
+/* Un canal: cuando llegan mensajes chNuevos de otra persona (después de la primera carga), se avisa. */
+function recibir(canal, val, uidMio){
+  const ms = Object.entries(val || {}).map(([id, m]) => ({ id, ...m })).sort((a, b) => (a.t || 0) - (b.t || 0));
+  if (vistos[canal] !== null) ms.filter(m => !vistos[canal].has(m.id) && m.uid !== uidMio).forEach(m => avisarChat(canal, m));
+  vistos[canal] = new Set(ms.map(m => m.id));
+  return ms;
+}
+function pintarFeed(el, ms, uidMio, extra){
+  const abajo = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+  el.innerHTML = ms.length ? ms.map(m => '<div class="msg' + (m.uid === uidMio ? " mio" : "") + '"><div class="quien"><b>' + esc(m.nombre) + "</b>" + extra.quien(m) +
+    " · " + horaChat(m.t) + extra.acciones(m, uidMio) + '</div><p>' + esc(m.texto) + "</p></div>").join("")
+    : '<div class="muted" style="padding:10px">' + extra.vacio + "</div>";
+  if (abajo) el.scrollTop = el.scrollHeight;
+}
+async function enviar(ruta, valor, msg, input){
+  const texto = input.value.trim().slice(0, 500);
+  if (!texto) return;
+  try {
+    await set(push(ref(db, ruta)), { ...valor, texto, t: serverTimestamp() });
+    input.value = ""; msg.textContent = "";
+  } catch(e){ msg.innerHTML = '<span class="err">No se pudo enviar. ' + (/PERMISSION/i.test(e.code || e.message || "") ? "Puede que no tengas permiso en este canal." : "Revisa la conexión.") + "</span>"; }
+}
+/* Avisos: el permiso del navegador (pitido y notificación con la pestaña oculta) y, además, el push del servidor
+   (push.js + functions/): llegan con la página cerrada. Si el push no se puede, quedan los primeros. */
+function textoAvisos(){
+  const ok = "Notification" in window && Notification.permission === "granted";
+  $("chAvisos").textContent = pushActivo(TIENDA) ? "Avisos activados" : ok ? "Avisos activados (con la página abierta)" : "Activar avisos";
+}
+$("chAvisos").onclick = async () => {
+  if (!("Notification" in window)) return ($("chAvisos").textContent = "Este navegador no avisa");
+  $("chAvisosMsg").textContent = "";
+  const u = auth.currentUser, razon = await activarPush({ app, db, uid: u && u.uid, tienda: TIENDA, rol: "org" });
+  if (!razon){ try { ensureAudio(); beep(740, .08); } catch(e){}
+    $("chAvisosMsg").textContent = "Listo: recibirás un aviso de los mensajes del staff y de quien pida entrar, aunque tengas la página cerrada."; }
+  else { const p = "Notification" in window ? Notification.permission : "denied";
+    if (p === "default") await Notification.requestPermission().catch(() => {});
+    $("chAvisosMsg").textContent = razon; }
+  textoAvisos();
+};
+function verCanal(c){
+  canalChat = c; chNuevos[c === "staff" ? "staff" : "tiendas"] = 0; pintarInsignias();
+  $("chS").classList.toggle("on", c === "staff"); $("chT").classList.toggle("on", c === "tiendas");
+  $("chS").setAttribute("aria-pressed", c === "staff"); $("chT").setAttribute("aria-pressed", c === "tiendas");
+  $("chatStaff").hidden = c !== "staff"; $("chatTiendas").hidden = c !== "tiendas";
+  $("feedS").scrollTop = $("feedS").scrollHeight; $("feedT").scrollTop = $("feedT").scrollHeight;
+}
+$("chS").onclick = () => verCanal("staff"); $("chT").onclick = () => verCanal("tiendas");
+function abrirChat(){
+  textoAvisos();
+  verCanal(canalChat);
+}
+
+/* ------------------------------------------------------------ staff de la tienda
+   staffCodigos/<código> = <tienda> (se lee conociendo el código) y salaStaff/<tienda>/codigo = el vigente.
+   salaStaff/<tienda>/miembros/<uid> = { nombre, estado: pendiente|admitido, codigo, creado }: lo escribe quien pide
+   entrar (staff.html) y lo admite o lo borra la tienda. El chat va en salaChat/<tienda>. */
+let STAFF = null, MSG_STAFF = [];
+const urlStaff = c => carpeta() + "staff.html?c=" + c + conEmu();
+const generarCodigo = () => Array.from({ length: 6 }, () => ALFABETO_STAFF[azar(ALFABETO_STAFF.length)]).join("");
+async function nuevoCodigoStaff(){
+  const viejo = STAFF && STAFF.codigo;
+  for (let i = 0; i < 6; i++){
+    const c = generarCodigo(), rutas = { ["staffCodigos/" + c]: TIENDA, ["salaStaff/" + TIENDA + "/codigo"]: c };
+    if (viejo) rutas["staffCodigos/" + viejo] = null;
+    try { await update(ref(db), rutas); return; } catch(e){ if (i === 5) $("msgS").innerHTML = '<span class="err">No se pudo crear el código. Revisa la conexión.</span>'; }
+  }
+}
+function pintarStaff(){
+  const c = STAFF && STAFF.codigo, mm = Object.entries((STAFF && STAFF.miembros) || {}).sort(([, a], [, b]) => (a.creado || 0) - (b.creado || 0));
+  $("stCodigo").innerHTML = c
+    ? '<div class="row" style="align-items:center"><span class="muted">Código de staff</span><span class="stCod">' + esc(c) + "</span>" +
+      '<button class="small sec" id="stCopiarEnlace">Copiar enlace</button><button class="small sec" id="stCopiarCod">Copiar código</button>' +
+      '<button class="small sec" id="stNuevo">Código nuevo</button><button class="small sec" id="stQuitar">Cerrar el acceso</button></div>' +
+      '<div class="muted" style="margin-top:4px">Quienes ya están admitidos siguen entrando aunque cambies el código; el código solo sirve para pedir entrar.</div>'
+    : '<div class="row" style="align-items:center"><span class="muted" style="flex:1">El acceso de staff está cerrado: nadie puede pedir entrar.</span><button id="stActivar">Activar el staff</button></div>';
+  const fila = (uid, m, acciones) => '<div class="miembro"><div class="txt"><b>' + esc(m.nombre) + '</b><small>' + (m.estado === "admitido" ? "Admitido" : "Pide entrar") + " · " +
+    new Date(m.creado || 0).toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" }) + "</small></div>" + acciones + "</div>";
+  const pend = mm.filter(([, m]) => m.estado !== "admitido"), adm = mm.filter(([, m]) => m.estado === "admitido");
+  $("stPend").innerHTML = pend.length ? '<div class="muted" style="margin-top:12px"><b>Piden entrar</b></div>' + pend.map(([uid, m]) =>
+    fila(uid, m, '<button class="small" data-stadm="' + esc(uid) + '">Admitir</button><button class="small sec" data-stquitar="' + esc(uid) + '">Rechazar</button>')).join("") : "";
+  $("stMiem").innerHTML = adm.length ? '<div class="muted" style="margin-top:12px"><b>Staff admitido</b></div>' + adm.map(([uid, m]) =>
+    fila(uid, m, '<button class="small sec" data-stquitar="' + esc(uid) + '">Quitar</button>')).join("") : "";
+  const on = (id, f) => { if ($(id)) $(id).onclick = f; };
+  on("stActivar", nuevoCodigoStaff); on("stNuevo", () => { if (confirm("¿Cambiar el código? El anterior deja de servir para pedir entrar.")) nuevoCodigoStaff(); });
+  on("stCopiarEnlace", () => { navigator.clipboard?.writeText(urlStaff(c)); $("stCopiarEnlace").textContent = "Copiado"; });
+  on("stCopiarCod", () => { navigator.clipboard?.writeText(c); $("stCopiarCod").textContent = "Copiado"; });
+  on("stQuitar", () => { if (confirm("¿Cerrar el acceso? Nadie nuevo podrá pedir entrar hasta que actives el staff otra vez.")) update(ref(db), { ["staffCodigos/" + c]: null, ["salaStaff/" + TIENDA + "/codigo"]: null }).catch(() => {}); });
+  document.querySelectorAll("[data-stadm]").forEach(b => b.onclick = () => set(ref(db, "salaStaff/" + TIENDA + "/miembros/" + b.dataset.stadm + "/estado"), "admitido").catch(() => {}));
+  document.querySelectorAll("[data-stquitar]").forEach(b => b.onclick = () => remove(ref(db, "salaStaff/" + TIENDA + "/miembros/" + b.dataset.stquitar)).catch(() => {}));
+}
+const quienStaff = m => m.rol === "org" ? ' <span class="muted">· organizador</span>' : ' <span class="muted">· staff</span>';
+function pintarChatStaff(){
+  pintarFeed($("feedS"), MSG_STAFF, auth.currentUser && auth.currentUser.uid, { quien: quienStaff, vacio: "Todavía no hay mensajes. Escribe el primero.",
+    acciones: (m, yo) => '<button class="sec" data-stborrar="' + esc(m.id) + '" aria-label="Borrar el mensaje">×</button>' });
+  document.querySelectorAll("[data-stborrar]").forEach(b => b.onclick = () => remove(ref(db, "salaChat/" + TIENDA + "/" + b.dataset.stborrar)).catch(() => {}));
+}
+$("formS").onsubmit = async e => {
+  e.preventDefault();
+  const u = auth.currentUser; if (!u) return;
+  await enviar("salaChat/" + TIENDA, { uid: u.uid, nombre: await miNombre(u), rol: "org" }, $("msgS"), $("txtS"));
+};
+$("stVaciar").onclick = () => { if (confirm("¿Vaciar el chat de la sala? Se borran todos los mensajes.")) remove(ref(db, "salaChat/" + TIENDA)).catch(() => {}); };
+
+/* ------------------------------------------------------------ chat entre tiendas */
+let MSG_TIENDAS = [];
+function pintarChatTiendas(){
+  const yo = auth.currentUser && auth.currentUser.uid;
+  pintarFeed($("feedT"), MSG_TIENDAS, yo, { vacio: "Todavía no hay mensajes entre tiendas.",
+    quien: m => ' <span class="muted">· ' + esc(nomTiendaDe(m.tienda)) + (SILENCIADAS[m.tienda] ? " (silenciada)" : "") + "</span>",
+    acciones: m => (m.uid === yo || ES_ADMIN ? '<button class="sec" data-tborrar="' + esc(m.id) + '" aria-label="Borrar el mensaje">×</button>' : "") +
+      (ES_ADMIN && m.uid !== yo ? '<button class="sec" data-tsil="' + esc(m.tienda) + '">' + (SILENCIADAS[m.tienda] ? "Quitar silencio" : "Silenciar") + "</button>" : "") });
+  document.querySelectorAll("[data-tborrar]").forEach(b => b.onclick = () => remove(ref(db, "chatTiendas/" + b.dataset.tborrar)).catch(() => {}));
+  document.querySelectorAll("[data-tsil]").forEach(b => b.onclick = () => set(ref(db, "chatTiendasSilencio/" + b.dataset.tsil), SILENCIADAS[b.dataset.tsil] ? null : true).catch(() => {}));
+}
+$("formT").onsubmit = async e => {
+  e.preventDefault();
+  const u = auth.currentUser; if (!u) return;
+  if (SILENCIADAS[TIENDA]) return ($("msgT").innerHTML = '<span class="err">La administración silenció a tu tienda en este canal.</span>');
+  await enviar("chatTiendas", { uid: u.uid, tienda: TIENDA, nombre: await miNombre(u) }, $("msgT"), $("txtT"));
+};
+
+/* Se engancha al confirmar que eres de la tienda (junto con las rifas). */
+function escucharChat(u){
+  soyAdmin(u).then(a => { ES_ADMIN = a; pintarChatTiendas(); });
+  onValue(ref(db, "salaStaff/" + TIENDA), s => { STAFF = s.val(); pintarStaff(); }, () => {});
+  onValue(query(ref(db, "salaChat/" + TIENDA), limitToLast(100)), s => { MSG_STAFF = recibir("staff", s.val(), u.uid); pintarChatStaff(); }, () => {});
+  onValue(query(ref(db, "chatTiendas"), limitToLast(100)), s => { MSG_TIENDAS = recibir("tiendas", s.val(), u.uid); pintarChatTiendas(); }, () => {});
+  onValue(ref(db, "chatTiendasSilencio"), s => { SILENCIADAS = s.val() || {}; pintarChatTiendas(); }, () => {});
+  pintarStaff();
+  renovarPush({ app, db, uid: u.uid, tienda: TIENDA, rol: "org" });   // si ya estaban activos, el token vigente
+}
+
+/* ▌BLOQUE 42 · Conexión ═════════════════════════════════════════════════════════
    Muestra el aviso de «sin señal» y avisa al cerrar la pestaña si quedaron cambios sin enviar. */
 /* =========================================================
    Sin señal. Firebase guarda lo que se escribe sin conexión y lo manda solo

@@ -124,6 +124,11 @@
     text-shadow:0 1px 3px rgba(0,0,0,.6);}
   .extra b{font-weight:700;margin-left:.35em;}
   .extra.fin{opacity:.55;}
+  /* Llamada a mesas (timer/llamada): cuánto lleva el juez llamando a los jugadores. */
+  #llamada{margin-top:1.2vh;font-size:clamp(var(--t2),2.6vh,var(--t5));padding:.3em .9em;border-radius:999px;white-space:nowrap;
+    background:color-mix(in srgb, currentColor 13%, transparent);font-variant-numeric:tabular-nums;text-shadow:0 1px 3px rgba(0,0,0,.6);}
+  #llamada[hidden]{display:none;}
+  #llamada b{font-weight:700;margin-left:.4em;}
   /* Visible solo para lectores de pantalla */
   .solo-lectores{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
     overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
@@ -342,6 +347,7 @@
     <div id="pronda"></div>
     <div id="clock" class="reloj">--:--</div>
     <div id="extras" hidden></div>
+    <div id="llamada" hidden></div>
   </div>
   <div id="tstatus" role="status" aria-live="polite">Conectando…</div>
   <p id="avisoReloj" class="solo-lectores" role="status" aria-live="polite"></p>
@@ -368,6 +374,8 @@
   <div class="row" style="justify-content:center;margin:6px 0 10px">
     <label for="mes" class="solo-lectores">Mes de la clasificación</label>
     <select id="mes"></select>
+    <label for="vistaClas" class="solo-lectores">Qué tabla ver</label>
+    <select id="vistaClas" hidden><option value="cat">Por categoría</option><option value="general">General</option></select>
   </div>
   <div id="clasBox"></div>
   <div id="cstatus">Conectando&hellip;</div>
@@ -414,7 +422,7 @@
 
 </main>
 
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <!-- ▌BLOQUE 4 · Módulos que usa la vista — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -422,7 +430,7 @@ import { getAuth, connectAuthEmulator } from "https://www.gstatic.com/firebasejs
 import { vigilar } from "./mantenimiento.js?v=4";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=4";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=5";
 import { SALA, BASE, TIENDA, BASE_T, INVITADO, SIN_TIENDA, numTimer } from "./sala.js?v=6";
 import { estoyEnLinea } from "./presencia.js?v=4";
 
@@ -447,7 +455,7 @@ if (!new URLSearchParams(location.search).get("sala"))
 }
 import { resolver as palResolver, esOriginal as palEsOriginal, aplicar as palAplicarEn,
          alDia } from "./paleta.js?v=4";
-import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=5";
+import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=6";
 
 /* ▌BLOQUE 5 · Arranque ══════════════════════════════════════════════════════════
    Conecta Firebase en modo lectura y calcula la hora del servidor. */
@@ -574,6 +582,17 @@ function fmt(sec){
   const n = sec < 0, a = Math.abs(sec);
   return (n?"-":"") + String(Math.floor(a/60)).padStart(2,"0") + ":" + String(a%60).padStart(2,"0");
 }
+
+/* Llamada a mesas: la hora (del servidor) en que empezó; sin valor, no hay llamada. */
+let LLAMADA = null, llamadaTxt = "";
+onValue(ref(db, BASE + "/timer/llamada"), s => { LLAMADA = typeof s.val() === "number" ? s.val() : null; dibujarLlamada(); }, () => {});
+function dibujarLlamada(){
+  const sec = LLAMADA === null ? null : Math.max(0, Math.floor((ahora() - LLAMADA) / 1000));
+  const h = sec === null ? "" : "Llamada a mesas<b>" + fmt(sec) + "</b>";
+  if (h === llamadaTxt) return;
+  llamadaTxt = h; $("llamada").innerHTML = h; $("llamada").hidden = !h;
+}
+setInterval(dibujarLlamada, 1000);
 
 /* Tiempo extra por mesa: minutos que el juez le sumó a una mesa sola. */
 let EXTRAS = {}, extrasTxt = "";
@@ -929,6 +948,11 @@ function suscribirHistorial(){
 }
 
 $("mes").onchange = e => { mesSel = e.target.value; renderClas(true); };
+/* General o por categoría: se recuerda en este navegador. */
+let VISTA = "cat";
+try { VISTA = localStorage.getItem(VISTA_RANKING) === "general" ? "general" : "cat"; } catch(e){}
+$("vistaClas").value = VISTA;
+$("vistaClas").onchange = e => { VISTA = e.target.value; try { localStorage.setItem(VISTA_RANKING, VISTA); } catch(x){} renderClas(true); };
 
 /* El podio repite a los tres primeros que ya están en la tabla de abajo. No
    es información nueva: es para que se vea de un vistazo quién va ganando el
@@ -968,7 +992,9 @@ function renderClas(soloTabla){
 
   const delMes = torneos.filter(t => mesDe(t) === mesSel);
   /* Con categorías, una tabla por cada una (Masters, Senior, Junior), cada una con sus puntos. */
-  const secs = clasificarPorCategoria(torneos, mesSel, CFG);
+  const hayCats = clasificarPorCategoria(torneos, mesSel, CFG).length > 1;
+  $("vistaClas").hidden = !hayCats;
+  const secs = rankingDelMes(torneos, mesSel, CFG, hayCats ? VISTA : "cat");
 
   let h = '<div class="sub" style="margin-bottom:10px">' + delMes.length +
           (delMes.length === 1 ? ' torneo' : ' torneos') + ' en ' + nombreMes(mesSel) + '</div>';

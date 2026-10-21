@@ -4,7 +4,7 @@
 /* ============================================================
    jugadores.js — un mismo jugador, aunque su nombre cambie
    ------------------------------------------------------------
-   Versión actual: v=1   (subir el ?v= al tocar este archivo)
+   Versión actual: v=2   (subir el ?v= al tocar este archivo)
 
    Problema: las tablas públicas (ranking, insignias, rachas, perfil de jugador,
    directorio, estadísticas) reconocían a una persona por cómo estaba escrito su
@@ -39,7 +39,7 @@
 export const normNombre = s => String(s || "").toLowerCase().normalize("NFD")
   .replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
 
-const ID_OK = /^[0-9]{7,8}$/;
+const ID_OK = /^[0-9]{6,8}$/;
 
 /* Una clave nueva: 10 caracteres hexadecimales al azar. */
 export function claveNueva(){
