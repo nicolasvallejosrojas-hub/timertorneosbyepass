@@ -1476,7 +1476,7 @@
 <div id="menu"></div>
 <input type="file" accept="image/*" id="fBox" style="display:none">
 
-<script src="config.js?v=10"></script>
+<script src="config.js?v=11"></script>
 <!-- ▌BLOQUE 10 · Módulos que usa el panel — Imports de Firebase y de los módulos compartidos (sala, agenda,
      insignias, torneo, paleta, listamazo, etc.). Cada uno lleva su ?v= para que el navegador no mezcle
      versiones. -->
@@ -1487,6 +1487,7 @@ import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAu
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
          MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=5";
 import { activarPush, renovarPush, pushActivo } from "./push.js?v=1";
+import { qrImg, qrPng } from "./qr.js?v=1";
 import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=6";
 import { vigilar } from "./mantenimiento.js?v=4";
 import { estoyEnLinea } from "./presencia.js?v=4";
@@ -3012,8 +3013,7 @@ function renderAll(){
   const url = location.origin + carpeta + "timer-view.html"
               + "?sala=" + SALA;
   $("shareUrl").value = url;
-  $("qr").src = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(url);
-  $("qr").onerror = () => { $("qr").style.opacity = ".25"; $("qr").title = "No se pudo generar el QR — usa el enlace de abajo"; };
+  $("qr").src = qrImg(url);
   $("copyBtn").onclick = () => navigator.clipboard?.writeText(url);
 
   try {
@@ -4673,7 +4673,7 @@ async function borrar(ev){
    la tienda. Se bajan recién al abrir los inscritos de un evento: una lista
    pesa ~1,5 KB y no hace falta traerlas todas para mostrar el calendario.
    ------------------------------------------------------------ */
-let inscAbierto = null, offInsc = null, offPlz = null, INSC = null, PLZ = null;
+let inscAbierto = null, offInsc = null, offPlz = null, INSC = null, PLZ = null, inscQr = null;   // inscQr: evento cuyo QR está a la vista
 const urlInscripcion = ev => new URL("inscripcion.html?sala=" + TIENDA + "&evento=" + ev.id, location.href).href;
 const paraHoja = ev => ({ ...ev, formato: ev.inscripcion.formato, tienda: nombreDeLaTienda() });
 
@@ -4707,7 +4707,11 @@ function pintarInscritos(){
     '<div class="row" style="align-items:center;gap:8px">' +
       '<input readonly id="inscUrl" value="' + esc(urlInscripcion(ev)) + '" style="flex:1;min-width:220px">' +
       '<button class="small sec" data-i="copiar">Copiar enlace</button>' +
+      '<button class="small sec" data-i="qr">' + (inscQr === ev.id ? "Ocultar QR" : "Ver QR") + "</button>" +
       "</div>" +
+    (inscQr === ev.id ? '<div class="center" style="margin-top:8px"><img src="' + qrImg(urlInscripcion(ev)) + '" alt="QR para inscribirse a ' + esc(ev.titulo) +
+      '" style="width:200px;height:200px;background:#fff;padding:8px;border-radius:var(--radio)"><div class="row" style="justify-content:center;margin-top:6px">' +
+      '<button class="small sec" data-i="qrpng">Descargar QR</button></div></div>' : "") +
     '<div class="row" style="align-items:center;gap:8px;margin-top:8px">' +
       '<span style="flex:1">' + filas.length + (filas.length === 1 ? " inscrito" : " inscritos") + " · Inscripciones <b>" +
       (!abierta ? "cerradas</b>: el enlace no deja inscribirse" : empezo ? "cerradas</b>: el torneo ya empezó" : "abiertas</b> hasta que empiece el torneo") + "</span>" +
@@ -4734,6 +4738,11 @@ function pintarInscritos(){
     const b = e.target.closest("button"); if (!b) return;
     const d = b.dataset;
     if (d.i === "copiar") navigator.clipboard?.writeText(urlInscripcion(ev)).then(() => { b.textContent = "Copiado ✓"; });
+    if (d.i === "qr"){ inscQr = inscQr === ev.id ? null : ev.id; pintarInscritos(); }
+    if (d.i === "qrpng"){
+      const a = document.createElement("a"); a.href = URL.createObjectURL(await qrPng(urlInscripcion(ev)));
+      a.download = "qr-inscripcion-" + slug(ev.titulo, 40) + ".png"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
     if (d.i === "abrir"){
       if (abierta && !confirm("¿Dejar de recibir inscripciones para «" + ev.titulo + "»?\n\nEl enlace deja de aceptar inscripciones y nadie puede corregir su lista. Las que ya llegaron se quedan.")) return;
       try { await update(ref(db, BASE_T + "/agenda/" + ev.id + "/inscripcion"), { abierta: !abierta }); }

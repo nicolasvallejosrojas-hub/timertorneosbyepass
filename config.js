@@ -86,7 +86,7 @@ if (!EMULADOR){
     "connect-src 'self' https://*.firebaseio.com wss://*.firebaseio.com"
       + " https://identitytoolkit.googleapis.com https://securetoken.googleapis.com"
       + " https://fcmregistrations.googleapis.com https://fcm.googleapis.com https://firebaseinstallations.googleapis.com",   // avisos push
-    "img-src 'self' data: blob: https://api.qrserver.com",
+    "img-src 'self' data: blob:",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "media-src 'self' data: blob:",
