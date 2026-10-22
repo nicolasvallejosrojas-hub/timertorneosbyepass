@@ -6,9 +6,11 @@
 /* =========================================================
    sw.js — la app instalable
    ---------------------------------------------------------
-   Siempre va a la red primero y guarda una copia de lo que trae. La copia se
-   usa SOLO si la red falla: así una versión nueva se ve al tiro (nadie queda
-   pegado en una vieja) y, sin señal, la página igual abre. La vista del timer
+   Las páginas van a la red primero y guardan una copia de lo que traen. La copia
+   se usa si la red falla o tarda más de 4 s: así una versión nueva se ve al tiro
+   (nadie queda pegado en una vieja) y, sin señal o con señal mala, la página igual
+   abre. Los módulos y estilos con ?v=N y los de Firebase (versión en la dirección)
+   salen de la copia al tiro y se refrescan por detrás. La vista del timer
    ya guarda en el teléfono la hora de término de la ronda, así que abierta
    sin señal sigue marcando bien, y se pone al día sola cuando vuelve la red.
 
@@ -39,18 +41,35 @@ self.addEventListener("notificationclick", e => {
 });
 
 self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", e => e.waitUntil(clients.claim()));
+/* La precarga de navegación pide la página en paralelo mientras arranca el service worker (dormido, tarda en despertar). */
+self.addEventListener("activate", e => e.waitUntil(Promise.all([clients.claim(), self.registration.navigationPreload && self.registration.navigationPreload.enable()])));
+
+const guardar = (r, res) => { if (!res.ok) return; const copia = res.clone(); return caches.open(CAJA).then(c => c.delete(r, { ignoreSearch: true }).then(() => c.put(r, copia))); };
+const TARDE = 4000;   // ms: si la red no responde en ese tiempo y hay copia, se usa la copia (la red sigue y la deja guardada)
 
 self.addEventListener("fetch", e => {
   const r = e.request, u = new URL(r.url);
   if (r.method !== "GET") return;
   const firebase = u.origin === "https://www.gstatic.com" && u.pathname.startsWith("/firebasejs/");
   if (u.origin !== location.origin && !firebase) return;
-  e.respondWith(fetch(r).then(res => {
-    if (res.ok){
-      const copia = res.clone();
-      e.waitUntil(caches.open(CAJA).then(c => c.delete(r, { ignoreSearch: true }).then(() => c.put(r, copia))));
-    }
-    return res;
-  }, () => caches.match(r, { ignoreSearch: true }).then(c => c || Response.error())));
+
+  /* Módulos, estilos y Firebase llevan su versión en la dirección (?v=N o 10.12.2): lo guardado sirve al tiro y se
+     refresca por detrás. Si cambia ?v=, la dirección es otra y se baja de la red. */
+  if (firebase || u.searchParams.has("v")){
+    e.respondWith(caches.match(r).then(c => {
+      const red = fetch(r).then(res => { e.waitUntil(guardar(r, res)); return res; });
+      if (c){ e.waitUntil(red.catch(() => {})); return c; }
+      return red;
+    }));
+    return;
+  }
+
+  /* Páginas y lo demás: red primero (una versión nueva se ve al tiro), con la copia como respaldo si no hay señal o
+     si la red tarda demasiado. */
+  const copia = () => caches.match(r, { ignoreSearch: true });
+  const red = Promise.resolve(e.preloadResponse).then(p => p || fetch(r)).then(res => { e.waitUntil(guardar(r, res)); return res; });
+  e.respondWith(Promise.race([
+    red.catch(() => copia().then(c => c || Response.error())),
+    new Promise(ok => setTimeout(() => copia().then(c => { if (c) ok(c); }), TARDE)),
+  ]));
 });

@@ -4,10 +4,10 @@
 /* ============================================================
    tablafinal.js — la tabla final como imagen para compartir
    ------------------------------------------------------------
-   Versión actual: v=2   (subir el ?v= al tocar este archivo)
+   Versión actual: v=4   (subir el ?v= al tocar este archivo)
 
    La dibuja en un canvas con las letras y los colores de la tele (lienzo
-   oscuro, Inter, Newsreader) y la entrega como PNG: en el celular abre el
+   oscuro por defecto, o el fondo que la tienda eligió: fondoimg.js; Inter, Newsreader) y la entrega como PNG: en el celular abre el
    menú de compartir (WhatsApp, Instagram…); en el computador se descarga.
    No sube nada a ningún lado: la imagen queda solo en el aparato.
 
@@ -17,12 +17,12 @@
    ============================================================ */
 
 /* ▌BLOQUE 1 · Tabla como imagen ═════════════════════════════════════════════════
-   Dibuja la tabla en un canvas y la comparte o descarga. */
-const C = { fondo: "#0F2E2A", fila: "#143833", texto: "#F3FFFB", suave: "#9DBDB4", coral: "#F45B45", ambar: "#FFB020", linea: "rgba(243,255,251,.1)" };
+   Dibuja la tabla en un canvas, sobre el fondo elegido (fondoimg.js), y la comparte o descarga. */
+import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=1";
 const W = 1080, PAD = 72, FILA = 66, CAB = 330, PIE = 170;
 
 /* Corta con «…» lo que no cabe en el ancho dado. */
-function cabe(g, txt, ancho){
+export function cabe(g, txt, ancho){
   if (g.measureText(txt).width <= ancho) return txt;
   while (txt.length > 1 && g.measureText(txt + "…").width > ancho) txt = txt.slice(0, -1);
   return txt + "…";
@@ -38,7 +38,9 @@ const NOM_CAT = ["Junior", "Senior", "Masters"];     // cat: 0, 1, 2 (igual que 
 
 /* filas: [{ puesto, nombre, w, l, t, pts, etapa?, cat? }] en orden. Con varias categorías (cat), un
    título antes de cada una y cada una con su propio puesto. */
-export async function dibujarTabla({ torneo, fecha, tienda, filas }){
+/* estilo: el fondo elegido (fondoimg.js); puede venir como promesa. Sin él, el lienzo oscuro de siempre. */
+export async function dibujarTabla({ torneo, fecha, tienda, filas, estilo }){
+  estilo = await estilo; const C = paletaDe(estilo);   // colores del texto y las filas según el fondo
   await Promise.all(["700 56px Inter", "600 30px Inter", "400 26px Inter", "300 60px Newsreader"].map(f => document.fonts.load(f).catch(() => {})));
   const hayCats = filas.some(f => f.cat != null && f.cat !== filas[0].cat);
   const lineas = [];
@@ -50,7 +52,7 @@ export async function dibujarTabla({ torneo, fecha, tienda, filas }){
   const cv = document.createElement("canvas");
   cv.width = W; cv.height = H;
   const g = cv.getContext("2d");
-  g.fillStyle = C.fondo; g.fillRect(0, 0, W, H);
+  pintarFondo(g, W, H, estilo, await cargarImagen(estilo && estilo.fondo));
 
   /* cabecera: tienda, torneo, fecha y cuántos */
   g.textBaseline = "alphabetic";
@@ -107,18 +109,21 @@ export async function dibujarTabla({ torneo, fecha, tienda, filas }){
   return cv;
 }
 
-/* Compartir en el celular; descargar en el computador. */
-export async function entregarTabla(datos){
-  const cv = await dibujarTabla(datos);
+/* Compartir en el celular; descargar en el computador. La usan también otras imágenes (calendarioimg.js). */
+export async function entregarImagen(cv, nombreBase, titulo){
   const blob = await new Promise(r => cv.toBlob(r, "image/png"));
-  const nombre = ("tabla-" + (datos.torneo || "torneo")).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+  const nombre = nombreBase.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) + ".png";
   const archivo = new File([blob], nombre, { type: "image/png" });
   if (matchMedia("(pointer: coarse)").matches && navigator.canShare && navigator.canShare({ files: [archivo] })){
-    try { await navigator.share({ files: [archivo], title: datos.torneo || "Tabla final" }); return; }
+    try { await navigator.share({ files: [archivo], title: titulo }); return; }
     catch(e){ if (e.name === "AbortError") return; }
   }
   const url = URL.createObjectURL(blob), a = document.createElement("a");
   a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+export async function entregarTabla(datos){
+  return entregarImagen(await dibujarTabla(datos), "tabla-" + (datos.torneo || "torneo"), datos.torneo || "Tabla final");
 }

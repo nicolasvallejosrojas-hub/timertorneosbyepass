@@ -42,6 +42,7 @@
      40. Rifas
      41. Llamada, staff y chat
      42. Conexión
+     43. Fondo de las imágenes para compartir
 -->
 <html lang="es">
 <head>
@@ -1170,6 +1171,7 @@
 <div class="card">
   <div id="calNav">
     <div id="calMes">&nbsp;</div>
+    <button id="calImg" class="small sec" title="Una imagen del mes para compartir (WhatsApp, Instagram…)">Imagen del mes</button>
     <button id="calHoy" class="small sec">Hoy</button>
     <button id="calAnt" class="small sec" title="Mes anterior">&lsaquo;</button>
     <button id="calSig" class="small sec" title="Mes siguiente">&rsaquo;</button>
@@ -1377,6 +1379,35 @@
               aria-label="Código para pegar en tu web"></textarea>
     <div class="row" style="margin-top:6px"><button id="wgCopiar" class="small">Copiar código</button><span id="wgMsg" class="muted"></span></div>
   </div>
+
+  <div class="card" id="fiCard">
+    <h2 class="h2p">Fondo de las imágenes para compartir</h2>
+    <div class="muted" style="margin-bottom:10px">Cambia el fondo de la tabla final y del calendario del mes: un color, un degradado o una imagen tuya.
+      Con un fondo claro, las letras pasan a oscuras solas. El QR va siempre con fondo blanco para que lo lea el celular.</div>
+    <div class="row" style="align-items:flex-start;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <label>Tipo de fondo <select id="fiTipo"><option value="color">Color</option><option value="degradado">Degradado</option><option value="imagen">Imagen</option></select></label>
+        <div class="row" id="fiColores" style="align-items:center;margin-top:8px">
+          <input type="color" id="fiC1" aria-label="Color del fondo" style="width:64px;height:32px;border:1px solid var(--divider);border-radius:var(--radio);background:transparent">
+          <input type="color" id="fiC2" aria-label="Segundo color del degradado" style="width:64px;height:32px;border:1px solid var(--divider);border-radius:var(--radio);background:transparent">
+          <select id="fiDir" aria-label="Dirección del degradado" style="height:32px">
+            <option value="to bottom">&darr; de arriba abajo</option><option value="to right">&rarr; de izquierda a derecha</option>
+            <option value="to bottom right">&searr; en diagonal</option><option value="to top right">&nearr; diagonal hacia arriba</option>
+          </select>
+        </div>
+        <label style="margin-top:8px">Letras <select id="fiLetras"><option value="auto">Automáticas según el fondo</option>
+          <option value="claras">Claras (para fondos oscuros)</option><option value="oscuras">Oscuras (para fondos claros)</option></select></label>
+        <div id="fiImgBox" style="margin-top:8px">
+          <input type="file" accept="image/*" id="fiFile" style="display:block;font-size:var(--t2)">
+          <div class="row" style="align-items:center;margin-top:6px"><span id="fiImgEst" class="muted" style="flex:1"></span><button id="fiQuitar" class="small sec">Quitar imagen</button></div>
+          <label style="margin-top:8px">Oscurecer la imagen para que se lea el texto <input type="range" id="fiOscuro" min="0" max="80" step="5" style="width:100%"></label>
+        </div>
+        <div class="row" style="margin-top:12px;align-items:center"><button id="fiGuardar" class="small">Guardar fondo</button>
+          <button id="fiReset" class="small sec">Volver al original</button><span id="fiMsg" class="muted"></span></div>
+      </div>
+      <div style="flex:0 0 230px;max-width:100%"><div class="muted" style="margin-bottom:4px">Vista previa (el calendario de este mes)</div><div id="fiPrev"></div></div>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
@@ -1502,7 +1533,9 @@ import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHisto
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
          revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=4";
-import { entregarTabla } from "./tablafinal.js?v=2";
+import { entregarTabla } from "./tablafinal.js?v=4";
+import { entregarCalendario, dibujarCalendario } from "./calendarioimg.js?v=1";
+import { FONDO_DEF } from "./fondoimg.js?v=1";
 import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=6";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
@@ -2180,7 +2213,7 @@ function switchTab(t){
   if (t === "s") pintarRuleta();
   if (t === "c") renderAgenda();
   if (t === "e") pintarEstTienda();
-  if (t === "o") pintarWidget();
+  if (t === "o"){ pintarWidget(); fiAbrir(); }
   if (t === "m") abrirChat();
 }
 Object.keys(PESTANAS).forEach(k => $("tab" + k.toUpperCase()).onclick = () => switchTab(k));
@@ -3701,7 +3734,7 @@ $("tablaBtn").onclick = () => {
   /* General (si la hay y está elegida): todos juntos, sin títulos de categoría. Si no, la del archivo. */
   const gen = GENERAL && $("tablaFmt").value === "general";   // en el orden que quedó (calculado o corregido a mano)
   const [filas, idsF] = gen ? [GENERAL.filas, GENERAL.ids] : [parsed.standings, ID_POR_PUESTO];
-  entregarTabla({ torneo: parsed.name, fecha: $("archDate").value, tienda: nombreDeLaTienda(),
+  entregarTabla({ torneo: parsed.name, fecha: $("archDate").value, tienda: nombreDeLaTienda(), estilo: estiloImagenes(),
     filas: filas.map((p, i) => {
       const e = ENLACES[String(idsF[i] || "")];
       return { puesto: gen ? i + 1 : p.place, nombre: e && !e.publico ? "Jugador reservado" : p.name, w: p.w, l: p.l, t: p.t, pts: p.pts, cat: gen ? undefined : p.cat };
@@ -4099,7 +4132,7 @@ function enlazarTorneo(){
     } catch(e){ tnFallo(e); }
   });
   btn("tnArchivar", archivarPagina);
-  btn("tnTablaImg", () => entregarTabla({ torneo: TN.nombre, fecha: TN.fecha, tienda: nombreDeLaTienda(),
+  btn("tnTablaImg", () => entregarTabla({ torneo: TN.nombre, fecha: TN.fecha, tienda: nombreDeLaTienda(), estilo: estiloImagenes(),
     filas: clasificacion(TN).map(p => ({ puesto: p.puesto, nombre: p.nombre, w: p.w, l: p.l, t: p.e, pts: p.pts, etapa: p.etapa })) })
     .catch(() => tnFallo(new Error("No se pudo armar la imagen."))));
   btn("tnCerrar", () => {
@@ -4788,6 +4821,12 @@ function irMes(delta){
 }
 $("calAnt").onclick = () => irMes(-1);
 $("calSig").onclick = () => irMes(1);
+$("calImg").onclick = async () => {
+  const b = $("calImg"), txt = b.textContent; b.disabled = true; b.textContent = "Generando…";
+  try { await entregarCalendario({ tienda: nombreDeLaTienda(), a: mesVista.a, m: mesVista.m, eventos: AGENDA, estilo: estiloImagenes() }); }
+  catch(e){ alert("No se pudo generar la imagen del calendario."); }
+  b.disabled = false; b.textContent = txt;
+};
 $("calHoy").onclick = () => { const h = new Date(); mesVista = { a:h.getFullYear(), m:h.getMonth() }; renderMes(); };
 
 function renderMes(){
@@ -5553,6 +5592,60 @@ onValue(ref(db, ".info/connected"), s => {
   }
 });
 window.addEventListener("beforeunload", e => { if (!sinRed) return; e.preventDefault(); e.returnValue = ""; });
+
+/* ▌BLOQUE 43 · Fondo de las imágenes para compartir ═════════════════════════════
+   Color, degradado o imagen para la tabla final y el calendario del mes (fondoimg.js), guardado en
+   salas/<tienda>/imagenes. La tarjeta está en la pestaña Tienda, con vista previa del calendario. */
+const R_IMG = ref(db, BASE_T + "/imagenes");
+const FI_MAX = 580000;   // caracteres de la imagen en base64: las reglas aceptan hasta 600000
+let ESTILO_IMG = null, fiBorrador = null, fiSeq = 0, fiDeb = 0;
+const estiloImagenes = () => ESTILO_IMG ? Promise.resolve(ESTILO_IMG) : get(R_IMG).then(sn => (ESTILO_IMG = sn.val() || {}), () => (ESTILO_IMG = {}));
+
+function fiControles(){
+  const e = fiBorrador;
+  $("fiTipo").value = e.tipo; $("fiC1").value = e.color1; $("fiC2").value = e.color2; $("fiDir").value = e.dir; $("fiOscuro").value = e.oscuro; $("fiLetras").value = e.letras;
+  $("fiColores").hidden = e.tipo === "imagen"; $("fiC2").hidden = $("fiDir").hidden = e.tipo !== "degradado"; $("fiImgBox").hidden = e.tipo !== "imagen";
+  $("fiImgEst").textContent = e.fondo ? "Imagen cargada ✓ (" + Math.round(e.fondo.length / 1024) + " KB)" : "Sin imagen: se usa el color";
+}
+async function fiVista(){
+  const mi = ++fiSeq, h = new Date();
+  const cv = await dibujarCalendario({ tienda: nombreDeLaTienda(), a: mesVista ? mesVista.a : h.getFullYear(), m: mesVista ? mesVista.m : h.getMonth(), eventos: AGENDA, estilo: fiBorrador });
+  if (mi !== fiSeq) return;   // llegó otra vista más nueva
+  cv.style.cssText = "width:100%;height:auto;border-radius:8px;display:block"; cv.setAttribute("aria-label", "Vista previa del calendario con este fondo");
+  $("fiPrev").replaceChildren(cv);
+}
+const fiCambio = () => { fiControles(); clearTimeout(fiDeb); fiDeb = setTimeout(fiVista, 150); $("fiMsg").textContent = ""; };
+
+async function fiAbrir(){
+  if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
+  fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
+}
+$("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };
+$("fiC1").oninput = e => { fiBorrador.color1 = e.target.value; fiCambio(); };
+$("fiC2").oninput = e => { fiBorrador.color2 = e.target.value; fiCambio(); };
+$("fiDir").onchange = e => { fiBorrador.dir = e.target.value; fiCambio(); };
+$("fiLetras").onchange = e => { fiBorrador.letras = e.target.value; fiCambio(); };
+$("fiOscuro").oninput = e => { fiBorrador.oscuro = +e.target.value; fiCambio(); };
+/* La imagen se achica hasta que quepa en lo que aceptan las reglas. */
+function fiSubir(f, ancho, calidad){
+  compressImage(f, ancho, calidad, d => {
+    if (d.length > FI_MAX && ancho > 600) return fiSubir(f, Math.round(ancho * .75), calidad - .1);
+    if (d.length > FI_MAX) { $("fiMsg").textContent = "Esa imagen pesa demasiado. Prueba con otra."; return; }
+    fiBorrador.fondo = d; fiBorrador.tipo = "imagen"; fiCambio();
+  }, true);
+}
+$("fiFile").onchange = e => { const f = e.target.files && e.target.files[0]; if (f) fiSubir(f, 1400, .75); e.target.value = ""; };
+$("fiQuitar").onclick = () => { fiBorrador.fondo = ""; fiBorrador.tipo = "color"; fiCambio(); };
+$("fiGuardar").onclick = async () => {
+  const e = fiBorrador, datos = { tipo: e.tipo, color1: e.color1, color2: e.color2, dir: e.dir, oscuro: e.oscuro, letras: e.letras, ...(e.fondo ? { fondo: e.fondo } : {}) };
+  try { await set(R_IMG, datos); ESTILO_IMG = datos; $("fiMsg").textContent = "Guardado ✓ Las imágenes nuevas salen con este fondo."; }
+  catch(err){ $("fiMsg").textContent = mensajeConexion(err); }
+};
+$("fiReset").onclick = async () => {
+  if (!confirm("¿Volver al fondo original (oscuro, verde) en las imágenes de esta tienda?")) return;
+  try { await remove(R_IMG); ESTILO_IMG = {}; fiBorrador = { ...FONDO_DEF }; fiCambio(); $("fiMsg").textContent = "Listo: fondo original."; }
+  catch(err){ $("fiMsg").textContent = mensajeConexion(err); }
+};
 
 </script>
 </body>

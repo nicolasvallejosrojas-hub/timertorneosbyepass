@@ -1,3 +1,9 @@
+/* ▌ÍNDICE de qr.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+    1. Generador de QR
+*/
+/* ▌BLOQUE 1 · Generador de QR ═══════════════════════════════════════════════════
+   Codifica en modo byte con corrección M (versiones 1 a 10) y entrega la matriz, un SVG, una
+   imagen para <img> o un PNG. */
 /* Códigos QR generados aquí mismo: el enlace no sale a ningún servicio externo.
    Modo byte, corrección M, versiones 1 a 10 (hasta 213 caracteres en ASCII: sobra para un enlace de la página).
      qrMatriz(texto)           → matriz de booleanos (true = módulo oscuro)
