@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Enlace — ByePass</title>
+<!--
+  Enlaces cortos: GitHub Pages muestra esta página para cualquier dirección que no sea un archivo, así que
+  byepass.cl/abc234 llega acá. Se busca el código en cortos/<código> (lectura pública, solo por clave exacta) y se
+  salta a la página guardada. Solo se aceptan páginas propias (inscripción, tienda, timer, rifa): jamás una dirección
+  de otro sitio, aunque la base trajera una. Va sola (sin config.js ni rutas relativas) porque se abre en cualquier ruta.
+-->
+<style>
+  :root{color-scheme:light dark;--fondo:#EDF7F4;--texto:#10231E;--suave:#3E5E55;--marca:#0B7F6C}
+  @media (prefers-color-scheme:dark){:root{--fondo:#0F2E2A;--texto:#F3FFFB;--suave:#9DBDB4;--marca:#3FD0B0}}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--fondo);color:var(--texto);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{padding:24px;text-align:center;max-width:420px}
+  h1{font-size:22px;margin:0 0 8px}
+  p{margin:0 0 20px;color:var(--suave)}
+  a{display:inline-block;padding:10px 18px;border-radius:10px;background:var(--marca);color:#fff;text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="t">Buscando tu enlace…</h1>
+  <p id="p"></p>
+  <a href="/">Ir a ByePass</a>
+</main>
+<script>
+(function(){
+  var codigo = location.pathname.replace(/^\/+|\/+$/g, "");
+  var BASE = "https://timer-y-qrs-pokemon-default-rtdb.firebaseio.com";
+  var PAGINA = /^(inscripcion|tienda|timer-view|rifa)\.html\?[A-Za-z0-9_=&%.~+-]{1,300}$/;   // lo mismo que exigen las reglas
+  function nada(){
+    document.getElementById("t").textContent = "No encontramos ese enlace";
+    document.getElementById("p").textContent = "Puede que esté mal escrito o que ya no exista.";
+  }
+  if (!/^[a-z2-9]{5,8}$/.test(codigo)) return nada();
+  fetch(BASE + "/cortos/" + codigo + ".json").then(function(r){ return r.ok ? r.json() : null; }).then(function(v){
+    if (v && typeof v.ruta === "string" && PAGINA.test(v.ruta)) location.replace("/" + v.ruta); else nada();
+  }).catch(nada);
+})();
+</script>
+</body>
+</html>

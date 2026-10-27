@@ -263,7 +263,7 @@
       <button class="btn" id="dbSi" disabled>Descargar respaldo y eliminar</button></div>
   </dialog>
 
-<script src="config.js?v=11"></script>
+<script src="config.js?v=12"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
 import { ref, onValue, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -770,7 +770,7 @@ $("dbSi").onclick = async () => {
    Compara el ?v= que piden las páginas de byepass.cl con la versión de cada archivo, y prueba si
    las reglas nuevas ya están publicadas. */
 const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "timer-view.html", "tele.html", "admin.html", "inscripcion.html",
-                 "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html"];
+                 "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "404.html"];
 /* El archivo tal como está publicado ahora (sin copias guardadas). */
 const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
 /* Lo que pide un archivo: «./clasificacion.js?v=6», «estilo.css?v=12»… → [archivo, versión]. */

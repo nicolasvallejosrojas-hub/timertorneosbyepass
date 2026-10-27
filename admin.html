@@ -1201,6 +1201,10 @@
       <input id="evJuego" list="evJuegos" style="width:100%;margin-top:4px" placeholder="El nombre del juego, igual cada vez" maxlength="40">
       <datalist id="evJuegos"></datalist>
     </label>
+    <label>Tipo <span class="muted">(opcional &mdash; Liga, Pokeween, Prerelease&hellip;: sale junto al juego)</span>
+      <input id="evTipo" list="evTipos" style="width:100%;margin-top:4px" placeholder="Qué clase de evento es" maxlength="30">
+      <datalist id="evTipos"></datalist>
+    </label>
 
     <div class="row" style="margin-top:10px;align-items:flex-end">
       <label style="margin:0">Fecha
@@ -1507,7 +1511,26 @@
 <div id="menu"></div>
 <input type="file" accept="image/*" id="fBox" style="display:none">
 
-<script src="config.js?v=11"></script>
+<script src="config.js?v=12"></script>
+<!-- Todo lo que el panel carga al arrancar se pide a la vez (si no, cada módulo descubre los suyos recién al llegar). Mismas direcciones y versiones que los import. -->
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
+<link rel="modulepreload" href="./agenda.js?v=5">
+<link rel="modulepreload" href="./push.js?v=1">
+<link rel="modulepreload" href="./qr.js?v=1">
+<link rel="modulepreload" href="./sala.js?v=6">
+<link rel="modulepreload" href="./mantenimiento.js?v=4">
+<link rel="modulepreload" href="./presencia.js?v=4">
+<link rel="modulepreload" href="./graficos.js?v=2">
+<link rel="modulepreload" href="./insignias.js?v=9">
+<link rel="modulepreload" href="./clasificacion.js?v=6">
+<link rel="modulepreload" href="./jugadores.js?v=2">
+<link rel="modulepreload" href="./importar.js?v=3">
+<link rel="modulepreload" href="./torneo.js?v=2">
+<link rel="modulepreload" href="./paleta.js?v=4">
+<link rel="modulepreload" href="./csv.js?v=1">
+<link rel="modulepreload" href="./listamazo.js?v=6">
 <!-- ▌BLOQUE 10 · Módulos que usa el panel — Imports de Firebase y de los módulos compartidos (sala, agenda,
      insignias, torneo, paleta, listamazo, etc.). Cada uno lleva su ?v= para que el navegador no mezcle
      versiones. -->
@@ -1533,9 +1556,12 @@ import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHisto
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
          revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=4";
-import { entregarTabla } from "./tablafinal.js?v=4";
-import { entregarCalendario, dibujarCalendario } from "./calendarioimg.js?v=1";
-import { FONDO_DEF } from "./fondoimg.js?v=1";
+/* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
+const entregarTabla = datos => import("./tablafinal.js?v=4").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=1").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=1").then(m => m.dibujarCalendario(datos));
+let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
+import { celdaCsv } from "./csv.js?v=1";
 import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=6";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
@@ -4627,6 +4653,7 @@ function leerForm(){
     lugar:    $("evLugar").value.trim(),
     detalle:  $("evDet").value.trim(),
     juego:    $("evJuego").value.trim().replace(/\s+/g, " ") || null,   // null: al editar, borrar el juego lo quita
+    tipo:     $("evTipo").value.trim().replace(/\s+/g, " ") || null,
     inicioMs: aEpoch(fecha, hora),
     updatedAt: Date.now()
   }};
@@ -4634,7 +4661,7 @@ function leerForm(){
 
 function limpiarForm(){
   editandoId = null;
-  $("evTit").value = ""; $("evJuego").value = ""; $("evLugar").value = ""; $("evDet").value = "";
+  $("evTit").value = ""; $("evJuego").value = ""; $("evTipo").value = ""; $("evLugar").value = ""; $("evDet").value = "";
   $("evTodoDia").checked = false; modoTodoDia();
   $("evInsc").checked = false; $("evFmt").value = "estandar"; DIVS.forEach(d => $("evCupo-" + d).value = ""); modoInsc();
   $("evGuardar").textContent = "Agregar fecha";
@@ -4667,6 +4694,7 @@ function editar(ev){
   editandoId = ev.id;
   $("evTit").value   = ev.titulo || "";
   $("evJuego").value = ev.juego || "";
+  $("evTipo").value = ev.tipo || "";
   $("evFecha").value = ev.fecha || "";
   $("evTodoDia").checked = !ev.hora;
   $("evHora").value  = ev.hora || "";
@@ -4708,6 +4736,14 @@ async function borrar(ev){
    ------------------------------------------------------------ */
 let inscAbierto = null, offInsc = null, offPlz = null, INSC = null, PLZ = null, inscQr = null;   // inscQr: evento cuyo QR está a la vista
 const urlInscripcion = ev => new URL("inscripcion.html?sala=" + TIENDA + "&evento=" + ev.id, location.href).href;
+/* El afiche (afiche.html) se abre ya con el texto de este torneo; lo demás del afiche queda guardado en el navegador. */
+const urlAfiche = ev => {
+  const [, m, d] = ev.fecha.split("-"), color = (TIENDA_P && TIENDA_P.perfil && TIENDA_P.perfil.color) || COLOR_TIENDA;
+  const q = new URLSearchParams({ sala: TIENDA, dia: String(+d), mes: MES_LARGO[+m - 1].toUpperCase(), hora: ev.hora ? ev.hora.replace(":", ".") + " HRS" : "",
+    evento: (ev.titulo || "").toUpperCase(), detalle: [ev.tipo, ev.detalle || ev.juego].filter(Boolean).join(" · ").toUpperCase(), direccion: ev.lugar || "",
+    inscripcion: ev.inscripcion ? "ESCANEA EL QR\nPARA INSCRIBIRTE" : "", qr: ev.inscripcion ? urlInscripcion(ev) : "", ...(/^#[0-9a-f]{6}$/i.test(color) ? { color } : {}) });
+  return "afiche.html?" + q;
+};
 const paraHoja = ev => ({ ...ev, formato: ev.inscripcion.formato, tienda: nombreDeLaTienda() });
 
 function verInscritos(ev){
@@ -4741,6 +4777,7 @@ function pintarInscritos(){
       '<input readonly id="inscUrl" value="' + esc(urlInscripcion(ev)) + '" style="flex:1;min-width:220px">' +
       '<button class="small sec" data-i="copiar">Copiar enlace</button>' +
       '<button class="small sec" data-i="qr">' + (inscQr === ev.id ? "Ocultar QR" : "Ver QR") + "</button>" +
+      '<button class="small sec" data-i="corto" title="Un enlace corto, como byepass.cl/k7m2xp, que lleva a la inscripción">Enlace corto</button>' +
       "</div>" +
     (inscQr === ev.id ? '<div class="center" style="margin-top:8px"><img src="' + qrImg(urlInscripcion(ev)) + '" alt="QR para inscribirse a ' + esc(ev.titulo) +
       '" style="width:200px;height:200px;background:#fff;padding:8px;border-radius:var(--radio)"><div class="row" style="justify-content:center;margin-top:6px">' +
@@ -4772,6 +4809,12 @@ function pintarInscritos(){
     const d = b.dataset;
     if (d.i === "copiar") navigator.clipboard?.writeText(urlInscripcion(ev)).then(() => { b.textContent = "Copiado ✓"; });
     if (d.i === "qr"){ inscQr = inscQr === ev.id ? null : ev.id; pintarInscritos(); }
+    if (d.i === "corto"){
+      b.disabled = true; const txt = b.textContent; b.textContent = "Creando…";
+      try { const url = await enlaceCorto(urlInscripcion(ev)); await navigator.clipboard?.writeText(url).catch(() => {}); b.textContent = "Copiado: " + url.replace(/^https?:\/\//, ""); }
+      catch(err){ b.textContent = txt; alert("No se pudo crear el enlace corto. " + mensajeConexion(err)); }
+      b.disabled = false;
+    }
     if (d.i === "qrpng"){
       const a = document.createElement("a"); a.href = URL.createObjectURL(await qrPng(urlInscripcion(ev)));
       a.download = "qr-inscripcion-" + slug(ev.titulo, 40) + ".png"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -4801,7 +4844,7 @@ function pintarInscritos(){
 
 /* Con «;» y BOM, como el CSV de estadísticas: así lo abre bien Excel en castellano. */
 function bajarCsvInscritos(ev, filas){
-  const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const q = celdaCsv;   // csv.js: una celda que empieza por = + - @ no se ejecuta como fórmula en Excel
   const t = [["Nombre", "Apellido", "Nick", "ID de jugador", "Nacimiento", "Categoría", "Correo", "Inscrito", "Lista de mazo"]]
     .concat(filas.map(f => [f.nombre, f.apellido, f.nick, f.playerId, ddmmaaaa(f.nacimiento), catF(f), f.correo,
                             new Date(f.actualizado || f.creado || 0).toLocaleString("es-CL"), f.lista]));
@@ -4884,7 +4927,7 @@ function filaEvento(ev, pasado){
   row.className = "evRow" + (pasado ? " pasado" : "");
   row.innerHTML =
     '<div class="evFecha"><div class="d">' + (+d) + '</div><div class="m">' + MES_CORTO[+m-1] + '</div></div>' +
-    '<div class="evMid"><div class="evTit">' + (ev.juego ? '<span class="chipJuego">' + esc(ev.juego) + "</span>" : "") + esc(ev.titulo) + '</div><div class="evMeta">' +
+    '<div class="evMid"><div class="evTit">' + (ev.juego ? '<span class="chipJuego">' + esc(ev.juego) + "</span>" : "") + (ev.tipo ? '<span class="chipJuego">' + esc(ev.tipo) + "</span>" : "") + esc(ev.titulo) + '</div><div class="evMeta">' +
       esc(fechaLegible(ev.fecha)) + (ev.hora ? " · " + esc(ev.hora) + " h" : " · todo el día") +
       (pasado ? "" : " · " + esc(cuantoFalta(ev))) +
       (ev.lugar ? "<br>" + esc(ev.lugar) : "") +
@@ -4896,7 +4939,7 @@ function filaEvento(ev, pasado){
   const acc = document.createElement("div");
   acc.className = "evAcc";
   [...(ev.inscripcion ? [[inscAbierto === ev.id ? "Ocultar inscritos" : "Inscritos", () => verInscritos(ev)]] : []),
-   ["Editar", () => editar(ev)], ["Borrar", () => borrar(ev)]].forEach(([txt, fn]) => {
+   ["Afiche", () => window.open(urlAfiche(ev), "_blank", "noopener")], ["Editar", () => editar(ev)], ["Borrar", () => borrar(ev)]].forEach(([txt, fn]) => {
     const b = document.createElement("button");
     b.className = "small sec"; b.textContent = txt; b.onclick = fn;
     acc.appendChild(b);
@@ -4917,6 +4960,7 @@ function filaEvento(ev, pasado){
 
 /* Los juegos que la tienda ya usó, para que el mismo juego no aparezca
    escrito de tres formas y el filtro de los jugadores funcione. */
+const TIPOS_BASE = ["Torneo", "Liga", "Campeonato", "Prerelease", "Pokeween", "Draft", "Casual"];
 function juegosUsados(){
   const n = {};
   [...AGENDA, ...Object.values(HIST_P || {})].forEach(x => { const j = (x && x.juego || "").trim(); if (j) n[j] = (n[j] || 0) + 1; });
@@ -4925,6 +4969,9 @@ function juegosUsados(){
 function pintarJuegos(){
   const ops = juegosUsados().map(j => '<option value="' + esc(j) + '">').join("");
   ["evJuegos", "tnJuegos", "archJuegos"].forEach(id => { if ($(id)) $(id).innerHTML = ops; });
+  /* los tipos de siempre y los que la tienda ya usó */
+  const usados = [...new Set([...TIPOS_BASE, ...AGENDA.map(x => (x.tipo || "").trim()).filter(Boolean)])];
+  if ($("evTipos")) $("evTipos").innerHTML = usados.map(t => '<option value="' + esc(t) + '">').join("");
 }
 
 function renderAgenda(){
@@ -5593,6 +5640,20 @@ onValue(ref(db, ".info/connected"), s => {
 });
 window.addEventListener("beforeunload", e => { if (!sinRed) return; e.preventDefault(); e.returnValue = ""; });
 
+const ALFA_CORTO = "abcdefghjkmnpqrstuvwxyz23456789";   // sin i, l, o, 0 ni 1: no se confunden al dictarlos
+async function enlaceCorto(urlLarga){
+  const u = new URL(urlLarga), ruta = u.pathname.split("/").pop() + u.search, clave = "corto:" + TIENDA + ":" + ruta;
+  let guardado = ""; try { guardado = localStorage.getItem(clave) || ""; } catch(e){}
+  if (guardado && (await get(ref(db, "cortos/" + guardado + "/ruta"))).val() === ruta) return location.origin + "/" + guardado;
+  for (let i = 0; i < 4; i++){   // un código ya tomado se rechaza: se prueba otro
+    const cod = Array.from(crypto.getRandomValues(new Uint32Array(6)), n => ALFA_CORTO[n % ALFA_CORTO.length]).join("");
+    try { await set(ref(db, "cortos/" + cod), { ruta, tienda: TIENDA, creado: serverTimestamp() }); }
+    catch(e){ if (i === 3) throw e; continue; }
+    try { localStorage.setItem(clave, cod); } catch(e){}
+    return location.origin + "/" + cod;
+  }
+}
+
 /* ▌BLOQUE 43 · Fondo de las imágenes para compartir ═════════════════════════════
    Color, degradado o imagen para la tabla final y el calendario del mes (fondoimg.js), guardado en
    salas/<tienda>/imagenes. La tarjeta está en la pestaña Tienda, con vista previa del calendario. */
@@ -5618,6 +5679,7 @@ const fiCambio = () => { fiControles(); clearTimeout(fiDeb); fiDeb = setTimeout(
 
 async function fiAbrir(){
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
+  FONDO_DEF = (await import("./fondoimg.js?v=1")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };

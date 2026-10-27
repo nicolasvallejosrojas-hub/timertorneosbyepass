@@ -96,6 +96,15 @@ if (!EMULADOR){
   document.head.appendChild(csp);
 }
 
+// ====== ANTI-MARCO ======
+// Las páginas con sesión no se dejan meter en un marco de otro sitio (clickjacking: engañar a alguien para que apriete
+// un botón sin verlo). GitHub Pages no lee _headers, así que se hace acá: si la página está dentro de un marco, intenta
+// salir de él y, si no puede, se esconde. El timer, el perfil de tienda y el widget sí se pueden incrustar.
+if (window.top !== window.self && /\/(admin|cuenta|muro|herramientas|estadisticas|staff)(\.html)?$/.test(location.pathname)){
+  document.documentElement.style.display = "none";
+  try { window.top.location = window.self.location; } catch (e) {}
+}
+
 // ====== APP INSTALABLE ======
 // El manifiesto (nombre e ícono al instalarla en el celular) y el ícono de la
 // pestaña, puestos desde acá para que sean UNO para todas las páginas, igual

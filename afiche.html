@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="config.js?v=12"></script>
+<title>Afiche del torneo — ByePass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap">
+<!--
+  Afiche de torneo: 1080×1350 (4:5, feed de Instagram) o historia 1080×1920 (9:16),
+  según "formato": "post" | "historia". En la historia todo baja para salvar
+  las franjas que tapa Instagram arriba y abajo (--arriba, --abajo).
+  - Se abre desde el calendario del panel («Afiche» en cada torneo), que lo rellena por la dirección:
+    ?sala=&dia=&mes=&hora=&evento=&detalle=&direccion=&inscripcion=&qr=&color=
+    El resto (imágenes, posiciones, cajas) queda guardado en este navegador, por tienda.
+  - Se arrastra el fondo con el mouse y la rueda lo acerca. El QR sale de qr.js, sin servicio externo.
+  - Los campos de un afiche son las claves de DEF (abajo, en el script).
+-->
+<style>
+  :root{
+    --azul:#1f5fe0;
+    --azul-osc:color-mix(in srgb, var(--azul) 62%, #000);
+    --azul-texto:color-mix(in srgb, var(--azul) 82%, #000);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#15171c;color:#e6e9f0;font-family:Montserrat,system-ui,sans-serif;display:flex;height:100vh;overflow:hidden}
+
+  /* ------------------------------------------------ panel del editor */
+  #panel{width:370px;flex:none;overflow:auto;padding:18px 18px 48px;background:#1d2027;border-right:1px solid #2b2f38}
+  #panel h1{font-size:17px;margin:0 0 2px}
+  #panel p.nota{font-size:12px;color:#8d95a6;margin:0 0 8px;line-height:1.45}
+  fieldset{border:1px solid #2d313b;border-radius:10px;margin:14px 0 0;padding:2px 12px 12px}
+  legend{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c3c9d6;padding:0 6px}
+  label{display:block;font-size:12px;font-weight:600;color:#a3abbb;margin:10px 0 4px}
+  input[type=text],input[type=number],select,textarea{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #3a3f4b;background:#111318;color:#fff;font:500 14px Montserrat,sans-serif}
+  textarea{resize:vertical;min-height:56px}
+  input[type=range]{width:100%;accent-color:var(--azul)}
+  input[type=color]{width:100%;height:36px;border:1px solid #3a3f4b;border-radius:8px;background:#111318;padding:2px}
+  .fila{display:flex;gap:8px}.fila>*{flex:1;min-width:0}
+  .botones{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  button,.boton{font:700 13px Montserrat,sans-serif;padding:9px 12px;border-radius:8px;border:0;background:var(--azul);color:#fff;cursor:pointer}
+  button.sec,.boton.sec{background:#2d323d}
+  label.boton{display:inline-block;margin:0;color:#fff}
+  .boton input{display:none}
+  .botones{align-items:center}
+
+  /* ------------------------------------------------ vista */
+  #vista{flex:1;display:grid;place-items:center;overflow:hidden}
+  #marco{position:relative}
+
+  /* ------------------------------------------------ el post */
+  #post{--arriba:0px;--abajo:0px;position:absolute;left:0;top:0;width:1080px;height:1350px;overflow:hidden;transform-origin:0 0;
+        background:radial-gradient(120% 90% at 50% 20%, #3a1024 0%, #12183a 55%, #070a18 100%);
+        font-family:Montserrat,sans-serif;cursor:grab;user-select:none}
+  #post.arrastrando{cursor:grabbing}
+  #post.historia{height:1920px;--arriba:250px;--abajo:312px}
+  #post > *{position:absolute}
+  #fondo{max-width:none;pointer-events:none}
+  #velo{inset:0;background:#000;pointer-events:none}
+  #logo,#titulo{pointer-events:none}
+  #logo{left:40px;top:calc(34px + var(--arriba))}
+  #titulo{left:50%;transform:translateX(-50%)}
+
+  .azul{background:linear-gradient(180deg, var(--azul) 0%, var(--azul-osc) 100%);color:#fff;border-radius:16px;
+        box-shadow:inset 0 2px 0 rgba(255,255,255,.28), 0 14px 34px rgba(0,0,0,.45)}
+  .linea{white-space:nowrap;overflow:hidden;width:100%}
+
+  /* Las cajas se ubican desde el script (left, top, width, min-height): ver P.pos y P.cajas. */
+  [data-caja]{cursor:move}
+  [data-caja] > *{flex-shrink:0}   /* que el texto no se aplaste: así se nota cuando no cabe */
+  .blanca,#info{background:#fff;border-radius:16px;color:var(--azul-texto);box-shadow:0 14px 34px rgba(0,0,0,.4)}
+  #info{padding:0 26px 0 40px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+  #iHora{font-weight:500;font-size:27px;line-height:1.15}
+  #iEvento{font-weight:800;font-size:37px;line-height:1.1;letter-spacing:.01em}
+  #iDetalle{font-weight:500;font-size:28px;line-height:1.15}
+
+  #fecha{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px}
+  #fDia{font-weight:800;font-size:150px;line-height:.9;letter-spacing:-.03em;text-align:center}
+  #fMes{font-weight:700;font-size:38px;line-height:1.1;margin-top:8px;text-align:center}
+
+  #qr{padding:10px;display:flex}
+  #qrImg{width:100%;height:100%;object-fit:contain;pointer-events:none}
+  #inscribe{padding:12px 24px;display:flex;flex-direction:column;justify-content:center;
+            text-align:center;font-weight:700;font-size:24px;line-height:1.35;border:2px solid rgba(190,215,255,.45)}
+  #direccion{padding:0 24px;display:flex;align-items:center;justify-content:center;
+             font-weight:700;font-size:32px;border:2px solid rgba(190,215,255,.35)}
+  #direccion .linea{text-align:center}
+  #info .linea,#direccion .linea{white-space:normal}   /* estos se parten en renglones si hace falta */
+
+  /* cajas agregadas desde el panel */
+  .extra{display:flex;flex-direction:column;justify-content:center;padding:10px 24px;line-height:1.25}
+  .extra.azul{border:2px solid rgba(190,215,255,.4)}
+  .extra.texto{color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+
+  /* selección (no sale en el PNG) */
+  #sel{pointer-events:none;outline:calc(3px / var(--s,1)) dashed #4da3ff;outline-offset:calc(4px / var(--s,1))}
+  #sel .asa{position:absolute;right:calc(-14px / var(--s,1));bottom:calc(-14px / var(--s,1));width:calc(20px / var(--s,1));height:calc(20px / var(--s,1));
+            border-radius:50%;background:#4da3ff;border:calc(2px / var(--s,1)) solid #fff;pointer-events:auto;cursor:nwse-resize}
+  #guia{top:0;bottom:0;left:539px;width:2px;background:#ff4d8d;pointer-events:none;display:none}
+  body.render #sel,body.render #guia{display:none!important}
+
+  /* ------------------------------------------------ ?render: solo el post */
+  body.render{display:block;background:none;height:auto}
+  body.render #panel{display:none}
+  body.render #vista{display:block;overflow:visible}
+  body.render #post{position:fixed;transform:none!important;cursor:default}
+</style>
+</head>
+<body>
+<aside id="panel">
+  <h1>Afiche del torneo</h1>
+  <p class="nota"><a href="admin.html" style="color:#8fb4ff">← Volver al panel</a></p>
+  <p class="nota">Arrastra el fondo sobre el post para moverlo y usa la rueda del mouse para acercarlo. Lo que escribas queda guardado en este navegador.</p>
+
+  <fieldset><legend>Formato</legend>
+    <div class="botones">
+      <button class="sec" data-formato="post">Post 1080×1350</button>
+      <button class="sec" data-formato="historia">Historia 1080×1920</button>
+    </div>
+  </fieldset>
+
+  <fieldset><legend>Cajas</legend>
+    <p class="nota" style="margin-top:8px">Haz clic en una caja del post para elegirla: arrástrala para moverla y tira del punto azul de la esquina para cambiar su tamaño. Con las flechas del teclado se mueve de a 1 px (con Shift, de a 10). Al pasar por el centro se pega a la línea rosada.</p>
+    <div class="botones">
+      <button data-nueva="azul">+ Caja azul</button>
+      <button class="sec" data-nueva="blanca">+ Caja blanca</button>
+      <button class="sec" data-nueva="texto">+ Texto suelto</button>
+    </div>
+    <div id="editorCaja" hidden>
+      <p class="nota" style="margin:14px 0 0;color:#c3c9d6"><b id="cNombre"></b></p>
+      <div class="soloExtra">
+        <label>Texto (una línea por renglón)</label><textarea data-c="texto" rows="3"></textarea>
+        <div class="fila">
+          <div><label>Estilo</label><select data-c="tipo"><option value="azul">Azul</option><option value="blanca">Blanca</option><option value="texto">Solo texto</option></select></div>
+          <div><label>Letra</label><select data-c="peso"><option value="500">Normal</option><option value="700">Negrita</option><option value="800">Gruesa</option></select></div>
+          <div><label>Alinear</label><select data-c="alinear"><option value="left">Izquierda</option><option value="center">Centro</option><option value="right">Derecha</option></select></div>
+        </div>
+      </div>
+      <label>Tamaño de letra <span id="cLetraVer"></span> <span style="font-weight:500;color:#7d8596">· 100% = lo más grande que cabe</span></label>
+      <input type="range" data-c="letra" min="0.3" max="1" step="0.01">
+      <div class="fila">
+        <div><label>X</label><input type="number" data-c="x" step="1"></div>
+        <div><label>Y</label><input type="number" data-c="y" step="1"></div>
+        <div><label>Ancho</label><input type="number" data-c="w" step="1" min="40"></div>
+        <div><label>Alto</label><input type="number" data-c="h" step="1" min="30"></div>
+      </div>
+      <div class="botones">
+        <button class="sec soloExtra" id="cDuplicar">Duplicar</button>
+        <button class="sec soloExtra" id="cFrente">Traer al frente</button>
+        <button class="sec soloExtra" id="cBorrar">Eliminar</button>
+        <button class="sec soloFija" id="cRestablecer">Volver a su lugar</button>
+        <button class="sec" id="cListo">Listo</button>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset><legend>Fondo</legend>
+    <div class="botones">
+      <label class="boton">Elegir imagen<input type="file" accept="image/*" data-img="fondo"></label>
+      <button class="sec" data-quitar="fondo">Quitar</button>
+    </div>
+    <label>Acercar <span data-ver="fondoZoom"></span></label>
+    <input type="range" data-k="fondoZoom" min="1" max="3" step="0.01">
+    <label>Oscurecer <span data-ver="velo"></span></label>
+    <input type="range" data-k="velo" min="0" max="0.8" step="0.01">
+    <div class="botones"><button class="sec" id="centrar">Centrar fondo</button></div>
+  </fieldset>
+
+  <fieldset><legend>Logo y título</legend>
+    <div class="botones">
+      <label class="boton">Logo<input type="file" accept="image/*" data-img="logo"></label>
+      <button class="sec" data-quitar="logo">Quitar</button>
+      <label class="boton">Título<input type="file" accept="image/*" data-img="titulo"></label>
+      <button class="sec" data-quitar="titulo">Quitar</button>
+    </div>
+    <label>Ancho del logo</label>
+    <input type="range" data-k="logoAncho" min="60" max="400" step="1">
+    <div class="fila">
+      <div><label>Ancho del título</label><input type="range" data-k="tituloAncho" min="200" max="1080" step="1"></div>
+      <div><label>Altura del título</label><input type="range" data-k="tituloY" min="0" max="900" step="1"></div>
+    </div>
+  </fieldset>
+
+  <fieldset><legend>Fecha</legend>
+    <div class="fila">
+      <div><label>Día</label><input type="text" data-k="dia"></div>
+      <div><label>Mes</label><input type="text" data-k="mes"></div>
+    </div>
+  </fieldset>
+
+  <fieldset><legend>Cuadro blanco</legend>
+    <label>Hora</label><input type="text" data-k="hora">
+    <label>Evento</label><input type="text" data-k="evento">
+    <label>Detalle</label><input type="text" data-k="detalle">
+  </fieldset>
+
+  <fieldset><legend>Cuadros azules</legend>
+    <label>Inscripciones (una línea por renglón)</label><textarea data-k="inscripcion" rows="2"></textarea>
+    <label>Dirección</label><input type="text" data-k="direccion">
+    <label>Color</label><input type="color" data-k="color">
+  </fieldset>
+
+  <fieldset><legend>Código QR</legend>
+    <label>Enlace del QR (vacío: sin QR)</label><input type="text" data-k="qr" placeholder="https://byepass.cl/…">
+  </fieldset>
+
+  <fieldset><legend>Descargar</legend>
+    <div class="botones">
+      <button id="pngActual">PNG de este formato</button>
+      <button class="sec" id="pngAmbos">PNG post + historia</button>
+    </div>
+    <p class="nota" id="pngMsg" style="margin-top:8px"></p>
+  </fieldset>
+
+  <fieldset><legend>Automatizar</legend>
+    <p class="nota" style="margin-top:8px">Guarda este afiche como archivo para volver a abrirlo después.</p>
+    <div class="botones">
+      <button id="bajarJson">Descargar JSON</button>
+      <label class="boton sec">Abrir JSON<input type="file" accept=".json,application/json" id="abrirJson"></label>
+      <button class="sec" id="reiniciar">Reiniciar</button>
+    </div>
+  </fieldset>
+</aside>
+
+<main id="vista">
+  <div id="marco">
+    <div id="post">
+      <img id="fondo" alt="">
+      <div id="velo"></div>
+      <img id="titulo" alt="">
+      <img id="logo" alt="">
+      <div id="info" data-caja="info">
+        <div id="iHora" class="linea"></div>
+        <div id="iEvento" class="linea"></div>
+        <div id="iDetalle" class="linea"></div>
+      </div>
+      <div id="fecha" class="azul" data-caja="fecha">
+        <div id="fDia"></div>
+        <div id="fMes" class="linea"></div>
+      </div>
+      <div id="inscribe" class="azul" data-caja="inscribe"></div>
+      <div id="direccion" class="azul" data-caja="direccion"><div class="linea"></div></div>
+      <div id="qr" class="blanca" data-caja="qr"><img id="qrImg" alt="Código QR"></div>
+      <!-- aquí van las cajas agregadas (.extra) -->
+      <div id="guia"></div>
+      <div id="sel"><div class="asa"></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* Un post = estas claves. Las imágenes son una ruta, una URL o un data: */
+const DEF = {
+  formato: "post",
+  fondo: "", fondoZoom: 1, fondoX: 0, fondoY: 0, velo: 0.15,
+  logo: "", logoAncho: 150,
+  titulo: "", tituloAncho: 860, tituloY: 330,
+  dia: "16", mes: "MARZO",
+  hora: "19.30 HRS", evento: "PRELANZAMIENTO", detalle: "$29.990 HASTA EL 8 DE MARZO",
+  inscripcion: "INSCRIPCIONES Y PAGO EN\nWWW.TUTIENDA.CL",
+  direccion: "Dirección 1234, Ciudad.",
+  color: "#1f5fe0",
+  qr: "",   // enlace que lleva el QR (qr.js); vacío: sin QR
+  /* Dónde va cada cuadro, en coordenadas del post 1080×1350. "ancla" dice si en la
+     historia baja con la franja de arriba (250 px) o con la de abajo (312 px).
+     El texto se agranda o achica para llenar la caja; letra (≤ 1) lo achica desde ahí. */
+  pos: {
+    info:      { x: 345, y: 870,  w: 567, h: 142, ancla: "abajo", letra: .89 },
+    fecha:     { x: 140, y: 838,  w: 222, h: 206, ancla: "abajo", letra: .89 },
+    inscribe:  { x: 265, y: 1103, w: 550, h: 86,  ancla: "abajo", letra: 1 },
+    direccion: { x: 220, y: 1258, w: 640, h: 62,  ancla: "abajo", letra: .66 },
+    qr:        { x: 60,  y: 1062, w: 170, h: 170, ancla: "abajo", letra: 1 },
+  },
+  /* Cajas agregadas: { id, tipo: "azul"|"blanca"|"texto", texto, x, y, w, h, ancla, letra, peso, alinear } */
+  cajas: [],
+};
+const CAJA = { tipo: "azul", texto: "", x: 240, y: 600, w: 600, h: 90, ancla: "abajo", letra: 1, peso: "700", alinear: "center" };
+const NOMBRES = { info: "Cuadro blanco", fecha: "Fecha", inscribe: "Inscripciones", direccion: "Dirección", qr: "Código QR" };
+const RENDER = new URLSearchParams(location.search).has("render");
+const URLP = new URLSearchParams(location.search), GUARDA = "byepass-afiche:" + (URLP.get("sala") || "");   // un borrador por tienda
+const $ = id => document.getElementById(id);
+const post = $("post");
+const ALTO = () => P.formato === "historia" ? 1920 : 1350, ARRIBA = () => P.formato === "historia" ? 250 : 0;
+const corrido = ancla => P.formato !== "historia" ? 0 : ancla === "arriba" ? 250 : 312;
+let P, sel = null;   // sel: la caja elegida en el editor (clave de P.pos o id de P.cajas)
+/* Carga un post completando lo que falte; copia pos y cajas para no tocar DEF. */
+function usar(datos){
+  P = { ...DEF, ...datos };
+  P.pos = Object.fromEntries(Object.keys(DEF.pos).map(k => [k, { ...DEF.pos[k], ...(datos.pos || {})[k] }]));
+  P.cajas = (Array.isArray(datos.cajas) ? datos.cajas : []).map(c => ({ ...CAJA, ...c }));
+}
+const caja = id => P.pos[id] || P.cajas.find(c => c.id === id);
+if (!RENDER){ let g = {}; try { g = JSON.parse(localStorage.getItem(GUARDA) || "{}"); } catch(e){} usar(g); }
+else { usar({}); document.body.classList.add("render"); }
+/* Desde el panel: la dirección trae el texto del torneo; lo demás (imágenes, posiciones, cajas) se conserva. */
+if (!RENDER) for (const k of ["dia", "mes", "hora", "evento", "detalle", "direccion", "inscripcion", "qr"]) if (URLP.has(k)) P[k] = URLP.get(k);
+if (/^#[0-9a-f]{6}$/i.test(URLP.get("color") || "")) P.color = URLP.get("color");
+/* El logo de la tienda (el del timer), si el afiche todavía no tiene uno. Es público: se lee por REST. Si lo quitas o subes otro, manda el tuyo. */
+if (!RENDER && URLP.get("sala") && !P.logo && typeof FIREBASE_CONFIG !== "undefined")
+  fetch(FIREBASE_CONFIG.databaseURL + "/salas/" + encodeURIComponent(URLP.get("sala")) + "/timer/media/logo.json")
+    .then(r => r.ok ? r.json() : "").then(l => { if (typeof l === "string" && l.startsWith("data:image/") && !P.logo){ P.logo = l; pintar(); } }).catch(() => {});
+
+/* Achica la letra hasta que el texto quepa en su línea. */
+function encajar(el, max){
+  el.style.fontSize = max + "px";
+  for (let s = max; el.scrollWidth > el.clientWidth + 1 && s > 12; ) el.style.fontSize = --s + "px";
+}
+const txt = (el, v) => { el.textContent = v; el.style.display = v ? "" : "none"; };
+const img = (el, src) => { if (el.getAttribute("src") !== src) src ? el.src = src : el.removeAttribute("src"); el.style.display = src ? "" : "none"; };
+
+/* El fondo cubre el post como cover, más el zoom y el corrimiento. */
+function pintarFondo(){
+  const f = $("fondo");
+  if (!P.fondo || !f.naturalWidth) return;
+  const base = Math.max(1080 / f.naturalWidth, ALTO() / f.naturalHeight) * P.fondoZoom;
+  const w = f.naturalWidth * base, h = f.naturalHeight * base;
+  f.style.width = w + "px"; f.style.height = h + "px";
+  f.style.left = (540 - w / 2 + P.fondoX) + "px"; f.style.top = (ALTO() / 2 - h / 2 + P.fondoY) + "px";
+}
+$("fondo").onload = pintarFondo;
+
+function colocar(el, c){
+  el.style.left = c.x + "px"; el.style.top = c.y + corrido(c.ancla) + "px";
+  el.style.width = c.w + "px"; el.style.height = c.h + "px";
+}
+const interior = el => {   // ancho y alto útiles de una caja, sin relleno
+  const cs = getComputedStyle(el);
+  return { w: el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+           h: el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) };
+};
+const busqueda = (cabe, lo, hi) => { for (let i = 0; i < 16; i++){ const m = (lo + hi) / 2; cabe(m) ? lo = m : hi = m; } return lo; };
+
+/* Texto que llena la caja: parte las líneas por palabras y busca la letra más
+   grande con la que todo cabe a lo ancho y a lo alto. letra (≤ 1) la achica.
+   Cada renglón queda en su propio .linea, así el PNG lo dibuja igual. */
+const medir = document.createElement("canvas").getContext("2d");
+function llenarTexto(el, texto, letra){
+  el.innerHTML = "";
+  if (!el.clientWidth) return;
+  const cs = getComputedStyle(el), lh = parseFloat(cs.lineHeight) / parseFloat(cs.fontSize) || 1.25, { w, h } = interior(el);
+  const fuente = s => (medir.font = cs.fontWeight + " " + s + "px Montserrat", s);
+  const partir = s => {
+    fuente(s);
+    return String(texto).split("\n").flatMap(par => {
+      const sal = []; let l = "";
+      for (const p of par.split(/ +/)){ const t = l ? l + " " + p : p; if (!l || medir.measureText(t).width <= w) l = t; else { sal.push(l); l = p; } }
+      return sal.concat(l);
+    });
+  };
+  const cabe = s => { const ls = partir(s); return ls.length * s * lh <= h && ls.every(l => medir.measureText(l).width <= w * .98); };
+  const s = busqueda(cabe, 4, 600) * Math.min(1, letra);
+  el.style.fontSize = s + "px";
+  for (const l of partir(s)){ const d = document.createElement("div"); d.className = "linea"; d.textContent = l || " "; el.append(d); }
+  el.querySelectorAll(".linea").forEach(d => encajar(d, s));   // por si el navegador mide distinto
+}
+/* Cuadros con varias piezas (fecha, cuadro blanco, dirección): todas crecen o se
+   achican juntas, en la misma proporción, hasta llenar la caja. */
+function llenarPiezas(el, piezas, letra){
+  if (!el.clientWidth) return;
+  const { w } = interior(el);
+  const poner = k => piezas.forEach(([n, base]) => n.style.fontSize = base * k + "px");
+  const cabe = k => { poner(k); return el.scrollHeight <= el.clientHeight + 1 && piezas.every(([n]) => n.scrollWidth <= w + 1); };
+  el.style.justifyContent = el.style.alignItems = "flex-start";   // centrado, lo que sobra hacia arriba no se nota al medir
+  const k = busqueda(cabe, .1, 8);
+  el.style.justifyContent = el.style.alignItems = "";
+  poner(k * Math.min(1, letra));
+}
+
+/* Los cuadros de siempre y los agregados, cada uno en su lugar y con su letra. */
+function pintarCajas(){
+  for (const id in P.pos) colocar($(id), P.pos[id]);
+  const k = id => P.pos[id].letra;
+  $("fDia").textContent = P.dia; $("fMes").textContent = P.mes;
+  llenarPiezas($("fecha"), [[$("fDia"), 150], [$("fMes"), 38]], k("fecha"));
+  txt($("iHora"), P.hora); txt($("iEvento"), P.evento); txt($("iDetalle"), P.detalle);
+  llenarPiezas($("info"), [[$("iHora"), 27], [$("iEvento"), 37], [$("iDetalle"), 28]], k("info"));
+  $("inscribe").style.display = P.inscripcion ? "" : "none";
+  llenarTexto($("inscribe"), P.inscripcion, k("inscribe"));
+  $("direccion").style.display = P.direccion ? "" : "none";
+  txt($("direccion").firstElementChild, P.direccion);
+  llenarPiezas($("direccion"), [[$("direccion").firstElementChild, 32]], k("direccion"));
+  let qrSrc = ""; try { qrSrc = P.qr && window.qrImg ? qrImg(P.qr) : ""; } catch(e){}   // un enlace de más de 213 caracteres no cabe: sin QR
+  $("qr").style.display = qrSrc ? "" : "none"; img($("qrImg"), qrSrc);
+
+  post.querySelectorAll(".extra").forEach(el => el.remove());
+  for (const c of P.cajas){
+    const el = document.createElement("div");
+    el.className = "extra " + c.tipo; el.dataset.caja = c.id;
+    el.style.textAlign = c.alinear; el.style.fontWeight = c.peso;
+    post.insertBefore(el, $("guia"));
+    colocar(el, c);
+    llenarTexto(el, c.texto, c.letra);
+  }
+  marcarSel();
+}
+const elDe = id => id && post.querySelector('[data-caja="' + id + '"]');
+function marcarSel(){
+  const s = $("sel"), el = !RENDER && elDe(sel);
+  s.style.display = el ? "" : "none";
+  if (!el) return;
+  s.style.left = el.offsetLeft + "px"; s.style.top = el.offsetTop + "px";
+  s.style.width = el.offsetWidth + "px"; s.style.height = el.offsetHeight + "px";
+}
+
+function pintar(){
+  post.classList.toggle("historia", P.formato === "historia");
+  escalar();
+  document.documentElement.style.setProperty("--azul", P.color);
+  img($("fondo"), P.fondo); pintarFondo();
+  $("velo").style.opacity = P.velo;
+  img($("logo"), P.logo); $("logo").style.width = P.logoAncho + "px";
+  img($("titulo"), P.titulo); $("titulo").style.width = P.tituloAncho + "px"; $("titulo").style.top = P.tituloY + ARRIBA() + "px";
+  pintarCajas();
+  if (!RENDER){
+    verEditor();
+    document.querySelectorAll("[data-k]").forEach(el => { if (document.activeElement !== el) el.value = P[el.dataset.k]; });
+    document.querySelectorAll("[data-formato]").forEach(b => b.classList.toggle("sec", b.dataset.formato !== P.formato));
+    document.querySelectorAll("[data-ver]").forEach(el => el.textContent = Math.round(P[el.dataset.ver] * 100) + "%");
+    try { localStorage.setItem(GUARDA, JSON.stringify(P)); } catch(e){}   // una imagen muy grande puede no caber: no pasa nada
+  }
+}
+
+/* Para render.mjs: carga un post y espera letras e imágenes. */
+window.cargar = async datos => {
+  usar(datos);
+  pintar();
+  await document.fonts.ready;
+  await Promise.all(["fondo", "logo", "titulo"].map(id => $(id).getAttribute("src") ? $(id).decode().catch(() => {}) : 0));
+  pintar();
+  return ALTO();
+};
+
+/* ------------------------------------------------ PNG
+   Dibuja el post en un canvas con las posiciones que calculó la página: el
+   fondo, las imágenes, los cuadros (degradé, sombra, brillo y borde) y cada
+   línea de texto donde el navegador la puso. Devuelve un data:image/png. */
+function mezclar(hex, k){   // el color hacia negro, como color-mix(... k, #000)
+  const n = parseInt(hex.slice(1), 16);
+  return "rgb(" + [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v * k)).join(",") + ")";
+}
+async function aPng(){
+  await document.fonts.ready;
+  const H = ALTO(), c = document.createElement("canvas"); c.width = 1080; c.height = H;
+  const g = c.getContext("2d"), r0 = post.getBoundingClientRect(), s = r0.width / 1080;
+  const rect = el => { const r = el.getBoundingClientRect(); return { x: (r.left - r0.left) / s, y: (r.top - r0.top) / s, w: r.width / s, h: r.height / s }; };
+  const visible = el => el.style.display !== "none" && el.getClientRects().length > 0;
+  const redondo = (b, rad) => { g.beginPath(); g.roundRect(b.x, b.y, b.w, b.h, rad); };
+
+  /* fondo por defecto: el mismo degradé radial del CSS */
+  g.save(); g.translate(540, H * .2); g.scale(1, (.9 * H) / (1.2 * 1080));
+  const rg = g.createRadialGradient(0, 0, 0, 0, 0, 1.2 * 1080);
+  rg.addColorStop(0, "#3a1024"); rg.addColorStop(.55, "#12183a"); rg.addColorStop(1, "#070a18");
+  g.fillStyle = rg; g.fillRect(-2000, -4000, 4000, 8000); g.restore();
+
+  for (const id of ["fondo", "titulo", "logo"]){
+    const im = $(id);
+    if (id === "titulo") g.fillStyle = "rgba(0,0,0," + P.velo + ")", g.fillRect(0, 0, 1080, H);   // el velo va entre el fondo y el título
+    if (visible(im) && im.naturalWidth){ const b = rect(im); g.drawImage(im, b.x, b.y, b.w, b.h); }
+  }
+
+  const claro = P.color, oscuro = mezclar(P.color, .62);
+  for (const el of [$("info"), $("fecha"), $("inscribe"), $("direccion"), $("qr"), ...post.querySelectorAll(".extra")]){
+    if (!visible(el)) continue;
+    const b = rect(el), azul = el.classList.contains("azul"), soloTexto = el.classList.contains("texto");
+    if (!soloTexto){
+    g.save();
+    g.shadowColor = azul ? "rgba(0,0,0,.45)" : "rgba(0,0,0,.4)"; g.shadowBlur = 34; g.shadowOffsetY = 14;
+    if (azul){ const lg = g.createLinearGradient(0, b.y, 0, b.y + b.h); lg.addColorStop(0, claro); lg.addColorStop(1, oscuro); g.fillStyle = lg; }
+    else g.fillStyle = "#fff";
+    redondo(b, 16); g.fill(); g.restore();
+    if (azul){
+      g.save(); redondo(b, 16); g.clip();
+      g.fillStyle = "rgba(255,255,255,.28)"; g.fillRect(b.x, b.y, b.w, 2); g.restore();
+      const borde = getComputedStyle(el).borderTopColor;
+      if (getComputedStyle(el).borderTopWidth !== "0px"){ g.strokeStyle = borde; g.lineWidth = 2; redondo({ x: b.x + 1, y: b.y + 1, w: b.w - 2, h: b.h - 2 }, 15); g.stroke(); }
+    }
+    }
+    if (el.id === "qr"){   // el QR es una imagen cuadrada, centrada en su caja
+      const im = $("qrImg"), q = rect(im), lado = Math.min(q.w, q.h);
+      if (im.naturalWidth) g.drawImage(im, q.x + (q.w - lado) / 2, q.y + (q.h - lado) / 2, lado, lado);
+      continue;
+    }
+    /* los textos del cuadro, cada uno donde quedó en la página */
+    const nodos = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    while (w.nextNode()) if (w.currentNode.textContent.trim()) nodos.push(w.currentNode);
+    for (const t of nodos){
+      const cont = t.parentElement; if (!visible(cont)) continue;
+      const cs = getComputedStyle(cont), rango = document.createRange();
+      g.font = cs.fontWeight + " " + cs.fontSize + " Montserrat";
+      g.letterSpacing = cs.letterSpacing === "normal" ? "0px" : cs.letterSpacing;
+      g.fillStyle = cs.color; g.textBaseline = "alphabetic";
+      const m = g.measureText(t.textContent);
+      /* si el navegador partió el texto en renglones, se dibuja cada renglón donde quedó */
+      const renglones = [];
+      for (const p of t.textContent.matchAll(/\S+/g)){
+        rango.setStart(t, p.index); rango.setEnd(t, p.index + p[0].length);
+        const rr = rango.getBoundingClientRect(), ult = renglones.at(-1);
+        if (ult && Math.abs(rr.top - ult.top) < 2) ult.fin = p.index + p[0].length;
+        else renglones.push({ ini: p.index, fin: p.index + p[0].length, left: rr.left, top: rr.top });
+      }
+      g.save();
+      if (soloTexto){ g.shadowColor = "rgba(0,0,0,.6)"; g.shadowBlur = 8; g.shadowOffsetY = 2; }   // el text-shadow de .texto
+      for (const r of renglones) g.fillText(t.textContent.slice(r.ini, r.fin), (r.left - r0.left) / s, (r.top - r0.top) / s + m.fontBoundingBoxAscent);
+      g.restore();
+    }
+  }
+  return c.toDataURL("image/png");
+}
+window.aPng = aPng;
+
+/* ------------------------------------------------ editor */
+function escalar(){
+  if (RENDER) return;
+  const v = $("vista"), s = Math.min((v.clientWidth - 40) / 1080, (v.clientHeight - 40) / ALTO());
+  post.style.transform = "scale(" + s + ")";
+  $("marco").style.width = 1080 * s + "px"; $("marco").style.height = ALTO() * s + "px";
+  post.dataset.s = s; post.style.setProperty("--s", s);
+}
+function elegir(id){ sel = id; pintar(); }
+/* Al soltar una caja, se ancla arriba o abajo según la mitad en que quedó,
+   sin que se mueva en el formato que se está viendo. */
+function reanclar(c){
+  const el = elDe(c.id) || elDe(Object.keys(P.pos).find(k => P.pos[k] === c));
+  const top = c.y + corrido(c.ancla), h = el ? el.offsetHeight : c.h;
+  c.ancla = top + h / 2 < ALTO() / 2 ? "arriba" : "abajo";
+  c.y = top - corrido(c.ancla);
+}
+function verEditor(){
+  const c = caja(sel);
+  if (!c) sel = null;
+  $("editorCaja").hidden = !c;
+  if (!c) return;
+  const fija = !!P.pos[sel];
+  $("cNombre").textContent = fija ? NOMBRES[sel] + " (su texto se cambia más abajo)" : "Caja agregada";
+  document.querySelectorAll(".soloExtra").forEach(el => el.style.display = fija ? "none" : "");
+  document.querySelectorAll(".soloFija").forEach(el => el.style.display = fija ? "" : "none");
+  document.querySelectorAll("[data-c]").forEach(el => {
+    const k = el.dataset.c;
+    if (document.activeElement === el || !(k in c)) return;
+    el.value = k === "y" ? c.y + corrido(c.ancla) : c[k];
+  });
+  $("cLetraVer").textContent = Math.round(c.letra * 100) + "%";
+}
+if (!RENDER){
+  addEventListener("resize", escalar); escalar();
+
+  document.querySelectorAll("[data-k]").forEach(el => el.addEventListener("input", () => {
+    P[el.dataset.k] = el.type === "range" ? +el.value : el.value; pintar();
+  }));
+  const leer = f => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+  document.querySelectorAll("[data-img]").forEach(el => el.addEventListener("change", async () => {
+    if (!el.files[0]) return;
+    P[el.dataset.img] = await leer(el.files[0]); el.value = "";
+    if (el.dataset.img === "fondo") Object.assign(P, { fondoZoom: 1, fondoX: 0, fondoY: 0 });
+    pintar();
+  }));
+  document.querySelectorAll("[data-quitar]").forEach(b => b.onclick = () => { P[b.dataset.quitar] = ""; pintar(); });
+  document.querySelectorAll("[data-formato]").forEach(b => b.onclick = () => { P.formato = b.dataset.formato; pintar(); });
+  $("centrar").onclick = () => { Object.assign(P, { fondoZoom: 1, fondoX: 0, fondoY: 0 }); pintar(); };
+  $("reiniciar").onclick = () => { if (confirm("¿Volver a la plantilla en blanco?")){ usar({}); sel = null; pintar(); } };
+
+  /* Sobre el post: una caja se elige y se arrastra (o se agranda desde su esquina);
+     fuera de las cajas se arrastra el fondo. */
+  let ini = null;
+  post.addEventListener("pointerdown", e => {
+    const el = e.target.closest("[data-caja]");
+    if (e.target.closest(".asa") && caja(sel)){ const c = caja(sel); ini = { modo: "tam", x: e.clientX, y: e.clientY, w: c.w, h: c.h }; }
+    else if (el){ elegir(el.dataset.caja); const c = caja(sel); ini = { modo: "mover", x: e.clientX, y: e.clientY, cx: c.x, cy: c.y }; }
+    else { elegir(null); ini = { modo: "fondo", x: e.clientX, y: e.clientY, fx: P.fondoX, fy: P.fondoY }; }
+    post.setPointerCapture(e.pointerId); post.classList.add("arrastrando");
+  });
+  post.addEventListener("pointermove", e => {
+    if (!ini) return;
+    const s = +post.dataset.s, dx = (e.clientX - ini.x) / s, dy = (e.clientY - ini.y) / s;
+    if (ini.modo === "fondo"){ P.fondoX = ini.fx + dx; P.fondoY = ini.fy + dy; pintarFondo(); return; }
+    const c = caja(sel), el = elDe(sel);
+    if (ini.modo === "mover"){
+      c.x = Math.round(ini.cx + dx); c.y = Math.round(ini.cy + dy);
+      const centrada = Math.abs(c.x + el.offsetWidth / 2 - 540) < 12;   // se pega al centro
+      if (centrada) c.x = Math.round(540 - el.offsetWidth / 2);
+      $("guia").style.display = centrada ? "block" : "none";
+      colocar(el, c); marcarSel();
+    } else {
+      c.w = Math.max(40, Math.round(ini.w + dx)); c.h = Math.max(30, Math.round(ini.h + dy));
+      pintarCajas();
+    }
+    verEditor();
+  });
+  post.addEventListener("pointerup", () => {
+    if (ini && ini.modo === "mover") reanclar(caja(sel));
+    ini = null; $("guia").style.display = "none"; post.classList.remove("arrastrando"); pintar();
+  });
+  $("vista").addEventListener("pointerdown", e => { if (e.target === $("vista") || e.target === $("marco")) elegir(null); });
+
+  /* Teclado: flechas mueven la caja elegida, Supr la borra, Esc la suelta. */
+  addEventListener("keydown", e => {
+    const c = caja(sel);
+    if (!c || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+    const paso = e.shiftKey ? 10 : 1, mov = { ArrowLeft: [-paso, 0], ArrowRight: [paso, 0], ArrowUp: [0, -paso], ArrowDown: [0, paso] }[e.key];
+    if (mov){ e.preventDefault(); c.x += mov[0]; c.y += mov[1]; pintar(); }
+    else if ((e.key === "Delete" || e.key === "Backspace") && !P.pos[sel]){ e.preventDefault(); borrar(); }
+    else if (e.key === "Escape") elegir(null);
+  });
+
+  /* Panel de la caja elegida. */
+  document.querySelectorAll("[data-c]").forEach(el => el.addEventListener("input", () => {
+    const c = caja(sel); if (!c) return;
+    const k = el.dataset.c, v = el.type === "number" || el.type === "range" ? +el.value : el.value;
+    if (k === "y") c.y = v - corrido(c.ancla); else c[k] = v;
+    pintar();
+  }));
+  document.querySelectorAll("[data-nueva]").forEach(b => b.onclick = () => {
+    const tipo = b.dataset.nueva, w = tipo === "texto" ? 700 : 600, h = tipo === "texto" ? 60 : 90;
+    const c = { ...CAJA, id: "c" + Date.now().toString(36), tipo, w, h, x: 540 - w / 2, y: Math.round(ALTO() / 2 - h / 2), ancla: "arriba",
+                texto: tipo === "texto" ? "TEXTO NUEVO" : "NUEVA INFORMACIÓN" };
+    c.y -= corrido("arriba");   // que aparezca al medio de lo que se ve
+    P.cajas.push(c); reanclar(c); elegir(c.id);
+    const t = document.querySelector('[data-c="texto"]'); t.focus(); t.select();
+  });
+  function borrar(){ P.cajas = P.cajas.filter(c => c.id !== sel); elegir(null); }
+  $("cBorrar").onclick = borrar;
+  $("cDuplicar").onclick = () => { const c = { ...caja(sel), id: "c" + Date.now().toString(36) }; c.y += 30; P.cajas.push(c); elegir(c.id); };
+  $("cFrente").onclick = () => { const c = caja(sel); P.cajas = P.cajas.filter(x => x !== c).concat(c); pintar(); };
+  $("cRestablecer").onclick = () => { P.pos[sel] = { ...DEF.pos[sel] }; pintar(); };
+  $("cListo").onclick = () => elegir(null);
+  post.addEventListener("wheel", e => { e.preventDefault(); P.fondoZoom = Math.min(3, Math.max(1, P.fondoZoom * (e.deltaY < 0 ? 1.05 : 1 / 1.05))); pintar(); }, { passive: false });
+
+  const bajar = (href, nombre) => { const a = document.createElement("a"); a.href = href; a.download = nombre; a.click(); };
+  const nombreBase = () => (P.archivo || P.evento || "post").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  async function descargarPng(formatos){
+    const antes = P.formato;
+    $("pngMsg").textContent = "Generando…";
+    try {
+      for (const f of formatos){
+        P.formato = f; pintar();
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        bajar(await aPng(), nombreBase() + (formatos.length > 1 ? "-" + f : "") + ".png");
+      }
+      $("pngMsg").textContent = "Listo: revisa tus descargas.";
+    } catch(e){
+      $("pngMsg").textContent = e && e.name === "SecurityError"
+        ? "El navegador no deja exportar una imagen abierta por ruta o enlace. Vuelve a elegirla con el botón de su sección."
+        : "No se pudo generar el PNG.";
+    }
+    P.formato = antes; pintar();
+  }
+  $("pngActual").onclick = () => descargarPng([P.formato]);
+  $("pngAmbos").onclick = () => descargarPng(["post", "historia"]);
+
+  $("bajarJson").onclick = () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(P, null, 2)], { type: "application/json" }));
+    a.download = (P.evento || "post").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".json";
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  };
+  $("abrirJson").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const d = JSON.parse(await f.text()); usar(Array.isArray(d) ? d[0] : d); sel = null; pintar(); }
+    catch(err){ alert("Ese archivo no es un JSON válido."); }
+    e.target.value = "";
+  };
+}
+pintar();
+document.fonts.ready.then(pintar);
+</script>
+<script type="module">
+  import { qrImg } from "./qr.js?v=1";
+  window.qrImg = qrImg; pintar();
+</script>
+</body>
+</html>

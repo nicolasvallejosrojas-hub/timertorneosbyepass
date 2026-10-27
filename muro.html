@@ -536,7 +536,7 @@
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
-<script src="config.js?v=11"></script>
+<script src="config.js?v=12"></script>
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1505,7 +1505,7 @@ function pintarProximo(){
     return;
   }
   $("proximo").innerHTML =
-    "<div style=\"font-weight:700\">" + (ev.juego ? '<span style="color:var(--franja)">' + esc(ev.juego) + "</span> · " : "") + esc(ev.titulo) + "</div>" +
+    "<div style=\"font-weight:700\">" + (ev.juego ? '<span style="color:var(--franja)">' + esc(ev.juego) + "</span> · " : "") + (ev.tipo ? '<span style="color:var(--franja)">' + esc(ev.tipo) + "</span> · " : "") + esc(ev.titulo) + "</div>" +
     '<div style="font-size:var(--t2);color:var(--apagado);margin-top:2px">' +
     esc(nombreTienda(TD[ev.sala] && TD[ev.sala].tienda && TD[ev.sala].tienda.perfil, ev.sala)) + "<br>" +
     esc(fechaLegible(ev.fecha)) + (ev.hora ? " · " + esc(ev.hora) : "") +

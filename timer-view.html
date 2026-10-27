@@ -422,7 +422,7 @@
 
 </main>
 
-<script src="config.js?v=11"></script>
+<script src="config.js?v=12"></script>
 <!-- ▌BLOQUE 4 · Módulos que usa la vista — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1203,7 +1203,7 @@ function tarjeta(ev, esProximo){
   card.innerHTML =
     '<div class="evCal"><div class="d">' + (+d) + '</div><div class="m">' + MES_CORTO[+m-1] + '</div></div>' +
     '<div class="evBody">' +
-      '<div class="evTit">' + (ev.juego ? '<span class="evJuego">' + esc(ev.juego) + "</span>" : "") + esc(ev.titulo) + '</div>' +
+      '<div class="evTit">' + (ev.juego ? '<span class="evJuego">' + esc(ev.juego) + "</span>" : "") + (ev.tipo ? '<span class="evJuego">' + esc(ev.tipo) + "</span>" : "") + esc(ev.titulo) + '</div>' +
       '<div class="evCuando">' + esc(fechaLegible(ev.fecha)) +
         (ev.hora ? " · " + esc(ev.hora) + " h" : " · todo el día") +
         (ev.lugar ? "<br>" + esc(ev.lugar) : "") + "</div>" +

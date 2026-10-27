@@ -60,7 +60,7 @@
   <div class="pie"><a id="pie" target="_blank" rel="noopener">Ver todo en <span class="marca">Bye<span>Pass</span></span></a></div>
 </main>
 
-<script src="config.js?v=11"></script>
+<script src="config.js?v=12"></script>
 <!-- ▌BLOQUE 2 · Script — Lee una vez la agenda y el historial de la tienda, arma el ranking del mes y suelta
      la conexión. -->
 <script type="module">
@@ -101,7 +101,7 @@ async function cargar(){
     const [, m, d] = e.fecha.split("-");
     return '<a class="fila" href="' + esc(urlGoogle(e)) + '" target="_blank" rel="noopener" title="Agregar a mi calendario">' +
       '<div class="fecha"><div class="d">' + (+d) + '</div><div class="m">' + MES[+m - 1] + "</div></div>" +
-      '<div class="txt"><b>' + (e.juego ? '<span class="chipJuego">' + esc(e.juego) + "</span>" : "") + esc(e.titulo) + "</b><small>" +
+      '<div class="txt"><b>' + (e.juego ? '<span class="chipJuego">' + esc(e.juego) + "</span>" : "") + (e.tipo ? '<span class="chipJuego">' + esc(e.tipo) + "</span>" : "") + esc(e.titulo) + "</b><small>" +
       esc([e.hora ? e.hora + " h" : "Todo el día", e.lugar || ""].filter(Boolean).join(" · ")) + "</small></div></a>"; }).join("")
     : '<div class="vacio">No hay fechas anunciadas.</div>';
 

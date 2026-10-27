@@ -315,7 +315,7 @@
     <a href="terminos.html">Términos</a> ·
     <a href="privacidad.html">Privacidad</a> · ByePass © 2026</p></footer>
 
-<script src="config.js?v=11"></script>
+<script src="config.js?v=12"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
 import { ref, onValue, get, set, update, remove, query, orderByChild, equalTo, push, serverTimestamp }
@@ -897,7 +897,7 @@ function pintarAgenda(){
   $("agendaTodo").innerHTML = prox.length ? prox.map(e => {
     const insc = inscAbierta(e);
     return '<a class="fila" href="' + (insc ? urlInsc(e) + '"' : urlGoogle(e) + '" target="_blank" rel="noopener"') + ">" + fechaBadge(e.fecha) +
-    '<div class="txt"><b>' + chipJuego(e.juego) + esc(e.titulo) +
+    '<div class="txt"><b>' + chipJuego(e.juego) + chipJuego(e.tipo) + esc(e.titulo) +
     "</b><small>" + esc([fechaLegible(e.fecha) + (e.hora ? ", " + e.hora : ""), e.lugar || ""].filter(Boolean).join(" · ")) +
     '</small></div><span class="der">' + (insc ? "<b>Inscribirse</b>" : esc(cuantoFalta(e, ahora()))) + "</span></a>"; }).join("")
     : '<div class="vacio">No hay fechas anunciadas.</div>';

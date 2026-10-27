@@ -101,7 +101,7 @@ export async function dibujarCalendario({ tienda, a, m, eventos, estilo }){
     g.fillStyle = C.suave; g.font = "400 24px Inter"; g.fillText(e.hora || "Todo el día", PAD + 24, y + 64);
     g.fillStyle = C.texto; g.font = "700 30px Inter";
     g.fillText(cabe(g, e.titulo, W - 2 * PAD - 230), PAD + 230, y + 34);
-    const meta = [e.juego, e.lugar].filter(Boolean).join(" · ");
+    const meta = [e.tipo, e.juego, e.lugar].filter(Boolean).join(" · ");
     if (meta){ g.fillStyle = C.suave; g.font = "400 23px Inter"; g.fillText(cabe(g, meta, W - 2 * PAD - 230), PAD + 230, y + 64); }
   });
 
