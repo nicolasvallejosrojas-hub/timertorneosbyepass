@@ -455,7 +455,7 @@ if (!new URLSearchParams(location.search).get("sala"))
 }
 import { resolver as palResolver, esOriginal as palEsOriginal, aplicar as palAplicarEn,
          alDia } from "./paleta.js?v=4";
-import { vistaDe } from "./vistapub.js?v=1";
+import { vistaDe } from "./vistapub.js?v=2";
 import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=6";
 
 /* ▌BLOQUE 5 · Arranque ══════════════════════════════════════════════════════════
@@ -489,7 +489,7 @@ const pctTxt = r => {
   const j = (r.w||0) + (r.l||0) + (r.t||0);
   return j ? " · " + Math.round(((r.w||0) + (r.t||0)/2) / j * 100) + "%" : "";
 };
-/* El récord solo si se publicó (la tienda puede dejar solo los puntos). */
+/* El récord y los puntos, solo si se publicaron (la tienda elige qué mostrar: vistapub.js). */
 const recTxt = r => r && r.w != null ? r.w + "-" + r.l + "-" + r.t : "";
 
 let offset = 0;                                   // diferencia con la hora del servidor
@@ -880,7 +880,7 @@ function renderPair(){
                 <span class="fpos${medalla}">${s.place}</span>
                 <div class="fmid"><div class="fname">${esc(s.name)}</div>
                   <div class="fmeta">${recTxt(s)}${pctTxt(s)}</div></div>
-                <span class="fpts">${s.pts}</span>
+                <span class="fpts">${s.pts != null ? s.pts : ""}</span>
               </div>`;
       });
     });
@@ -909,7 +909,7 @@ function renderPair(){
                   : (emp ? '<span class="tie">EMPATE</span>' : "");
       return `<div class="prow${gana?" won":""}">
                 <div class="pinfo"><div class="pname">${esc(n)}</div>
-                  <div class="pmeta">${r ? (recTxt(r) ? recTxt(r) + " · " : "") + r.pts + " pts" + pctTxt(r) : ""}</div></div>
+                  <div class="pmeta">${r ? [recTxt(r), r.pts != null ? r.pts + " pts" : ""].filter(Boolean).join(" · ") + pctTxt(r) : ""}</div></div>
                 ${marca}</div>`;
     };
 

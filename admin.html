@@ -1005,10 +1005,12 @@
   <fieldset id="vistaBox" style="margin:10px 0 0;border:1px solid var(--divider);border-radius:var(--radio);padding:8px 12px 10px">
     <legend style="font-weight:600;padding:0 6px">Qué ven los jugadores</legend>
     <label class="chk"><input type="checkbox" id="vistaPos"> La pestaña «Posiciones» (la clasificación)</label>
+    <label class="chk"><input type="checkbox" id="vistaPts"> Los puntos de cada jugador (en las mesas y en las posiciones)</label>
     <label class="chk"><input type="checkbox" id="vistaRec"> El récord (G-P-E) de cada jugador</label>
     <label class="chk"><input type="checkbox" id="vistaPct"> El % de victorias junto al récord</label>
-    <div class="muted" style="margin-top:6px">Lo que apagues <b>no se publica</b>: tampoco se puede sacar de la consola del navegador. Los puntos de cada mesa se ven siempre.
-      El % se calcula del récord: para que nadie pueda calcularlo, apaga también el récord. Apaga «Posiciones» hasta el final de la liga y vuelve a prenderla para mostrar la clasificación final.</div>
+    <div class="muted" style="margin-top:6px">Lo que apagues <b>no se publica</b>: tampoco se puede sacar de la consola del navegador. Con los puntos a la vista, los jugadores se ordenan entre ellos mesa a mesa: por eso vienen apagados.
+      Ojo: puntos y récord se calculan uno del otro (3 por victoria, 1 por empate), así que para que nadie pueda sacar los puntos apaga también el récord. El % se calcula del récord.
+      Apaga «Posiciones» hasta el final de la liga y vuelve a prenderla para mostrar la clasificación final.</div>
     <div id="vistaMsg" class="muted" style="margin-top:4px"></div>
   </fieldset>
   <div id="parseMsg" class="muted" style="margin-top:8px"></div>
@@ -1539,7 +1541,7 @@
 <link rel="modulepreload" href="./torneo.js?v=2">
 <link rel="modulepreload" href="./paleta.js?v=4">
 <link rel="modulepreload" href="./csv.js?v=1">
-<link rel="modulepreload" href="./vistapub.js?v=1">
+<link rel="modulepreload" href="./vistapub.js?v=2">
 <link rel="modulepreload" href="./listamazo.js?v=6">
 <!-- ▌BLOQUE 10 · Módulos que usa el panel — Imports de Firebase y de los módulos compartidos (sala, agenda,
      insignias, torneo, paleta, listamazo, etc.). Cada uno lleva su ?v= para que el navegador no mezcle
@@ -1572,7 +1574,7 @@ const entregarCalendario = datos => import("./calendarioimg.js?v=1").then(m => m
 const dibujarCalendario = datos => import("./calendarioimg.js?v=1").then(m => m.dibujarCalendario(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
 import { celdaCsv } from "./csv.js?v=1";
-import { vistaDe, publicable } from "./vistapub.js?v=1";
+import { vistaDe, publicable } from "./vistapub.js?v=2";
 import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=6";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
@@ -3585,11 +3587,11 @@ $("prCopiar").onclick = () => navigator.clipboard.writeText(PR_TXT).then(() => {
   () => prompt("Copia el reparto:", PR_TXT));
 
 function pintarVista(){
-  $("vistaPos").checked = VISTA.pos; $("vistaRec").checked = VISTA.rec;
+  $("vistaPos").checked = VISTA.pos; $("vistaPts").checked = VISTA.pts; $("vistaRec").checked = VISTA.rec;
   $("vistaPct").checked = VISTA.pct && VISTA.rec; $("vistaPct").disabled = !VISTA.rec;
 }
 async function guardarVista(){
-  const rec = $("vistaRec").checked, v = { pos: $("vistaPos").checked, rec, pct: rec && $("vistaPct").checked };
+  const rec = $("vistaRec").checked, v = { pos: $("vistaPos").checked, pts: $("vistaPts").checked, rec, pct: rec && $("vistaPct").checked };
   $("vistaMsg").textContent = "Guardando…";
   try {
     await set(ref(db, BASE + "/vistaJugadores"), v); VISTA = v; pintarVista();
@@ -3603,10 +3605,10 @@ async function guardarVista(){
       }
     }
     $("vistaMsg").innerHTML = '<span class="ok">Guardado ✓ ' + horaCorta() + "</span>" +
-      (PUB && !(parsed || (TN && rondasDe(TN).length)) && (v.pos || v.rec) ? " · Para volver a mostrar algo que estaba apagado, carga el torneo y publica de nuevo." : "");
+      (PUB && !(parsed || (TN && rondasDe(TN).length)) && (v.pos || v.pts || v.rec) ? " · Para volver a mostrar algo que estaba apagado, carga el torneo y publica de nuevo." : "");
   } catch(e){ $("vistaMsg").innerHTML = '<span class="err">' + esc(mensajeConexion(e)) + "</span>"; }
 }
-["vistaPos", "vistaRec", "vistaPct"].forEach(id => $(id).onchange = guardarVista);
+["vistaPos", "vistaPts", "vistaRec", "vistaPct"].forEach(id => $(id).onchange = guardarVista);
 onValue(ref(db, BASE + "/vistaJugadores"), s => { VISTA = vistaDe(s.val()); pintarVista(); }, () => {});
 
 onValue(ref(db, BASE + "/pairings"), snap => {

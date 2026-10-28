@@ -407,7 +407,7 @@
     return items.slice(PG[k] * por, PG[k] * por + por).join("");
   }
   function htmlFila(pos, nombre, meta, pts){
-    return '<div class="fila"><span class="pt">' + pts + '</span><span class="pos' + (pos <= 3 ? " p" + pos : "") + '">' + pos +
+    return '<div class="fila"><span class="pt">' + (pts == null ? "" : pts) + '</span><span class="pos' + (pos <= 3 ? " p" + pos : "") + '">' + pos +
            '</span><span class="nom">' + esc(nombre) + '</span><span class="met">' + esc(meta) + '</span></div>';
   }
   function htmlChips(opciones, activa){
