@@ -7,7 +7,7 @@
 /* =========================================================
    importar.js — el torneo desde el archivo que sea
    ---------------------------------------------------------
-   Versión actual: v=3   (subir el ?v= al tocar este archivo)
+   Versión actual: v=4   (subir el ?v= al tocar este archivo)
 
    Entra un archivo con el torneo y se buscan adentro los datos de las
    personas y las partidas: quién es quién (nombre e ID), las mesas de cada
@@ -42,7 +42,7 @@
    Se prueba con node (pruebas/probar-importar.mjs); la parte XML usa el
    DOMParser del navegador: esa prueba se corre abriendo el mismo archivo ahí.
    ========================================================= */
-import { aPairings, aHistorial, clasificacion, EMPATE, DOBLE } from "./torneo.js?v=2";
+import { aPairings, aHistorial, clasificacion, EMPATE, DOBLE } from "./torneo.js?v=3";
 import { normNombre } from "./jugadores.js?v=2";
 
 /* ▌BLOQUE 1 · Columnas y metadatos ══════════════════════════════════════════════
@@ -182,6 +182,10 @@ const TERMINADA = new Set(["finished", "finalizado", "finalizada", "terminado", 
 /* El resultado de una partida en el XML: 1 y 8 gana el jugador 1, 2 y 10 el
    jugador 2, 3 empate, 4 doble derrota, 5 bye; cualquier otro, en juego. */
 const RES_XML = { 1: "1", 8: "1", 2: "2", 10: "2", 3: "E", 4: "D" };
+/* Una partida con UN solo jugador es un bye cuando TOM la marca 5 (o todavía sin resultado, o 1). Con otro resultado
+   no lo es: quien llega durante una ronda y se suma a la siguiente trae la anterior con el 8 y sin rival, y TOM se la
+   cuenta como derrota. Leerla como bye le regalaba una victoria. */
+const derrotaSola = c => Number.isFinite(c) && ![0, 1, 5].includes(c);
 /* La fecha en estos archivos viene mes/día/año. */
 const fechaMDA = s => { const m = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/.exec(s); return m ? m[3] + "-" + m[1].padStart(2, "0") + "-" + m[2].padStart(2, "0") : s; };
 
@@ -243,7 +247,8 @@ function datosDeXml(texto){
          siguen el mismo camino (construirTorneo). */
       partidas.push({ donde: "ronda " + n + (mesa ? ", mesa " + mesa : ""), ronda: n, mesa,
         j1: nombre[id1] || id1, id1, j2: id2 ? nombre[id2] || id2 : "", id2,
-        res: id2 ? RES_XML[parseInt(at(m, "resultado"), 10)] || "" : "" });
+        res: id2 ? RES_XML[parseInt(at(m, "resultado"), 10)] || "" : "",
+        ...(!id2 && derrotaSola(parseInt(at(m, "resultado"), 10)) ? { perdida: parseInt(at(m, "resultado"), 10) } : {}) });
     });
   }); if (i === 0) finSuizo = n; });
   const suizas = usar.length > 1 ? finSuizo : 0;
@@ -369,6 +374,10 @@ function construirTorneo(partidas, meta){
     const corte = suizas > 0 && p.ronda > suizas;
     if (!b){
       if (corte) throw new Error(p.donde + ": en el top cut no hay bye");
+      if (p.perdida != null){   // un solo jugador y no es un bye: derrota (TOM) sin rival
+        avisos.add(jug[a].nombre + " aparece sin rival en la ronda " + p.ronda + " con el resultado " + p.perdida + " del archivo: se cuenta como derrota, no como bye (por ejemplo, llegó durante la ronda).");
+        return r.mesas.push({ a, perd: 1 });
+      }
       return r.mesas.push({ a });
     }
     const cod = codigoResultado(p);

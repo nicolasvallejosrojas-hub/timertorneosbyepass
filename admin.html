@@ -1537,8 +1537,8 @@
 <link rel="modulepreload" href="./insignias.js?v=9">
 <link rel="modulepreload" href="./clasificacion.js?v=6">
 <link rel="modulepreload" href="./jugadores.js?v=2">
-<link rel="modulepreload" href="./importar.js?v=3">
-<link rel="modulepreload" href="./torneo.js?v=2">
+<link rel="modulepreload" href="./importar.js?v=4">
+<link rel="modulepreload" href="./torneo.js?v=3">
 <link rel="modulepreload" href="./paleta.js?v=4">
 <link rel="modulepreload" href="./csv.js?v=1">
 <link rel="modulepreload" href="./vistapub.js?v=2">
@@ -1561,10 +1561,10 @@ import { barras } from "./graficos.js?v=2";
 import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=9";
 import { claveJugador, porCategoria } from "./clasificacion.js?v=6";
 import { planClaves } from "./jugadores.js?v=2";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=3";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=4";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=2";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=3";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
          revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=4";
@@ -4135,6 +4135,7 @@ function pintarTorneo(){
 function mesaHtml(m, i, antes, editable, corte = false){
   const J = TN.jugadores || {}, nom = id => (J[id] || {}).nombre || "?";
   const rec = id => { const p = antes[id]; return p ? p.w + "-" + p.l + "-" + p.e + " · " + p.pts + " pts" : ""; };
+  if (!m.b && m.perd) return '<div class="mesa"><span class="n">—</span><span class="solo"><b>' + esc(nom(m.a)) + "</b> pierde la ronda sin rival</span></div>";
   if (!m.b) return '<div class="mesa"><span class="n">Bye</span><span class="solo"><b>' + esc(nom(m.a)) + "</b> gana la ronda sin jugar</span></div>";
   const clase = lado => m.r == null || m.r === EMPATE || m.r === DOBLE ? "" : m.r === lado ? " gana" : " pierde";
   const dis = editable ? "" : " disabled";

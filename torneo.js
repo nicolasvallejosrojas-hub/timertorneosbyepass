@@ -9,7 +9,7 @@
 /* ============================================================
    torneo.js — correr un torneo suizo en la página
    ------------------------------------------------------------
-   Versión actual: v=2   (subir el ?v= al tocar este archivo)
+   Versión actual: v=3   (subir el ?v= al tocar este archivo)
 
    El otro camino es cargar el archivo del torneo (importar.js). Este es para
    los torneos de la tienda que no se suben a ninguna parte: los jugadores se
@@ -44,7 +44,7 @@
    rondas: las suizas. Las del corte van después (rondas + 1, + 2…).
    desde: la primera ronda que juega (1 si se inscribió a tiempo).
    drop:  la última ronda que jugó antes de retirarse (0 = sigue).
-   Mesa sin b = bye. r: 1 gana a, 2 gana b, 0 empate, 3 doble derrota;
+   Mesa sin b = bye; sin b y con perd = derrota sin rival (quien llega durante una ronda: TOM le da esa ronda perdida). r: 1 gana a, 2 gana b, 0 empate, 3 doble derrota;
    sin r, la mesa está en juego. mesa: el número de mesa, solo cuando el
    torneo viene de un archivo (importar.js); si no, se numeran en orden.
    ============================================================ */
@@ -95,7 +95,7 @@ export function resumen(t, hasta = Infinity){
     mesas.forEach(m => {
       const A = s[m.a], B = m.b ? s[m.b] : null;
       if (!A) return;
-      if (!m.b){ A.w++; A.byes++; A.jugadas++; return; }
+      if (!m.b){ if (m.perd){ A.l++; A.jugadas++; } else { A.w++; A.byes++; A.jugadas++; } return; }   // perd: derrota sin rival (no es un bye)
       if (!B) return;
       A.vs.add(m.b); B.vs.add(m.a);
       if (m.r == null) return;
@@ -272,7 +272,7 @@ export function aPairings(t){
     const s = resumen(t, n);
     const ronda = { number: n };
     if (n > finSuizo(t)) ronda.etiqueta = nombreCorte(mesas.length * 2);
-    return { ...ronda, matches: mesas.map((m, i) => {
+    return { ...ronda, matches: mesas.filter(m => !m.perd).map((m, i) => {   // la derrota sin rival no es una mesa: cuenta en el récord, no se publica
       const p1 = nom(t, m.a), p2 = m.b ? nom(t, m.b) : null;
       const result = !m.b ? "Bye" : m.r === GANA_A ? "Gana " + p1 : m.r === GANA_B ? "Gana " + p2
                    : m.r === EMPATE ? "Empate" : m.r === DOBLE ? "Doble derrota" : "";
