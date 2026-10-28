@@ -3,12 +3,16 @@
     2. esc()
     3. Emulador
 */
-/* ▌BLOQUE 1 · Configuración de Firebase ═════════════════════════════════════════
-   Las claves del proyecto (no son secretas: protege las reglas). */
 // ====== CONFIGURACIÓN DE FIREBASE ======
 // Proyecto: timer-y-qrs-pokemon
 // Estos valores NO son secretos: la seguridad real está en las reglas
 // de la Realtime Database y en tu contraseña de organizador.
+/* El Instagram de ByePass: a donde las tiendas escriben para que las verifiquemos (y salgan en el buscador de tiendas). Se usa
+   en el panel, en la cuenta y en el aviso de «tienda aceptada» (avisotienda.js). Sin la @. */
+const INSTAGRAM_BYEPASS = "byepasscl";
+
+/* ▌BLOQUE 1 · Configuración de Firebase ═════════════════════════════════════════
+   Las claves del proyecto (no son secretas: protege las reglas). */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDdjKoHckbsaTgjiIVij9tnt9gpRtefREY",
   authDomain: "timer-y-qrs-pokemon.firebaseapp.com",

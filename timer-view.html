@@ -422,7 +422,7 @@
 
 </main>
 
-<script src="config.js?v=12"></script>
+<script src="config.js?v=13"></script>
 <!-- ▌BLOQUE 4 · Módulos que usa la vista — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -455,6 +455,7 @@ if (!new URLSearchParams(location.search).get("sala"))
 }
 import { resolver as palResolver, esOriginal as palEsOriginal, aplicar as palAplicarEn,
          alDia } from "./paleta.js?v=4";
+import { vistaDe } from "./vistapub.js?v=1";
 import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=6";
 
 /* ▌BLOQUE 5 · Arranque ══════════════════════════════════════════════════════════
@@ -482,10 +483,14 @@ const $ = id => document.getElementById(id);
 
 
 /* El empate vale media victoria, igual que en el sistema oficial */
+let VISTA_JUG = vistaDe();                            // lo que la tienda deja ver (salas/<tienda>/vistaJugadores): por defecto, sin el %
 const pctTxt = r => {
+  if (!VISTA_JUG.pct) return "";
   const j = (r.w||0) + (r.l||0) + (r.t||0);
   return j ? " · " + Math.round(((r.w||0) + (r.t||0)/2) / j * 100) + "%" : "";
 };
+/* El récord solo si se publicó (la tienda puede dejar solo los puntos). */
+const recTxt = r => r && r.w != null ? r.w + "-" + r.l + "-" + r.t : "";
 
 let offset = 0;                                   // diferencia con la hora del servidor
 const ahora = () => Date.now() + offset;
@@ -826,6 +831,7 @@ function pintarCabecera(){
 }
 
 $("q").oninput = renderPair;
+onValue(ref(db, BASE + "/vistaJugadores"), s => { VISTA_JUG = vistaDe(s.val()); if (P) renderPair(); }, () => {});   // la tienda cambia qué se ve (vistapub.js)
 
 function renderPair(){
   if (!P) return;
@@ -873,7 +879,7 @@ function renderPair(){
         h += `<div class="frow${hit?" hlrow":""}"${q&&!hit?' style="opacity:.35"':''}>
                 <span class="fpos${medalla}">${s.place}</span>
                 <div class="fmid"><div class="fname">${esc(s.name)}</div>
-                  <div class="fmeta">${s.w}-${s.l}-${s.t}${pctTxt(s)}</div></div>
+                  <div class="fmeta">${recTxt(s)}${pctTxt(s)}</div></div>
                 <span class="fpts">${s.pts}</span>
               </div>`;
       });
@@ -903,7 +909,7 @@ function renderPair(){
                   : (emp ? '<span class="tie">EMPATE</span>' : "");
       return `<div class="prow${gana?" won":""}">
                 <div class="pinfo"><div class="pname">${esc(n)}</div>
-                  <div class="pmeta">${r ? r.w+"-"+r.l+"-"+r.t+" · "+r.pts+" pts"+pctTxt(r) : ""}</div></div>
+                  <div class="pmeta">${r ? (recTxt(r) ? recTxt(r) + " · " : "") + r.pts + " pts" + pctTxt(r) : ""}</div></div>
                 ${marca}</div>`;
     };
 

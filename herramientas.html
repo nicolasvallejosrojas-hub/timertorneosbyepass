@@ -263,7 +263,7 @@
       <button class="btn" id="dbSi" disabled>Descargar respaldo y eliminar</button></div>
   </dialog>
 
-<script src="config.js?v=12"></script>
+<script src="config.js?v=13"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
 import { ref, onValue, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -271,6 +271,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=15";
 import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=6";
 import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=4";
+import { mensajeAceptada, canalDe, enlaceAviso } from "./avisotienda.js?v=1";
 estoyEnLinea(db, "herramientas");
 
 const $ = id => document.getElementById(id);
@@ -676,6 +677,7 @@ function pintarSolicitudes(){
       (x.nota ? "<small>Tu nota: " + esc(x.nota) + "</small>" : "") + "</div>" +
       '<span class="estado e' + e + '">' + ["Por revisar", "Aprobada", "Rechazada"][e] + "</span>" +
       '<div class="acc">' +
+      (e === 1 ? '<button class="btn chico primario" data-avisar="' + esc(uid) + '" title="Prepara el mensaje de «tu tienda fue aceptada» con las instrucciones para verificarla">Avisarle</button>' : "") +
       (e !== 1 ? '<button class="btn chico primario" data-aprobar="' + esc(uid) + '">Aprobar</button>' : "") +
       (e !== 2 ? '<button class="btn chico" data-rechazar="' + esc(uid) + '">Rechazar</button>' : "") + "</div></div>";
   }).join("") || '<div class="nota" style="padding:var(--e4)">No hay solicitudes.</div>';
@@ -683,6 +685,19 @@ function pintarSolicitudes(){
     b.disabled = true;
     try { await update(ref(db, "solicitudes/" + b.dataset.aprobar), { aprobada: true, rechazada: null, nota: null }); }
     catch(e){ b.disabled = false; $("solResumen").textContent = "No se pudo guardar. Revisa la conexión."; }
+  });
+  /* «Avisarle»: el mensaje de tienda aceptada, por donde dejó su contacto. No envía nada solo: se abre el correo o WhatsApp con el texto puesto,
+     o se copia el texto y se abre su Instagram (Instagram no deja escribir el mensaje por enlace). */
+  $("solLista").querySelectorAll("[data-avisar]").forEach(b => b.onclick = async () => {
+    const x = SOL[b.dataset.avisar]; if (!x) return;
+    const canal = canalDe(x.contacto), url = enlaceAviso(canal, x, location.origin, INSTAGRAM_BYEPASS), texto = mensajeAceptada(x, location.origin, INSTAGRAM_BYEPASS);
+    let copiado = false; try { await navigator.clipboard.writeText(texto); copiado = true; } catch(e){}
+    $("solResumen").textContent = canal.tipo === "correo" ? "Se abre tu correo con el aviso para " + canal.destino + "."
+      : canal.tipo === "whatsapp" ? "Se abre WhatsApp con el aviso."
+      : canal.tipo === "instagram" ? (copiado ? "Mensaje copiado: pégalo en el chat de @" + canal.destino + "." : "Copia el mensaje de abajo y pégalo en el chat de @" + canal.destino + ".")
+      : (copiado ? "Su contacto no es un correo, WhatsApp ni Instagram: el mensaje quedó copiado, mándaselo por donde puedas." : "No se pudo copiar el mensaje. Escríbelo a mano.");
+    if (url) window.open(url, "_blank", "noopener");
+    if (!copiado || canal.tipo === "otro") prompt("Mensaje para " + x.nombre + ":", texto);
   });
   $("solLista").querySelectorAll("[data-rechazar]").forEach(b => b.onclick = async () => {
     const nota = prompt("¿Por qué? Lo ve quien la pidió (opcional):", "");

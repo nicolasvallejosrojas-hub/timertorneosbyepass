@@ -588,7 +588,7 @@
 </div>
 </main>
 
-<script src="config.js?v=12"></script>
+<script src="config.js?v=13"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y de sesion.js. -->
 <script type="module">
 import { ref, get, set, remove, update, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -1302,6 +1302,7 @@ async function pintarTienda(){
     if (sol.aprobada){
       est.className = "aviso accion";
       est.innerHTML = "<b>Aprobamos " + nom + ".</b> Créala ahora: quedas de dueño y se abre el panel del organizador." +
+        '<div style="margin-top:8px">Para <b>verificarla</b> y que aparezca en el buscador de tiendas, escríbenos un mensaje por Instagram a <a href="https://instagram.com/' + INSTAGRAM_BYEPASS + '" target="_blank" rel="noopener">@' + INSTAGRAM_BYEPASS + "</a> contándonos cuál es tu tienda.</div>" +
         '<div style="margin-top:12px"><button class="btn primario ancho" type="button" id="tdCrear">Crear ' + nom + "</button></div>";
       $("tdCrear").onclick = async () => {
         $("tdCrear").disabled = true;

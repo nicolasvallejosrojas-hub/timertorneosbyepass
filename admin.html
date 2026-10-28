@@ -1002,6 +1002,15 @@
     <button class="small sec" id="pegadoBtn" type="button">Leer lo pegado</button>
   </details>
   <label class="chk"><input type="checkbox" id="autoPub"> Publicar automáticamente al cargar el archivo</label>
+  <fieldset id="vistaBox" style="margin:10px 0 0;border:1px solid var(--divider);border-radius:var(--radio);padding:8px 12px 10px">
+    <legend style="font-weight:600;padding:0 6px">Qué ven los jugadores</legend>
+    <label class="chk"><input type="checkbox" id="vistaPos"> La pestaña «Posiciones» (la clasificación)</label>
+    <label class="chk"><input type="checkbox" id="vistaRec"> El récord (G-P-E) de cada jugador</label>
+    <label class="chk"><input type="checkbox" id="vistaPct"> El % de victorias junto al récord</label>
+    <div class="muted" style="margin-top:6px">Lo que apagues <b>no se publica</b>: tampoco se puede sacar de la consola del navegador. Los puntos de cada mesa se ven siempre.
+      El % se calcula del récord: para que nadie pueda calcularlo, apaga también el récord. Apaga «Posiciones» hasta el final de la liga y vuelve a prenderla para mostrar la clasificación final.</div>
+    <div id="vistaMsg" class="muted" style="margin-top:4px"></div>
+  </fieldset>
   <div id="parseMsg" class="muted" style="margin-top:8px"></div>
   <div id="preview"></div>
   <div class="row" style="margin-top:12px">
@@ -1511,7 +1520,7 @@
 <div id="menu"></div>
 <input type="file" accept="image/*" id="fBox" style="display:none">
 
-<script src="config.js?v=12"></script>
+<script src="config.js?v=13"></script>
 <!-- Todo lo que el panel carga al arrancar se pide a la vez (si no, cada módulo descubre los suyos recién al llegar). Mismas direcciones y versiones que los import. -->
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js">
@@ -1530,6 +1539,7 @@
 <link rel="modulepreload" href="./torneo.js?v=2">
 <link rel="modulepreload" href="./paleta.js?v=4">
 <link rel="modulepreload" href="./csv.js?v=1">
+<link rel="modulepreload" href="./vistapub.js?v=1">
 <link rel="modulepreload" href="./listamazo.js?v=6">
 <!-- ▌BLOQUE 10 · Módulos que usa el panel — Imports de Firebase y de los módulos compartidos (sala, agenda,
      insignias, torneo, paleta, listamazo, etc.). Cada uno lleva su ?v= para que el navegador no mezcle
@@ -1562,6 +1572,7 @@ const entregarCalendario = datos => import("./calendarioimg.js?v=1").then(m => m
 const dibujarCalendario = datos => import("./calendarioimg.js?v=1").then(m => m.dibujarCalendario(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
 import { celdaCsv } from "./csv.js?v=1";
+import { vistaDe, publicable } from "./vistapub.js?v=1";
 import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=6";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
@@ -2064,11 +2075,14 @@ function escucharTienda(u){
       $("pfInstagram").value = p.instagram || "";
       $("pfColor").value = p.color || "#0B7F6C";
     }
+    /* Para verificarla: un mensaje al Instagram de ByePass (config.js); verificada = sale en el buscador de tiendas. */
+    const igBP = '<a href="https://instagram.com/' + INSTAGRAM_BYEPASS + '" target="_blank" rel="noopener">@' + INSTAGRAM_BYEPASS + "</a>",
+          comoVerificar = " <b>Para verificarla</b> y que aparezca en el buscador de tiendas, escríbenos un mensaje por Instagram a " + igBP + " contándonos cuál es tu tienda.";
     $("verifTxt").innerHTML = t.verificada
       ? '<span class="ok">Tienda verificada</span>: sale en el directorio de tiendas.'
       : t.verificada === false
-      ? "No verificada: el timer y todo lo demás funciona igual, pero la tienda no sale en el directorio."
-      : "Pendiente de verificación: el timer y todo lo demás funciona igual, pero la tienda todavía no sale en el directorio.";
+      ? "No verificada: el timer y todo lo demás funciona igual, pero la tienda no sale en el directorio." + comoVerificar
+      : "Pendiente de verificación: el timer y todo lo demás funciona igual, pero la tienda todavía no sale en el directorio." + comoVerificar;
     $("miembrosLista").innerHTML = Object.entries(mm)
       .sort(([, a], [, b]) => (a.rol === "dueno" ? -1 : 1) - (b.rol === "dueno" ? -1 : 1))
       .map(([uid, m]) => '<div class="miembro"><span class="logoT" style="--c:var(--sup-alta);color:var(--texto);width:34px;height:34px;font-size:var(--t2)">' +
@@ -3265,7 +3279,7 @@ $("rondasTot").onchange = () => {
    abajo) y no contra lo que este panel cree haber mandado: con dos
    organizadores, cada uno compara contra lo mismo.
    ========================================================= */
-let PUB = null;
+let PUB = null, VISTA = vistaDe();   // VISTA: lo que la tienda deja ver a los jugadores (salas/<tienda>/vistaJugadores, vistapub.js)
 /* Las rutas que cambian entre lo publicado y lo nuevo, hoja por hoja. null y
    un campo ausente son lo mismo: Firebase no guarda los null. */
 function diferencias(viejo, nuevo, ruta, out){
@@ -3280,9 +3294,10 @@ function diferencias(viejo, nuevo, ruta, out){
 async function publicarPairings(nuevo){
   const base = BASE + "/pairings";
   if (!nuevo) return;
+  nuevo = publicable(nuevo, VISTA);   // lo que la tienda decidió no mostrar (posiciones, récord) ni se publica
   /* La primera vez (o después de borrar) no hay con qué comparar: va entera, una vez. */
   if (!PUB) return set(ref(db, base), nuevo);
-  if (nuevo.pendientes > 0 && PUB.standings) nuevo = Object.assign({}, nuevo, { standings: PUB.standings });
+  if (VISTA.pos && nuevo.pendientes > 0 && PUB.standings) nuevo = Object.assign({}, nuevo, { standings: PUB.standings });
   const rutas = diferencias(PUB, nuevo, base, {}), n = Object.keys(rutas).length;
   if (!n) return;
   /* Si cambió casi todo (otro torneo, otro archivo), la hoja entera pesa lo mismo. */
@@ -3568,6 +3583,31 @@ function pintarPremios(){
 }));
 $("prCopiar").onclick = () => navigator.clipboard.writeText(PR_TXT).then(() => { $("prCopiar").textContent = "Copiado ✓"; setTimeout(() => $("prCopiar").textContent = "Copiar", 1800); },
   () => prompt("Copia el reparto:", PR_TXT));
+
+function pintarVista(){
+  $("vistaPos").checked = VISTA.pos; $("vistaRec").checked = VISTA.rec;
+  $("vistaPct").checked = VISTA.pct && VISTA.rec; $("vistaPct").disabled = !VISTA.rec;
+}
+async function guardarVista(){
+  const rec = $("vistaRec").checked, v = { pos: $("vistaPos").checked, rec, pct: rec && $("vistaPct").checked };
+  $("vistaMsg").textContent = "Guardando…";
+  try {
+    await set(ref(db, BASE + "/vistaJugadores"), v); VISTA = v; pintarVista();
+    /* Lo ya publicado se pone al día: con la fuente a mano se vuelve a publicar entera; sin ella solo se puede QUITAR lo que se apagó. */
+    if (PUB){
+      const fuente = parsed || (TN && rondasDe(TN).length ? aPairings(TN) : null);
+      if (fuente) { if (parsed) await publishPairings(); else await publicarTorneo(); }
+      else {
+        const rutas = diferencias(PUB, publicable(PUB, v), BASE + "/pairings", {});
+        if (Object.keys(rutas).length) await update(ref(db), rutas);
+      }
+    }
+    $("vistaMsg").innerHTML = '<span class="ok">Guardado ✓ ' + horaCorta() + "</span>" +
+      (PUB && !(parsed || (TN && rondasDe(TN).length)) && (v.pos || v.rec) ? " · Para volver a mostrar algo que estaba apagado, carga el torneo y publica de nuevo." : "");
+  } catch(e){ $("vistaMsg").innerHTML = '<span class="err">' + esc(mensajeConexion(e)) + "</span>"; }
+}
+["vistaPos", "vistaRec", "vistaPct"].forEach(id => $(id).onchange = guardarVista);
+onValue(ref(db, BASE + "/vistaJugadores"), s => { VISTA = vistaDe(s.val()); pintarVista(); }, () => {});
 
 onValue(ref(db, BASE + "/pairings"), snap => {
   const p = snap.val();
