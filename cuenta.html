@@ -1226,6 +1226,7 @@ $("formBuzon").onsubmit = async e => {
   const nombre = ((perfil && perfil.nombre) || usuario.displayName || "").slice(0, 80);
   const contacto = $("bzContacto").value.trim().slice(0, 120);
   if (nombre) msg.nombre = nombre;
+  if (usuario.email) msg.correo = usuario.email;   // el de su cuenta (las reglas lo verifican): a ese se le responde
   if (contacto) msg.contacto = contacto;
   if (DESDE) msg.pagina = DESDE;
   $("btnBuzon").disabled = true;
@@ -1283,6 +1284,7 @@ async function pintarTienda(){
       if (admin) return await crearTienda(u, { id, nombre, comuna }, false);
       if (contacto.length < 3) return aviso("errTienda", "Deja un Instagram, WhatsApp o correo para contactarte.");
       const sol = { id, nombre, quien: ((perfil && perfil.nombre) || u.displayName || "").slice(0, 80), contacto, creada: Date.now() };
+      if (u.email) sol.correo = u.email;   // el de su cuenta: las reglas exigen que sea el verdadero, así la administración sabe a dónde avisarle
       if (comuna) sol.comuna = comuna;
       if (mensaje) sol.mensaje = mensaje;
       await set(ref(db, "solicitudes/" + u.uid), sol);

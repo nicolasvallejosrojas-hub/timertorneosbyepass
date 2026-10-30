@@ -131,6 +131,9 @@
   dialog.hoja label input{display:block;width:100%;margin-top:6px;font-size:var(--t4);}
   .pie{display:flex;justify-content:flex-end;gap:var(--e2);margin-top:var(--e4);flex-wrap:wrap;}
   .pie .btn{min-height:44px;}
+  dialog.hoja label input[readonly]{background:transparent;}
+  dialog.hoja label textarea{display:block;width:100%;margin-top:6px;font:inherit;font-size:var(--t3);line-height:1.5;min-height:200px;resize:vertical;box-sizing:border-box;}
+  #dpVista canvas{display:block;width:100%;max-width:340px;height:auto;margin:var(--e3) auto 0;border-radius:var(--radio);background:var(--sup);}
   #dbSi{background:var(--negativo);color:#fff;font-weight:600;}
   #dbMsg{min-height:1.5em;}
 
@@ -233,8 +236,9 @@
 
       <h2 class="gtit">Solicitudes de tienda <span id="solResumen"></span></h2>
       <div class="grupo" id="solLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
-      <p class="nota" style="margin:var(--e2) var(--e3) 0">Aprobada, quien la pidió la crea desde su panel y queda de dueño.
-        Rechazada, ve tu nota y puede mandarla de nuevo.</p>
+      <p class="nota" style="margin:var(--e2) var(--e3) 0">Aprobada, quien la pidió la crea desde su cuenta y queda de dueño. «Avisarle» te deja el correo y el
+        texto listos para mandarle. Rechazada, ve tu nota y puede mandarla de nuevo.</p>
+      <div class="barraAcc"><button class="btn" id="postAbrir">Crear el post de Instagram de una tienda nueva</button></div>
 
       <h2 class="gtit">Todas las tiendas <span id="resumen"></span></h2>
       <div class="grupo" id="lista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
@@ -248,6 +252,37 @@
         en Firebase y se borra desde la consola: al eliminar te queda su UID para buscarlo ahí.</p>
     </div>
   </main>
+
+  <dialog class="hoja" id="dlgCorreo" aria-labelledby="dcTit">
+    <h2 id="dcTit">Correo</h2>
+    <label>Para <input id="dcPara" readonly></label>
+    <label>Asunto <input id="dcAsunto" maxlength="150"></label>
+    <label>Mensaje <textarea id="dcTexto" spellcheck="true"></textarea></label>
+    <p class="nota" id="dcNota"></p>
+    <div class="pie">
+      <button class="btn" type="button" id="dcCopiaPara">Copiar el correo</button>
+      <button class="btn" type="button" id="dcCopiaTexto">Copiar el mensaje</button>
+      <a class="btn" id="dcMailto" href="#">Abrir en mi programa de correo</a>
+      <a class="btn primario" id="dcGmail" href="#" target="_blank" rel="noopener">Abrir en Gmail</a>
+      <button class="btn" type="button" id="dcCierra">Cerrar</button>
+    </div>
+  </dialog>
+  <dialog class="hoja" id="dlgPost" aria-labelledby="dpTit">
+    <h2 id="dpTit">Post de «nueva tienda»</h2>
+    <div id="dpVista" aria-live="polite"></div>
+    <label>Nombre de la tienda <input id="dpNombre" maxlength="60" autocomplete="off"></label>
+    <label>Comuna o ciudad <input id="dpComuna" maxlength="60" autocomplete="off"></label>
+    <label>Instagram de la tienda (opcional) <input id="dpIg" maxlength="60" autocomplete="off" autocapitalize="off" placeholder="@tienda"></label>
+    <label>Logo (opcional) <input id="dpLogo" type="file" accept="image/*"></label>
+    <label>Fondo <select id="dpTema"><option value="claro">Claro</option><option value="oscuro">Oscuro</option></select></label>
+    <label>Texto para acompañar la imagen <textarea id="dpTexto" spellcheck="true" style="min-height:170px"></textarea></label>
+    <p class="nota" id="dpMsg" role="status"></p>
+    <div class="pie">
+      <button class="btn" type="button" id="dpCopia">Copiar el texto</button>
+      <button class="btn primario" type="button" id="dpBaja">Descargar la imagen</button>
+      <button class="btn" type="button" id="dpCierra">Cerrar</button>
+    </div>
+  </dialog>
 
   <!-- ▌BLOQUE 2 · Diálogo de borrar tienda — Confirmación antes de borrar una tienda entera. -->
   <dialog class="hoja" id="dlgBorrar" aria-labelledby="dbTit">
@@ -271,7 +306,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=15";
 import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=6";
 import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=4";
-import { mensajeAceptada, canalDe, enlaceAviso } from "./avisotienda.js?v=1";
+import { mensajeAceptada, asuntoAceptada, canalDe, enlaceAviso, enlaceMailto, enlaceGmail, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=2";
 estoyEnLinea(db, "herramientas");
 
 const $ = id => document.getElementById(id);
@@ -573,14 +608,16 @@ function pintarBuzon(){
   $("cfBuzonDet").textContent = filas.length + (filas.length === 1 ? " mensaje en total" : " mensajes en total");
   $("bzResumen").textContent = nuevos ? nuevos + " sin leer" : "";
   $("bzLista").innerHTML = filas.map(([id, m]) => {
-    const correo = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m.contacto || "");
+    /* A quién responderle: el correo que escribió en «contacto» y, si no puso uno, el de su cuenta (que las reglas aseguran que es suyo). */
+    const esCorreo = t => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t || ""), dir = esCorreo(m.contacto) ? m.contacto.trim() : esCorreo(m.correo) ? m.correo : "";
     return '<div class="msg' + (m.leido ? "" : " nuevo") + '"><div class="cab"><span class="tipo ' + esc(m.tipo) + '">' + esc(TIPOS[m.tipo] || m.tipo) +
       "</span><b>" + esc(m.nombre || "Sin nombre") + "</b><span>" + esc(fechaHora(m.creado)) + "</span>" +
       (m.pagina ? '<span>desde <a href="' + esc(m.pagina) + '" target="_blank" rel="noopener">' + esc(m.pagina.split("?")[0]) + "</a></span>" : "") + "</div>" +
       "<p>" + esc(m.texto) + "</p>" +
       '<div class="acc">' +
-      (correo ? '<a class="btn chico primario" href="mailto:' + esc(m.contacto) + "?subject=" + encodeURIComponent("Re: tu mensaje a ByePass") + '">Responder</a>'
-              : m.contacto ? '<span class="nota" style="margin:0">Contacto: ' + esc(m.contacto) + "</span>" : "") +
+      (dir ? '<span class="nota" style="margin:0">Responder a <b>' + esc(dir) + "</b></span>" +
+             '<button class="btn chico primario" data-responder="' + esc(id) + '" title="Deja listo el mensaje que confirma que lo leímos y lo recibimos">Responder</button>'
+           : m.contacto ? '<span class="nota" style="margin:0">Contacto: ' + esc(m.contacto) + "</span>" : "") +
       '<button class="btn chico" data-leido="' + esc(id) + '" data-v="' + (m.leido ? 0 : 1) + '">' + (m.leido ? "Marcar sin leer" : "Marcar leído") + "</button>" +
       '<button class="btn chico peligro" data-bzborrar="' + esc(id) + '">Borrar</button></div></div>';
   }).join("") || '<div class="nota" style="padding:var(--e4)">No hay mensajes.</div>';
@@ -589,7 +626,66 @@ function pintarBuzon(){
   $("bzLista").querySelectorAll("[data-bzborrar]").forEach(b => b.onclick = () => {
     if (confirm("¿Borrar este mensaje?")) remove(ref(db, "buzon/" + b.dataset.bzborrar)).catch(() => {});
   });
+  $("bzLista").querySelectorAll("[data-responder]").forEach(b => b.onclick = () => {
+    const m = BZ[b.dataset.responder]; if (!m) return;
+    const esCorreo = t => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t || "");
+    abrirCorreo({ titulo: "Responder a " + (m.nombre || "quien escribió"), para: esCorreo(m.contacto) ? m.contacto.trim() : m.correo,
+      asunto: asuntoRespuesta(), texto: mensajeRespuesta(m), nota: "Cuando lo mandes, marca el mensaje como leído. " });
+  });
 }
+
+const copiarTxt = async (txt, b) => {
+  const antes = b.textContent;
+  try { await navigator.clipboard.writeText(txt); b.textContent = "Copiado ✓"; } catch(e){ b.textContent = "No se pudo copiar"; }
+  setTimeout(() => b.textContent = antes, 1800);
+};
+function enlacesCorreo(){
+  const p = $("dcPara").value, a = $("dcAsunto").value, t = $("dcTexto").value;
+  $("dcMailto").href = enlaceMailto(p, a, t); $("dcGmail").href = enlaceGmail(p, a, t);
+}
+function abrirCorreo({ titulo, para, asunto, texto, nota }){
+  $("dcTit").textContent = titulo; $("dcPara").value = para; $("dcAsunto").value = asunto; $("dcTexto").value = texto;
+  $("dcNota").textContent = (nota || "") + "Se envía desde el correo que abras: en Gmail, elige contacto@byepass.cl como remitente.";
+  enlacesCorreo(); $("dlgCorreo").showModal();
+}
+["dcAsunto", "dcTexto"].forEach(id => $(id).oninput = enlacesCorreo);
+$("dcCopiaPara").onclick = e => copiarTxt($("dcPara").value, e.currentTarget);
+$("dcCopiaTexto").onclick = e => copiarTxt($("dcTexto").value, e.currentTarget);
+$("dcCierra").onclick = () => $("dlgCorreo").close();
+
+/* El post: la imagen se vuelve a dibujar con cada cambio (la última manda); el texto se rehace solo mientras no lo hayas editado a mano. */
+let POST_N = 0, POST_LOGO = null, POST_EDITADO = false, POST_MOD = null;
+const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=1"));
+const datosPost = () => ({ nombre: $("dpNombre").value, comuna: $("dpComuna").value, instagram: $("dpIg").value, logo: POST_LOGO, tema: $("dpTema").value });
+async function pintarPost(){
+  const n = ++POST_N, m = await postMod(), d = datosPost();
+  if (!POST_EDITADO) $("dpTexto").value = m.textoPost(d);
+  const cv = await m.dibujarPost(d);
+  if (n === POST_N) $("dpVista").replaceChildren(cv);
+}
+function abrirPost({ nombre = "", comuna = "", instagram = "" } = {}){
+  $("dpNombre").value = nombre; $("dpComuna").value = comuna; $("dpIg").value = instagram ? "@" + instagram : "";
+  $("dpLogo").value = ""; POST_LOGO = null; POST_EDITADO = false; $("dpMsg").textContent = "";
+  $("dlgPost").showModal(); pintarPost();
+}
+["dpNombre", "dpComuna", "dpIg", "dpTema"].forEach(id => $(id).oninput = pintarPost);
+$("dpTexto").oninput = () => { POST_EDITADO = true; };
+$("dpLogo").onchange = () => {
+  const f = $("dpLogo").files[0]; POST_LOGO = null;
+  if (!f) return pintarPost();
+  const url = URL.createObjectURL(f), i = new Image();
+  i.onload = () => { POST_LOGO = i; pintarPost(); URL.revokeObjectURL(url); };
+  i.onerror = () => { $("dpMsg").textContent = "No se pudo leer ese archivo como imagen."; URL.revokeObjectURL(url); };
+  i.src = url;
+};
+$("dpCopia").onclick = e => copiarTxt($("dpTexto").value, e.currentTarget);
+$("dpBaja").onclick = async () => {
+  if (!$("dpNombre").value.trim()) return ($("dpMsg").textContent = "Escribe el nombre de la tienda.");
+  $("dpMsg").textContent = "";
+  try { await (await postMod()).entregarPost(datosPost()); } catch(e){ $("dpMsg").textContent = "No se pudo generar la imagen."; }
+};
+$("dpCierra").onclick = () => $("dlgPost").close();
+$("postAbrir").onclick = () => abrirPost();
 
 /* Las cuentas: se buscan por nombre y se eliminan. Borra lo suyo del sitio
    en una sola escritura (perfil, lo público, su alta, lo que organiza, su
@@ -672,12 +768,14 @@ function pintarSolicitudes(){
       x.creada && "el " + new Date(x.creada).toLocaleDateString("es-CL")].filter(Boolean).join(" · ");
     return '<div class="tfila"><span class="logoT" aria-hidden="true">' + esc(iniciales(x.nombre)) + "</span>" +
       "<div><b>" + esc(x.nombre) + "</b><small>" + esc(datos) + "</small>" +
+      (x.correo ? "<small>Correo de su cuenta: " + esc(x.correo) + "</small>" : "") +
       "<small>Contacto: " + esc(x.contacto) + "</small>" +
       (x.mensaje ? "<small>«" + esc(x.mensaje) + "»</small>" : "") +
       (x.nota ? "<small>Tu nota: " + esc(x.nota) + "</small>" : "") + "</div>" +
       '<span class="estado e' + e + '">' + ["Por revisar", "Aprobada", "Rechazada"][e] + "</span>" +
       '<div class="acc">' +
-      (e === 1 ? '<button class="btn chico primario" data-avisar="' + esc(uid) + '" title="Prepara el mensaje de «tu tienda fue aceptada» con las instrucciones para verificarla">Avisarle</button>' : "") +
+      (e === 1 ? '<button class="btn chico primario" data-avisar="' + esc(uid) + '" title="Deja listo el mensaje de «tu tienda fue aceptada», con el correo al que mandárselo">Avisarle</button>' +
+        '<button class="btn chico" data-post="' + esc(uid) + '" title="La imagen y el texto de Instagram para anunciar que la tienda se sumó">Post de Instagram</button>' : "") +
       (e !== 1 ? '<button class="btn chico primario" data-aprobar="' + esc(uid) + '">Aprobar</button>' : "") +
       (e !== 2 ? '<button class="btn chico" data-rechazar="' + esc(uid) + '">Rechazar</button>' : "") + "</div></div>";
   }).join("") || '<div class="nota" style="padding:var(--e4)">No hay solicitudes.</div>';
@@ -686,18 +784,27 @@ function pintarSolicitudes(){
     try { await update(ref(db, "solicitudes/" + b.dataset.aprobar), { aprobada: true, rechazada: null, nota: null }); }
     catch(e){ b.disabled = false; $("solResumen").textContent = "No se pudo guardar. Revisa la conexión."; }
   });
-  /* «Avisarle»: el mensaje de tienda aceptada, por donde dejó su contacto. No envía nada solo: se abre el correo o WhatsApp con el texto puesto,
-     o se copia el texto y se abre su Instagram (Instagram no deja escribir el mensaje por enlace). */
+  /* «Avisarle»: el mensaje de tienda aceptada. Va al correo de su cuenta (el que las reglas aseguran que es suyo) o, en las solicitudes
+     viejas, por donde dejó su contacto. No envía nada solo: con correo se abre el diálogo con el texto listo; con WhatsApp se abre la
+     conversación con el texto; con Instagram se copia el texto y se abre su perfil (Instagram no deja escribir el mensaje por enlace). */
   $("solLista").querySelectorAll("[data-avisar]").forEach(b => b.onclick = async () => {
     const x = SOL[b.dataset.avisar]; if (!x) return;
-    const canal = canalDe(x.contacto), url = enlaceAviso(canal, x, location.origin, INSTAGRAM_BYEPASS), texto = mensajeAceptada(x, location.origin, INSTAGRAM_BYEPASS);
+    const canal = x.correo ? { tipo: "correo", destino: x.correo } : canalDe(x.contacto), texto = mensajeAceptada(x, location.origin, INSTAGRAM_BYEPASS);
+    if (canal.tipo === "correo")
+      return abrirCorreo({ titulo: "Avisarle a " + x.nombre, para: canal.destino, asunto: asuntoAceptada(x), texto,
+        nota: (x.correo ? "Es el correo de la cuenta con la que pidió la tienda. " : "") + (x.contacto && x.contacto !== canal.destino ? "También dejó este contacto: " + x.contacto + ". " : "") });
+    const url = enlaceAviso(canal, x, location.origin, INSTAGRAM_BYEPASS);
     let copiado = false; try { await navigator.clipboard.writeText(texto); copiado = true; } catch(e){}
-    $("solResumen").textContent = canal.tipo === "correo" ? "Se abre tu correo con el aviso para " + canal.destino + "."
-      : canal.tipo === "whatsapp" ? "Se abre WhatsApp con el aviso."
+    $("solResumen").textContent = canal.tipo === "whatsapp" ? "Se abre WhatsApp con el aviso."
       : canal.tipo === "instagram" ? (copiado ? "Mensaje copiado: pégalo en el chat de @" + canal.destino + "." : "Copia el mensaje de abajo y pégalo en el chat de @" + canal.destino + ".")
       : (copiado ? "Su contacto no es un correo, WhatsApp ni Instagram: el mensaje quedó copiado, mándaselo por donde puedas." : "No se pudo copiar el mensaje. Escríbelo a mano.");
     if (url) window.open(url, "_blank", "noopener");
     if (!copiado || canal.tipo === "otro") prompt("Mensaje para " + x.nombre + ":", texto);
+  });
+  $("solLista").querySelectorAll("[data-post]").forEach(b => b.onclick = () => {
+    const x = SOL[b.dataset.post]; if (!x) return;
+    const c = canalDe(x.contacto);
+    abrirPost({ nombre: x.nombre, comuna: x.comuna, instagram: c.tipo === "instagram" ? c.destino : "" });
   });
   $("solLista").querySelectorAll("[data-rechazar]").forEach(b => b.onclick = async () => {
     const nota = prompt("¿Por qué? Lo ve quien la pidió (opcional):", "");

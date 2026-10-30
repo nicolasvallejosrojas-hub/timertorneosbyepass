@@ -157,7 +157,7 @@
           <input id="correo" type="email" autocomplete="email" maxlength="120" required></label>
         <label class="campo"><span>ID de jugador de Play! Pokémon</span>
           <input id="playerId" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="6 a 8 números" required></label>
-        <label class="campo"><span>Nickname</span>
+        <label class="campo" id="campoNick"><span>Nickname</span>
           <input id="nick" autocomplete="nickname" maxlength="40" required></label>
         <div class="dos">
           <label class="campo"><span>Nombre</span>
@@ -165,7 +165,7 @@
           <label class="campo"><span>Apellido</span>
             <input id="apellido" autocomplete="family-name" maxlength="60" required></label>
         </div>
-        <label class="campo"><span>Fecha de nacimiento</span>
+        <label class="campo" id="campoNac"><span>Fecha de nacimiento</span>
           <input id="nacimiento" type="date" autocomplete="bday" required>
           <span class="pista" id="divPista">Día, mes y año. Define tu división (Junior, Senior o Masters).</span></label>
         <fieldset class="categoria" id="categoria">
@@ -253,6 +253,11 @@ if (typeof EMULADOR !== "undefined" && EMULADOR){
 const primera = a => new Promise(r => { const off = onAuthStateChanged(a, u => { off(); r(u); }); });
 
 let EV = null, TIENDA = "", YO = null, MIA = null;   // YO: { db, uid, cuenta }
+/* Una tienda puede pedir solo el ID de jugador, el nombre completo y el correo (inscripcion.modo === "id"): sin nick ni lista de mazo.
+   La fecha de nacimiento y la categoría se piden solo si hay cupos por categoría (para saber en cuál va). */
+const soloId = () => !!(EV && EV.inscripcion && EV.inscripcion.modo === "id");
+const hayCupos = () => !!(EV && EV.inscripcion && EV.inscripcion.cupos);
+const pideNacimiento = () => !soloId() || hayCupos();
 const abierta = () => EV && EV.inscripcion && EV.inscripcion.abierta === true && (EV.inicioMs || 0) > Date.now();
 const ruta = uid => "inscripciones/" + T + "/" + E + "/" + uid;
 
@@ -507,19 +512,25 @@ function rellenar(d, soloVacios){
 function leer(){
   const d = {};
   CAMPOS.forEach(k => d[k] = $(k).value.trim().replace(/[ \t]+/g, " "));
-  d.lista = lista().replace(/[ \t]+/g, " ");
-  if (d.lista.length > 6000) return { error: "La lista es demasiado larga: revisa que no se haya pegado dos veces." };
+  if (!soloId()){
+    d.lista = lista().replace(/[ \t]+/g, " ");
+    if (d.lista.length > 6000) return { error: "La lista es demasiado larga: revisa que no se haya pegado dos veces." };
+  } else { delete d.nick; if (!pideNacimiento()) delete d.nacimiento; }
   d.playerId = d.playerId.replace(/\D/g, "");
   if (!CORREO_OK(d.correo)) return { error: "Revisa el correo: no tiene un formato válido." };
   if (!ID_OK(d.playerId)) return { error: "El ID de jugador son de 6 a 8 números. Está en tu cuenta de Play! Pokémon." };
-  if (!d.nick) return { error: "Escribe tu nickname." };
+  if (!soloId() && !d.nick) return { error: "Escribe tu nickname." };
   if (!d.nombre || !d.apellido) return { error: "Escribe tu nombre y tu apellido." };
-  const n = errorNacimiento(d.nacimiento); if (n) return { error: n };
-  d.division = (document.querySelector("#cats input:checked") || {}).value || "";
-  if (!d.division) return { error: "Marca la categoría en la que te inscribes (Junior, Senior o Masters)." };
-  if (d.division !== catDe(d.nacimiento)) return { error: "Por tu fecha de nacimiento juegas en " + NOM_DIV[catDe(d.nacimiento)] + ". Marca esa categoría." };
-  const r = leerLista(d.lista);
-  if (r.errores.length) return { error: "La lista de mazo tiene problemas: " + r.errores[0] };
+  if (pideNacimiento()){
+    const n = errorNacimiento(d.nacimiento); if (n) return { error: n };
+    d.division = (document.querySelector("#cats input:checked") || {}).value || "";
+    if (!d.division) return { error: "Marca la categoría en la que te inscribes (Junior, Senior o Masters)." };
+    if (d.division !== catDe(d.nacimiento)) return { error: "Por tu fecha de nacimiento juegas en " + NOM_DIV[catDe(d.nacimiento)] + ". Marca esa categoría." };
+  }
+  if (!soloId()){
+    const r = leerLista(d.lista);
+    if (r.errores.length) return { error: "La lista de mazo tiene problemas: " + r.errores[0] };
+  }
   if (!$("acepta").checked) return { error: "Para inscribirte tienes que aceptar el Acuerdo de Cesión de Derechos." };
   return { d };
 }
@@ -528,12 +539,13 @@ const error = t => { $("err").textContent = t; $("err").classList.toggle("oculto
 function pintarMia(){
   const hay = !!MIA;
   $("enviar").textContent = hay ? "Guardar cambios" : "Inscribirme";
-  $("imprimir").classList.toggle("oculto", !hay);
+  $("imprimir").classList.toggle("oculto", !hay || soloId());
   $("anular").classList.toggle("oculto", !hay || !abierta());
   $("yaInscrito").classList.toggle("oculto", !hay);
   pintarCategorias();
-  if (hay) $("yaInscrito").innerHTML = "<b>Estás inscrito</b> · División " + esc(division(MIA.nacimiento)) +
-    ". " + (abierta() ? "Puedes corregir tus datos y tu lista hasta que empiece el torneo." : "Las inscripciones ya cerraron: tu lista quedó así.");
+  if (hay) $("yaInscrito").innerHTML = "<b>Estás inscrito</b>" + (MIA.nacimiento ? " · División " + esc(division(MIA.nacimiento)) : "") + ". " +
+    (soloId() ? "La tienda te avisa a " + esc(MIA.correo) + " si hay novedades del torneo. " + (abierta() ? "Puedes corregir tus datos hasta que empiece." : "Las inscripciones ya cerraron.")
+      : abierta() ? "Puedes corregir tus datos y tu lista hasta que empiece el torneo." : "Las inscripciones ya cerraron: tu lista quedó así.");
 }
 
 $("form").onsubmit = async e => {
@@ -599,14 +611,16 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
   $("estado").classList.toggle("cerrado", !abierta());
   $("meta").innerHTML = esc(fechaLegible(EV.fecha) + (EV.hora ? ", " + EV.hora + " h" : "")) + " · " +
     '<a href="tienda.html?sala=' + encodeURIComponent(T) + '">' + esc(TIENDA) + "</a>" +
-    (EV.lugar ? "<br>" + esc(EV.lugar) : "") + "<br>Formato " + (EV.inscripcion.formato === "expandido" ? "Expandido" : "Estándar") +
+    (EV.lugar ? "<br>" + esc(EV.lugar) : "") + (soloId() ? "" : "<br>Formato " + (EV.inscripcion.formato === "expandido" ? "Expandido" : "Estándar")) +
     (EV.detalle ? "<br>" + esc(EV.detalle) : "");
   $("google").href = urlGoogle(EV);
   pintarAcuerdo();
   const estandar = EV.inscripcion.formato !== "expandido";
+  $("campoNick").classList.toggle("oculto", soloId()); $("cajaLista").classList.toggle("oculto", soloId());
+  $("campoNac").classList.toggle("oculto", !pideNacimiento()); $("categoria").classList.toggle("oculto", !pideNacimiento());
   if (!estandar) $("pistaLista").textContent = "Formato Expandido: el buscador solo trae las cartas de Estándar. Para las demás, " +
     "escribe la línea completa (por ejemplo «2 Nombre de la carta ABC 12») o pega tu lista exportada.";
-  cargarEstandar().then(b => { BASE = b; BASE_E = estandar ? b : null; revisarLista(); });
+  if (!soloId()) cargarEstandar().then(b => { BASE = b; BASE_E = estandar ? b : null; revisarLista(); });
   pintarCategorias(); await cargarPlazas();
 
   /* ¿Quién se inscribe? Primero una cuenta de ByePass; si no, la sesión

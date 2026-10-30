@@ -4,13 +4,16 @@
 /* ============================================================
    avisotienda.js — el mensaje para una tienda cuya solicitud se aprobó
    ------------------------------------------------------------
-   Versión actual: v=1   (subir el ?v= al tocar este archivo)
+   Versión actual: v=2   (subir el ?v= al tocar este archivo)
 
    Al aprobar una solicitud, la herramienta de administración ofrece «Avisarle»: arma este mensaje (que ya dice que la
    tienda fue aceptada, dónde entrar y que escriban al Instagram de ByePass para verificarla y salir en el buscador de
    tiendas) y lo manda por donde la tienda dejó su contacto: correo (se abre el correo con el texto puesto), WhatsApp
    (se abre la conversación con el texto) o Instagram (se copia el texto y se abre su perfil, porque Instagram no deja
    escribir el mensaje por enlace). No envía nada por su cuenta: el administrador revisa y manda.
+   Si la solicitud trae el correo de la cuenta (solicitudes/<uid>/correo, que las reglas aseguran que es el de quien la pidió),
+   el aviso va a ese correo. También arma la respuesta al buzón («leímos tu mensaje y lo recibimos»), con los enlaces para
+   abrirla en Gmail o en el programa de correo.
    ============================================================ */
 
 /* ▌BLOQUE 1 · Avisar a una tienda aceptada ══════════════════════════════════════
@@ -22,7 +25,7 @@ const norm = t => String(t || "").trim();
 export function mensajeAceptada(sol, origen, instagram){
   const s = sol || {}, quien = norm(s.quien) || "equipo de " + norm(s.nombre), tienda = norm(s.nombre) || "tu tienda";
   return "Hola " + quien + ". Tu tienda «" + tienda + "» fue aceptada en ByePass.\n\n" +
-    "Ya puedes entrar a tu panel: " + origen + "/admin.html?sala=" + encodeURIComponent(norm(s.id)) + "\n\n" +
+    "Ya puedes crearla: entra con tu cuenta" + (norm(s.correo) ? " (" + norm(s.correo) + ")" : "") + " a " + origen + "/cuenta.html#tienda y toca «Crear " + tienda + "». Quedas de dueño y se abre tu panel de organizador.\n\n" +
     "Para que aparezca en el buscador de tiendas necesitamos verificarla: escríbenos un mensaje por Instagram a @" + instagram +
     " (https://instagram.com/" + instagram + ") contándonos cuál es tu tienda.\n\n" +
     "Cualquier duda, responde este mensaje. ¡Gracias por sumarte!";
@@ -44,11 +47,27 @@ export function canalDe(contacto){
   return { tipo: "otro", destino: "" };
 }
 
+/* Los enlaces que abren un correo con asunto y texto puestos: el programa de correo del equipo (mailto) o Gmail en el navegador
+   (sirve cuando el equipo no tiene programa de correo configurado). */
+export const enlaceMailto = (para, asunto, texto) => "mailto:" + para + "?subject=" + encodeURIComponent(asunto) + "&body=" + encodeURIComponent(texto);
+export const enlaceGmail = (para, asunto, texto) => "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(para) + "&su=" + encodeURIComponent(asunto) + "&body=" + encodeURIComponent(texto);
+
 /* La dirección que se abre para ese canal (null si solo se puede copiar el texto). */
 export function enlaceAviso(canal, sol, origen, instagram){
   const texto = mensajeAceptada(sol, origen, instagram);
-  if (canal.tipo === "correo") return "mailto:" + canal.destino + "?subject=" + encodeURIComponent(asuntoAceptada(sol)) + "&body=" + encodeURIComponent(texto);
+  if (canal.tipo === "correo") return enlaceMailto(canal.destino, asuntoAceptada(sol), texto);
   if (canal.tipo === "whatsapp") return "https://wa.me/" + canal.destino + "?text=" + encodeURIComponent(texto);
   if (canal.tipo === "instagram") return "https://instagram.com/" + encodeURIComponent(canal.destino);
   return null;
 }
+
+/* La respuesta a un mensaje del buzón: confirma que se leyó y se recibió, deja un lugar para escribir y cita el mensaje original. */
+const QUE = { sugerencia: "sugerencia", error: "reporte del problema", reporte: "reporte", otro: "mensaje" };
+export function mensajeRespuesta(msg){
+  const m = msg || {}, quien = norm(m.nombre), que = QUE[m.tipo] || "mensaje";
+  return "Hola" + (quien ? " " + quien : "") + ". Leímos tu " + que + " y queremos confirmarte que quedó recibido: lo tomamos en cuenta. ¡Gracias por escribirnos!\n\n" +
+    "[Escribe aquí tu respuesta]\n\n" +
+    "Saludos,\nEquipo ByePass\n\n" +
+    "— Tu mensaje —\n" + (norm(m.texto).length > 400 ? norm(m.texto).slice(0, 400) + "…" : norm(m.texto)).split("\n").map(l => "> " + l).join("\n");   // 400 letras: un enlace de correo muy largo se corta en algunos programas
+}
+export const asuntoRespuesta = () => "Re: tu mensaje a ByePass";
