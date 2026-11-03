@@ -4,16 +4,15 @@
 /* ============================================================
    avisotienda.js — el mensaje para una tienda cuya solicitud se aprobó
    ------------------------------------------------------------
-   Versión actual: v=2   (subir el ?v= al tocar este archivo)
+   Versión actual: v=3   (subir el ?v= al tocar este archivo)
 
    Al aprobar una solicitud, la herramienta de administración ofrece «Avisarle»: arma este mensaje (que ya dice que la
    tienda fue aceptada, dónde entrar y que escriban al Instagram de ByePass para verificarla y salir en el buscador de
    tiendas) y lo manda por donde la tienda dejó su contacto: correo (se abre el correo con el texto puesto), WhatsApp
    (se abre la conversación con el texto) o Instagram (se copia el texto y se abre su perfil, porque Instagram no deja
-   escribir el mensaje por enlace). No envía nada por su cuenta: el administrador revisa y manda.
+   escribir el mensaje por enlace). El correo lo manda la función enviarCorreo (functions/correo.js) cuando el administrador lo envía.
    Si la solicitud trae el correo de la cuenta (solicitudes/<uid>/correo, que las reglas aseguran que es el de quien la pidió),
-   el aviso va a ese correo. También arma la respuesta al buzón («leímos tu mensaje y lo recibimos»), con los enlaces para
-   abrirla en Gmail o en el programa de correo.
+   el aviso va a ese correo. También arma la respuesta al buzón («leímos tu mensaje y lo recibimos»).
    ============================================================ */
 
 /* ▌BLOQUE 1 · Avisar a una tienda aceptada ══════════════════════════════════════
@@ -47,10 +46,8 @@ export function canalDe(contacto){
   return { tipo: "otro", destino: "" };
 }
 
-/* Los enlaces que abren un correo con asunto y texto puestos: el programa de correo del equipo (mailto) o Gmail en el navegador
-   (sirve cuando el equipo no tiene programa de correo configurado). */
+/* El enlace que abre el programa de correo con asunto y texto puestos (para una solicitud vieja cuyo contacto es un correo). */
 export const enlaceMailto = (para, asunto, texto) => "mailto:" + para + "?subject=" + encodeURIComponent(asunto) + "&body=" + encodeURIComponent(texto);
-export const enlaceGmail = (para, asunto, texto) => "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(para) + "&su=" + encodeURIComponent(asunto) + "&body=" + encodeURIComponent(texto);
 
 /* La dirección que se abre para ese canal (null si solo se puede copiar el texto). */
 export function enlaceAviso(canal, sol, origen, instagram){
