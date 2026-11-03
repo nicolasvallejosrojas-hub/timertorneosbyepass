@@ -9,7 +9,7 @@
 /* ============================================================
    listamazo.js — la lista de mazo de las inscripciones
    ------------------------------------------------------------
-   Versión actual: v=6   (subir el ?v= al tocar este archivo)
+   Versión actual: v=7   (subir el ?v= al tocar este archivo)
 
    La usan la página de inscripción (el jugador la escribe y ve si está bien)
    y el panel (la tienda imprime las de todos). Vive acá para que las dos
@@ -83,7 +83,16 @@ export function indexar(d){
     porCodigo.set(s + " " + sinCeros(n), { reg, x });
     const k = normNom(nom); nombres.set(k, (nombres.get(k) || "") + x);
   });
-  return { porCodigo, nombres, cartas: d.cartas, actualizado: d.actualizado };
+  return { porCodigo, nombres, cartas: d.cartas, actualizado: d.actualizado, imagenes: d.imagenes || {} };
+}
+/* La foto de una carta: no se guarda en ningún lado nuestro, el navegador la pide a TCGdex. «imagenes» (lo arma
+   cartas-estandar.py --imagenes) dice, por expansión, su ruta allá y con cuántas cifras van los números («sv/sv01|3»:
+   SVI 5 → …/sv/sv01/005). Sin ruta, con un número raro (TG01) o sin base: "" (la fila se ve sin foto). */
+export function imagenCarta(base, set, num, tam = "low"){
+  const r = base && base.imagenes && base.imagenes[set], n = sinCeros(num);
+  if (!r || !/^[0-9]{1,4}$/.test(n)) return "";
+  const [ruta, cifras] = r.split("|");
+  return "https://assets.tcgdex.net/en/" + ruta + "/" + (cifras ? n.padStart(+cifras, "0") : n) + "/" + tam + ".webp";
 }
 let PEDIDA = null;
 export const cargarEstandar = () => PEDIDA ??= fetch("cartas-estandar.json")

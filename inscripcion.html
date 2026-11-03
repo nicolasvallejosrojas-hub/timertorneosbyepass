@@ -5,11 +5,10 @@
       3. Módulos
       4. Arranque y variables
       5. Acuerdo de cesión de derechos
-      6. Registrador de la lista
-      7. Buscador de cartas
-      8. Categoría y cupos
-      9. Formulario
-     10. Arranque
+      6. Lista de mazo y mis mazos
+      7. Categoría y cupos
+      8. Formulario
+      9. Arranque
 -->
 <html lang="es">
 <head>
@@ -19,8 +18,9 @@
 <meta name="description" content="Inscripción a un torneo con lista de mazo.">
 <title>Inscripción — ByePass</title>
 <link rel="stylesheet" href="estilo.css?v=12">
-<!-- ▌BLOQUE 1 · Estilos — Formulario, registrador de mazo (dos columnas en pantalla ancha), categorías y
-     acuerdo. -->
+<link rel="stylesheet" href="armador.css?v=1">
+<!-- ▌BLOQUE 1 · Estilos — Formulario, categorías y acuerdo (el armador de la lista trae los suyos en
+     armador.css). -->
 <style>
   /* Inscripción a un torneo de una tienda (League Challenge, League Cup).
      Llega por un enlace que comparte la tienda. La cuenta es opcional: sin
@@ -42,56 +42,8 @@
   .campo > span:not(.pista){font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
   .campo input,.campo textarea{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;font-family:inherit;}
   .campo textarea{min-height:120px;font-size:var(--t3);line-height:1.5;resize:vertical;font-variant-numeric:tabular-nums;}
-  /* el registrador de la lista */
-  .busca{position:relative;}
-  .busca input{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;}
-  #sugerencias{position:absolute;left:0;right:0;top:100%;z-index:5;margin:4px 0 0;padding:4px;list-style:none;
-    background:var(--sup-alta);border-radius:var(--radio);box-shadow:0 12px 30px -10px rgba(0,0,0,.45);max-height:340px;overflow:auto;}
-  #sugerencias li{padding:10px 12px;border-radius:var(--radio);cursor:pointer;display:flex;justify-content:space-between;gap:var(--e2);
-    align-items:baseline;min-height:44px;box-sizing:border-box;}
-  #sugerencias li small{color:var(--apagado);white-space:nowrap;font-variant-numeric:tabular-nums;}
-  #sugerencias li[aria-selected]{background:var(--accion);color:var(--sobre-accion);}
-  #sugerencias li[aria-selected] small{color:inherit;}
-  #sugerencias li.nada{cursor:default;color:var(--apagado);font-size:var(--t2);}
-  #importar summary{cursor:pointer;color:var(--accion-texto);font-size:var(--t3);min-height:44px;display:flex;align-items:center;}
-  #importar textarea{width:100%;box-sizing:border-box;padding:12px;font-family:inherit;font-size:var(--t3);margin:var(--e1) 0;}
-  .seccion h3{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:var(--e2) 0 var(--e1);
-    display:flex;justify-content:space-between;}
-  .seccion h3 b{color:var(--texto);letter-spacing:0;font-variant-numeric:tabular-nums;}
-  .cartas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
-  .carta{display:flex;align-items:center;gap:var(--e2);background:var(--campo);border-radius:var(--radio);padding:4px 4px 4px 6px;}
-  .carta.mal{box-shadow:inset 3px 0 0 var(--negativo);}
-  .carta .cant{display:flex;align-items:center;flex:none;}
-  .carta .cant b{min-width:1.6em;text-align:center;font-variant-numeric:tabular-nums;}
-  .carta button{background:none;border:none;color:var(--texto);font:inherit;font-size:var(--t4);width:40px;height:40px;cursor:pointer;border-radius:var(--radio);}
-  .carta button:hover{background:var(--sup-alta);}
-  .carta .nom{flex:1;min-width:0;line-height:1.3;}
-  .carta .nom small{display:block;color:var(--apagado);font-size:var(--t2);}
-  .carta .quitar{color:var(--apagado);}
-  .aviso-carta{color:var(--negativo);}
-  .cartas .vacia{color:var(--apagado);font-size:var(--t2);padding:6px 2px;}
-  /* inscripciones cerradas: la lista se ve, pero sin nada para editarla */
-  .soloLectura .busca,.soloLectura #importar,.soloLectura .carta button{display:none;}
   .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
   .pista a,.meta a{color:var(--accion-texto);}
-  /* el contador: «52 / 60», una celda por carta y lo que va en cada sección.
-     Queda pegado arriba mientras se recorre la lista (en el celular, sobre todo). */
-  .conteo{position:sticky;top:0;z-index:2;background:var(--sup);padding:var(--e2) 0;display:flex;align-items:flex-end;
-    gap:var(--e3) var(--e4);flex-wrap:wrap;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--divider);}
-  .conteo .tot{font-size:var(--t4);color:var(--rotulo);font-weight:600;white-space:nowrap;}
-  .conteo .tot b{font-size:var(--d2);line-height:1;color:var(--texto);letter-spacing:-.03em;}
-  .conteo .tot.ok b{color:var(--ok);} .conteo .tot.mal b{color:var(--negativo);}
-  .conteo .grupos{display:flex;gap:var(--e3);font-size:var(--t2);color:var(--apagado);}
-  .conteo .grupos b{color:var(--texto);}
-  .barra{flex:1 1 100%;display:grid;grid-template-columns:repeat(60,1fr);gap:2px;order:3;}
-  .barra i{height:10px;border-radius:2px;background:var(--campo);}
-  .barra i.si{background:var(--accion);} .barra.mas i.si{background:var(--negativo);}
-  .carta .reg{flex:none;font-size:var(--t1);font-weight:600;min-width:1.8em;text-align:center;padding:2px 5px;
-    border-radius:var(--radio-marca);border:1px solid var(--divider);color:var(--apagado);}
-  .carta.mal .reg{border-color:var(--negativo);color:var(--negativo);}
-  .revision{margin:0;padding-left:1.1em;font-size:var(--t2);line-height:1.55;}
-  .revision .mal{color:var(--negativo);} .revision .av{color:var(--apagado);} .revision .ok{color:var(--ok);font-weight:600;}
-  .armar,.buscar,.mazo{display:flex;flex-direction:column;gap:var(--e3);}
   /* Pantalla ancha: buscador a la izquierda (fijo al bajar) y el mazo a la
      derecha; desde 1180 px el mazo va en dos columnas, Pokémon y Energías
      a un lado y Entrenadores al otro. El resto del formulario sigue en 640 px. */
@@ -99,16 +51,7 @@
     main{max-width:1160px;}
     main > div:first-child,#noHay,#form > *{width:100%;max-width:640px;margin-left:auto;margin-right:auto;}
     #form > #cajaLista{max-width:none;}
-    .armar{display:grid;grid-template-columns:360px minmax(0,1fr);gap:var(--e5);align-items:start;}
-    .armar .buscar{position:sticky;top:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
-    .armar .mazo{border-left:1px solid var(--divider);padding-left:var(--e5);}
   }
-  @media (min-width:1180px){
-    .armar .mazo{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto;column-gap:var(--e4);
-      grid-template-areas:"c c" "p t" "e t" "r r";}
-    .mazo .conteo{grid-area:c;} .mazo .sP{grid-area:p;} .mazo .sT{grid-area:t;} .mazo .sE{grid-area:e;align-self:start;} .mazo .revision{grid-area:r;margin-top:var(--e3);}
-  }
-  @media (pointer:fine){ .carta button{width:32px;height:32px;} }
   /* la categoría: tres casillas grandes con los cupos que quedan */
   .categoria{border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:var(--e2);}
   .categoria legend{padding:0;margin-bottom:7px;font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
@@ -175,35 +118,7 @@
         </fieldset>
       </div>
 
-      <div class="caja armar" id="cajaLista" style="margin-top:var(--e4)">
-       <div class="buscar">
-        <h2>Lista de mazo</h2>
-        <p class="pista" id="pistaLista">Busca cada carta por su nombre o código y elige la impresión; con − y + cambias la cantidad.
-          «4 iono» agrega 4 de una. Puedes corregirla hasta que empiece el torneo.</p>
-        <div class="busca">
-          <input id="buscaCarta" type="search" role="combobox" aria-expanded="false" aria-controls="sugerencias"
-            aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Busca una carta: «dragapult», «ultra ball»…">
-          <ul id="sugerencias" role="listbox" class="oculto" aria-label="Cartas encontradas"></ul>
-        </div>
-        <details id="importar">
-          <summary>¿Juegas en línea? Pega la lista exportada</summary>
-          <textarea id="pegado" rows="7" spellcheck="false" placeholder="Pokémon: 12
-3 Dreepy TWM 128
-…
-Trainer: 40
-…"></textarea>
-          <div class="acc"><button type="button" class="btn" id="importarBtn">Usar esta lista</button></div>
-          <p class="pista" id="importarMsg" role="status"></p>
-        </details>
-       </div>
-       <div class="mazo">
-        <div class="conteo" id="conteo" aria-live="polite"></div>
-        <section class="seccion sP"><h3>Pokémon <b id="nP"></b></h3><ul class="cartas" id="filasP"></ul></section>
-        <section class="seccion sT"><h3>Entrenadores <b id="nT"></b></h3><ul class="cartas" id="filasT"></ul></section>
-        <section class="seccion sE"><h3>Energías <b id="nE"></b></h3><ul class="cartas" id="filasE"></ul></section>
-        <ul class="revision" id="revision"></ul>
-       </div>
-      </div>
+      <div class="caja armar" id="cajaLista" style="margin-top:var(--e4)"></div>
 
       <div class="caja" style="margin-top:var(--e4)">
         <h2>Acuerdo de cesión de derechos</h2>
@@ -224,8 +139,8 @@ Trainer: 40
     </form>
   </main>
 
-<script src="config.js?v=13"></script>
-<!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sesion, sala, agenda y listamazo. -->
+<script src="config.js?v=14"></script>
+<!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sesion, sala, agenda, listamazo y armador. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -233,7 +148,8 @@ import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } f
 import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=15";
 import { slug, nombreTienda } from "./sala.js?v=6";
 import { fechaLegible, urlGoogle } from "./agenda.js?v=5";
-import { leerLista, cuenta, division, hoja, imprimir, cargarEstandar, componer, norm, TEMPORADA } from "./listamazo.js?v=6";
+import { leerLista, division, hoja, imprimir, TEMPORADA } from "./listamazo.js?v=7";
+import { armador } from "./armador.js?v=1";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
@@ -282,158 +198,52 @@ function pintarAcuerdo(){
     "La permanencia en el área del evento se interpretará como un consentimiento a los términos de esta notificación. Gracias por su cooperación.</p>";
 }
 
-/* ▌BLOQUE 6 · Registrador de la lista ═══════════════════════════════════════════
-   LISTA por secciones; revisarLista muestra cada carta con su estado (legal, reimpresión, más de
-   4) y el contador de 60. */
-/* ------------------------------------------------------------ el registrador de la lista
-   La lista vive en LISTA (tres secciones de { cant, nombre, set, num }) y se
-   guarda como siempre: un texto con títulos (componer), así que la hoja, el CSV
-   y las reglas no cambian. Se arma de tres formas: buscando cada carta en la
-   base (cartas-estandar.json), pegando la lista exportada del juego en línea, o
-   escribiendo la línea entera para una carta que la base no tenga. */
-let BASE = null, BASE_E = null;          // BASE: el buscador; BASE_E: además revisa legalidad (solo Estándar)
-let LISTA = { pokemon: [], entrenador: [], energia: [] };
-const SEC_DE_CAT = { P: "pokemon", T: "entrenador", E: "energia" };
-const FILAS = { pokemon: "filasP", entrenador: "filasT", energia: "filasE" };
-const linea = c => c.cant + " " + c.nombre + (c.set ? " " + c.set + " " + c.num : "");
-const lista = () => componer(Object.fromEntries(Object.keys(LISTA).map(k => [k, LISTA[k].map(linea).join("\n")])));
-const copiar = r => ({ pokemon: r.pokemon.map(c => ({ ...c })), entrenador: r.entrenador.map(c => ({ ...c })), energia: r.energia.map(c => ({ ...c })) });
-function ponerLista(texto){ LISTA = copiar(leerLista(texto)); }
-
-const ESTADO = { fuera: "No es legal en Estándar", reimp: "Otra impresión: en la hoja va con NA" };
-function revisarLista(){
-  const r = leerLista(lista(), BASE_E);
-  const vacia = !r.total;
-  /* Más de 4 por nombre (salvo Energía básica): se marca en cada fila. */
-  const porNombre = {};
-  [...r.pokemon, ...r.entrenador, ...r.energia].forEach(c => { if (!/basic|b[aá]sica/i.test(c.nombre)) porNombre[norm(c.nombre)] = (porNombre[norm(c.nombre)] || 0) + c.cant; });
-  Object.keys(FILAS).forEach(sec => {
-    $(FILAS[sec]).innerHTML = r[sec].map((c, i) => {
-      const mas4 = porNombre[norm(c.nombre)] > 4, nota = ESTADO[c.estado] || (mas4 ? "Más de 4 copias" : "");
-      return '<li class="carta' + (nota ? " mal" : "") + '"><div class="cant">' +
-        '<button type="button" data-cambio="-1" data-pos="' + sec + ":" + i + '" aria-label="Una ' + esc(c.nombre) + ' menos">−</button>' +
-        "<b>" + c.cant + "</b>" +
-        '<button type="button" data-cambio="1" data-pos="' + sec + ":" + i + '" aria-label="Una ' + esc(c.nombre) + ' más">+</button></div>' +
-        '<div class="nom"><b>' + esc(c.nombre) + "</b><small>" + esc([c.set ? c.set + " " + c.num : "sin expansión", c.x === "A" ? "ACE SPEC" : c.x === "R" ? "reimpresión" : ""].filter(Boolean).join(" · ")) +
-        (nota ? ' · <span class="aviso-carta">' + esc(nota) + "</span>" : "") + "</small></div>" +
-        (c.reg ? '<span class="reg" title="Marca de regulación">' + esc(c.reg) + "</span>" : "") +
-        '<button type="button" class="quitar" data-quitar="' + sec + ":" + i + '" aria-label="Quitar ' + esc(c.nombre) + '">×</button></li>';
-    }).join("") || '<li class="vacia">Todavía no hay cartas.</li>';
-  });
-  [["nP", "pokemon"], ["nT", "entrenador"], ["nE", "energia"]].forEach(([id, k]) => $(id).textContent = cuenta(r, k) || "");
-  $("conteo").innerHTML = '<span class="tot' + (vacia ? "" : r.total === 60 ? " ok" : " mal") + '"><b>' + r.total + "</b> / 60</span>" +
-    '<span class="grupos">' + [["pokemon", "Pokémon"], ["entrenador", "Entrenadores"], ["energia", "Energías"]].map(([k, t]) => "<span><b>" + cuenta(r, k) + "</b> " + t + "</span>").join("") + "</span>" +
-    '<span class="barra' + (r.total > 60 ? " mas" : "") + '" aria-hidden="true">' + '<i class="si"></i>'.repeat(Math.min(r.total, 60)) + "<i></i>".repeat(Math.max(60 - r.total, 0)) + "</span>";
-  /* Lo que ya se ve en cada fila no se repite abajo. */
-  const enFila = /^(No aparecen en la lista|Estos Pokémon no están|Más de 4 copias)/;
-  $("revision").innerHTML = vacia ? "" : r.errores.map(e => '<li class="mal">' + esc(e) + "</li>").join("") +
-    r.avisos.filter(a => !enFila.test(a)).map(a => '<li class="av">' + esc(a) + "</li>").join("") +
-    (r.errores.length || r.avisos.length ? "" : '<li class="ok">Listo: 60 cartas y nada que revisar.</li>');
-  return r;
+/* ▌BLOQUE 6 · Lista de mazo y mis mazos ═════════════════════════════════════════
+   El armador (armador.js: buscador con fotos, filas, contador y revisión) y, con cuenta, usar o
+   guardar uno de «Mis mazos». */
+let A = null;   // el armador; una inscripción solo con ID no tiene
+const lista = () => A ? A.lista() : "";
+const ponerLista = t => { if (A) A.poner(t); };
+const revisarLista = () => A ? A.revisar() : null;
+const PISTA_E = "Busca cada carta por su nombre o código y elige la impresión; con − y + cambias la cantidad. «4 iono» agrega 4 de una. Puedes corregirla hasta que empiece el torneo.";
+const PISTA_X = "Formato Expandido: el buscador solo trae las cartas de Estándar. Para las demás, escribe la línea completa (por ejemplo «2 Nombre de la carta ABC 12») o pega tu lista exportada.";
+const MAX_MAZOS = 10, NOM_FMT = { estandar: "Estándar", expandido: "Expandido" };
+let MAZOS = {};
+async function pintarMisMazos(){
+  const caja = $("misMazos");
+  if (!A || !YO || !YO.cuenta || !caja) return;
+  try { MAZOS = (await get(ref(db, "mazos/" + YO.uid))).val() || {}; } catch(e){ MAZOS = {}; }
+  const ids = Object.keys(MAZOS).sort((a, b) => (MAZOS[b].actualizado || 0) - (MAZOS[a].actualizado || 0)), fmt = EV.inscripcion.formato;
+  caja.innerHTML = (ids.length ? '<select id="mmElegir" aria-label="Usar uno de mis mazos"><option value="">Usar uno de mis mazos…</option>' +
+      ids.map(id => '<option value="' + id + '">' + esc(MAZOS[id].nombre) + " · " + MAZOS[id].cartas + " cartas" +
+        (MAZOS[id].formato !== fmt ? " · " + NOM_FMT[MAZOS[id].formato] : "") + "</option>").join("") + "</select>" : "") +
+    '<button type="button" class="btn" id="mmGuardar">Guardar en mis mazos</button>' +
+    '<p class="pista" id="mmMsg" role="status">' + (ids.length ? "" : "Guarda esta lista y úsala en tus próximas inscripciones. ") +
+    '<a href="mazos.html' + params() + '" target="_blank" rel="noopener">Mis mazos</a></p>';
+  caja.classList.remove("oculto");
+  const msg = t => { $("mmMsg").textContent = t; };
+  if ($("mmElegir")) $("mmElegir").onchange = () => {
+    const m = MAZOS[$("mmElegir").value]; if (!m) return;
+    if (revisarLista().total && !confirm("¿Reemplazar la lista que llevas por «" + m.nombre + "»?")){ $("mmElegir").value = ""; return; }
+    ponerLista(m.lista); revisarLista();
+    msg("Pusimos «" + m.nombre + "». Revísala antes de inscribirte" + (m.formato !== fmt ? ": ese mazo es de " + NOM_FMT[m.formato] + " y este torneo es " + NOM_FMT[fmt] + "." : "."));
+  };
+  $("mmGuardar").onclick = async () => {
+    const r = revisarLista(), texto = lista();
+    if (!r.total) return msg("Agrega cartas antes de guardar.");
+    if (texto.length > 6000) return msg("La lista es demasiado larga para guardarla.");
+    const libre = Array.from({ length: MAX_MAZOS }, (_, k) => "m" + (k + 1)).find(k => !MAZOS[k]);
+    if (!libre) return msg("Ya tienes " + MAX_MAZOS + " mazos guardados: borra uno en Mis mazos.");
+    const nombre = (prompt("¿Con qué nombre lo guardas?", "") || "").trim().replace(/\s+/g, " ").slice(0, 60);
+    if (!nombre) return;
+    try {
+      await set(ref(db, "mazos/" + YO.uid + "/" + libre), { nombre, formato: fmt, lista: texto, cartas: r.total, actualizado: Date.now() });
+      await pintarMisMazos(); $("mmMsg").textContent = "Guardado en Mis mazos como «" + nombre + "».";
+    } catch(e){ msg("No se pudo guardar. Revisa la conexión y vuelve a intentarlo."); }
+  };
 }
-$("cajaLista").addEventListener("click", e => {
-  const b = e.target.closest("[data-pos],[data-quitar]");
-  if (!b) return;
-  const [sec, i] = (b.dataset.pos || b.dataset.quitar).split(":"), c = LISTA[sec][+i];
-  if (!c) return;
-  c.cant += b.dataset.quitar ? -c.cant : +b.dataset.cambio;
-  if (c.cant < 1) LISTA[sec].splice(+i, 1);
-  c.cant = Math.min(c.cant, 60);
-  revisarLista();
-});
 
-/* ▌BLOQUE 7 · Buscador de cartas ════════════════════════════════════════════════
-   Busca en cartas-estandar.json (legales y reimpresiones), atajo «4 iono», elegir con flechas y
-   Enter, pegar la lista exportada. */
-/* --- el buscador: todas las palabras tienen que estar en el nombre o en
-   «expansión número». Primero lo que empieza igual; dentro de cada nombre, la
-   impresión más nueva. De las Energías básicas se ofrece una sola por tipo, la
-   más reciente (hay de todas las expansiones desde 1999). */
-const ORDEN_REG = { J: 0, I: 1, H: 2, G: 3, F: 4, E: 5, D: 6 };   // las legales primero; las reimpresiones, de la marca más nueva a la más vieja
-const ENERGIA_PREF = ["MEE", "SVE"];
-const prefE = s => { const i = ENERGIA_PREF.indexOf(s); return i < 0 ? 99 : i; };
-function buscar(q){
-  const ws = norm(q).split(" ").filter(Boolean);
-  if (!BASE || !ws.length) return [];
-  const todo = ws.join(" "), basicas = new Map(), res = [];
-  for (const c of BASE.cartas){
-    const [s, n, nom, cat, reg] = c, nn = norm(nom), k = nn + " " + s.toLowerCase() + " " + n;
-    if (!ws.every(w => k.includes(w))) continue;
-    const punt = nn.startsWith(todo) ? 0 : nn.split(" ").some(p => p.startsWith(ws[0])) ? 1 : 2;
-    if (cat === "E" && !reg){ const ya = basicas.get(nn); if (!ya || prefE(s) < prefE(ya[1][0])) basicas.set(nn, [punt, c]); continue; }
-    res.push([punt, c]);
-  }
-  res.push(...basicas.values());
-  return res.sort((a, b) => a[0] - b[0] || a[1][2].localeCompare(b[1][2]) ||
-    (ORDEN_REG[a[1][4]] ?? 7) - (ORDEN_REG[b[1][4]] ?? 7) || a[1][0].localeCompare(b[1][0])).slice(0, 8).map(x => x[1]);
-}
-let OPCIONES = [], ACTIVA = -1, CANT = 1;
-const DETALLE = c => [c[0] + " " + c[1], c[4], c[5] === "A" ? "ACE SPEC" : c[5] === "R" ? "reimpresión" : ""].filter(Boolean).join(" · ");
-function pintarSugerencias(){
-  const q = $("buscaCarta").value.trim();
-  /* «4 iono»: el número de adelante es cuántas agregar. */
-  const m = /^(\d{1,2})\s+(.+)$/.exec(q);
-  CANT = m ? Math.max(+m[1], 1) : 1;
-  OPCIONES = buscar(m ? m[2] : q).map(c => ({ carta: c }));
-  /* «2 Carta Nueva ABC 12»: una carta que la base no tiene (o Expandido) se
-     agrega tal cual, eligiendo la sección. */
-  if (/^\d{1,2}\s+\S/.test(q) && !OPCIONES.length)
-    OPCIONES = ["pokemon", "entrenador", "energia"].map(sec => ({ linea: q, sec }));
-  ACTIVA = OPCIONES.length ? 0 : -1;
-  const NOM_SEC = { pokemon: "Pokémon", entrenador: "Entrenadores", energia: "Energías" };
-  $("sugerencias").innerHTML = OPCIONES.map((o, i) => '<li role="option" id="op' + i + '" data-op="' + i + '"' + (i === ACTIVA ? ' aria-selected="true"' : "") + ">" +
-    (o.carta ? "<b>" + (CANT > 1 ? CANT + " × " : "") + esc(o.carta[2]) + "</b><small>" + esc(DETALLE(o.carta)) + "</small>"
-             : "Agregar «" + esc(o.linea) + "» a <b>" + NOM_SEC[o.sec] + "</b>") + "</li>").join("") ||
-    (q.length > 1 ? '<li class="nada">' + (BASE ? "No encontramos esa carta. Si es nueva, escribe la línea completa: «2 Nombre ABC 12»."
-                                                  : "Cargando las cartas…") + "</li>" : "");
-  const ver = !!$("sugerencias").innerHTML;
-  $("sugerencias").classList.toggle("oculto", !ver);
-  $("buscaCarta").setAttribute("aria-expanded", String(ver));
-  $("buscaCarta").setAttribute("aria-activedescendant", ACTIVA >= 0 ? "op" + ACTIVA : "");
-}
-function elegir(i){
-  const o = OPCIONES[i];
-  if (!o) return;
-  if (o.carta){
-    const [set, num, nombre, cat] = o.carta, sec = SEC_DE_CAT[cat] || "pokemon";
-    const ya = LISTA[sec].find(c => c.set === set && c.num === num);
-    if (ya) ya.cant = Math.min(ya.cant + CANT, 60); else LISTA[sec].push({ cant: CANT, nombre, set, num });
-  } else {
-    const r = leerLista({ pokemon: "Pokémon:", entrenador: "Entrenador:", energia: "Energía:" }[o.sec] + "\n" + o.linea);
-    LISTA[o.sec].push(...r[o.sec].map(c => ({ ...c })));
-  }
-  $("buscaCarta").value = ""; pintarSugerencias(); revisarLista(); $("buscaCarta").focus();
-}
-$("buscaCarta").oninput = pintarSugerencias;
-$("buscaCarta").onkeydown = e => {
-  if (e.key === "ArrowDown" || e.key === "ArrowUp"){
-    if (!OPCIONES.length) return;
-    e.preventDefault();
-    ACTIVA = (ACTIVA + (e.key === "ArrowDown" ? 1 : -1) + OPCIONES.length) % OPCIONES.length;
-    $("sugerencias").querySelectorAll("[data-op]").forEach(li => li.toggleAttribute("aria-selected", +li.dataset.op === ACTIVA));
-    $("buscaCarta").setAttribute("aria-activedescendant", "op" + ACTIVA);
-  } else if (e.key === "Enter"){ e.preventDefault(); elegir(ACTIVA); }
-  else if (e.key === "Escape"){ $("buscaCarta").value = ""; pintarSugerencias(); }
-};
-/* mousedown y no click: con click, el campo pierde el foco antes y la lista se cierra. */
-$("sugerencias").onmousedown = e => { const li = e.target.closest("[data-op]"); if (li){ e.preventDefault(); elegir(+li.dataset.op); } };
-$("buscaCarta").onblur = () => setTimeout(() => { $("sugerencias").classList.add("oculto"); $("buscaCarta").setAttribute("aria-expanded", "false"); }, 150);
-$("buscaCarta").onfocus = pintarSugerencias;
-
-/* --- pegar la lista exportada: reemplaza la que hay. */
-$("importarBtn").onclick = () => {
-  const t = $("pegado").value.trim();
-  if (!t) return;
-  const r = leerLista(t);
-  const malas = r.errores.filter(e => /^(No entendí|Falta el título|«)/.test(e));
-  if (LISTA.pokemon.length + LISTA.entrenador.length + LISTA.energia.length && !confirm("¿Reemplazar la lista que llevas por la que pegaste?")) return;
-  LISTA = copiar(r);
-  $("importarMsg").textContent = r.total + " cartas importadas." + (malas.length ? " No se pudieron leer: " + malas.join(" ") : "");
-  $("pegado").value = ""; $("importar").open = !!malas.length;
-  revisarLista();
-};
-
-/* ▌BLOQUE 8 · Categoría y cupos ═════════════════════════════════════════════════
+/* ▌BLOQUE 7 · Categoría y cupos ═════════════════════════════════════════════════
    Casillas Junior/Senior/Masters con los cupos libres; plazaPara toma una plaza libre (las reglas
    impiden tomar una ocupada). */
 /* ------------------------------------------------------------ categoría y cupos
@@ -492,7 +302,7 @@ async function plazaPara(div){
   return "";
 }
 
-/* ▌BLOQUE 9 · Formulario ════════════════════════════════════════════════════════
+/* ▌BLOQUE 8 · Formulario ════════════════════════════════════════════════════════
    Rellenar con la cuenta, validar (correo, ID, nacimiento, categoría, lista, acuerdo), guardar la
    inscripción, anular e imprimir. */
 /* ------------------------------------------------------------ formulario */
@@ -591,9 +401,9 @@ $("anular").onclick = async () => {
     MIA = null; $("acepta").checked = false; await cargarPlazas(); pintarMia(); }
   catch(err){ error("No se pudo anular. Revisa la conexión y vuelve a intentarlo."); }
 };
-$("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.inscripcion.formato, tienda: TIENDA }, BASE_E)]);
+$("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.inscripcion.formato, tienda: TIENDA }, A && A.baseE())]);
 
-/* ▌BLOQUE 10 · Arranque ═════════════════════════════════════════════════════════
+/* ▌BLOQUE 9 · Arranque ══════════════════════════════════════════════════════════
    Carga el evento y la tienda, decide si está abierta, quién se inscribe (cuenta o anónimo) y su
    inscripción previa. */
 /* ------------------------------------------------------------ arranque */
@@ -618,9 +428,7 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
   const estandar = EV.inscripcion.formato !== "expandido";
   $("campoNick").classList.toggle("oculto", soloId()); $("cajaLista").classList.toggle("oculto", soloId());
   $("campoNac").classList.toggle("oculto", !pideNacimiento()); $("categoria").classList.toggle("oculto", !pideNacimiento());
-  if (!estandar) $("pistaLista").textContent = "Formato Expandido: el buscador solo trae las cartas de Estándar. Para las demás, " +
-    "escribe la línea completa (por ejemplo «2 Nombre de la carta ABC 12») o pega tu lista exportada.";
-  if (!soloId()) cargarEstandar().then(b => { BASE = b; BASE_E = estandar ? b : null; revisarLista(); });
+  if (!soloId()) A = armador({ estandar, pista: estandar ? PISTA_E : PISTA_X });
   pintarCategorias(); await cargarPlazas();
 
   /* ¿Quién se inscribe? Primero una cuenta de ByePass; si no, la sesión
@@ -658,6 +466,7 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
   }
   $("form").classList.remove("oculto");
   pintarMia();
+  if (abierta()) pintarMisMazos();
 })();
 </script>
 </body>

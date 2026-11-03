@@ -1528,7 +1528,7 @@
 <div id="menu"></div>
 <input type="file" accept="image/*" id="fBox" style="display:none">
 
-<script src="config.js?v=13"></script>
+<script src="config.js?v=14"></script>
 <!-- Todo lo que el panel carga al arrancar se pide a la vez (si no, cada módulo descubre los suyos recién al llegar). Mismas direcciones y versiones que los import. -->
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js">
@@ -1548,7 +1548,7 @@
 <link rel="modulepreload" href="./paleta.js?v=4">
 <link rel="modulepreload" href="./csv.js?v=1">
 <link rel="modulepreload" href="./vistapub.js?v=2">
-<link rel="modulepreload" href="./listamazo.js?v=6">
+<link rel="modulepreload" href="./listamazo.js?v=7">
 <!-- ▌BLOQUE 10 · Módulos que usa el panel — Imports de Firebase y de los módulos compartidos (sala, agenda,
      insignias, torneo, paleta, listamazo, etc.). Cada uno lleva su ?v= para que el navegador no mezcle
      versiones. -->
@@ -1581,7 +1581,7 @@ const dibujarCalendario = datos => import("./calendarioimg.js?v=1").then(m => m.
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
 import { celdaCsv } from "./csv.js?v=1";
 import { vistaDe, publicable } from "./vistapub.js?v=2";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=6";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=7";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<!-- ▌ÍNDICE de mazos.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Marcado
+      3. Módulos
+      4. Mis mazos
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B7F6C">
+<meta name="description" content="Tus listas de mazo guardadas, para usarlas al inscribirte en un torneo.">
+<title>Mis mazos — ByePass</title>
+<link rel="stylesheet" href="estilo.css?v=12">
+<link rel="stylesheet" href="armador.css?v=1">
+<!-- ▌BLOQUE 1 · Estilos — La lista de mazos y el editor (el armador trae los suyos en armador.css). -->
+<style>
+  /* Mis mazos: hasta 10 listas guardadas en la cuenta (mazos/<uid>/m1…m10). Se arman con el mismo armador que la
+     inscripción y se eligen al inscribirse. Las fotos de las cartas las sirve TCGdex: aquí no se guarda ninguna imagen. */
+  body{min-height:100vh;}
+  .sup{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 var(--e4);gap:var(--e3);}
+  .sup a{color:var(--accion-texto);font-size:var(--t3);}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto)!important;text-decoration:none;}
+  .marca b{font-weight:300;color:var(--accion-texto);}
+  main{max-width:640px;margin:0 auto;padding:var(--e4) var(--e4) var(--e6);box-sizing:border-box;display:flex;flex-direction:column;gap:var(--e4);}
+  h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
+  .meta{font-size:var(--t3);color:var(--apagado);line-height:1.6;margin:var(--e1) 0 0;}
+  .caja{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
+  .caja h2{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:0;}
+  .dos{display:grid;grid-template-columns:1fr 180px;gap:var(--e3);}
+  .campo{display:flex;flex-direction:column;gap:7px;}
+  .campo > span{font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
+  .campo input,.campo select{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;font-family:inherit;}
+  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
+  .pista a{color:var(--accion-texto);}
+  .acc{display:flex;gap:var(--e2);flex-wrap:wrap;align-items:center;}
+  .acc .btn{min-height:44px;}
+  .oculto{display:none!important;}
+  .mazoF{display:flex;align-items:center;gap:var(--e3);padding:var(--e2) 0;}
+  .mazoF + .mazoF{border-top:1px solid var(--divider);}
+  .mazoF .tapa{flex:none;width:44px;height:62px;border-radius:4px;background:var(--campo);object-fit:cover;}
+  .mazoF .dato{flex:1;min-width:0;}
+  .mazoF .dato b{display:block;overflow-wrap:anywhere;}
+  .mazoF .dato small{color:var(--apagado);font-size:var(--t2);}
+  .mazoF .btn{min-height:40px;}
+  .vacio{color:var(--apagado);font-size:var(--t3);margin:0;}
+  @media (min-width:960px){
+    main{max-width:1160px;}
+    main > div:first-child,#sinSesion,#vistaLista,#editorDatos,#editorAcc{width:100%;max-width:640px;margin-left:auto;margin-right:auto;box-sizing:border-box;}
+  }
+  @media (max-width:560px){ .dos{grid-template-columns:1fr;} .mazoF{flex-wrap:wrap;} .mazoF .acc{flex:1 1 100%;} }
+</style>
+</head>
+<body>
+  <!-- ▌BLOQUE 2 · Marcado — La lista de mazos guardados y el editor de uno. -->
+  <header class="sup"><a class="marca" href="index.html">Bye<b>Pass</b></a><a id="aMuro" href="muro.html">Mi muro</a></header>
+  <main>
+    <div>
+      <h1>Mis mazos</h1>
+      <p class="meta">Guarda hasta 10 listas y elígelas cuando te inscribas en un torneo. Solo tú las ves.</p>
+    </div>
+
+    <div class="aviso oculto" id="sinSesion" role="status"></div>
+
+    <section class="caja oculto" id="vistaLista" aria-labelledby="tLista">
+      <h2 id="tLista">Tus mazos <span id="cupo"></span></h2>
+      <div id="lista"><p class="vacio">Cargando…</p></div>
+      <div class="acc"><button class="btn primario" type="button" id="nuevo">Nuevo mazo</button></div>
+      <p class="pista" id="listaMsg" role="status"></p>
+    </section>
+
+    <section class="oculto" id="vistaEditor" aria-labelledby="tEditor">
+      <div class="caja" id="editorDatos">
+        <h2 id="tEditor">Nuevo mazo</h2>
+        <div class="dos">
+          <label class="campo"><span>Nombre del mazo</span><input id="nombre" maxlength="60" autocomplete="off" placeholder="Ej.: Dragapult de la liga"></label>
+          <label class="campo"><span>Formato</span><select id="formato"><option value="estandar">Estándar</option><option value="expandido">Expandido</option></select></label>
+        </div>
+      </div>
+      <div class="caja armar" id="cajaLista" style="margin-top:var(--e4)"></div>
+      <div class="acc" id="editorAcc" style="margin-top:var(--e4)">
+        <button class="btn primario" type="button" id="guardar">Guardar el mazo</button>
+        <button class="btn" type="button" id="volver">Volver a mis mazos</button>
+        <p class="pista" id="editorMsg" role="status" style="flex:1 1 100%"></p>
+      </div>
+    </section>
+  </main>
+
+<script src="config.js?v=14"></script>
+<!-- ▌BLOQUE 3 · Módulos — Firebase, sesion, listamazo y el armador. -->
+<script type="module">
+import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=15";
+import { leerLista, cargarEstandar, imagenCarta } from "./listamazo.js?v=7";
+import { armador } from "./armador.js?v=1";
+
+const $ = id => document.getElementById(id);
+/* ▌BLOQUE 4 · Mis mazos ═════════════════════════════════════════════════════════
+   La lista (con la foto del primer Pokémon de cada mazo), crear, editar, borrar y guardar en
+   mazos/<uid>/m1…m10. */
+const MAX = 10, NOM_FMT = { estandar: "Estándar", expandido: "Expandido" };
+const fecha = ms => ms ? new Date(ms).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" }) : "";
+let UID = null, MAZOS = {}, EDITANDO = null, SUCIO = false;
+$("aMuro").href = urlMuro();
+const A = armador({ estandar: true, alCambiar: () => { SUCIO = true; } });
+["nombre", "formato"].forEach(id => $(id).addEventListener("input", () => { SUCIO = true; }));
+$("formato").onchange = () => { SUCIO = true; A.formato($("formato").value === "estandar"); };
+addEventListener("beforeunload", e => { if (SUCIO && !$("vistaEditor").classList.contains("oculto")) e.preventDefault(); });
+
+const ver = editor => { $("vistaLista").classList.toggle("oculto", editor); $("vistaEditor").classList.toggle("oculto", !editor); scrollTo(0, 0); };
+const libre = () => Array.from({ length: MAX }, (_, k) => "m" + (k + 1)).find(k => !MAZOS[k]);
+
+async function cargar(){
+  try { MAZOS = (await get(ref(db, "mazos/" + UID))).val() || {}; }
+  catch(e){ $("lista").innerHTML = '<p class="vacio">No se pudieron cargar tus mazos. Revisa la conexión y recarga.</p>'; return; }
+  pintar();
+}
+async function pintar(){
+  const ids = Object.keys(MAZOS).sort((a, b) => (MAZOS[b].actualizado || 0) - (MAZOS[a].actualizado || 0)), base = await cargarEstandar();
+  $("cupo").textContent = "· " + ids.length + " de " + MAX;
+  $("nuevo").disabled = ids.length >= MAX;
+  $("listaMsg").textContent = ids.length >= MAX ? "Llegaste a " + MAX + " mazos: borra uno para guardar otro." : "";
+  $("lista").innerHTML = ids.map(id => {
+    const m = MAZOS[id], p = leerLista(m.lista).pokemon[0], tapa = p ? imagenCarta(base, p.set, p.num) : "";
+    return '<div class="mazoF">' + (tapa ? '<img class="tapa" loading="lazy" alt="" src="' + esc(tapa) + '">' : '<span class="tapa" aria-hidden="true"></span>') +
+      '<div class="dato"><b>' + esc(m.nombre) + "</b><small>" + esc(NOM_FMT[m.formato] + " · " + m.cartas + (m.cartas === 1 ? " carta" : " cartas") + " · editado el " + fecha(m.actualizado)) + "</small></div>" +
+      '<div class="acc"><button class="btn" type="button" data-editar="' + id + '">Editar</button>' +
+      '<button class="btn" type="button" data-borrar="' + id + '">Borrar</button></div></div>';
+  }).join("") || '<p class="vacio">Todavía no guardas ningún mazo. Crea uno aquí o guárdalo desde una inscripción.</p>';
+}
+$("lista").addEventListener("error", e => { if (e.target.classList && e.target.classList.contains("tapa")) e.target.replaceWith(Object.assign(document.createElement("span"), { className: "tapa" })); }, true);
+$("lista").onclick = async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.editar) abrir(b.dataset.editar);
+  if (b.dataset.borrar){
+    const m = MAZOS[b.dataset.borrar];
+    if (!m || !confirm("¿Borrar «" + m.nombre + "»? No se puede deshacer. Las inscripciones donde ya lo usaste no cambian.")) return;
+    try { await remove(ref(db, "mazos/" + UID + "/" + b.dataset.borrar)); delete MAZOS[b.dataset.borrar]; pintar(); }
+    catch(err){ $("listaMsg").textContent = "No se pudo borrar. Revisa la conexión."; }
+  }
+};
+
+function abrir(id){
+  const m = id ? MAZOS[id] : null;
+  EDITANDO = id || null;
+  $("tEditor").textContent = m ? "Editar «" + m.nombre + "»" : "Nuevo mazo";
+  $("nombre").value = m ? m.nombre : ""; $("formato").value = m ? m.formato : "estandar";
+  A.poner(m ? m.lista : ""); A.formato($("formato").value === "estandar");
+  $("editorMsg").textContent = ""; SUCIO = false; ver(true);
+  if (!m) $("nombre").focus();
+}
+$("nuevo").onclick = () => abrir(null);
+$("volver").onclick = () => { if (SUCIO && !confirm("¿Salir sin guardar los cambios?")) return; SUCIO = false; ver(false); };
+$("guardar").onclick = async () => {
+  const nombre = $("nombre").value.trim().replace(/\s+/g, " ").slice(0, 60), r = A.revisar(), lista = A.lista(), msg = t => { $("editorMsg").textContent = t; };
+  if (!nombre) return msg("Ponle un nombre al mazo."), $("nombre").focus();
+  if (!r.total) return msg("Agrega al menos una carta.");
+  if (lista.length > 6000) return msg("La lista es demasiado larga: revisa que no se haya pegado dos veces.");
+  const id = EDITANDO || libre();
+  if (!id) return msg("Ya tienes " + MAX + " mazos: borra uno para guardar otro.");
+  $("guardar").disabled = true;
+  try {
+    const m = { nombre, formato: $("formato").value, lista, cartas: r.total, actualizado: Date.now() };
+    await set(ref(db, "mazos/" + UID + "/" + id), m);
+    MAZOS[id] = m; SUCIO = false; pintar(); ver(false);
+    $("listaMsg").textContent = "Guardado «" + nombre + "»" + (r.total !== 60 ? " (tiene " + r.total + " cartas: para inscribirte necesitas 60)." : ".");
+  } catch(e){ msg("No se pudo guardar. Revisa la conexión y vuelve a intentarlo."); }
+  $("guardar").disabled = false;
+};
+
+onAuthStateChanged(auth, u => {
+  UID = u ? u.uid : null;
+  if (!u || u.isAnonymous){
+    $("sinSesion").innerHTML = 'Entra con tu cuenta de ByePass para guardar tus mazos. <a href="' +
+      esc(urlCuenta("ingresar").replace("#", (params() ? "&" : "?") + "volver=" + encodeURIComponent("mazos.html" + params()) + "#")) + '">Entrar</a>';
+    $("sinSesion").classList.remove("oculto"); $("vistaLista").classList.add("oculto"); $("vistaEditor").classList.add("oculto");
+    return;
+  }
+  $("sinSesion").classList.add("oculto"); ver(false); cargar();
+});
+</script>
+</body>
+</html>

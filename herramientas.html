@@ -298,7 +298,7 @@
       <button class="btn" id="dbSi" disabled>Descargar respaldo y eliminar</button></div>
   </dialog>
 
-<script src="config.js?v=13"></script>
+<script src="config.js?v=14"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
 import { ref, onValue, get, set, update, remove, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -306,7 +306,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=15";
 import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=6";
 import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=4";
-import { mensajeAceptada, asuntoAceptada, canalDe, enlaceAviso, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=3";
+import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=3";
 estoyEnLinea(db, "herramientas");
 
 const $ = id => document.getElementById(id);
@@ -608,15 +608,16 @@ function pintarBuzon(){
   $("cfBuzonDet").textContent = filas.length + (filas.length === 1 ? " mensaje en total" : " mensajes en total");
   $("bzResumen").textContent = nuevos ? nuevos + " sin leer" : "";
   $("bzLista").innerHTML = filas.map(([id, m]) => {
-    /* A quién responderle: el correo que escribió en «contacto» y, si no puso uno, el de su cuenta (que las reglas aseguran que es suyo). */
-    const esCorreo = t => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t || ""), dir = esCorreo(m.contacto) ? m.contacto.trim() : esCorreo(m.correo) ? m.correo : "";
+    /* A quién responderle: el correo que escribió en «contacto»; si no puso uno, el de su cuenta (guardado, o el que busca la función
+       con su uid en los mensajes de antes, que no lo guardaban). */
+    const esCorreo = t => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t || ""), dir = esCorreo(m.contacto) ? m.contacto.trim() : esCorreo(m.correo) ? m.correo : m.uid ? "el correo de su cuenta" : "";
     return '<div class="msg' + (m.leido ? "" : " nuevo") + '"><div class="cab"><span class="tipo ' + esc(m.tipo) + '">' + esc(TIPOS[m.tipo] || m.tipo) +
       "</span><b>" + esc(m.nombre || "Sin nombre") + "</b><span>" + esc(fechaHora(m.creado)) + "</span>" +
       (m.pagina ? '<span>desde <a href="' + esc(m.pagina) + '" target="_blank" rel="noopener">' + esc(m.pagina.split("?")[0]) + "</a></span>" : "") + "</div>" +
       "<p>" + esc(m.texto) + "</p>" +
       '<div class="acc">' +
       (m.respondido ? '<span class="nota" style="margin:0;color:var(--ok)">Respondido el ' + esc(fechaHora(m.respondido)) + "</span>" : "") +
-      (dir ? '<span class="nota" style="margin:0">Responder a <b>' + esc(dir) + "</b></span>" +
+      (dir ? '<span class="nota" style="margin:0">Responder ' + (esCorreo(dir) ? "a <b>" + esc(dir) + "</b>" : "al correo de su cuenta") + "</span>" +
              '<button class="btn chico primario" data-responder="' + esc(id) + '" title="Deja listo el mensaje que confirma que lo leímos y lo recibimos">Responder</button>'
            : m.contacto ? '<span class="nota" style="margin:0">Contacto: ' + esc(m.contacto) + "</span>" : "") +
       '<button class="btn chico" data-leido="' + esc(id) + '" data-v="' + (m.leido ? 0 : 1) + '">' + (m.leido ? "Marcar sin leer" : "Marcar leído") + "</button>" +
@@ -630,7 +631,7 @@ function pintarBuzon(){
   $("bzLista").querySelectorAll("[data-responder]").forEach(b => b.onclick = () => {
     const m = BZ[b.dataset.responder]; if (!m) return;
     const esCorreo = t => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t || "");
-    abrirCorreo({ titulo: "Responder a " + (m.nombre || "quien escribió"), para: esCorreo(m.contacto) ? m.contacto.trim() : m.correo,
+    abrirCorreo({ titulo: "Responder a " + (m.nombre || "quien escribió"), para: esCorreo(m.contacto) ? m.contacto.trim() : m.correo || "", cuenta: m.uid,
       asunto: asuntoRespuesta(), texto: mensajeRespuesta(m), buzon: b.dataset.responder,
       nota: m.respondido ? "Ya le respondiste el " + fechaHora(m.respondido) + ". " : "Al enviarlo, el mensaje queda como leído. " });
   });
@@ -644,20 +645,23 @@ const copiarTxt = async (txt, b) => {
 /* «Enviar el correo»: se deja en correosSalida/<id> y la función enviarCorreo (functions/correo.js) lo manda con Brevo desde
    contacto@byepass.cl; las respuestas de la persona llegan a esa misma dirección. Acá se espera su estado: "enviado" o "error". */
 let CORREO_DE = {}, dejarEstado = null;
-function abrirCorreo({ titulo, para, asunto, texto, nota, solicitud, buzon }){
-  $("dcTit").textContent = titulo; $("dcPara").value = para; $("dcAsunto").value = asunto; $("dcTexto").value = texto;
+function abrirCorreo({ titulo, para, asunto, texto, nota, solicitud, buzon, cuenta }){
+  $("dcTit").textContent = titulo; $("dcPara").value = para || ""; $("dcAsunto").value = asunto; $("dcTexto").value = texto;
+  /* sin correo a la vista (solicitudes y mensajes de antes): va al correo con que se registró, que busca la función con su uid */
+  $("dcPara").placeholder = cuenta ? "El correo con que se registró (lo busca ByePass al enviar)" : "";
+  $("dcCopiaPara").disabled = !para;
   $("dcNota").textContent = (nota || "") + "Sale desde contacto@byepass.cl y, si responde, te llega ahí.";
   $("dcEstado").textContent = ""; $("dcEnviar").disabled = false;
-  CORREO_DE = { ...(solicitud ? { solicitud } : {}), ...(buzon ? { buzon } : {}) };
+  CORREO_DE = { ...(solicitud ? { solicitud } : {}), ...(buzon ? { buzon } : {}), ...(!para && cuenta ? { cuenta } : {}) };
   $("dlgCorreo").showModal();
 }
 $("dcEnviar").onclick = async () => {
   const para = $("dcPara").value.trim(), asunto = $("dcAsunto").value.trim(), texto = $("dcTexto").value.trim(), estado = $("dcEstado");
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(para)) return (estado.textContent = "El destinatario no es un correo válido.");
+  if (!(para ? /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(para) : CORREO_DE.cuenta)) return (estado.textContent = "El destinatario no es un correo válido.");
   if (!asunto || !texto) return (estado.textContent = "Escribe el asunto y el mensaje.");
   $("dcEnviar").disabled = true; estado.textContent = "Enviando…";
   const r = push(ref(db, "correosSalida"));
-  try { await set(r, { para, asunto: asunto.slice(0, 150), texto: texto.slice(0, 5000), por: auth.currentUser.uid, creado: serverTimestamp(), ...CORREO_DE }); }
+  try { await set(r, { ...(para ? { para } : {}), asunto: asunto.slice(0, 150), texto: texto.slice(0, 5000), por: auth.currentUser.uid, creado: serverTimestamp(), ...CORREO_DE }); }
   catch(e){ $("dcEnviar").disabled = false; return (estado.textContent = "No se pudo dejar en cola. ¿Publicaste las reglas nuevas?"); }
   if (dejarEstado) dejarEstado();
   const tope = setTimeout(() => { if (dejarEstado) dejarEstado(); dejarEstado = null;
@@ -666,7 +670,7 @@ $("dcEnviar").onclick = async () => {
     const v = s.val() || {};
     if (!v.estado) return;
     clearTimeout(tope); dejarEstado(); dejarEstado = null;
-    if (v.estado === "enviado") estado.textContent = "Enviado a " + para + " ✓";
+    if (v.estado === "enviado") estado.textContent = "Enviado a " + (v.enviadoA || para) + " ✓";
     else { estado.textContent = "No se envió: " + (v.error || "error desconocido") + ". Puedes copiar el mensaje y mandarlo a mano."; $("dcEnviar").disabled = false; }
   }, () => {});
 };
@@ -750,7 +754,7 @@ async function eliminarCuenta(uid){
   if (escrito === null) return;
   if (escrito.trim() !== String(c.nombre || "").trim()) return alert("El nombre no coincide. No se borró nada.");
   const rutas = {};
-  ["usuarios", "perfilPublico", "altas", "organiza", "solicitudes", "beta/testers"].forEach(n => rutas[n + "/" + uid] = null);
+  ["usuarios", "perfilPublico", "altas", "organiza", "solicitudes", "beta/testers", "mazos"].forEach(n => rutas[n + "/" + uid] = null);
   if (PERMISOS[uid]) rutas["permisoId/" + uid] = null;
   /* Su timer personal (mi-xxxxxx) y la base de jugadores de ese timer. */
   const miSala = c.sala;
@@ -806,22 +810,16 @@ function pintarSolicitudes(){
     try { await update(ref(db, "solicitudes/" + b.dataset.aprobar), { aprobada: true, rechazada: null, nota: null }); }
     catch(e){ b.disabled = false; $("solResumen").textContent = "No se pudo guardar. Revisa la conexión."; }
   });
-  /* «Avisarle»: el mensaje de tienda aceptada. Va al correo de su cuenta (el que las reglas aseguran que es suyo) o, en las solicitudes
-     viejas, por donde dejó su contacto. Con correo se abre el diálogo con el texto listo y «Enviar el correo» lo manda; con WhatsApp se abre la
-     conversación con el texto; con Instagram se copia el texto y se abre su perfil (Instagram no deja escribir el mensaje por enlace). */
+  /* «Avisarle»: el mensaje de tienda aceptada, por correo. Va al correo de su cuenta guardado en la solicitud (las reglas aseguran que es
+     suyo), si no, a su contacto si es un correo, y si no, al correo con que se registró (las solicitudes de antes no lo guardaban: lo
+     busca la función con su uid y lo deja guardado en la solicitud). */
   $("solLista").querySelectorAll("[data-avisar]").forEach(b => b.onclick = async () => {
     const x = SOL[b.dataset.avisar]; if (!x) return;
-    const canal = x.correo ? { tipo: "correo", destino: x.correo } : canalDe(x.contacto), texto = mensajeAceptada(x, location.origin, INSTAGRAM_BYEPASS);
-    if (canal.tipo === "correo")
-      return abrirCorreo({ titulo: "Avisarle a " + x.nombre, para: canal.destino, asunto: asuntoAceptada(x), texto, solicitud: b.dataset.avisar,
-        nota: (x.avisada ? "Ya le avisaste el " + fechaHora(x.avisada) + ". " : "") + (x.correo ? "Es el correo de la cuenta con la que pidió la tienda. " : "") + (x.contacto && x.contacto !== canal.destino ? "También dejó este contacto: " + x.contacto + ". " : "") });
-    const url = enlaceAviso(canal, x, location.origin, INSTAGRAM_BYEPASS);
-    let copiado = false; try { await navigator.clipboard.writeText(texto); copiado = true; } catch(e){}
-    $("solResumen").textContent = canal.tipo === "whatsapp" ? "Se abre WhatsApp con el aviso."
-      : canal.tipo === "instagram" ? (copiado ? "Mensaje copiado: pégalo en el chat de @" + canal.destino + "." : "Copia el mensaje de abajo y pégalo en el chat de @" + canal.destino + ".")
-      : (copiado ? "Su contacto no es un correo, WhatsApp ni Instagram: el mensaje quedó copiado, mándaselo por donde puedas." : "No se pudo copiar el mensaje. Escríbelo a mano.");
-    if (url) window.open(url, "_blank", "noopener");
-    if (!copiado || canal.tipo === "otro") prompt("Mensaje para " + x.nombre + ":", texto);
+    const c = canalDe(x.contacto), para = x.correo || (c.tipo === "correo" ? c.destino : "");
+    abrirCorreo({ titulo: "Avisarle a " + x.nombre, para, cuenta: b.dataset.avisar, asunto: asuntoAceptada(x), texto: mensajeAceptada(x, location.origin, INSTAGRAM_BYEPASS),
+      solicitud: b.dataset.avisar,
+      nota: (x.avisada ? "Ya le avisaste el " + fechaHora(x.avisada) + ". " : "") + (x.correo ? "Es el correo de la cuenta con la que pidió la tienda. " : !para ? "Va al correo con que se registró quien la pidió. " : "") +
+        (x.contacto && x.contacto !== para ? "También dejó este contacto: " + x.contacto + ". " : "") });
   });
   $("solLista").querySelectorAll("[data-post]").forEach(b => b.onclick = () => {
     const x = SOL[b.dataset.post]; if (!x) return;
@@ -914,7 +912,7 @@ $("dbSi").onclick = async () => {
    Compara el ?v= que piden las páginas de byepass.cl con la versión de cada archivo, y prueba si
    las reglas nuevas ya están publicadas. */
 const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "timer-view.html", "tele.html", "admin.html", "inscripcion.html",
-                 "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "404.html"];
+                 "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "mazos.html", "404.html"];
 /* El archivo tal como está publicado ahora (sin copias guardadas). */
 const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
 /* Lo que pide un archivo: «./clasificacion.js?v=6», «estilo.css?v=12»… → [archivo, versión]. */

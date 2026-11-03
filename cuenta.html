@@ -526,6 +526,11 @@
       <div class="aviso oculto" id="msgPriv" role="status"></div>
     </div>
 
+    <div class="grupo" id="grMazos">
+      <h2>Mis mazos</h2>
+      <div class="filas"><a class="filaj" id="aMazos" href="mazos.html"><span class="k">Mis mazos<small>Tus listas guardadas, para elegirlas al inscribirte en un torneo</small></span></a></div>
+    </div>
+
     <div class="grupo" id="grTienda">
       <h2>Tu tienda</h2>
       <div class="filas oculto" id="tdMias"></div>
@@ -588,7 +593,7 @@
 </div>
 </main>
 
-<script src="config.js?v=13"></script>
+<script src="config.js?v=14"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y de sesion.js. -->
 <script type="module">
 import { ref, get, set, remove, update, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -633,11 +638,12 @@ const A_PRIVACIDAD = location.hash === "#privacidad", A_SUGERENCIAS = location.h
 const DESDE = (() => { try { const r = new URL(document.referrer);
   return r.origin === location.origin && !/cuenta\.html$/.test(r.pathname) ? (r.pathname.split("/").pop() + r.search).slice(0, 200) : "";
 } catch(e){ return ""; } })();
-/* ?volver=inscripcion.html?... : quien entra desde una inscripción vuelve a
-   ella y no al muro. Solo a esa página, para que el parámetro no sirva para
+/* ?volver=inscripcion.html?... : quien entra desde una inscripción (o desde Mis mazos) vuelve a
+   ella y no al muro. Solo a esas páginas, para que el parámetro no sirva para
    mandar a nadie a otro sitio. */
-const VOLVER = (v => /^inscripcion\.html\?[A-Za-z0-9=&_%-]{1,200}$/.test(v) ? v : "")(new URLSearchParams(location.search).get("volver") || "");
+const VOLVER = (v => /^(inscripcion\.html\?[A-Za-z0-9=&_%-]{1,200}|mazos\.html(\?[A-Za-z0-9=&_%-]{1,60})?)$/.test(v) ? v : "")(new URLSearchParams(location.search).get("volver") || "");
 const alSalir = h => VOLVER || urlMuro(h);
+$("aMazos").href = "mazos.html" + params();
 let usuario = null, perfil = null, vista = "ingresar", paso = 1;
 /* Mientras se crea una cuenta, onAuthStateChanged dispara ANTES de que los
    datos terminen de guardarse. Si en ese momento redirigiera al muro, la
@@ -1379,7 +1385,7 @@ $("btnEliminar").onclick = async () => {
     ". Antes de borrar tu cuenta, escríbenos para dejar la tienda en otras manos o eliminarla.");
   if (!confirm("¿Eliminar tu cuenta para siempre? No se puede deshacer.")) return listo();
   const uid = usuario.uid, rutas = {};
-  ["usuarios", "perfilPublico", "altas", "organiza", "solicitudes", "beta/testers"].forEach(n => rutas[n + "/" + uid] = null);
+  ["usuarios", "perfilPublico", "altas", "organiza", "solicitudes", "beta/testers", "mazos"].forEach(n => rutas[n + "/" + uid] = null);
   /* Su timer personal (mi-xxxxxx) y la base de jugadores de ese timer. */
   const miSala = perfil && perfil.sala;
   if (/^mi-[a-z0-9]{6}$/.test(miSala || "")) { rutas["salas/" + miSala] = null; rutas["jugadores/" + miSala] = null; }

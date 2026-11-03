@@ -1,0 +1,73 @@
+/* armador.css — el armador de la lista de mazo (armador.js): buscador, filas de cartas con foto, contador de 60 y revisión.
+ Lo usan inscripcion.html y mazos.html. Versión actual: v=1 (subir el ?v= al tocarlo). */
+/* el registrador de la lista */
+.busca{position:relative;}
+.busca input{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;}
+#sugerencias{position:absolute;left:0;right:0;top:100%;z-index:5;margin:4px 0 0;padding:4px;list-style:none;
+  background:var(--sup-alta);border-radius:var(--radio);box-shadow:0 12px 30px -10px rgba(0,0,0,.45);max-height:340px;overflow:auto;}
+#sugerencias li{padding:10px 12px;border-radius:var(--radio);cursor:pointer;display:flex;justify-content:space-between;gap:var(--e2);
+  align-items:baseline;min-height:44px;box-sizing:border-box;}
+#sugerencias li small{color:var(--apagado);white-space:nowrap;font-variant-numeric:tabular-nums;}
+#sugerencias li[aria-selected]{background:var(--accion);color:var(--sobre-accion);}
+#sugerencias li[aria-selected] small{color:inherit;}
+#sugerencias li.nada{cursor:default;color:var(--apagado);font-size:var(--t2);}
+#importar summary{cursor:pointer;color:var(--accion-texto);font-size:var(--t3);min-height:44px;display:flex;align-items:center;}
+#importar textarea{width:100%;box-sizing:border-box;padding:12px;font-family:inherit;font-size:var(--t3);margin:var(--e1) 0;}
+.seccion h3{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:var(--e2) 0 var(--e1);
+  display:flex;justify-content:space-between;}
+.seccion h3 b{color:var(--texto);letter-spacing:0;font-variant-numeric:tabular-nums;}
+.cartas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+.carta{display:flex;align-items:center;gap:var(--e2);background:var(--campo);border-radius:var(--radio);padding:4px 4px 4px 6px;}
+.carta.mal{box-shadow:inset 3px 0 0 var(--negativo);}
+.carta .cant{display:flex;align-items:center;flex:none;}
+.carta .cant b{min-width:1.6em;text-align:center;font-variant-numeric:tabular-nums;}
+.carta button{background:none;border:none;color:var(--texto);font:inherit;font-size:var(--t4);width:40px;height:40px;cursor:pointer;border-radius:var(--radio);}
+.carta button:hover{background:var(--sup-alta);}
+.carta .nom{flex:1;min-width:0;line-height:1.3;}
+.carta .nom small{display:block;color:var(--apagado);font-size:var(--t2);}
+.carta .quitar{color:var(--apagado);}
+.aviso-carta{color:var(--negativo);}
+.cartas .vacia{color:var(--apagado);font-size:var(--t2);padding:6px 2px;}
+/* inscripciones cerradas: la lista se ve, pero sin nada para editarla */
+.soloLectura .busca,.soloLectura #importar,.soloLectura .carta button{display:none;}
+/* el contador: «52 / 60», una celda por carta y lo que va en cada sección.
+   Queda pegado arriba mientras se recorre la lista (en el celular, sobre todo). */
+.conteo{position:sticky;top:0;z-index:2;background:var(--sup);padding:var(--e2) 0;display:flex;align-items:flex-end;
+  gap:var(--e3) var(--e4);flex-wrap:wrap;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--divider);}
+.conteo .tot{font-size:var(--t4);color:var(--rotulo);font-weight:600;white-space:nowrap;}
+.conteo .tot b{font-size:var(--d2);line-height:1;color:var(--texto);letter-spacing:-.03em;}
+.conteo .tot.ok b{color:var(--ok);} .conteo .tot.mal b{color:var(--negativo);}
+.conteo .grupos{display:flex;gap:var(--e3);font-size:var(--t2);color:var(--apagado);}
+.conteo .grupos b{color:var(--texto);}
+.barra{flex:1 1 100%;display:grid;grid-template-columns:repeat(60,1fr);gap:2px;order:3;}
+.barra i{height:10px;border-radius:2px;background:var(--campo);}
+.barra i.si{background:var(--accion);} .barra.mas i.si{background:var(--negativo);}
+.carta .reg{flex:none;font-size:var(--t1);font-weight:600;min-width:1.8em;text-align:center;padding:2px 5px;
+  border-radius:var(--radio-marca);border:1px solid var(--divider);color:var(--apagado);}
+.carta.mal .reg{border-color:var(--negativo);color:var(--negativo);}
+.revision{margin:0;padding-left:1.1em;font-size:var(--t2);line-height:1.55;}
+.revision .mal{color:var(--negativo);} .revision .av{color:var(--apagado);} .revision .ok{color:var(--ok);font-weight:600;}
+.armar,.buscar,.mazo{display:flex;flex-direction:column;gap:var(--e3);}
+@media (min-width:960px){
+  .armar{display:grid;grid-template-columns:360px minmax(0,1fr);gap:var(--e5);align-items:start;}
+  .armar .buscar{position:sticky;top:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
+  .armar .mazo{border-left:1px solid var(--divider);padding-left:var(--e5);}
+}
+@media (min-width:1180px){
+  .armar .mazo{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto;column-gap:var(--e4);
+    grid-template-areas:"c c" "p t" "e t" "r r";}
+  .mazo .conteo{grid-area:c;} .mazo .sP{grid-area:p;} .mazo .sT{grid-area:t;} .mazo .sE{grid-area:e;align-self:start;} .mazo .revision{grid-area:r;margin-top:var(--e3);}
+}
+@media (pointer:fine){ .carta button{width:32px;height:32px;} }
+/* fotos de las cartas (TCGdex): chicas en la lista y en el buscador; al tocarlas se ven grandes */
+.carta .foto{flex:none;width:34px;height:48px;object-fit:cover;border-radius:3px;cursor:zoom-in;background:var(--sup-alta);}
+#sugerencias li{align-items:center;}
+#sugerencias li .foto{flex:none;width:30px;height:42px;object-fit:cover;border-radius:3px;background:var(--sup-alta);}
+#sugerencias li .sn{flex:1;min-width:0;}
+#verCarta{border:none;padding:0;background:transparent;max-width:min(92vw,420px);}
+#verCarta::backdrop{background:rgba(0,0,0,.7);}
+#verCarta img{display:block;width:100%;height:auto;border-radius:14px;cursor:zoom-out;}
+#misMazos{display:flex;flex-wrap:wrap;gap:var(--e2);align-items:center;}
+#misMazos select{flex:1 1 180px;min-height:44px;padding:0 10px;font:inherit;font-size:var(--t3);}
+#misMazos .btn{min-height:44px;}
+#misMazos .pista{flex:1 1 100%;}

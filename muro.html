@@ -404,6 +404,7 @@
         <li class="oculto" id="liPanel"><a href="admin.html" id="aPanel">Panel del organizador</a></li>
         <li class="oculto" id="liPedir"><a href="cuenta.html#tienda" id="aPedir">Pedir una tienda</a></li>
         <li class="oculto" id="liHerr"><a href="herramientas.html" id="aHerr">Herramientas de administrador</a></li>
+        <li><a href="mazos.html" id="aMazos">Mis mazos</a></li>
         <li><a href="cuenta.html#ajustes" id="aCuenta">Ajustes</a></li>
         <li><a href="cuenta.html#sugerencias">Enviar una sugerencia</a></li>
       </ul>
@@ -536,7 +537,7 @@
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
-<script src="config.js?v=13"></script>
+<script src="config.js?v=14"></script>
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -587,6 +588,7 @@ $("aAjustes").href = "cuenta.html" + qs + "#ajustes";
 $("aPanel").href = "admin.html" + qs;
 $("aPedir").href = "cuenta.html" + qs + "#tienda";
 $("aHerr").href = "herramientas.html" + qs;
+$("aMazos").href = "mazos.html" + qs;
 
 let usuario = null, perfil = null, HIST = null, filtro = "";
 let TIENDAS = null, errTienda = "";
