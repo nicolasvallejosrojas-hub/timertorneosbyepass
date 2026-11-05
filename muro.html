@@ -23,10 +23,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="tema.js?v=1"></script>
 <title>ByePass — Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="estilo.css?v=12">
+<link rel="stylesheet" href="estilo.css?v=14">
 <!-- ▌BLOQUE 1 · Estilos del muro — Rejilla de tres columnas, perfil, publicaciones, en vivo e insignias. -->
 <style>
   /* =========================================================
@@ -82,7 +83,7 @@
     font:inherit;font-size:var(--t3);color:var(--rotulo);padding:10px 14px;
     cursor:pointer;min-height:42px;}
   .pestanas button:hover{color:var(--texto);}
-  .pestanas button.on{color:var(--accion-texto);border-bottom-color:var(--accion);font-weight:600;}
+  .pestanas button.on{color:var(--texto);border-bottom-color:var(--texto);font-weight:600;}
 
   /* --- rejilla de tres columnas, como la de 2010 --- */
   .hoja{max-width:1000px;margin:0 auto;padding:var(--e3);
@@ -181,6 +182,8 @@
   .menu a,.menu button{display:block;width:100%;text-align:left;background:none;
     border:none;font:inherit;font-size:var(--t3);color:var(--apagado);
     padding:9px var(--e3);cursor:pointer;min-height:38px;}
+  #bTema{display:flex;align-items:center;gap:10px;}
+  #bTema svg{width:18px;height:18px;flex:none;color:var(--apagado);}
   .menu a:hover,.menu button:hover{background:var(--sup-alta);text-decoration:none;color:var(--texto);}
 
   /* --- próximo torneo --- */
@@ -285,10 +288,10 @@
   .vitrina button{background:none;border:none;padding:0;cursor:pointer;border-radius:50%;}
   .vitrina small{font-size:var(--t2);color:var(--apagado);}
   /* El detalle: hoja desde abajo en el teléfono, tarjeta al centro en el computador. */
-  dialog.hojaIns{border:none;padding:var(--e3) var(--e5) var(--e5);border-radius:22px;max-width:420px;width:calc(100% - 32px);
+  dialog.hojaIns{border:none;padding:var(--e3) var(--e5) var(--e5);border-radius:var(--radio-hoja);max-width:420px;width:calc(100% - 32px);
     background:var(--sup);color:var(--texto);text-align:center;box-shadow:0 30px 60px -20px rgba(16,35,30,.45);}
   dialog.hojaIns::backdrop{background:rgba(10,30,26,.45);}
-  @media (max-width:600px){ dialog.hojaIns{margin:auto 0 0;width:100%;max-width:none;border-radius:24px 24px 0 0;} }
+  @media (max-width:600px){ dialog.hojaIns{margin:auto 0 0;width:100%;max-width:none;border-radius:var(--radio-hoja) var(--radio-hoja) 0 0;} }
   .hojaIns .asa{width:38px;height:5px;border-radius:3px;background:var(--divider);margin:0 auto var(--e4);}
   .hojaIns .med,.hojaIns .par{margin:0 auto;}
   .hojaIns h3{margin:var(--e4) 0 2px;font-size:var(--t5);}
@@ -405,7 +408,9 @@
         <li class="oculto" id="liPedir"><a href="cuenta.html#tienda" id="aPedir">Pedir una tienda</a></li>
         <li class="oculto" id="liHerr"><a href="herramientas.html" id="aHerr">Herramientas de administrador</a></li>
         <li><a href="mazos.html" id="aMazos">Mis mazos</a></li>
+        <li class="oculto" id="liRulings"><a href="rulings.html" id="aRulings">Rulings</a></li>
         <li><a href="cuenta.html#ajustes" id="aCuenta">Ajustes</a></li>
+        <li><button type="button" id="bTema" aria-pressed="false"></button></li>
         <li><a href="cuenta.html#sugerencias">Enviar una sugerencia</a></li>
       </ul>
     </div>
@@ -588,7 +593,10 @@ $("aAjustes").href = "cuenta.html" + qs + "#ajustes";
 $("aPanel").href = "admin.html" + qs;
 $("aPedir").href = "cuenta.html" + qs + "#tienda";
 $("aHerr").href = "herramientas.html" + qs;
-$("aMazos").href = "mazos.html" + qs;
+$("aMazos").href = "mazos.html" + qs; $("aRulings").href = "rulings.html" + qs;
+/* Modo noche (tema.js): el botón dice lo que hace */
+const pintarTema = () => { const n = temaNoche(); $("bTema").innerHTML = (n ? ICONO_SOL : ICONO_LUNA) + (n ? "Modo día" : "Modo noche"); $("bTema").setAttribute("aria-pressed", n); };
+$("bTema").onclick = () => cambiarTema(); addEventListener("tema", pintarTema); pintarTema();
 
 let usuario = null, perfil = null, HIST = null, filtro = "";
 let TIENDAS = null, errTienda = "";
@@ -1600,7 +1608,8 @@ onAuthStateChanged(auth, async u => {
     $("liPedir").classList.toggle("oculto", s.exists());
     repintarInsignias();
   }, () => {});
-  get(ref(db, "admins/" + u.uid)).then(s => $("liHerr").classList.toggle("oculto", s.val() !== true), () => {});
+  Promise.all([get(ref(db, "admins/" + u.uid)).then(s => s.val() === true, () => false), get(ref(db, "sistema/rulingsAbierto")).then(s => s.val() === true, () => false)])
+    .then(([admin, rulings]) => { $("liHerr").classList.toggle("oculto", !admin); $("liRulings").classList.toggle("oculto", !admin && !rulings); });
   /* El orden de registro. Quien no tiene alta la pide acá, con la hora del
      servidor: las cuentas nuevas al llegar desde el registro, y las de antes
      del 26-09 la primera vez que abren el muro. */

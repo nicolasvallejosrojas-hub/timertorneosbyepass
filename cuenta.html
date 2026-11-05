@@ -18,8 +18,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="tema.js?v=1"></script>
 <title>ByePass — Cuenta</title>
-<link rel="stylesheet" href="estilo.css?v=12">
+<link rel="stylesheet" href="estilo.css?v=14">
 <!-- ▌BLOQUE 1 · Estilos de la cuenta — Barra, pasos, campos, medidor de contraseña, vitrina y ajustes. -->
 <style>
   /* =========================================================
@@ -114,7 +115,7 @@
   /* --- riel de pasos --- */
   .riel{display:flex;gap:6px;align-items:center;}
   .riel i{flex:1;height:4px;border-radius:var(--radio-marca);background:var(--sup-alta);}
-  .riel i.si{background:var(--accion);}
+  .riel i.si{background:var(--ok);}
   .riel em{font-style:normal;font-size:var(--t2);color:var(--apagado);margin-left:var(--e2);
     white-space:nowrap;font-variant-numeric:tabular-nums;}
   /* Div y no fieldset: el fieldset no estira su caja interna al alto
@@ -498,6 +499,9 @@
         <label class="filaj"><span class="k">Salir con mi nombre en la clasificación
           <small>En las tiendas con las que compartes tu ID. Apagado, tu fila sale como «Jugador reservado».</small></span>
           <input type="checkbox" role="switch" class="sw" id="ajPublico"></label>
+        <label class="filaj"><span class="k">Modo noche
+          <small>Solo en este teléfono o computador. Si no lo eliges, sigue el modo que tenga puesto.</small></span>
+          <input type="checkbox" role="switch" class="sw" id="ajTema"></label>
       </div>
       <div class="aviso oculto" id="msgTorneo" role="status"></div>
     </div>
@@ -641,7 +645,7 @@ const DESDE = (() => { try { const r = new URL(document.referrer);
 /* ?volver=inscripcion.html?... : quien entra desde una inscripción (o desde Mis mazos) vuelve a
    ella y no al muro. Solo a esas páginas, para que el parámetro no sirva para
    mandar a nadie a otro sitio. */
-const VOLVER = (v => /^(inscripcion\.html\?[A-Za-z0-9=&_%-]{1,200}|mazos\.html(\?[A-Za-z0-9=&_%-]{1,60})?)$/.test(v) ? v : "")(new URLSearchParams(location.search).get("volver") || "");
+const VOLVER = (v => /^(inscripcion\.html\?[A-Za-z0-9=&_%-]{1,200}|(mazos|rulings)\.html(\?[A-Za-z0-9=&_%-]{1,60})?)$/.test(v) ? v : "")(new URLSearchParams(location.search).get("volver") || "");
 const alSalir = h => VOLVER || urlMuro(h);
 $("aMazos").href = "mazos.html" + params();
 let usuario = null, perfil = null, vista = "ingresar", paso = 1;
@@ -1197,6 +1201,10 @@ async function corregirId(v){
   } catch(err){ aviso("errId", "No se pudo corregir. Puede que el permiso ya no esté: pídelo de nuevo."); }
 }
 
+/* Modo noche (tema.js) */
+const pintarTema = () => { $("ajTema").checked = temaNoche(); };
+$("ajTema").onchange = () => { if ($("ajTema").checked !== temaNoche()) cambiarTema(); };
+addEventListener("tema", pintarTema); pintarTema();
 $("ajPublico").onchange = async e => {
   const v = e.target.checked;
   try {

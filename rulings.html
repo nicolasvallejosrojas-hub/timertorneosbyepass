@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<!-- ▌ÍNDICE de rulings.html (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
+      1. Estilos
+      2. Marcado
+      3. Módulos
+      4. Datos y búsqueda
+      5. Filtros
+      6. Lista
+      7. El ruling abierto
+      8. Foro
+      9. Editor (administración)
+     10. Arranque
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B7F6C">
+<script src="tema.js?v=1"></script>
+<meta name="description" content="Rulings de Pokémon TCG con buscador, filtros y traducción de apoyo al español, para jueces y jugadores.">
+<title>Rulings — ByePass</title>
+<link rel="stylesheet" href="estilo.css?v=14">
+<!-- ▌BLOQUE 1 · Estilos — Lista y detalle: tres columnas en el computador (filtros, lista, el ruling
+     abierto), una en el celular; hojas del editor y de filtros. -->
+<style>
+  /* Rulings: la base sale de rulings.json (lo arma rulings-compendium.py desde el Compendium; se sirve con el sitio, sin costo de
+     Firebase). Lo que cambia la administración queda en rulingsEd/ (solo lo distinto) y se superpone. El foro, en rulingsForo/.
+     Diseño (elegido el 04-11-2026): lista y detalle. En el computador, tres columnas —filtros, lista, el ruling abierto—; en el
+     celular, la lista con los filtros rápidos fijos arriba, y el ruling abierto en su propia vista (#r2432, que también es su enlace). */
+  body{min-height:100vh;}
+  .sup{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 var(--e4);gap:var(--e3);}
+  .sup span{display:flex;align-items:center;gap:var(--e4);}
+  .sup a,#tema{min-height:44px;display:inline-flex;align-items:center;}
+  .sup a{color:var(--accion-texto);font-size:var(--t3);}
+  #tema{background:none;border:none;font:inherit;font-size:var(--t3);color:var(--apagado);cursor:pointer;padding:0;gap:6px;}
+  #tema svg,.ico{width:18px;height:18px;flex:none;}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto)!important;text-decoration:none;}
+  .marca b{font-weight:300;color:var(--accion-texto);}
+  .oculto{display:none!important;}
+  .enObra{max-width:520px;margin:0 auto;padding:var(--e6) var(--e4);display:flex;flex-direction:column;gap:var(--e3);align-items:flex-start;}
+  .enObra h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
+  .enObra .btn{min-height:44px;display:inline-flex;align-items:center;text-decoration:none;}
+  p{margin:0;}
+  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
+  .pista a,.legal a,.ref a{color:var(--accion-texto);}
+  .enlace{background:none;border:none;padding:0;min-height:44px;color:var(--accion-texto);text-decoration:underline;text-underline-offset:3px;font:inherit;font-size:var(--t2);cursor:pointer;}
+
+  /* el marco: tres columnas en el computador, una en el celular */
+  .marco{display:grid;grid-template-columns:250px minmax(320px,400px) 1fr;height:calc(100vh - 56px);border-top:1px solid var(--divider);}
+  .marco > *{min-width:0;overflow:auto;overscroll-behavior:contain;}
+  #filtrosCol{padding:var(--e4);border-right:1px solid var(--divider);}
+  #listaCol{border-right:1px solid var(--divider);display:flex;flex-direction:column;}
+  #detCol{padding:var(--e5);}
+
+  /* filtros completos (columna o hoja): casillas con su cuenta */
+  .grupo{margin-bottom:var(--e4);}
+  .grupo h3{font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--rotulo);font-weight:600;margin:0 0 4px;}
+  .grupo label{display:flex;align-items:center;gap:10px;font-size:var(--t3);min-height:40px;cursor:pointer;}
+  .grupo label input{width:18px;height:18px;margin:0;accent-color:var(--texto);}
+  .grupo label small{margin-left:auto;color:var(--apagado);font-size:var(--t2);font-variant-numeric:tabular-nums;}
+  .grupo label.cero{color:var(--apagado);}
+
+  /* la lista */
+  .cab{position:sticky;top:0;z-index:2;background:var(--pagina);padding:var(--e4) var(--e4) var(--e3);display:flex;flex-direction:column;gap:var(--e3);border-bottom:1px solid var(--divider);}
+  .cab h1{font-size:var(--t5);font-weight:700;letter-spacing:-.02em;margin:0;}
+  #q{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;font-family:inherit;}
+  .rapidos{display:none;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--e4));padding:0 var(--e4);}
+  .rapidos::-webkit-scrollbar{display:none;}
+  .chip{font:inherit;font-size:var(--t2);color:var(--texto);background:var(--sup-alta);border:none;border-radius:999px;padding:0 14px;min-height:44px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;flex:none;}
+  .chip[aria-pressed="true"]{background:var(--texto);color:var(--pagina);}
+  .barra{display:flex;flex-wrap:wrap;gap:var(--e2);align-items:center;justify-content:space-between;}
+  .cuenta{font-size:var(--t2);color:var(--apagado);}
+  .barra .acc{display:flex;flex-wrap:wrap;gap:var(--e2);align-items:center;}
+  .barra .btn{min-height:40px;padding:0 14px;font-size:var(--t2);}
+  #lista{display:flex;flex-direction:column;}
+  .it{display:flex;flex-direction:column;gap:6px;padding:var(--e3) var(--e4);border-bottom:1px solid var(--divider);color:var(--texto);text-decoration:none;}
+  .it:hover{background:var(--sup);}
+  .it[aria-current="true"]{background:var(--sup-alta);}
+  .it .q{font-size:var(--t3);font-weight:600;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .it .m{font-size:var(--t2);color:var(--apagado);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;}
+  .it.foro .q{display:flex;align-items:center;gap:8px;}
+  .vacio{padding:var(--e5) var(--e4);text-align:center;color:var(--apagado);}
+  #mas{margin:var(--e3) var(--e4);}
+  .legal{font-size:var(--t2);color:var(--apagado);line-height:1.6;margin:auto 0 0;padding:var(--e4);max-width:68ch;}
+
+  /* marcas */
+  .etqs{display:flex;flex-wrap:wrap;gap:8px;}
+  .etq{display:inline-flex;align-items:center;font-size:var(--t2);border-radius:var(--radio-marca);padding:4px 8px;background:var(--campo);color:var(--apagado);border:none;font-family:inherit;}
+  button.etq{cursor:pointer;color:var(--accion-texto);}
+  .etq.debe{background:var(--aviso-mal);color:var(--negativo);}
+  .etq.puede{background:var(--aviso);color:var(--ok);}
+  .etq.pend{background:var(--aviso-accion);color:var(--texto);}
+  .etq.rev{background:var(--aviso);color:var(--ok);}
+
+  /* el detalle */
+  .det{max-width:720px;display:flex;flex-direction:column;gap:var(--e4);}
+  .volver{display:none;align-items:center;gap:6px;color:var(--accion-texto);font-size:var(--t3);min-height:44px;align-self:flex-start;}
+  .ref{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:var(--t2);color:var(--apagado);}
+  .seg{display:inline-flex;background:var(--campo);border-radius:var(--radio-chico);padding:3px;align-self:flex-start;}
+  .seg button{border:none;background:none;font:inherit;font-size:var(--t2);color:var(--apagado);padding:0 14px;min-height:38px;border-radius:8px;cursor:pointer;}
+  .seg button[aria-pressed="true"]{background:var(--sup);color:var(--texto);font-weight:600;}
+  .det h2{font-size:var(--t5);line-height:1.45;margin:0;font-weight:600;letter-spacing:-.01em;outline:none;}
+  .det .a{font-size:var(--t4);line-height:1.7;white-space:pre-line;overflow-wrap:anywhere;}
+  .det .cartas{font-size:var(--t2);color:var(--apagado);}
+  /* las cartas del ruling: la foto la sirve TCGdex (rulings.json guarda solo su dirección); tocarla la muestra grande */
+  .cartasF{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:var(--e3);max-width:600px;}
+  .carta{display:flex;flex-direction:column;gap:6px;background:none;border:none;padding:0;font:inherit;font-size:var(--t2);color:var(--apagado);text-align:left;cursor:zoom-in;min-width:0;}
+  .carta img,.carta i{display:block;width:100%;aspect-ratio:245/342;border-radius:6px;background:var(--campo);object-fit:cover;}
+  .carta i{display:grid;place-items:center;font-style:normal;padding:8px;box-sizing:border-box;text-align:center;font-size:var(--t1);color:var(--rotulo);}
+  span.carta{cursor:default;}
+  .carta span{overflow-wrap:anywhere;line-height:1.3;}
+  dialog.foto{border:none;background:none;padding:0;max-width:min(92vw,420px);}
+  dialog.foto::backdrop{background:rgba(10,30,26,.75);}
+  dialog.foto img{display:block;width:100%;height:auto;border-radius:4.5%/3.2%;}
+  dialog.foto p{color:#F3FFFB;text-align:center;margin-top:var(--e2);font-size:var(--t3);}
+  .det .aviso{font-size:var(--t2);}
+  .bloque{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
+  .bloque h3{margin:0;font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--rotulo);font-weight:600;}
+  .msj{padding-bottom:var(--e3);border-bottom:1px solid var(--divider);display:flex;flex-direction:column;gap:var(--e1);align-items:flex-start;}
+  .msj small{color:var(--apagado);font-size:var(--t2);}
+  .msj p{white-space:pre-line;line-height:1.55;overflow-wrap:anywhere;}
+  .escribir{display:flex;flex-direction:column;gap:var(--e3);align-items:flex-start;}
+  .escribir textarea{width:100%;min-height:76px;resize:vertical;font:inherit;box-sizing:border-box;padding:10px 12px;}
+  .pieR{display:flex;flex-wrap:wrap;gap:var(--e2);}
+  .pieR .btn{min-height:44px;}
+  .nada{color:var(--apagado);padding-top:var(--e6);text-align:center;}
+
+  /* hojas: editor y filtros en el celular */
+  dialog.hoja{border:none;border-radius:var(--radio-hoja);padding:var(--e4) var(--e5) var(--e5);max-width:640px;width:calc(100% - 32px);box-sizing:border-box;background:var(--sup);color:var(--texto);}
+  dialog.hoja::backdrop{background:rgba(10,30,26,.45);}
+  dialog.hoja h2{font-size:var(--t5);font-weight:700;margin:var(--e2) 0 0;}
+  .campo{display:flex;flex-direction:column;gap:6px;margin-top:var(--e3);font-size:var(--t2);color:var(--apagado);}
+  .campo input,.campo select,.campo textarea{width:100%;padding:10px 12px;font:inherit;font-size:var(--t3);box-sizing:border-box;color:var(--texto);}
+  .campo textarea{min-height:130px;resize:vertical;}
+  .dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 var(--e3);}
+  .marcas{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--texto);font-size:var(--t3);}
+  .marcas label{display:inline-flex;gap:6px;align-items:center;white-space:nowrap;}
+  .acc{display:flex;flex-wrap:wrap;gap:var(--e2);}
+  .hoja .acc{margin-top:var(--e4);}
+  .hoja .acc .btn{min-height:44px;}
+  #dlgFiltros .grupo:first-of-type{margin-top:var(--e4);}
+
+  /* el celular: una columna; el ruling abierto reemplaza a la lista */
+  @media (max-width:899px){
+    .marco{display:block;height:auto;border-top:none;}
+    .marco > *{overflow:visible;}
+    #filtrosCol{display:none;}
+    #listaCol{border-right:none;}
+    .rapidos{display:flex;}
+    #detCol{display:none;padding:var(--e3) var(--e4) var(--e6);}
+    body.viendo #listaCol{display:none;}
+    body.viendo #detCol{display:block;}
+    .volver{display:inline-flex;}
+    .nada{display:none;}
+    dialog.hoja{margin:auto 0 0;width:100%;max-width:none;border-radius:var(--radio-hoja) var(--radio-hoja) 0 0;padding:var(--e3) var(--e4) var(--e5);max-height:88vh;}
+  }
+</style>
+</head>
+<body>
+  <!-- ▌BLOQUE 2 · Marcado — Columna de filtros, lista (buscador, filtros rápidos, cuenta), el ruling abierto
+       con su discusión, y las hojas. -->
+  <header class="sup"><a class="marca" href="index.html">Bye<b>Pass</b></a><span><button type="button" id="tema" aria-pressed="false"></button><a id="aMuro" href="muro.html">Mi muro</a></span></header>
+  <section class="enObra oculto" id="enObra" aria-labelledby="tObra">
+    <h1 id="tObra">Rulings está en construcción</h1>
+    <p class="pista">Estamos cargando y revisando los rulings con su traducción. Va a estar disponible pronto.</p>
+    <a class="btn" id="aObraMuro" href="muro.html">Volver a mi muro</a>
+  </section>
+  <div class="marco oculto" id="marco">
+    <aside id="filtrosCol" aria-label="Filtros"><div id="fCol"></div></aside>
+
+    <section id="listaCol" aria-labelledby="tLista">
+      <div class="cab">
+        <h1 id="tLista">Rulings Pokémon TCG</h1>
+        <input id="q" type="search" placeholder="Busca una carta o una palabra…" autocomplete="off" list="sug" aria-label="Buscar rulings" aria-describedby="qPista">
+        <datalist id="sug"></datalist>
+        <p class="pista" id="qPista">En español o en inglés: «Garbodor», «banca», «descartar».</p>
+        <div class="rapidos" id="rapidos" aria-label="Filtros rápidos"></div>
+        <div class="barra">
+          <span class="cuenta" id="cuenta" aria-live="polite" aria-atomic="true">Cargando…</span>
+          <span class="acc">
+            <button class="enlace oculto" id="limpiar" type="button">Limpiar filtros</button>
+            <button class="btn oculto" id="limpiarEd" type="button"></button>
+            <button class="btn oculto" id="nuevo" type="button">Nuevo ruling</button>
+          </span>
+        </div>
+      </div>
+      <p class="aviso oculto" id="estado" role="status" style="margin:var(--e3) var(--e4) 0"></p>
+      <div id="lista"></div>
+      <button class="btn oculto" id="mas" type="button">Ver más</button>
+      <p class="legal">Los rulings son del equipo de reglas de The Pokémon Company International (TPCi) y los recopila el
+        <a href="https://compendium.pokegym.net" target="_blank" rel="noopener">Compendium</a> (compendium.pokegym.net); cada uno enlaza a su original.
+        La traducción al español la hace ByePass, no es oficial y puede tener errores: ante cualquier duda vale el texto en inglés.
+        Pokémon y los nombres de las cartas son marcas de sus dueños.</p>
+    </section>
+
+    <section id="detCol" aria-label="El ruling abierto">
+      <p class="nada" id="nada">Elige un ruling de la lista.</p>
+      <article class="det oculto" id="det">
+        <a class="volver" href="#" id="volver"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Volver a la lista</a>
+        <div id="detCuerpo" class="det"></div>
+        <section class="bloque" id="bloqueHilo" aria-labelledby="tHilo"><h3 id="tHilo">Discusión</h3><div class="hilo" id="hilo"></div></section>
+      </article>
+    </section>
+  </div>
+
+  <dialog class="foto" id="verCarta" aria-label="La carta en grande"><img alt="" id="vcImg"><p id="vcNombre"></p></dialog>
+
+  <dialog class="hoja" id="dlgFiltros" aria-labelledby="tFil">
+    <h2 id="tFil">Filtros</h2>
+    <div id="fHoja"></div>
+    <div class="acc"><button class="btn primario" type="button" id="verFil">Ver los rulings</button><button class="btn" type="button" id="limpiarFil">Limpiar</button></div>
+  </dialog>
+
+  <dialog class="hoja" id="dlgEd" aria-labelledby="edTit">
+    <form method="dialog" id="ed">
+      <h2 id="edTit">Editar ruling</h2>
+      <p class="pista" id="edRef"></p>
+      <div id="edOrig">
+        <label class="campo">Pregunta original (inglés) <textarea id="edQEn" maxlength="3000"></textarea></label>
+        <label class="campo">Respuesta original (inglés) <textarea id="edAEn" maxlength="3000"></textarea></label>
+        <div class="dos">
+          <label class="campo">Fuente <input id="edFuente" maxlength="200" placeholder="TPCi Rules Team"></label>
+          <label class="campo">Fecha del ruling <input id="edFecha" type="date"></label>
+        </div>
+      </div>
+      <label class="campo">Pregunta (español) <textarea id="edQEs" maxlength="3000"></textarea></label>
+      <label class="campo">Respuesta (español) <textarea id="edAEs" maxlength="3000"></textarea></label>
+      <label class="campo">Cartas (separadas por coma) <input id="edCartas" maxlength="600" placeholder="Garbodor, Dhelmise"></label>
+      <label class="campo">Etiquetas (separadas por coma) <input id="edTags" maxlength="400" placeholder="kill-timing, apilable"></label>
+      <p class="pista" id="edUsadas"></p>
+      <div class="campo">Categorías <div class="marcas" id="edCats"></div></div>
+      <div class="dos">
+        <label class="campo">Momento <select id="edMom"></select></label>
+        <label class="campo">Puede / debe <select id="edMod"></select></label>
+      </div>
+      <div class="marcas" style="margin-top:var(--e3)">
+        <label><input type="checkbox" id="edRev"> Traducción y etiquetas revisadas por un juez</label>
+        <label><input type="checkbox" id="edOculto"> Ocultar este ruling</label>
+      </div>
+      <p class="pista" id="edMsg" role="alert" style="color:var(--negativo)"></p>
+      <div class="acc">
+        <button class="btn primario" type="button" id="edGuardar">Guardar</button>
+        <button class="btn" type="button" id="edCancelar">Cancelar</button>
+        <button class="btn" type="button" id="edDeshacer">Volver al original</button>
+        <button class="btn" type="button" id="edBorrar">Borrar</button>
+      </div>
+    </form>
+  </dialog>
+
+<script src="config.js?v=14"></script>
+<!-- ▌BLOQUE 3 · Módulos — Firebase y sesion. -->
+<script type="module">
+import { ref, get, set, remove, update, push, onValue, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=15";
+
+const $ = id => document.getElementById(id);
+/* ▌BLOQUE 4 · Datos y búsqueda ══════════════════════════════════════════════════
+   rulings.json + rulingsEd/ (solo lo distinto) juntos; búsqueda sin tildes con sinónimos español →
+   inglés; filtros. */
+const CATS = [["ataque","Ataques"],["habilidad","Habilidades"],["entrenador","Entrenadores"],["energia","Energía"],["juego","Juego"],["meta","Meta-rulings"],["errata","Erratas"]];
+const MOMENTOS = [["costo","Costo del ataque"],["efecto","Efecto del ataque"],["dano","Tras el daño o KO"],["retirada","Retirada y cambio"],["turno","Durante el turno"]];
+const MODAL = [["puede","Puede (opcional)"],["debe","Debe (obligatorio)"],["ninguna","No aplica"]];
+const ESTADO = [["revisado","Revisada por juez"],["pendiente","Por revisar"],["sin","Sin traducir"]];
+const EDIT = ["cats","qEs","aEs","cartas","tags","momento","modalidad","revisado","oculto"], MANUAL = ["qEn","aEn","fuente","fecha"];
+/* palabras en español → cómo aparecen en el original en inglés */
+const SIN = { banca:["bench"], activo:["active"], descartar:["discard"], descarte:["discard"], descartes:["discard"], herramienta:["tool"], estadio:["stadium"],
+  objeto:["item"], partidario:["supporter"], habilidad:["ability"], ataque:["attack"], retirada:["retreat"], retirar:["retreat"], premio:["prize"],
+  premios:["prize"], energia:["energy"], contador:["counter"], contadores:["counter"], dano:["damage"], moneda:["coin"], evolucionar:["evolve","evolution"],
+  evolucion:["evolution"], ko:["knocked out","knock out","ko"], debilidad:["weakness"], resistencia:["resistance"], veneno:["poison"], envenenado:["poison"],
+  dormido:["asleep"], paralizado:["paraly"], confundido:["confus"], quemado:["burn"], mazo:["deck"], mano:["hand"], cambiar:["switch"], cambio:["switch"],
+  costo:["cost"], buscar:["search"], robar:["draw"], turno:["turn"], efecto:["effect"], unir:["attach"], unida:["attach"], rival:["opponent"],
+  preparacion:["setup"], tiempo:["time"], fosil:["fossil"], puede:["may"], debe:["must"] };
+const norm = s => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const lista = s => Array.isArray(s) ? s : String(s || "").split(",").map(x => x.trim()).filter(Boolean);
+const nombreDe = (l, k) => (l.find(x => x[0] === k) || [])[1] || k;
+const traducido = r => !!(r.qEs || r.aEs);
+const estadoDe = r => !traducido(r) ? "sin" : r.revisado ? "revisado" : "pendiente";
+/* el título: la pregunta; las notas y erratas del Compendium no traen pregunta, y van con su tema («Explosiveness», «Meta-Rulings») */
+const tema = r => [...new Set((r.temas || []).map(t => t.split(" » ").pop()))].join(" · ") || "Nota";
+const titulo = (r, en) => (en ? r.qEn : r.qEs || r.qEn) || tema(r);
+let BASE = {}, ED = {}, R = [], ADMIN = false, UID = null, NOMBRE = "", LIM = 40, ABIERTO = null, AUTO = false, LENGUA = "es";
+const F = { cat: new Set(), mom: new Set(), mod: new Set(), est: new Set(), tag: new Set(), q: "" };
+const CLAVES = ["cat","mom","mod","est","tag"];
+const ancho = matchMedia("(min-width:900px)");
+
+function juntar(){
+  R = [...new Set([...Object.keys(BASE), ...Object.keys(ED)])].map(id => {
+    const r = { id, cats: [], cartas: [], tags: [], ...(BASE[id] || {}), ...(ED[id] || {}) };
+    r.cats = lista(r.cats); r.cartas = lista(r.cartas); r.tags = lista(r.tags);
+    r.texto = norm([r.qEs, r.aEs, r.qEn, r.aEn, r.cartas.join(" "), r.tags.join(" "), (r.temas || []).join(" "), r.fuente, r.compId].join(" "));
+    return r;
+  }).filter(r => (r.qEn || r.qEs || r.aEn || r.aEs) && (ADMIN || !r.oculto));
+}
+const variantes = t => [t, ...(SIN[t] || SIN[t.replace(/s$/, "")] || SIN[t.replace(/es$/, "")] || [])];
+function coincide(r){
+  if (F.cat.size && !r.cats.some(c => F.cat.has(c))) return false;
+  if (F.mom.size && !F.mom.has(r.momento)) return false;
+  if (F.mod.size && !F.mod.has(r.modalidad)) return false;
+  if (F.est.size && !F.est.has(estadoDe(r))) return false;
+  if (F.tag.size && !r.tags.some(t => F.tag.has(t))) return false;
+  return norm(F.q).split(/\s+/).filter(Boolean).every(t => variantes(t).some(v => r.texto.includes(v)));
+}
+const orden = (a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")) || (b.compId || 0) - (a.compId || 0);
+const activos = () => CLAVES.reduce((n, k) => n + F[k].size, 0);
+
+/* ▌BLOQUE 5 · Filtros ═══════════════════════════════════════════════════════════
+   Los completos (columna o hoja, con su cuenta) y los rápidos del celular. */
+/* Filtros: los completos (columna en el computador, hoja en el celular, la misma pieza dos veces) y los rápidos. */
+function filtros(){
+  const n = (k, v) => R.filter(r => k === "cat" ? r.cats.includes(v) : k === "mom" ? r.momento === v : k === "mod" ? r.modalidad === v : k === "tag" ? r.tags.includes(v) : estadoDe(r) === v).length;
+  const c = {}; R.forEach(r => r.tags.forEach(t => { c[t] = (c[t] || 0) + 1; }));
+  const tags = [...new Set([...F.tag, ...Object.keys(c).sort((a, b) => c[b] - c[a] || a.localeCompare(b)).slice(0, 24)])].map(t => [t, "#" + t]);
+  const grupo = (t, k, l) => '<div class="grupo" role="group" aria-label="' + t + '"><h3>' + t + "</h3>" + (l.length ? l.map(([v, txt]) => { const m = n(k, v);
+    return '<label' + (m ? "" : ' class="cero"') + '><input type="checkbox" data-k="' + k + '" data-v="' + esc(v) + '"' + (F[k].has(v) ? " checked" : "") + "> " + esc(txt) + '<small aria-hidden="true">' + m + "</small></label>"; }).join("")
+    : '<p class="pista">Todavía no hay etiquetas.</p>') + "</div>";
+  const html = grupo("Categoría", "cat", CATS) + grupo("Momento", "mom", MOMENTOS) + grupo("Puede / debe", "mod", MODAL) + grupo("Traducción", "est", ESTADO) + grupo("Etiquetas más usadas", "tag", tags);
+  $("fCol").innerHTML = html; $("fHoja").innerHTML = html;
+  const rap = [["", "", "Todas"], ...CATS.slice(0, 5).map(([v, l]) => ["cat", v, l]), ["mod", "puede", "Puede"], ["mod", "debe", "Debe"]];
+  $("rapidos").innerHTML = rap.map(([k, v, l]) => '<button type="button" class="chip" data-k="' + k + '" data-v="' + v + '" aria-pressed="' + (k ? F[k].has(v) : !activos()) + '">' + l + "</button>").join("") +
+    '<button type="button" class="chip" id="abrirFil"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtros' + (activos() ? " (" + activos() + ")" : "") + "</button>";
+  $("sug").innerHTML = [...new Set(R.flatMap(r => r.cartas))].sort().map(s => '<option value="' + esc(s) + '">').join("");
+}
+function alternar(k, v){
+  if (!k) CLAVES.forEach(x => F[x].clear());
+  else F[k].has(v) ? F[k].delete(v) : F[k].add(v);
+  LIM = 40; todo();
+}
+
+/* ▌BLOQUE 6 · Lista ═════════════════════════════════════════════════════════════
+   Cada ruling es un enlace a su vista (#r2432), de a 40, con el foro general al final. */
+/* La lista: cada ruling es un enlace a su vista (#r2432). */
+const marcaMod = r => r.modalidad === "puede" || r.modalidad === "debe" ? '<span class="etq ' + r.modalidad + '">' + (r.modalidad === "puede" ? "Puede" : "Debe") + "</span>" : "";
+function pintar(){
+  const ver = R.filter(coincide).sort(orden), hay = F.q.trim() || activos();
+  $("limpiar").classList.toggle("oculto", !hay);
+  $("cuenta").textContent = ver.length + " de " + R.length + " rulings";
+  const foro = '<a class="it foro" href="#foro"' + (ABIERTO === "foro" ? ' aria-current="true"' : "") + '><span class="q"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Foro general</span><span class="m">Casos sin ruling e interacciones para comparar</span></a>';
+  $("lista").innerHTML = (ver.length ? ver.slice(0, LIM).map(r => '<a class="it" href="#' + esc(r.id) + '"' + (r.id === ABIERTO ? ' aria-current="true"' : "") + ">" +
+      '<span class="q"' + (traducido(r) ? "" : ' lang="en"') + ">" + esc(titulo(r, !traducido(r))) + '</span><span class="m">' + esc(r.cats.map(c => nombreDe(CATS, c)).join(" · ")) + (r.fecha ? " · " + esc(r.fecha) : "") + " " + marcaMod(r) +
+      (r.oculto ? '<span class="etq debe">Oculto</span>' : "") + "</span></a>").join("")
+    : '<p class="vacio">' + (R.length ? "Ningún ruling coincide. Prueba quitando un filtro o con otra palabra." : "Todavía no hay rulings cargados.") + "</p>") + foro;
+  $("mas").classList.toggle("oculto", ver.length <= LIM);
+  $("mas").textContent = "Ver más (quedan " + (ver.length - LIM) + ")";
+  /* en el computador siempre hay uno abierto: el primero, que se cambia solo si deja de estar (un filtro, o la administración lo ocultó) */
+  if (ancho.matches && ver[0] && (!ABIERTO || (AUTO && !ver.some(r => r.id === ABIERTO)))){ abrir(ver[0].id, false); AUTO = true; }
+}
+const todo = () => { filtros(); pintar(); pintarLimpiarEd(); if (ABIERTO) detalle(); };
+
+/* ▌BLOQUE 7 · El ruling abierto ═════════════════════════════════════════════════
+   Español o el original, marcas, cartas, etiquetas, fuente y botones de la administración;
+   «Volver» y el enlace propio. */
+/* El detalle: el ruling abierto (o el foro general), con la traducción o el original y su discusión. */
+function abrir(id, foco){
+  ABIERTO = id || null;
+  document.body.classList.toggle("viendo", !!ABIERTO);
+  $("lista").querySelectorAll(".it").forEach(a => a.getAttribute("href") === "#" + ABIERTO ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
+  detalle();
+  if (foco && ABIERTO){ const h = $("detCuerpo").querySelector("h2"); if (h) h.focus({ preventScroll: true }); if (!ancho.matches) scrollTo(0, 0); else $("detCol").scrollTop = 0; }
+}
+function detalle(){
+  const r = ABIERTO === "foro" ? null : R.find(x => x.id === ABIERTO);
+  const perdido = !r && ABIERTO && ABIERTO !== "foro" && R.length;   // un enlace a un ruling que no existe o ya no se muestra
+  $("nada").classList.toggle("oculto", !!(r || ABIERTO === "foro" || perdido));
+  $("det").classList.toggle("oculto", !(r || ABIERTO === "foro" || perdido));
+  $("bloqueHilo").classList.toggle("oculto", !!perdido);
+  if (ABIERTO === "foro"){
+    $("detCuerpo").innerHTML = '<h2 tabindex="-1">Foro general</h2><p class="pista">Para casos que todavía no tienen ruling o interacciones que quieras comparar con otros jugadores y jueces. Lo que se diga aquí no es un ruling oficial.</p>';
+    return hilo("general");
+  }
+  if (!r){ $("detCuerpo").innerHTML = perdido ? '<h2 tabindex="-1">No encontramos ese ruling</h2><p class="pista">Puede que el enlace esté mal o que la administración lo haya ocultado.</p>' : ""; return hilo(null); }
+  const es = traducido(r), ing = !es || LENGUA === "en";
+  const enlace = r.compId ? '<a href="https://compendium.pokegym.net/ruling/' + encodeURIComponent(r.compId) + '/" target="_blank" rel="noopener">Compendium #' + esc(r.compId) + "</a>" : "<span>Ingresado en ByePass</span>";
+  const est = estadoDe(r), estTxt = { sin: "Sin traducir", pendiente: "Traducción por revisar", revisado: "Revisada por juez" }[est];
+  $("detCuerpo").innerHTML = '<div class="ref">' + enlace + (r.fecha ? "<span>" + esc(r.fecha) + "</span>" : "") + '<span class="etq ' + (est === "revisado" ? "rev" : "pend") + '">' + estTxt + "</span>" + (r.oculto ? '<span class="etq debe">Oculto</span>' : "") + "</div>" +
+    (es ? '<div class="seg" role="group" aria-label="Idioma"><button type="button" data-lengua="es" aria-pressed="' + !ing + '">Español</button><button type="button" data-lengua="en" aria-pressed="' + ing + '">English</button></div>' : "") +
+    (ing && es ? '<p class="aviso">Este es el texto original, el que vale en un torneo.</p>' : !es ? '<p class="aviso">Todavía no tiene traducción: este es el original en inglés.</p>' : "") +
+    '<h2 tabindex="-1"' + (ing ? ' lang="en"' : "") + ">" + esc(titulo(r, ing)) + '</h2><p class="a"' + (ing ? ' lang="en"' : "") + ">" + esc(ing ? r.aEn : r.aEs) + "</p>" +
+    '<div class="etqs">' + r.cats.map(c => '<span class="etq">' + esc(nombreDe(CATS, c)) + "</span>").join("") + (r.momento ? '<span class="etq">' + esc(nombreDe(MOMENTOS, r.momento)) + "</span>" : "") +
+      (r.modalidad === "puede" || r.modalidad === "debe" ? '<span class="etq ' + r.modalidad + '">' + esc(nombreDe(MODAL, r.modalidad)) + "</span>" : "") + "</div>" +
+    (r.cartas.length ? '<div class="cartasF" aria-label="Cartas del ruling">' + r.cartas.map(n => { const u = (r.fotos || {})[n];
+      return u ? '<button type="button" class="carta" data-foto="' + esc(u) + '" data-nombre="' + esc(n) + '" aria-label="Ver ' + esc(n) + ' en grande"><img loading="lazy" alt="" src="' + esc(u) + '/low.webp"><span>' + esc(n) + "</span></button>"
+        : '<span class="carta"><i aria-hidden="true">Sin foto</i><span>' + esc(n) + "</span></span>"; }).join("") + "</div>" : "") +
+    (r.tags.length ? '<div class="etqs">' + r.tags.map(t => '<button type="button" class="etq" data-tag="' + esc(t) + '" aria-label="Filtrar por la etiqueta ' + esc(t) + '">#' + esc(t) + "</button>").join("") + "</div>" : "") +
+    (r.fuente ? '<p class="pista">Fuente: ' + esc(r.fuente) + "</p>" : "") +
+    (ADMIN ? '<div class="pieR"><button class="btn" type="button" data-editar="' + esc(r.id) + '">Editar</button>' +
+      (es && !r.revisado ? '<button class="btn" type="button" data-revisar="' + esc(r.id) + '">Marcar revisada</button>' : "") + "</div>" : "");
+  hilo(r.id);
+}
+/* «Volver»: si se llegó a este ruling desde la lista, atrás (el navegador devuelve la lista donde estaba); si se entró directo
+   por su enlace, a la lista sin salir de la página. */
+let NAVEGO = false;
+addEventListener("hashchange", () => { NAVEGO = true; AUTO = false; abrir(decodeURIComponent(location.hash.slice(1)), true); });
+$("volver").onclick = e => { e.preventDefault(); if (NAVEGO) history.back(); else { history.replaceState(null, "", location.pathname + location.search); abrir(null, false); } };
+ancho.addEventListener("change", () => pintar());
+let tq = 0;
+$("q").addEventListener("input", e => { F.q = e.target.value; LIM = 40; clearTimeout(tq); tq = setTimeout(pintar, 150); });
+$("mas").onclick = () => { LIM += 40; pintar(); };
+const limpiarTodo = () => { CLAVES.forEach(k => F[k].clear()); F.q = $("q").value = ""; LIM = 40; todo(); };
+$("limpiar").onclick = limpiarTodo; $("limpiarFil").onclick = limpiarTodo;
+$("verFil").onclick = () => $("dlgFiltros").close();
+/* si TCGdex no tiene la foto, queda el recuadro con el nombre */
+document.addEventListener("error", e => { if (e.target.matches && e.target.matches(".carta img")) { const b = e.target.closest("[data-foto]"); if (b) b.removeAttribute("data-foto"); e.target.outerHTML = '<i aria-hidden="true">Sin foto</i>'; } }, true);
+document.addEventListener("change", e => { const i = e.target.closest("input[data-k]"); if (i) alternar(i.dataset.k, i.dataset.v); });
+document.addEventListener("click", e => {
+  if (e.target.closest("#abrirFil")) return $("dlgFiltros").showModal();
+  const c = e.target.closest(".chip[data-k]"); if (c) return alternar(c.dataset.k, c.dataset.v);
+  const t = e.target.closest("[data-tag]"); if (t){ F.tag.add(t.dataset.tag); LIM = 40; todo(); if (!ancho.matches) location.hash = ""; return; }
+  const f = e.target.closest("[data-foto]");
+  if (f){ $("vcImg").src = f.dataset.foto + "/high.webp"; $("vcImg").alt = f.dataset.nombre; $("vcNombre").textContent = f.dataset.nombre; return $("verCarta").showModal(); }
+  if (e.target.closest("#verCarta")) return $("verCarta").close();   // tocar la carta grande (o fuera) la cierra
+  const l = e.target.closest("[data-lengua]"); if (l){ LENGUA = l.dataset.lengua; return detalle(); }
+  const ed = e.target.closest("[data-editar]"); if (ed) return abrirEditor(ed.dataset.editar);
+  const rv = e.target.closest("[data-revisar]"); if (rv) return guardarEd(rv.dataset.revisar, { revisado: true });
+  if (e.target.closest("[data-enviar]")) return enviar(e.target.closest("[data-enviar]").dataset.enviar);
+  const bm = e.target.closest("[data-borrar]"); if (bm) return borrarMsj(bm);
+});
+
+/* ▌BLOQUE 8 · Foro ══════════════════════════════════════════════════════════════
+   El hilo del ruling abierto (o el general), leído en vivo; escribir (uno por minuto) y borrar. */
+/* Foro: un hilo por ruling (rulingsForo/<id>) y uno general; se lee el del ruling abierto (los últimos 100).
+   Escribe cualquier cuenta con correo, a su nombre, uno por minuto; borra quien lo escribió o la administración (lo aseguran las reglas). */
+let HILO = null, APAGAR = null;
+const BORRADOR = {};
+const cuando = ms => new Date(ms).toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" });
+function hilo(id){
+  if (id === HILO) return;
+  const t = $("hilo").querySelector("textarea"); if (t && HILO) BORRADOR[HILO] = t.value;
+  if (APAGAR){ APAGAR(); APAGAR = null; }
+  HILO = id; $("hilo").innerHTML = id ? '<p class="pista">Cargando…</p>' : "";
+  if (!id) return;
+  APAGAR = onValue(query(ref(db, "rulingsForo/" + id), limitToLast(100)), s => {
+    const ms = Object.entries(s.val() || {}).sort((a, b) => a[1].creado - b[1].creado), t = $("hilo").querySelector("textarea");
+    if (t) BORRADOR[id] = t.value;
+    $("hilo").innerHTML = (ms.map(([k, m]) => '<div class="msj"><small>' + esc(m.nombre) + " · " + esc(cuando(m.creado)) + "</small><p>" + esc(m.texto) + "</p>" +
+      (m.uid === UID || ADMIN ? '<button class="enlace" type="button" data-borrar="' + esc(id + "/" + k) + '">Borrar</button>' : "") + "</div>").join("")
+      || '<p class="pista">Nadie ha comentado todavía.</p>') +
+      (UID && NOMBRE ? '<div class="escribir"><textarea maxlength="2000" aria-label="Tu mensaje" placeholder="Tu duda o cómo lo interpretas…">' + esc(BORRADOR[id] || "") +
+        '</textarea><button class="btn primario" type="button" data-enviar="' + esc(id) + '">Publicar</button><p class="pista" role="status"></p></div>'
+        : '<p class="pista">Para escribir, <a href="' + esc(urlCuenta("ingresar").replace("#", (params() ? "&" : "?") + "volver=" + encodeURIComponent("rulings.html" + params()) + "#")) + '">entra con tu cuenta</a>.</p>');
+  }, () => { $("hilo").innerHTML = '<p class="pista">No se pudo cargar la conversación.</p>'; });
+}
+async function enviar(id){
+  /* el hilo se vuelve a dibujar con cada cambio (también con el mensaje propio antes de que el servidor lo acepte o lo rechace),
+     así que el texto y el aviso se buscan de nuevo al final */
+  const t = $("hilo").querySelector("textarea"), texto = t.value.trim().slice(0, 2000);
+  if (!texto) return;
+  const k = push(ref(db, "rulingsForo/" + id)).key;
+  t.value = BORRADOR[id] = "";
+  try {
+    await update(ref(db), { ["rulingsForo/" + id + "/" + k]: { uid: UID, nombre: NOMBRE, texto, creado: serverTimestamp() }, ["rulingsForoUltimo/" + UID]: serverTimestamp() });
+  } catch(e){
+    const t2 = HILO === id && $("hilo").querySelector("textarea");
+    if (t2){ t2.value = BORRADOR[id] = texto; $("hilo").querySelector(".escribir .pista").textContent = "No se publicó. Solo se puede un mensaje por minuto: espera un poco y vuelve a intentarlo."; }
+  }
+}
+async function borrarMsj(b){
+  if (!confirm("¿Borrar este mensaje?")) return;
+  try { await remove(ref(db, "rulingsForo/" + b.dataset.borrar)); } catch(e){ alert("No se pudo borrar el mensaje."); }
+}
+
+/* ▌BLOQUE 9 · Editor (administración) ═══════════════════════════════════════════
+   Editar, marcar revisada, ocultar, volver al original, ingresar a mano y limpiar lo ya publicado;
+   guarda en rulingsEd/ solo lo distinto. */
+/* Editor (administración): guarda en rulingsEd/<id> solo lo que difiere de rulings.json, para que lo que baja cada visita siga
+   siendo poco. Los ingresados a mano (id m…, sin número del Compendium) se guardan completos y dejan editar su inglés. */
+let EDITANDO = null;
+const opciones = (l, v, vacio) => (vacio ? '<option value="">—</option>' : "") + l.map(([k, t]) => '<option value="' + k + '"' + (k === v ? " selected" : "") + ">" + esc(t) + "</option>").join("");
+const VACIO = { revisado: false, oculto: false }, LISTAS = ["cats", "cartas", "tags"];
+const plano = (k, v) => LISTAS.includes(k) ? lista(v).join(", ") : v ?? VACIO[k] ?? "";
+function abrirEditor(id){
+  const r = id ? R.find(x => x.id === id) : { id: "m" + Date.now().toString(36), cats: [], cartas: [], tags: [], modalidad: "ninguna" }, manual = !r.compId;
+  EDITANDO = r.id;
+  $("edTit").textContent = id ? "Editar ruling" : "Nuevo ruling";
+  $("edRef").textContent = r.compId ? "Compendium #" + r.compId + " · el texto en inglés viene del Compendium y no se edita aquí." : "Ruling ingresado en ByePass.";
+  $("edOrig").classList.toggle("oculto", !manual);
+  [["edQEn","qEn"],["edAEn","aEn"],["edFuente","fuente"],["edFecha","fecha"],["edQEs","qEs"],["edAEs","aEs"]].forEach(([e, k]) => { $(e).value = r[k] || ""; });
+  $("edCartas").value = r.cartas.join(", "); $("edTags").value = r.tags.join(", ");
+  $("edUsadas").textContent = "Ya usadas: " + ([...new Set(R.flatMap(x => x.tags))].sort().join(", ") || "ninguna todavía");
+  $("edCats").innerHTML = CATS.map(([v, l]) => '<label><input type="checkbox" value="' + v + '"' + (r.cats.includes(v) ? " checked" : "") + "> " + esc(l) + "</label>").join("");
+  $("edMom").innerHTML = opciones(MOMENTOS, r.momento, true); $("edMod").innerHTML = opciones(MODAL, r.modalidad || "ninguna");
+  $("edRev").checked = !!r.revisado; $("edOculto").checked = !!r.oculto;
+  $("edDeshacer").classList.toggle("oculto", manual || !ED[r.id]); $("edBorrar").classList.toggle("oculto", !id || !manual || !!BASE[r.id]);   // uno que ya está en el archivo se oculta, no se borra
+  $("edMsg").textContent = "";
+  $("dlgEd").showModal();
+}
+/* Lo que hay que guardar de un ruling con estos cambios: solo lo distinto del archivo (todo, si es manual). */
+function diferencia(id, cambios){
+  const b = BASE[id] || {}, r = { ...(R.find(x => x.id === id) || {}), ...cambios }, out = {};
+  for (const k of r.compId ? EDIT : [...EDIT, ...MANUAL]){ const v = plano(k, r[k]); if (v !== plano(k, b[k])) out[k] = v; }
+  return out;
+}
+async function guardarEd(id, cambios){
+  const d = diferencia(id, cambios);
+  try {
+    if (!Object.keys(d).length) await remove(ref(db, "rulingsEd/" + id));
+    else await set(ref(db, "rulingsEd/" + id), { ...d, actualizado: serverTimestamp(), por: UID });
+    return true;
+  } catch(e){ $("estado").textContent = "No se pudo guardar: " + (e.message || e); $("estado").classList.remove("oculto"); return false; }
+}
+$("edGuardar").onclick = async () => {
+  const v = id => $(id).value.trim(), manual = !(R.find(x => x.id === EDITANDO) || {}).compId;
+  const c = { qEs: v("edQEs"), aEs: v("edAEs"), cartas: v("edCartas"),
+    tags: lista(v("edTags")).map(t => norm(t).replace(/^#/, "").replace(/[^a-z0-9ñ]+/g, "-").replace(/^-|-$/g, "")).filter(Boolean).join(", "),
+    cats: [...$("edCats").querySelectorAll("input:checked")].map(i => i.value).join(", "), momento: $("edMom").value, modalidad: $("edMod").value,
+    revisado: $("edRev").checked, oculto: $("edOculto").checked };
+  if (manual) Object.assign(c, { qEn: v("edQEn"), aEn: v("edAEn"), fuente: v("edFuente"), fecha: v("edFecha") });
+  if (manual && !(c.qEn || c.qEs)) return ($("edMsg").textContent = "Falta la pregunta (en inglés o en español).");
+  if (manual && !(c.aEn || c.aEs)) return ($("edMsg").textContent = "Falta la respuesta (en inglés o en español).");
+  const sinPregunta = !(R.find(x => x.id === EDITANDO) || c).qEn && !c.qEn;   // notas y erratas: solo respuesta
+  if (c.qEs && !c.aEs || c.aEs && !c.qEs && !sinPregunta) return ($("edMsg").textContent = "La traducción necesita pregunta y respuesta.");
+  $("edGuardar").disabled = true;
+  if (await guardarEd(EDITANDO, c)){ $("dlgEd").close(); if (location.hash !== "#" + EDITANDO) location.hash = EDITANDO; }
+  $("edGuardar").disabled = false;
+};
+$("edCancelar").onclick = () => $("dlgEd").close();
+$("edDeshacer").onclick = async () => { if (confirm("¿Volver a lo que dice el archivo de rulings? Se pierden los cambios de la administración en este ruling.")){ await remove(ref(db, "rulingsEd/" + EDITANDO)); $("dlgEd").close(); } };
+$("edBorrar").onclick = async () => {
+  if (!confirm("¿Borrar este ruling y su discusión? No se puede deshacer.")) return;
+  try { await update(ref(db), { ["rulingsEd/" + EDITANDO]: null, ["rulingsForo/" + EDITANDO]: null }); $("dlgEd").close(); location.hash = ""; }
+  catch(e){ $("edMsg").textContent = "No se pudo borrar."; }
+};
+$("nuevo").onclick = () => abrirEditor(null);
+/* Lo que rulings-compendium.py --juntar-ediciones ya pasó a rulings.json sigue en rulingsEd/ hasta que un admin lo limpia:
+   son las correcciones que ya no difieren del archivo. Sacarlas deja chico lo que baja cada visita. */
+const yaPublicadas = () => Object.keys(ED).filter(id => BASE[id] && !Object.keys(diferencia(id, {})).length);
+function pintarLimpiarEd(){
+  const n = ADMIN ? yaPublicadas().length : 0;
+  $("limpiarEd").classList.toggle("oculto", !n);
+  $("limpiarEd").textContent = "Limpiar correcciones ya publicadas (" + n + ")";
+}
+$("limpiarEd").onclick = async () => {
+  const ids = yaPublicadas();
+  if (!ids.length || !confirm("Estas " + ids.length + " correcciones ya están en el archivo de rulings publicado. ¿Sacarlas de Firebase? No cambia nada de lo que se ve.")) return;
+  try { await update(ref(db, "rulingsEd"), Object.fromEntries(ids.map(id => [id, null]))); }
+  catch(e){ $("estado").textContent = "No se pudo limpiar: " + (e.message || e); $("estado").classList.remove("oculto"); }
+};
+
+/* ▌BLOQUE 10 · Arranque ═════════════════════════════════════════════════════════
+   Tema, el ruling del enlace, rulings.json, rulingsEd/ en vivo y la sesión. */
+/* Arranque: el archivo, lo de la administración (en vivo), la sesión y el ruling del enlace. */
+$("aMuro").href = urlMuro();
+/* el botón dice lo que hace; aria-pressed, si el modo noche está puesto */
+const pintarTema = () => { const n = temaNoche(); $("tema").innerHTML = (n ? ICONO_SOL : ICONO_LUNA) + (n ? "Modo día" : "Modo noche"); $("tema").setAttribute("aria-pressed", n); };
+$("tema").onclick = () => { cambiarTema(); };
+addEventListener("tema", pintarTema);
+pintarTema();
+ABIERTO = decodeURIComponent(location.hash.slice(1)) || null;
+document.body.classList.toggle("viendo", !!ABIERTO);
+(async () => {
+  try { BASE = Object.fromEntries((await (await fetch("rulings.json")).json()).rulings.map(r => [r.id, r])); }
+  catch(e){ $("estado").textContent = "No se pudo cargar la lista de rulings. Revisa la conexión y recarga."; $("estado").classList.remove("oculto"); }
+  juntar(); todo();
+  onValue(ref(db, "rulingsEd"), s => { ED = s.val() || {}; juntar(); todo(); }, () => {});
+})();
+/* Mientras no esté abierta (sistema/rulingsAbierto, el interruptor de Herramientas) solo la ven los admins; los demás, el aviso. */
+let ABIERTA = null, SESION = false;
+function puerta(){
+  if (ABIERTA === null || !SESION) return;
+  const ver = ABIERTA || ADMIN;
+  $("marco").classList.toggle("oculto", !ver); $("enObra").classList.toggle("oculto", ver);
+}
+$("aObraMuro").href = urlMuro();
+onValue(ref(db, "sistema/rulingsAbierto"), s => { ABIERTA = s.val() === true; puerta(); }, () => { ABIERTA = false; puerta(); });
+onAuthStateChanged(auth, async u => {
+  UID = u && !u.isAnonymous ? u.uid : null; NOMBRE = ""; ADMIN = false;
+  if (UID){
+    const [a, n] = await Promise.all([get(ref(db, "admins/" + UID)).catch(() => null), get(ref(db, "usuarios/" + UID + "/nombre")).catch(() => null)]);
+    ADMIN = !!a && a.val() === true; NOMBRE = (n && n.val()) || "";
+  }
+  $("nuevo").classList.toggle("oculto", !ADMIN);
+  const h = HILO; HILO = null; if (APAGAR){ APAGAR(); APAGAR = null; }   // el hilo se vuelve a leer para mostrar «escribir» o «borrar»
+  SESION = true; puerta();
+  juntar(); todo(); if (h && HILO !== h) hilo(h);
+});
+</script>
+</body>
+</html>

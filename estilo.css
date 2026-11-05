@@ -18,7 +18,7 @@
    Si se cambia algo acá, hay que SUBIR EL NÚMERO en las dos, o el navegador
    de alguien que ya visitó el sitio va a mezclar el HTML nuevo con esta hoja
    vieja. Misma regla que agenda.js.
-   Versión actual: v=11
+   Versión actual: v=14
 
    ---------------------------------------------------------
    25-09-2026: pasa a estilo Apple. Letra del sistema (la del iPhone en un
@@ -68,6 +68,7 @@
   /* Lo que va ENCIMA de un color. Antes se escribía --campo en todas partes
      «porque es oscuro», y eso amarraba el sistema a una paleta oscura. */
   --sobre-accion:#10231E;  /* texto sobre el coral: 5:1 */
+  --sobre-negativo:#FFFFFF; --sobre-ok:#FFFFFF;  /* texto sobre un relleno de error o de confirmación */
   --sobre-podio:#1A1633;   /* texto sobre las medallas */
   /* El lienzo es «la pantalla de la tienda» y es oscuro en toda paleta: una
      tele encendida no es blanca. Lo que va encima usa estos dos (ver .isla). */
@@ -125,6 +126,23 @@
 
   /* Escala de espaciado: 4 8 12 20 32 56 */
   --e1:4px; --e2:8px; --e3:12px; --e4:20px; --e5:32px; --e6:56px;
+  /* La hoja (diálogo que sube): el cuarto radio, porque una superficie de media pantalla con 12 px se
+     ve como una tarjeta suelta y no como algo que se apoya sobre la página. */
+  --radio-hoja:22px;
+}
+
+/* Modo noche (04-11-2026): los mismos tokens, en oscuro. Lo prende tema.js (data-tema="noche"),
+   y solo lo cargan las páginas que se leen de cerca. El verde de la marca, el coral y el lienzo no
+   cambian; el texto coral se aclara para seguir pasando AA sobre el fondo oscuro. */
+:root[data-tema="noche"]{
+  --pagina:#0E1A18; --campo:#1B2C29; --sup:#15231F; --sup-alta:#22352F; --sup-hover:#2B413B;
+  --relleno:rgba(255,255,255,.08);
+  --texto:#E6F2EE; --apagado:#A9BFB8; --rotulo:#96AEA7;
+  --accion-texto:#FF8E7A; --alerta:#4A2326; --negativo:#FF8A80; --ok:#62D2B5;
+  --podio1-texto:#F0C24A; --podio2-texto:#B3BED0; --podio3-texto:#E0A06A;
+  --aviso:#173A31; --aviso-accion:#3B2F17; --aviso-mal:#45211F;
+  --divider:rgba(255,255,255,.12); --vidrio:rgba(21,35,31,.8); --esquema:dark;
+  --sobre-negativo:#10231E; --sobre-ok:#10231E;   /* el rojo y el verde se aclaran: encima va oscuro */
 }
 
 /* =========================================================
@@ -240,11 +258,15 @@ input::placeholder,textarea::placeholder{color:var(--rotulo);}
 .vacio b{font-size:var(--t4);font-weight:600;display:block;margin-bottom:var(--e1);}
 .vacio div{font-size:var(--t2);color:var(--apagado);line-height:1.5;}
 
-/* Medidor de contraseña: seis tramos, uno por requisito, y debajo (.falta)
+/* Lo elegido (pestaña, píldora, preset, número) va en tinta: fondo --texto y letra --pagina, escritos
+   directo (no con una variable intermedia, que no seguiría a una .isla ni a la paleta de una tienda).
+   Así el coral queda solo para la acción (la Regla de Una Sola Acción); lo hecho y lo encendido, en --ok
+   (el medidor va en tinta mientras falta algo y pasa entero a --ok al completarse).
+   Medidor de contraseña: seis tramos, uno por requisito, y debajo (.falta)
    SOLO lo que falta. Lo usan la cuenta y la portada. */
 .medidor{display:flex;gap:4px;}
 .medidor i{flex:1;height:4px;border-radius:var(--radio-marca);background:var(--sup-alta);}
-.medidor i.si{background:var(--accion);}
+.medidor i.si{background:var(--texto);}
 .medidor.lista i{background:var(--ok);}
 .falta b{color:var(--texto);font-weight:600;}
 .falta.ok{color:var(--ok);}
@@ -353,7 +375,7 @@ input::placeholder,textarea::placeholder{color:var(--rotulo);}
 .sw::after{content:"";position:absolute;left:2px;top:2px;width:27px;height:27px;
   border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16);
   transition:transform 250ms cubic-bezier(.23,1,.32,1);}
-.sw:checked{background:var(--accion);}
+.sw:checked{background:var(--ok);}
 .sw:checked::after{transform:translateX(20px);}
 .sw:focus-visible{outline:2px solid var(--accion);outline-offset:2px;}
 
@@ -393,7 +415,7 @@ input::placeholder,textarea::placeholder{color:var(--rotulo);}
 .ins small.raro{color:var(--rotulo);font-size:var(--t1);letter-spacing:.02em;}
 .ins.no b{color:var(--apagado);font-weight:600;}
 .ins .prog{width:74px;height:4px;border-radius:var(--radio-marca);background:var(--sup-alta);overflow:hidden;margin-top:3px;}
-.ins .prog i{display:block;height:100%;background:var(--accion);}
+.ins .prog i{display:block;height:100%;background:var(--ok);}
 .ins .nueva{position:absolute;top:-6px;left:calc(50% + 12px);background:var(--accion);color:var(--sobre-accion);z-index:1;
   font-size:var(--t1);font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;}
 @media (hover:hover){ .ins:hover .med:not(.no),.ins:hover .par:not(.no){transform:translateY(-2px);} }

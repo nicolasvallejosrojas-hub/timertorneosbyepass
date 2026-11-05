@@ -20,9 +20,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B7F6C">
+<script src="tema.js?v=1"></script>
 <meta name="robots" content="noindex">
 <title>Herramientas de administrador — ByePass</title>
-<link rel="stylesheet" href="estilo.css?v=12">
+<link rel="stylesheet" href="estilo.css?v=14">
 <!-- ▌BLOQUE 1 · Estilos — Mantenimiento, beta, tiendas, cifras, buzón, cuentas y borrar. -->
 <style>
   /* Herramientas de quien administra el sitio entero (admins/<uid> = true en
@@ -118,11 +119,11 @@
   .linea.ok i{color:var(--ok);} .linea.mal i{color:var(--negativo);} .linea.aviso i{color:var(--accion-texto);}
   .linea small{grid-column:2;font-size:var(--t2);color:var(--apagado);line-height:1.45;}
   .medidor{height:10px;border-radius:999px;background:var(--sup-alta);overflow:hidden;margin:0 var(--e4) var(--e4);}
-  .medidor b{display:block;height:100%;background:var(--accion);}
+  .medidor b{display:block;height:100%;background:var(--ok);}
   .peso{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;}
 
   /* ---------------------------------------------------------- borrar */
-  dialog.hoja{border:none;border-radius:22px;padding:var(--e4) var(--e5) var(--e5);max-width:480px;width:calc(100% - 32px);
+  dialog.hoja{border:none;border-radius:var(--radio-hoja);padding:var(--e4) var(--e5) var(--e5);max-width:480px;width:calc(100% - 32px);
     background:var(--pagina);color:var(--texto);}
   dialog.hoja::backdrop{background:rgba(10,30,26,.45);}
   dialog.hoja h2{font-size:var(--t5);font-weight:700;margin-top:var(--e2);overflow-wrap:anywhere;}
@@ -134,14 +135,14 @@
   dialog.hoja label input[readonly]{background:transparent;}
   dialog.hoja label textarea{display:block;width:100%;margin-top:6px;font:inherit;font-size:var(--t3);line-height:1.5;min-height:200px;resize:vertical;box-sizing:border-box;}
   #dpVista canvas{display:block;width:100%;max-width:340px;height:auto;margin:var(--e3) auto 0;border-radius:var(--radio);background:var(--sup);}
-  #dbSi{background:var(--negativo);color:#fff;font-weight:600;}
+  #dbSi{background:var(--negativo);color:var(--sobre-negativo);font-weight:600;}
   #dbMsg{min-height:1.5em;}
 
   @media (max-width:600px){
     .mantCaja{grid-template-columns:1fr;}
     .mantCaja .btn{width:100%;}
     .acc{grid-column:1 / -1;}
-    dialog.hoja{margin:auto 0 0;width:100%;max-width:none;border-radius:24px 24px 0 0;padding:var(--e3) var(--e4) var(--e5);}
+    dialog.hoja{margin:auto 0 0;width:100%;max-width:none;border-radius:var(--radio-hoja) var(--radio-hoja) 0 0;padding:var(--e3) var(--e4) var(--e5);}
   }
 </style>
 </head>
@@ -211,6 +212,12 @@
           <span class="nota" id="limEstado" style="margin:0">Inscripciones de torneos de hace más de 30 días o de eventos que ya no existen. Guardan nombre, correo y fecha de nacimiento: la política de privacidad dice que se borran.</span></div>
         <div id="limLista"></div>
       </div>
+
+      <h2 class="gtit">Rulings</h2>
+      <div class="grupo"><div class="mantCaja" id="rulAbierto">
+        <div><b id="ruEstado">…</b><small id="ruDesc"></small></div>
+        <button class="btn" id="ruBtn" disabled>…</button>
+      </div></div>
 
       <h2 class="gtit">Beta cerrada <span id="btResumen"></span></h2>
       <div class="grupo"><div class="mantCaja" id="beta">
@@ -335,7 +342,7 @@ onAuthStateChanged(auth, async u => {
   $("bajada").textContent = "Solo las ven las cuentas de administrador del sitio.";
   $("herr").classList.remove("oculto");
   escucharMantenimiento();
-  escucharBeta();
+  escucharBeta(); escucharRulings();
   escucharSolicitudes();
   limpiarInvitados();
   escucharCifras();
@@ -451,6 +458,26 @@ $("btBtn").onclick = async () => {
   $("btBtn").disabled = true;
   try { await set(ref(db, "beta/activa"), cerrar); }
   catch(e){ $("btBtn").disabled = false; $("btDesc").textContent = "No se pudo cambiar. ¿Publicaste las reglas nuevas?"; }
+};
+/* Rulings: mientras sistema/rulingsAbierto no sea true, la página solo la ven y la usan los admins (las reglas cierran el foro
+   a los demás). Abrirla la muestra a todos y suma «Rulings» al menú del muro. */
+let RUL_ABIERTO = false;
+function escucharRulings(){
+  onValue(ref(db, "sistema/rulingsAbierto"), s => {
+    RUL_ABIERTO = s.val() === true;
+    $("ruEstado").textContent = RUL_ABIERTO ? "Abierta a todos" : "En construcción: solo la ven los admins";
+    $("ruDesc").textContent = RUL_ABIERTO ? "Cualquiera la ve en el menú del muro y puede escribir en el foro con su cuenta."
+      : "Los demás ven un aviso de que está en construcción. Ábrela cuando estén cargados y revisados los rulings.";
+    $("ruBtn").textContent = RUL_ABIERTO ? "Volver a cerrarla" : "Abrirla a todos";
+    $("ruBtn").classList.toggle("primario", !RUL_ABIERTO);
+    $("ruBtn").disabled = false;
+  }, () => { $("ruDesc").textContent = "No se pudo leer. ¿Publicaste las reglas nuevas?"; });
+}
+$("ruBtn").onclick = async () => {
+  if (!RUL_ABIERTO && !confirm("¿Abrir Rulings a todos? Aparece en el menú del muro y cualquiera con cuenta puede escribir en el foro.")) return;
+  $("ruBtn").disabled = true;
+  try { await set(ref(db, "sistema/rulingsAbierto"), RUL_ABIERTO ? null : true); }
+  catch(e){ $("ruBtn").disabled = false; $("ruDesc").textContent = "No se pudo cambiar. ¿Publicaste las reglas nuevas?"; }
 };
 /* 10 caracteres sin los que se confunden (0/O, 1/I/L): se dictan y se escriben a mano. */
 function codigoNuevo(){
@@ -912,10 +939,10 @@ $("dbSi").onclick = async () => {
    Compara el ?v= que piden las páginas de byepass.cl con la versión de cada archivo, y prueba si
    las reglas nuevas ya están publicadas. */
 const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "timer-view.html", "tele.html", "admin.html", "inscripcion.html",
-                 "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "mazos.html", "404.html"];
+                 "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "mazos.html", "rulings.html", "404.html"];
 /* El archivo tal como está publicado ahora (sin copias guardadas). */
 const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
-/* Lo que pide un archivo: «./clasificacion.js?v=6», «estilo.css?v=12»… → [archivo, versión]. */
+/* Lo que pide un archivo: «./clasificacion.js?v=6», «estilo.css?v=14»… → [archivo, versión]. */
 const pide = txt => [...String(txt).matchAll(/["'(]\.?\/?([a-z0-9-]+\.(?:js|css))\?v=(\d+)/g)].map(m => [m[1], +m[2]]);
 const versionDe = txt => { const m = /Versión actual: v=(\d+)/.exec(txt || ""); return m ? +m[1] : null; };
 const lineaPub = (tipo, titulo, det) => '<div class="linea ' + tipo + '"><i>' + (tipo === "ok" ? "✓" : tipo === "mal" ? "✗" : "!") + "</i><b>" + esc(titulo) + "</b>" + (det ? "<small>" + esc(det) + "</small>" : "") + "</div>";
