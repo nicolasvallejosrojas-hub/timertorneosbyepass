@@ -217,9 +217,9 @@ const corta = dia => +dia.slice(8) + " " + MESES[+dia.slice(5, 7) - 1];
 /* El lunes de la semana de un día: agrupar por semana cuando el período es largo. */
 const lunes = dia => { const d = new Date(dia + "T12:00:00"); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return diaDe(d.getTime()); };
 const PAGINA = { portada: "portada", cuenta: "cuenta", muro: "muro", tiendas: "tiendas", timer: "timers",
-                 panel: "paneles", herramientas: "herramientas", widget: "widgets" };
+                 panel: "paneles", herramientas: "herramientas", widget: "widgets", rulings: "rulings" };
 const NOMBRE_PAGINA = { portada: "Portada", cuenta: "Cuenta", muro: "Muro", tiendas: "Tiendas y perfiles", timer: "Timer y mesas (QR)",
-                        panel: "Panel del organizador", herramientas: "Herramientas", widget: "Widget en webs de tiendas" };
+                        panel: "Panel del organizador", herramientas: "Herramientas", widget: "Widget en webs de tiendas", rulings: "Rulings" };
 const fmtN = n => Math.round(n).toLocaleString("es-CL");
 const pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "—";
 
