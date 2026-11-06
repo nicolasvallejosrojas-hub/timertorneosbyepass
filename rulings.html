@@ -46,11 +46,21 @@
   .enlace{background:none;border:none;padding:0;min-height:44px;color:var(--accion-texto);text-decoration:underline;text-underline-offset:3px;font:inherit;font-size:var(--t2);cursor:pointer;}
 
   /* el marco: tres columnas en el computador, una en el celular */
-  .marco{display:grid;grid-template-columns:250px minmax(320px,400px) 1fr;height:calc(100vh - 56px);border-top:1px solid var(--divider);}
-  .marco > *{min-width:0;overflow:auto;overscroll-behavior:contain;}
-  #filtrosCol{padding:var(--e4);border-right:1px solid var(--divider);}
-  #listaCol{border-right:1px solid var(--divider);display:flex;flex-direction:column;}
-  #detCol{padding:var(--e5);}
+  .marco{display:grid;grid-template-columns:var(--fil,250px) minmax(320px,400px) 1fr;height:calc(100vh - 56px);border-top:1px solid var(--divider);}
+  .marco > *{min-width:0;overflow:auto;overscroll-behavior:contain;grid-row:1;}
+  #filtrosCol{padding:var(--e4);border-right:1px solid var(--divider);grid-column:1;}
+  #listaCol{border-right:1px solid var(--divider);display:flex;flex-direction:column;grid-column:2;}
+  #detCol{padding:var(--e5);grid-column:3;}
+  /* la columna de filtros se achica, se agranda (arrastrando su borde o con las flechas) y se pliega; se recuerda en este navegador */
+  .filCab{display:flex;align-items:center;justify-content:space-between;gap:var(--e2);margin:calc(-1 * var(--e2)) 0 var(--e2);}
+  .filCab h2{font-size:var(--t3);font-weight:700;margin:0;}
+  #plegar{min-width:44px;display:inline-flex;align-items:center;justify-content:center;gap:4px;text-decoration:none;}
+  #plegar b{font-size:var(--t1);background:var(--texto);color:var(--pagina);border-radius:999px;min-width:18px;padding:1px 5px;box-sizing:border-box;}
+  .tirador{grid-column:1;justify-self:end;width:12px;margin-right:-6px;cursor:col-resize;z-index:3;overflow:visible;touch-action:none;outline:none;}
+  .tirador::after{content:"";display:block;width:3px;height:100%;margin:0 auto;}
+  .tirador:hover::after,.tirador:focus-visible::after{background:var(--accion-texto);}
+  body.sinFil #fCol,body.sinFil .filCab h2,body.sinFil .tirador{display:none;}
+  body.sinFil #filtrosCol{padding:var(--e3) 5px;}
 
   /* filtros completos (columna o hoja): casillas con su cuenta */
   .grupo{margin-bottom:var(--e4);}
@@ -124,6 +134,11 @@
   .pieR{display:flex;flex-wrap:wrap;gap:var(--e2);}
   .pieR .btn{min-height:44px;}
   .nada{color:var(--apagado);padding-top:var(--e6);text-align:center;}
+  /* casos parecidos de otras épocas */
+  .parecido{display:flex;flex-direction:column;gap:2px;justify-content:center;min-height:44px;padding:var(--e2) 0;border-bottom:1px solid var(--divider);color:var(--texto);text-decoration:none;}
+  .parecido .q{font-size:var(--t3);font-weight:600;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .parecido .m{font-size:var(--t2);color:var(--apagado);}
+  .parecido:hover .q{color:var(--accion-texto);}
 
   /* hojas: editor y filtros en el celular */
   dialog.hoja{border:none;border-radius:var(--radio-hoja);padding:var(--e4) var(--e5) var(--e5);max-width:640px;width:calc(100% - 32px);box-sizing:border-box;background:var(--sup);color:var(--texto);}
@@ -144,7 +159,7 @@
   @media (max-width:899px){
     .marco{display:block;height:auto;border-top:none;}
     .marco > *{overflow:visible;}
-    #filtrosCol{display:none;}
+    #filtrosCol,.tirador{display:none;}
     #listaCol{border-right:none;}
     .rapidos{display:flex;}
     #detCol{display:none;padding:var(--e3) var(--e4) var(--e6);}
@@ -166,7 +181,11 @@
     <a class="btn" id="aObraMuro" href="muro.html">Volver a mi muro</a>
   </section>
   <div class="marco oculto" id="marco">
-    <aside id="filtrosCol" aria-label="Filtros"><div id="fCol"></div></aside>
+    <aside id="filtrosCol" aria-labelledby="tFilCol">
+      <div class="filCab"><h2 id="tFilCol">Filtros</h2><button class="enlace" type="button" id="plegar" aria-controls="fCol" aria-expanded="true">Ocultar</button></div>
+      <div id="fCol"></div>
+    </aside>
+    <div class="tirador" id="tirador" role="separator" aria-orientation="vertical" aria-label="Ancho de los filtros (flechas izquierda y derecha; doble clic vuelve al de siempre)" tabindex="0" aria-valuemin="180" aria-valuemax="440" aria-valuenow="250"></div>
 
     <section id="listaCol" aria-labelledby="tLista">
       <div class="cab">
@@ -228,6 +247,8 @@
       <label class="campo">Cartas (separadas por coma) <input id="edCartas" maxlength="600" placeholder="Garbodor, Dhelmise"></label>
       <label class="campo">Etiquetas (separadas por coma) <input id="edTags" maxlength="400" placeholder="kill-timing, apilable"></label>
       <p class="pista" id="edUsadas"></p>
+      <label class="campo">Casos parecidos de otras épocas (números del Compendium, separados por coma) <input id="edPar" maxlength="200" placeholder="1311, 1359" aria-describedby="edParPista"></label>
+      <p class="pista" id="edParPista">Vienen sugeridos por el parecido de las cartas. Si cambias la lista, queda la tuya.</p>
       <div class="campo">Categorías <div class="marcas" id="edCats"></div></div>
       <div class="dos">
         <label class="campo">Momento <select id="edMom"></select></label>
@@ -262,7 +283,7 @@ const CATS = [["ataque","Ataques"],["habilidad","Habilidades"],["entrenador","En
 const MOMENTOS = [["costo","Costo del ataque"],["efecto","Efecto del ataque"],["dano","Tras el daño o KO"],["retirada","Retirada y cambio"],["turno","Durante el turno"]];
 const MODAL = [["puede","Puede (opcional)"],["debe","Debe (obligatorio)"],["ninguna","No aplica"]];
 const ESTADO = [["revisado","Revisada por juez"],["pendiente","Por revisar"],["sin","Sin traducir"]];
-const EDIT = ["cats","qEs","aEs","cartas","tags","momento","modalidad","revisado","oculto"], MANUAL = ["qEn","aEn","fuente","fecha"];
+const EDIT = ["cats","qEs","aEs","cartas","tags","momento","modalidad","revisado","oculto","parecidos"], MANUAL = ["qEn","aEn","fuente","fecha"];
 /* palabras en español → cómo aparecen en el original en inglés */
 const SIN = { banca:["bench"], activo:["active"], descartar:["discard"], descarte:["discard"], descartes:["discard"], herramienta:["tool"], estadio:["stadium"],
   objeto:["item"], partidario:["supporter"], habilidad:["ability"], ataque:["attack"], retirada:["retreat"], retirar:["retreat"], premio:["prize"],
@@ -287,7 +308,7 @@ const ancho = matchMedia("(min-width:900px)");
 function juntar(){
   R = [...new Set([...Object.keys(BASE), ...Object.keys(ED)])].map(id => {
     const r = { id, cats: [], cartas: [], tags: [], ...(BASE[id] || {}), ...(ED[id] || {}) };
-    r.cats = lista(r.cats); r.cartas = lista(r.cartas); r.tags = lista(r.tags);
+    r.cats = lista(r.cats); r.cartas = lista(r.cartas); r.tags = lista(r.tags); r.parecidos = lista(r.parecidos);
     r.texto = norm([r.qEs, r.aEs, r.qEn, r.aEn, r.cartas.join(" "), r.tags.join(" "), (r.temas || []).join(" "), r.fuente, r.compId].join(" "));
     return r;
   }).filter(r => (r.qEn || r.qEs || r.aEn || r.aEs) && (ADMIN || !r.oculto));
@@ -305,7 +326,8 @@ const orden = (a, b) => String(b.fecha || "").localeCompare(String(a.fecha || ""
 const activos = () => CLAVES.reduce((n, k) => n + F[k].size, 0);
 
 /* ▌BLOQUE 5 · Filtros ═══════════════════════════════════════════════════════════
-   Los completos (columna o hoja, con su cuenta) y los rápidos del celular. */
+   Los completos (columna o hoja, con su cuenta), los rápidos del celular, y la columna que se
+   pliega y cambia de ancho. */
 /* Filtros: los completos (columna en el computador, hoja en el celular, la misma pieza dos veces) y los rápidos. */
 function filtros(){
   const n = (k, v) => R.filter(r => k === "cat" ? r.cats.includes(v) : k === "mom" ? r.momento === v : k === "mod" ? r.modalidad === v : k === "tag" ? r.tags.includes(v) : estadoDe(r) === v).length;
@@ -315,7 +337,7 @@ function filtros(){
     return '<label' + (m ? "" : ' class="cero"') + '><input type="checkbox" data-k="' + k + '" data-v="' + esc(v) + '"' + (F[k].has(v) ? " checked" : "") + "> " + esc(txt) + '<small aria-hidden="true">' + m + "</small></label>"; }).join("")
     : '<p class="pista">Todavía no hay etiquetas.</p>') + "</div>";
   const html = grupo("Categoría", "cat", CATS) + grupo("Momento", "mom", MOMENTOS) + grupo("Puede / debe", "mod", MODAL) + grupo("Traducción", "est", ESTADO) + grupo("Etiquetas más usadas", "tag", tags);
-  $("fCol").innerHTML = html; $("fHoja").innerHTML = html;
+  $("fCol").innerHTML = html; $("fHoja").innerHTML = html; ponerFil();
   const rap = [["", "", "Todas"], ...CATS.slice(0, 5).map(([v, l]) => ["cat", v, l]), ["mod", "puede", "Puede"], ["mod", "debe", "Debe"]];
   $("rapidos").innerHTML = rap.map(([k, v, l]) => '<button type="button" class="chip" data-k="' + k + '" data-v="' + v + '" aria-pressed="' + (k ? F[k].has(v) : !activos()) + '">' + l + "</button>").join("") +
     '<button type="button" class="chip" id="abrirFil"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtros' + (activos() ? " (" + activos() + ")" : "") + "</button>";
@@ -326,6 +348,28 @@ function alternar(k, v){
   else F[k].has(v) ? F[k].delete(v) : F[k].add(v);
   LIM = 40; todo();
 }
+
+/* La columna de filtros del computador: su ancho y si está plegada se recuerdan en este navegador (si se puede). */
+const FIL = (() => { try { return JSON.parse(localStorage.getItem("rulingsFiltros")) || {}; } catch(e){ return {}; } })();
+const anchoFil = x => Math.min(440, Math.max(180, Math.round(x) || 250));
+const ICONO_FIL = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>';
+function ponerFil(recordar){
+  const a = anchoFil(FIL.ancho), n = activos();
+  $("marco").style.setProperty("--fil", FIL.oculto ? "56px" : a + "px");
+  document.body.classList.toggle("sinFil", !!FIL.oculto);
+  $("tirador").setAttribute("aria-valuenow", a);
+  $("plegar").setAttribute("aria-expanded", !FIL.oculto);
+  $("plegar").setAttribute("aria-label", FIL.oculto ? "Mostrar filtros" + (n ? " (" + n + (n === 1 ? " puesto)" : " puestos)") : "") : "Ocultar filtros");
+  $("plegar").innerHTML = FIL.oculto ? ICONO_FIL + (n ? "<b>" + n + "</b>" : "") : "Ocultar";
+  if (recordar) try { localStorage.setItem("rulingsFiltros", JSON.stringify(FIL)); } catch(e){}
+}
+$("plegar").onclick = () => { FIL.oculto = !FIL.oculto; ponerFil(true); };
+const tir = $("tirador");
+tir.onpointerdown = e => { e.preventDefault(); tir.setPointerCapture(e.pointerId); const x0 = e.clientX, a0 = anchoFil(FIL.ancho);
+  tir.onpointermove = ev => { FIL.ancho = anchoFil(a0 + ev.clientX - x0); ponerFil(); }; };
+tir.onpointerup = tir.onpointercancel = () => { tir.onpointermove = null; ponerFil(true); };
+tir.onkeydown = e => { const d = { ArrowLeft: -20, ArrowRight: 20 }[e.key]; if (d){ e.preventDefault(); FIL.ancho = anchoFil(anchoFil(FIL.ancho) + d); ponerFil(true); } };
+tir.ondblclick = () => { delete FIL.ancho; ponerFil(true); };
 
 /* ▌BLOQUE 6 · Lista ═════════════════════════════════════════════════════════════
    Cada ruling es un enlace a su vista (#r2432), de a 40, con el foro general al final. */
@@ -348,8 +392,8 @@ function pintar(){
 const todo = () => { filtros(); pintar(); pintarLimpiarEd(); if (ABIERTO) detalle(); };
 
 /* ▌BLOQUE 7 · El ruling abierto ═════════════════════════════════════════════════
-   Español o el original, marcas, cartas, etiquetas, fuente y botones de la administración;
-   «Volver» y el enlace propio. */
+   Español o el original, marcas, cartas, etiquetas, fuente, botones de la administración y casos
+   parecidos de otras épocas; «Volver» y el enlace propio. */
 /* El detalle: el ruling abierto (o el foro general), con la traducción o el original y su discusión. */
 function abrir(id, foco){
   ABIERTO = id || null;
@@ -384,8 +428,19 @@ function detalle(){
     (r.tags.length ? '<div class="etqs">' + r.tags.map(t => '<button type="button" class="etq" data-tag="' + esc(t) + '" aria-label="Filtrar por la etiqueta ' + esc(t) + '">#' + esc(t) + "</button>").join("") + "</div>" : "") +
     (r.fuente ? '<p class="pista">Fuente: ' + esc(r.fuente) + "</p>" : "") +
     (ADMIN ? '<div class="pieR"><button class="btn" type="button" data-editar="' + esc(r.id) + '">Editar</button>' +
-      (es && !r.revisado ? '<button class="btn" type="button" data-revisar="' + esc(r.id) + '">Marcar revisada</button>' : "") + "</div>" : "");
+      (es && !r.revisado ? '<button class="btn" type="button" data-revisar="' + esc(r.id) + '">Marcar revisada</button>' : "") + "</div>" : "") +
+    parecidos(r);
   hilo(r.id);
+}
+/* Casos parecidos de otras épocas: los sugiere rulings-compendium.py --parecidos (por el texto de las cartas) y un juez los
+   corrige en el editor. Se muestran los que existen y se ven (no los ocultos). */
+function parecidos(r){
+  const ps = r.parecidos.map(id => R.find(x => x.id === id)).filter(Boolean);
+  if (!ps.length) return "";
+  const juez = r.parecidosFijos || (ED[r.id] && "parecidos" in ED[r.id]);
+  return '<section class="bloque" aria-labelledby="tPar"><h3 id="tPar">Casos parecidos de otras épocas</h3><div>' + ps.map(p => { const en = !traducido(p) || LENGUA === "en";
+      return '<a class="parecido" href="#' + esc(p.id) + '"><span class="q"' + (en ? ' lang="en"' : "") + ">" + esc(titulo(p, en)) + '</span><span class="m">' + esc([(p.fecha || "").slice(0, 4), p.cartas.slice(0, 3).join(", ")].filter(Boolean).join(" · ")) + "</span></a>"; }).join("") +
+    '</div><p class="pista">' + (juez ? "Elegidos por un juez." : "Sugeridos automáticamente por el parecido de las cartas y del caso.") + " Son de otra época: si alguno contradice a uno más nuevo, vale el más nuevo.</p></section>";
 }
 /* «Volver»: si se llegó a este ruling desde la lista, atrás (el navegador devuelve la lista donde estaba); si se entró directo
    por su enlace, a la lista sin salir de la página. */
@@ -466,7 +521,7 @@ async function borrarMsj(b){
    siendo poco. Los ingresados a mano (id m…, sin número del Compendium) se guardan completos y dejan editar su inglés. */
 let EDITANDO = null;
 const opciones = (l, v, vacio) => (vacio ? '<option value="">—</option>' : "") + l.map(([k, t]) => '<option value="' + k + '"' + (k === v ? " selected" : "") + ">" + esc(t) + "</option>").join("");
-const VACIO = { revisado: false, oculto: false }, LISTAS = ["cats", "cartas", "tags"];
+const VACIO = { revisado: false, oculto: false }, LISTAS = ["cats", "cartas", "tags", "parecidos"];
 const plano = (k, v) => LISTAS.includes(k) ? lista(v).join(", ") : v ?? VACIO[k] ?? "";
 function abrirEditor(id){
   const r = id ? R.find(x => x.id === id) : { id: "m" + Date.now().toString(36), cats: [], cartas: [], tags: [], modalidad: "ninguna" }, manual = !r.compId;
@@ -475,7 +530,7 @@ function abrirEditor(id){
   $("edRef").textContent = r.compId ? "Compendium #" + r.compId + " · el texto en inglés viene del Compendium y no se edita aquí." : "Ruling ingresado en ByePass.";
   $("edOrig").classList.toggle("oculto", !manual);
   [["edQEn","qEn"],["edAEn","aEn"],["edFuente","fuente"],["edFecha","fecha"],["edQEs","qEs"],["edAEs","aEs"]].forEach(([e, k]) => { $(e).value = r[k] || ""; });
-  $("edCartas").value = r.cartas.join(", "); $("edTags").value = r.tags.join(", ");
+  $("edCartas").value = r.cartas.join(", "); $("edTags").value = r.tags.join(", "); $("edPar").value = (r.parecidos || []).map(x => x.replace(/^r/, "")).join(", ");
   $("edUsadas").textContent = "Ya usadas: " + ([...new Set(R.flatMap(x => x.tags))].sort().join(", ") || "ninguna todavía");
   $("edCats").innerHTML = CATS.map(([v, l]) => '<label><input type="checkbox" value="' + v + '"' + (r.cats.includes(v) ? " checked" : "") + "> " + esc(l) + "</label>").join("");
   $("edMom").innerHTML = opciones(MOMENTOS, r.momento, true); $("edMod").innerHTML = opciones(MODAL, r.modalidad || "ninguna");
@@ -503,7 +558,10 @@ $("edGuardar").onclick = async () => {
   const c = { qEs: v("edQEs"), aEs: v("edAEs"), cartas: v("edCartas"),
     tags: lista(v("edTags")).map(t => norm(t).replace(/^#/, "").replace(/[^a-z0-9ñ]+/g, "-").replace(/^-|-$/g, "")).filter(Boolean).join(", "),
     cats: [...$("edCats").querySelectorAll("input:checked")].map(i => i.value).join(", "), momento: $("edMom").value, modalidad: $("edMod").value,
-    revisado: $("edRev").checked, oculto: $("edOculto").checked };
+    revisado: $("edRev").checked, oculto: $("edOculto").checked,
+    parecidos: lista(v("edPar")).map(x => /^\d+$/.test(x) ? "r" + x : x.toLowerCase()).join(", ") };
+  const malos = lista(c.parecidos).filter(x => x === EDITANDO || !R.some(y => y.id === x));
+  if (malos.length) return ($("edMsg").textContent = "No hay un ruling " + malos.map(x => x.replace(/^r/, "")).join(", ") + " para poner en casos parecidos.");
   if (manual) Object.assign(c, { qEn: v("edQEn"), aEn: v("edAEn"), fuente: v("edFuente"), fecha: v("edFecha") });
   if (manual && !(c.qEn || c.qEs)) return ($("edMsg").textContent = "Falta la pregunta (en inglés o en español).");
   if (manual && !(c.aEn || c.aEs)) return ($("edMsg").textContent = "Falta la respuesta (en inglés o en español).");
