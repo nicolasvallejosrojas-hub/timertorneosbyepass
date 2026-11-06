@@ -19,6 +19,7 @@
 <script src="tema.js?v=1"></script>
 <meta name="description" content="Rulings de Pokémon TCG con buscador, filtros y traducción de apoyo al español, para jueces y jugadores.">
 <title>Rulings — ByePass</title>
+<link rel="canonical" href="https://byepass.cl/rulings">
 <link rel="stylesheet" href="estilo.css?v=14">
 <!-- ▌BLOQUE 1 · Estilos — Lista y detalle: tres columnas en el computador (filtros, lista, el ruling
      abierto), una en el celular; hojas del editor y de filtros. -->
@@ -274,8 +275,13 @@
 import { ref, get, set, remove, update, push, onValue, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=15";
+import { contarVisita } from "./presencia.js?v=4";
 
 const $ = id => document.getElementById(id);
+contarVisita(db, "rulings");   // las visitas por día, en Estadísticas (solo números, no quién)
+/* En byepass.cl la dirección queda sin «.html» (byepass.cl/rulings, que GitHub Pages sirve igual): es la que se comparte. */
+if (/(^|\.)byepass\.cl$/.test(location.hostname) && location.pathname.endsWith("/rulings.html"))
+  history.replaceState(null, "", location.pathname.slice(0, -5) + location.search + location.hash);
 /* ▌BLOQUE 4 · Datos y búsqueda ══════════════════════════════════════════════════
    rulings.json + rulingsEd/ (solo lo distinto) juntos; búsqueda sin tildes con sinónimos español →
    inglés; filtros. */
