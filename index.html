@@ -186,6 +186,13 @@
     box-shadow:inset 0 0 0 2px var(--accion);}
   .miMesa .mesa{font-weight:700;font-size:var(--d3);line-height:1.1;font-variant-numeric:tabular-nums;}
   .miMesa .rival{font-size:var(--t2);color:var(--apagado);margin-top:2px;line-height:1.35;}
+  /* Rulings: una respuesta como se ve en la página */
+  .rul{background:var(--sup);border-radius:var(--radio);padding:var(--e3);display:flex;flex-direction:column;gap:6px;}
+  .rul small{font-size:var(--t2);color:var(--apagado);}
+  .rul b{font-size:var(--t3);line-height:1.4;}
+  .rul span{font-size:var(--t3);line-height:1.5;color:var(--apagado);}
+  .paso .accion{margin-top:var(--e4);}
+  .paso .accion .btn{min-height:44px;text-decoration:none;display:inline-flex;align-items:center;}
 
   /* ---------------------------------------------------------- pie, como el de 2009 */
   .pie{border-top:1px solid var(--divider);font-size:var(--t2);color:var(--rotulo);
@@ -361,6 +368,24 @@
           </tbody></table>
         </div>
       </section>
+
+      <!-- Se muestra cuando Rulings está abierto a todos (sistema/rulingsAbierto, el interruptor de Herramientas). -->
+      <section class="paso oculto" id="pasoRulings">
+        <div>
+          <h2>Rulings de Pokémon TCG, en español</h2>
+          <p>Busca una carta o una palabra y ve cómo se resuelve: casi 2.000 rulings oficiales traducidos, con el original
+            en inglés al lado, casos parecidos de otras épocas y una conversación en cada uno. No necesitas cuenta.</p>
+          <p class="accion"><a class="btn primario" href="rulings.html" data-link="rulings">Buscar un ruling</a></p>
+        </div>
+        <div class="escena" aria-hidden="true">
+          <div class="buscar">garbotoxin</div>
+          <div class="rul">
+            <small>Compendium #2432 · 2026</small>
+            <b>Si Garbodor con «Garbotoxin» está en juego, ¿se activa «Hide 'n' Sneak» al poner ese Pokémon en la Banca?</b>
+            <span>Hide 'n' Sneak tiene prioridad sobre Garbotoxin cuando ambas Habilidades están en juego.</span>
+          </div>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -372,6 +397,7 @@
         <a href="#registro">Crear cuenta</a>
         <a href="tienda.html" data-link="tiendas">Tiendas</a>
         <a href="timer-view.html" data-link="torneo">Ver el torneo</a>
+        <a class="oculto" id="pieRulings" href="rulings.html" data-link="rulings">Rulings</a>
         <a href="admin.html" data-link="panel">Organizadores</a>
         <a href="cuenta.html#sugerencias">Sugerencias</a>
         <a href="terminos.html">Términos</a>
@@ -408,8 +434,13 @@ get(ref(db, "altas")).then(s => {
 /* ▌BLOQUE 3 · Enlaces y sesión abierta ══════════════════════════════════════════
    Con sesión abierta salta al muro. */
 const DESTINO = { ingresar: urlCuenta("ingresar"), olvide: urlCuenta("olvide"), panel: urlPanel(), pedir: urlCuenta("tienda"),
-                  torneo: "timer-view.html" + params(), tiendas: "tienda.html" + (enEmulador() ? "?emu=1" : "") };
+                  torneo: "timer-view.html" + params(), tiendas: "tienda.html" + (enEmulador() ? "?emu=1" : ""),
+                  rulings: enEmulador() ? "rulings.html?emu=1" : "rulings" };
 document.querySelectorAll("[data-link]").forEach(a => a.href = DESTINO[a.dataset.link]);
+/* Rulings aparece cuando está abierta a todos (sistema/ se lee sin sesión). */
+get(ref(db, "sistema/rulingsAbierto")).then(s => {
+  if (s.val() === true) ["pasoRulings", "pieRulings"].forEach(id => $(id).classList.remove("oculto"));
+}, () => {});
 
 /* Con la sesión abierta, esta página no tiene nada que ofrecer: al muro, como
    hacía Facebook. Mientras se registra no, o la cuenta quedaría a medias. */
