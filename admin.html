@@ -1243,6 +1243,7 @@
       <select id="evModo" style="display:block;margin-top:4px">
         <option value="lista">Lista de mazo (con sus datos)</option>
         <option value="id">Solo ID de jugador, nombre completo y correo</option>
+        <option value="nick">Nick, nombre y correo (cualquier evento: sin ID de jugador ni lista de mazo)</option>
       </select>
     </label>
     <label id="evFmtWrap" style="display:none">Formato
@@ -4637,11 +4638,11 @@ function modoTodoDia(){
   $("evDurWrap").style.display  = td ? "none" : "";
 }
 $("evTodoDia").onchange = modoTodoDia;
-/* Con solo ID, el formato (Estándar o Expandido) no importa: sirve para revisar la lista de mazo. */
+/* Sin lista de mazo («solo ID» o «nick»), el formato (Estándar o Expandido) no importa: sirve para revisar la lista. */
 const modoInsc = () => {
   const on = $("evInsc").checked;
   $("evModoWrap").style.display = $("evCuposWrap").style.display = on ? "" : "none";
-  $("evFmtWrap").style.display = on && $("evModo").value !== "id" ? "" : "none";
+  $("evFmtWrap").style.display = on && $("evModo").value === "lista" ? "" : "none";
 };
 $("evInsc").onchange = $("evModo").onchange = modoInsc;
 
@@ -4701,7 +4702,7 @@ function leerForm(){
     cupos[d] = n;
   }
   return { ev: {
-    inscripcion: $("evInsc").checked ? { abierta: antes ? antes.abierta : true, formato: $("evFmt").value, ...($("evModo").value === "id" ? { modo: "id" } : {}), ...(Object.keys(cupos).length ? { cupos } : {}) } : null,
+    inscripcion: $("evInsc").checked ? { abierta: antes ? antes.abierta : true, formato: $("evFmt").value, ...($("evModo").value !== "lista" ? { modo: $("evModo").value } : {}), ...(Object.keys(cupos).length ? { cupos } : {}) } : null,
     titulo, fecha, hora,
     duracion: todoDia ? 0 : +$("evDur").value,
     lugar:    $("evLugar").value.trim(),
@@ -4818,7 +4819,8 @@ let BASE_E = null;
 function pintarInscritos(){
   const c = $("inscCaja"), ev = AGENDA.find(e => e.id === inscAbierto);
   if (!c || !ev || !ev.inscripcion) return;
-  const conLista = ev.inscripcion.modo !== "id", estandar = conLista && ev.inscripcion.formato !== "expandido";
+  const conLista = !ev.inscripcion.modo || ev.inscripcion.modo === "lista", conNick = ev.inscripcion.modo === "nick";
+  const estandar = conLista && ev.inscripcion.formato !== "expandido";
   if (estandar && !BASE_E) cargarEstandar().then(b => { if (b){ BASE_E = b; pintarInscritos(); } });
   if (!INSC){ c.textContent = "Cargando…"; return; }
   const filas = Object.entries(INSC).map(([uid, d]) => ({ uid, ...d })).sort((a, b) => (a.creado || 0) - (b.creado || 0));
@@ -4846,9 +4848,9 @@ function pintarInscritos(){
     (sueltas.length ? '<div class="row" style="align-items:center;gap:8px;margin-top:6px"><span class="err" style="flex:1">' + sueltas.length +
       (sueltas.length === 1 ? " cupo tomado por alguien que no llegó a inscribirse" : " cupos tomados por gente que no llegó a inscribirse") +
       '</span><button class="small sec" data-i="liberar">Liberar</button></div>' : "") +
-    (filas.length && !conLista ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th><th>Nombre</th><th>ID</th>' +
+    (filas.length && !conLista ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th>' + (conNick ? "<th>Nick</th><th>Nombre</th>" : "<th>Nombre</th><th>ID</th>") +
       (Object.keys(cupos).length ? "<th>Categoría</th>" : "") + "<th></th></tr></thead><tbody>" +
-      filas.map((f, i) => "<tr><td>" + (i + 1) + "</td><td>" + esc(f.nombre + " " + f.apellido) + '<br><span class="muted">' + esc(f.correo) + "</span></td><td>" + esc(f.playerId) + "</td>" +
+      filas.map((f, i) => "<tr><td>" + (i + 1) + "</td>" + (conNick ? "<td>" + esc(f.nick) + "</td>" : "") + "<td>" + esc(f.nombre + " " + f.apellido) + '<br><span class="muted">' + esc(f.correo) + "</span></td>" + (conNick ? "" : "<td>" + esc(f.playerId) + "</td>") +
         (Object.keys(cupos).length ? "<td>" + esc(catF(f)) + "</td>" : "") + '<td><button class="small sec" data-quitar="' + esc(f.uid) + '">Quitar</button></td></tr>').join("") + "</tbody></table></div>" : "") +
     (filas.length && conLista ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th><th>Nick</th><th>Nombre</th><th>ID</th>' +
       "<th>Nacimiento</th><th>Categoría</th><th>Lista</th><th></th></tr></thead><tbody>" +
@@ -4910,6 +4912,9 @@ function bajarCsvInscritos(ev, filas, conLista = true){
   const t = conLista
     ? [["Nombre", "Apellido", "Nick", "ID de jugador", "Nacimiento", "Categoría", "Correo", "Inscrito", "Lista de mazo"]]
         .concat(filas.map(f => [f.nombre, f.apellido, f.nick, f.playerId, ddmmaaaa(f.nacimiento), catF(f), f.correo, cuando(f), f.lista]))
+    : ev.inscripcion.modo === "nick"
+    ? [["Nick", "Nombre", "Apellido", "Categoría", "Correo", "Inscrito"]]
+        .concat(filas.map(f => [f.nick, f.nombre, f.apellido, f.division ? catF(f) : "", f.correo, cuando(f)]))
     : [["Nombre", "Apellido", "ID de jugador", "Categoría", "Correo", "Inscrito"]]
         .concat(filas.map(f => [f.nombre, f.apellido, f.playerId, f.division ? catF(f) : "", f.correo, cuando(f)]));
   const a = document.createElement("a");
@@ -4997,7 +5002,7 @@ function filaEvento(ev, pasado){
       (ev.lugar ? "<br>" + esc(ev.lugar) : "") +
       (ev.detalle ? '<br><span style="opacity:.75">' + esc(ev.detalle) + "</span>" : "") +
       (ev.inscripcion ? "<br><b>Inscripciones " + (ev.inscripcion.abierta ? "abiertas" : "cerradas") + "</b> · " +
-        (ev.inscripcion.modo === "id" ? "Solo con ID" : ev.inscripcion.formato === "expandido" ? "Expandido" : "Estándar") : "") +
+        (ev.inscripcion.modo === "id" ? "Solo con ID" : ev.inscripcion.modo === "nick" ? "Sin lista de mazo" : ev.inscripcion.formato === "expandido" ? "Expandido" : "Estándar") : "") +
     "</div></div>";
 
   const acc = document.createElement("div");
