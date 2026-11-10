@@ -22,7 +22,7 @@ button {cursor:pointer}
 .site-header {position:sticky;top:0;z-index:20;background:var(--header);border-bottom:1px solid var(--linea);backdrop-filter:blur(12px)}
 .header-inner {display:flex;align-items:center;gap:32px;min-height:88px}
 .brand {display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-size:25px;font-weight:700;letter-spacing:-1.2px;white-space:nowrap}
-.brand-mark {width:42px;height:42px;display:block;color:var(--accion);margin-right:-12px;flex:none}
+.brand-mark {width:42px;height:42px;display:block;color:var(--accion);margin-right:-11px;flex:none}
 .brand-mark svg {display:block;width:100%;height:100%;overflow:visible}
 .auth-top .brand {--bp-logo-fondo:var(--sup)}
 .brand span:last-child span {color:inherit}
@@ -200,7 +200,7 @@ h1,h2,h3,p {margin:0}
 }
 @media (max-width:560px) {
   .wrap{width:calc(100% - 40px)}.header-inner{min-height:72px;gap:10px;justify-content:space-between}
-  .brand{font-size:23px;gap:8px}.brand-mark{width:37px;height:37px;margin-right:-10px}
+  .brand{font-size:23px;gap:8px}.brand-mark{width:37px;height:37px;margin-right:-9px}
   .header-nav{display:none}.header-actions{margin-left:auto}.theme-toggle{width:35px;height:35px}
   .theme-toggle .icon{width:17px;height:17px}.header-actions .btn{font-size:12px;padding:10px 14px;min-height:38px}
   .hero{padding-top:42px;gap:42px}.eyebrow{font-size:8px;letter-spacing:1.3px;margin-bottom:20px}
