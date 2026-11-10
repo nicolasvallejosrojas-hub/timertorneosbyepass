@@ -432,7 +432,7 @@ import { getDatabase, connectDatabaseEmulator, ref, onValue, get } from "https:/
 import { estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
          MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=5";
 import { SALA, BASE, TIENDA, BASE_T, INVITADO, SIN_TIENDA, numTimer } from "./sala.js?v=6";
-import { estoyEnLinea } from "./presencia.js?v=4";
+import { estoyEnLinea } from "./presencia.js?v=5";
 
 /* Sin ?sala= no hay qué mostrar (antes abría «principal», que no era de
    nadie): se va al directorio, a elegir la tienda. */
@@ -759,6 +759,7 @@ window.addEventListener("orientationchange", () => setTimeout(() => { if (TH) ap
 if (SIN_TIENDA){
   $("marcaBP").style.display = "block";
   ["tabC", "tabA"].forEach(id => $(id).style.display = "none");   // la barra les pone display: hidden no alcanza
+  $("aPerfil").style.display = "none";   // sin tienda no hay perfil que ver
 }
 if (INVITADO){
   const vencida = () => { $("vencida").style.display = "flex"; };
