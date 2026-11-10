@@ -11,15 +11,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=cc72b6ac4534"></script>
+<script src="tema.js?v=dc5c59237a36"></script>
 <meta name="description" content="Rifa de una tienda: premios y números disponibles.">
 <title>Rifa — ByePass</title>
-<link rel="stylesheet" href="estilo.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="estilo.css?v=dc5c59237a36">
 <!-- ▌BLOQUE 1 · Estilos — Grilla de cuadros redondeados numerados, premios y el código. -->
 
-<link rel="stylesheet" href="/paginas/rifa.css?v=cc72b6ac4534">
-<link rel="stylesheet" href="/sistema.css?v=cc72b6ac4534">
-<script src="/sistema.js?v=cc72b6ac4534" defer></script>
+<link rel="stylesheet" href="/paginas/rifa.css?v=dc5c59237a36">
+<link rel="stylesheet" href="/sistema.css?v=dc5c59237a36">
+<script src="/sistema.js?v=dc5c59237a36" defer></script>
 </head>
 <body data-pagina="rifa">
   <!-- ▌BLOQUE 2 · Marcado — Premios, grilla de números, código y elección. -->
@@ -69,13 +69,13 @@
       entrega premios. Lo que escribes acá lo ve solo la tienda. Más en la <a href="privacidad.html">política de privacidad</a>.</p>
   </main>
 
-<script src="config.js?v=cc72b6ac4534"></script>
+<script src="config.js?v=dc5c59237a36"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sala y la app «invitado». -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { slug, nombreTienda } from "./sala.js?v=cc72b6ac4534";
+import { slug, nombreTienda } from "./sala.js?v=dc5c59237a36";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════

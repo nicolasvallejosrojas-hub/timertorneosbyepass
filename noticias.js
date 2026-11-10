@@ -1,4 +1,4 @@
-/* Noticias de Pokémon TCG en la portada. Lee noticias.json (lo genera scripts/noticias.mjs cada 3 horas desde el
+/* Noticias de Pokémon TCG en la portada. Las lee de la base (las deja functions/noticias.mjs cada 3 horas desde el
    RSS de PokéBeach) y muestra las últimas, en español o en el original en inglés, a elección de cada persona.
    Si el archivo no está o viene vacío, la sección no aparece. */
 (() => {
@@ -50,9 +50,14 @@
   }));
   mas.addEventListener('click', () => { todas = true; pintar(); lista.querySelectorAll('a')[POCAS]?.focus(); });
 
-  fetch('noticias.json', { cache: 'no-cache' })
+  /* Las deja la función programada «noticias» en la base (noticias/, de lectura pública): se leen por REST, sin el SDK. */
+  const emu = typeof EMULADOR !== 'undefined' && EMULADOR;
+  const url = emu ? 'http://' + emu.host + ':' + emu.db + '/noticias.json?ns=' + new URL(FIREBASE_CONFIG.databaseURL).hostname.split('.')[0]
+                  : FIREBASE_CONFIG.databaseURL + '/noticias.json';
+  fetch(url, { cache: 'no-cache' })
     .then(r => r.ok ? r.json() : null)
     .then(d => {
+      if (d && d.noticias && !Array.isArray(d.noticias)) d.noticias = Object.values(d.noticias);
       if (!d || !Array.isArray(d.noticias) || !d.noticias.length) return;
       datos = d; pintar(); caja.classList.remove('oculto');
     })
