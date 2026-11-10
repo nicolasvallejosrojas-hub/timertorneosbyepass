@@ -61,7 +61,8 @@ export function contarVisita(db, pagina, tienda){
   } catch(e){}
   const suma = unica ? { v: increment(1), u: increment(1) } : { v: increment(1) };
   const envios = [update(ref(db, "stats/visitas/" + dia + "/" + pagina), suma).catch(() => {})];
-  if (tienda && /^[a-z0-9-]{1,40}$/.test(tienda) && tienda !== "principal")
+  /* Las salas sin tienda (invitado inv-…, «Mi timer» mi-…) no tienen estadísticas propias: las reglas lo rechazarían. */
+  if (tienda && /^[a-z0-9-]{1,40}$/.test(tienda) && tienda !== "principal" && !/^(inv|mi)-/.test(tienda))
     envios.push(update(ref(db, "stats/tiendas/" + tienda + "/" + dia + "/" + pagina), suma).catch(() => {}));
   return Promise.all(envios);   // el widget espera esto antes de soltar la conexión
 }

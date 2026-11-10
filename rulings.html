@@ -275,7 +275,7 @@
 import { ref, get, set, remove, update, push, onValue, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=15";
-import { contarVisita } from "./presencia.js?v=4";
+import { contarVisita } from "./presencia.js?v=5";
 
 const $ = id => document.getElementById(id);
 contarVisita(db, "rulings");   // las visitas por día, en Estadísticas (solo números, no quién)
