@@ -534,7 +534,9 @@ async function memoriaApi(accion,extra={}){
   const u=auth.currentUser;if(!u||u.isAnonymous)throw Error('Ingresa con tu cuenta para jugar.');
   const token=await u.getIdToken();
   const {juego,...datos}=extra;
-  const r=await fetch(juego==='minas'?'/api/minas':juego==='salto'?'/api/salto':'/api/memoria',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...datos,accion,sala:SALA,token}),signal:AbortSignal.timeout(12000)});
+  /* Los juegos los atiende la Cloud Function «juegos» (functions/juegos.js); en una prueba local, la del emulador. */
+  const base=typeof EMULADOR!=='undefined'&&EMULADOR?'http://'+EMULADOR.host+':5001/'+FIREBASE_CONFIG.projectId+'/us-central1/juegos/':'https://us-central1-'+FIREBASE_CONFIG.projectId+'.cloudfunctions.net/juegos/';
+  const r=await fetch(base+(juego==='minas'||juego==='salto'?juego:'memoria'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...datos,accion,sala:SALA,token}),signal:AbortSignal.timeout(12000)});
   const data=await r.json();if(!r.ok)throw Object.assign(new Error(data.error||'No se pudo guardar tu partida.'),{status:r.status});return data;
 }
 const espera = montarEspera({root:$("espera"),api:memoriaApi,volver:nombre=>{show('pair');$("q").value=nombre;renderPair();$("q").focus();}});

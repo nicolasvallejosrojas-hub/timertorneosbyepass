@@ -110,6 +110,29 @@ h1,h2,h3,p {margin:0}
 .ranking-row:first-child>b {color:#9C7316}
 .rulings-feature {margin-top:20px;padding:24px 28px;background:var(--lila);border-radius:14px;display:flex;gap:24px;align-items:center;justify-content:space-between}
 .rulings-feature h3 {font-size:18px}.rulings-feature p {font-size:13px;color:var(--apagado);margin-top:6px}
+/* Noticias de Pokémon TCG (noticias.js) */
+.noticias .section-head {align-items:center}
+.noticias-lengua {display:inline-flex;flex:none;border:1px solid var(--linea);border-radius:11px;background:var(--campo);padding:4px;gap:4px}
+.noticias-lengua button {min-height:38px;padding:0 14px;border:0;border-radius:7px;background:transparent;color:var(--apagado);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.noticias-lengua button[aria-pressed="true"] {background:var(--sup);color:var(--texto);box-shadow:0 1px 4px #14243C14}
+.noticias-lista {list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.noticia {display:flex;flex-direction:column;gap:10px;height:100%;padding:20px 22px;border:1px solid var(--linea);border-radius:14px;background:var(--sup);color:var(--texto);text-decoration:none;transition:border-color .18s,box-shadow .18s}
+.noticia:hover {border-color:var(--rotulo);box-shadow:var(--sombra)}
+.noticia:focus-visible {outline:2px solid var(--accion);outline-offset:2px}
+.noticia-meta {display:flex;gap:10px;align-items:center;font-size:11px;color:var(--rotulo);font-weight:600;letter-spacing:.4px}
+.noticia-sin {padding:2px 8px;border-radius:99px;background:var(--amarillo-suave);color:var(--texto);font-weight:500}
+.noticia b {font-size:16px;line-height:1.35;letter-spacing:-.3px;font-weight:650}
+.noticia-resumen {font-size:13px;line-height:1.65;color:var(--apagado);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.noticia-ir {margin-top:auto;padding-top:4px;font-size:12px;font-weight:600;color:var(--accion-texto)}
+.noticias-pie {display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between;margin-top:18px}
+.noticias-pie p {font-size:12px;color:var(--apagado);max-width:70ch}
+.noticias-pie a {color:inherit;text-underline-offset:3px}
+.sr {position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:800px) {.noticias-lista{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px) {
+  .noticias .section-head{display:flex;flex-direction:column;align-items:start;gap:16px}
+  .noticias-lista{grid-template-columns:1fr;gap:12px}.noticia{padding:18px}.noticia b{font-size:15px}
+}
 .organizer {position:relative;background:#1B2C49;color:#F8F7F2;border-radius:18px;margin-top:64px;padding:48px;display:flex;align-items:center;justify-content:space-between;gap:38px;overflow:hidden}
 .organizer::after {content:"↗";position:absolute;right:22%;top:-80px;font-size:330px;line-height:1;color:#FFFFFF06;pointer-events:none}
 .organizer .eyebrow {color:#E5C669;font-size:9px;margin-bottom:15px}.organizer .eyebrow::before{background:#F3CF64}

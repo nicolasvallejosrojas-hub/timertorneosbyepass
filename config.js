@@ -44,9 +44,8 @@ function esc(t){
 // encender en producción: primero se exige que la página venga de localhost o
 // de una IP de red privada. En github.io el parámetro ?emu=1 no hace nada.
 //
-// Se enciende con ?emu=1 y queda recordado en la pestaña; ?emu=0 lo apaga.
-// Es explícito a propósito: adivinar por el nombre del host llevaría a creer
-// que estás probando contra datos falsos cuando en realidad tocas producción.
+// En localhost o en la red local va encendido por defecto; ?emu=0 lo apaga (queda
+// recordado en la pestaña) para mirar la base real a propósito, y ?emu=1 lo enciende.
 //
 // EMULADOR es null (apagado) o { host, auth, db }.
 const EMULADOR = (function(){
@@ -59,12 +58,14 @@ const EMULADOR = (function(){
 
   var q = null;
   try { q = new URLSearchParams(location.search).get("emu"); } catch(e){}
-  var on = false;
+  /* En local el emulador va POR DEFECTO: olvidar el ?emu=1 ya no lleva a escribir en la base real. Para mirar la base
+     real desde el computador hay que pedirlo con ?emu=0 (queda recordado en la pestaña; ?emu=1 lo vuelve a encender). */
+  var on = true;
   try {
-    if (q === "1") sessionStorage.setItem("emu", "1");
-    if (q === "0") sessionStorage.removeItem("emu");
-    on = sessionStorage.getItem("emu") === "1";
-  } catch(e){ on = (q === "1"); }     // modo privado: vale solo la URL
+    if (q === "0") sessionStorage.setItem("emuNo", "1");
+    if (q === "1") sessionStorage.removeItem("emuNo");
+    on = sessionStorage.getItem("emuNo") !== "1";
+  } catch(e){ on = (q !== "0"); }     // modo privado: vale solo la URL
   if (!on) return null;
 
   // El host es el mismo por el que llegaste: desde el celular, la IP del
@@ -89,7 +90,8 @@ if (!EMULADOR){
     "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://*.firebaseio.com",
     "connect-src 'self' https://*.firebaseio.com wss://*.firebaseio.com"
       + " https://identitytoolkit.googleapis.com https://securetoken.googleapis.com"
-      + " https://fcmregistrations.googleapis.com https://fcm.googleapis.com https://firebaseinstallations.googleapis.com",   // avisos push
+      + " https://fcmregistrations.googleapis.com https://fcm.googleapis.com https://firebaseinstallations.googleapis.com"   // avisos push
+      + " https://us-central1-timer-y-qrs-pokemon.cloudfunctions.net",   // los minijuegos de la espera (functions/juegos.js)
     "img-src 'self' data: blob: https://assets.tcgdex.net",   // las fotos de las cartas en el armador de mazos (no se guardan aquí)
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
