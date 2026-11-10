@@ -640,7 +640,9 @@ function pintarBuzon(){
     const esCorreo = t => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t || ""), dir = esCorreo(m.contacto) ? m.contacto.trim() : esCorreo(m.correo) ? m.correo : m.uid ? "el correo de su cuenta" : "";
     return '<div class="msg' + (m.leido ? "" : " nuevo") + '"><div class="cab"><span class="tipo ' + esc(m.tipo) + '">' + esc(TIPOS[m.tipo] || m.tipo) +
       "</span><b>" + esc(m.nombre || "Sin nombre") + "</b><span>" + esc(fechaHora(m.creado)) + "</span>" +
-      (m.pagina ? '<span>desde <a href="' + esc(m.pagina) + '" target="_blank" rel="noopener">' + esc(m.pagina.split("?")[0]) + "</a></span>" : "") + "</div>" +
+      /* «pagina» la escribe quien manda el mensaje: solo es enlace si es una página de ByePass (muro.html?…), nunca javascript: ni otro sitio. */
+      (m.pagina ? "<span>desde " + (/^[a-z0-9-]+(\.html)?(\?|$)/i.test(m.pagina) ? '<a href="' + esc(m.pagina) + '" target="_blank" rel="noopener">' + esc(m.pagina.split("?")[0]) + "</a>"
+        : esc(String(m.pagina).slice(0, 60))) + "</span>" : "") + "</div>" +
       "<p>" + esc(m.texto) + "</p>" +
       '<div class="acc">' +
       (m.respondido ? '<span class="nota" style="margin:0;color:var(--ok)">Respondido el ' + esc(fechaHora(m.respondido)) + "</span>" : "") +
