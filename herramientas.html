@@ -19,136 +19,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B7F6C">
-<script src="tema.js?v=1"></script>
+<meta name="theme-color" content="#243B60">
+<script src="tema.js?v=cc72b6ac4534"></script>
 <meta name="robots" content="noindex">
 <title>Herramientas de administrador — ByePass</title>
-<link rel="stylesheet" href="estilo.css?v=14">
+<link rel="stylesheet" href="estilo.css?v=cc72b6ac4534">
 <!-- ▌BLOQUE 1 · Estilos — Mantenimiento, beta, tiendas, cifras, buzón, cuentas y borrar. -->
-<style>
-  /* Herramientas de quien administra el sitio entero (admins/<uid> = true en
-     la consola): el mantenimiento y todas las tiendas. No es el panel del
-     organizador: ese es para quien controla el timer de UNA tienda. Lo que de
-     verdad protege esto son las reglas de Firebase; la página solo esconde. */
-  body{min-height:100vh;}
-  .oculto{display:none !important;}
-  .ancho{width:100%;max-width:880px;margin:0 auto;padding:var(--e4) var(--e4) var(--e6);box-sizing:border-box;}
-  h1,h2{margin:0;}
-  a{color:var(--accion-texto);}
-  .btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
 
-  .sup{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:var(--e2);
-    min-height:56px;padding:0 max(var(--e4), env(safe-area-inset-right)) 0 max(var(--e4), env(safe-area-inset-left));}
-  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);margin-right:auto;
-    color:var(--texto);text-decoration:none;display:inline-flex;align-items:center;min-height:44px;}
-  .sup .btn{min-height:36px;padding:0 14px;font-size:var(--t2);background:transparent;}
-
-  .grande{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;}
-  .bajada{color:var(--apagado);font-size:var(--t3);margin:var(--e2) 0 0;line-height:1.5;}
-  .gtit{font-size:var(--t2);text-transform:uppercase;letter-spacing:.02em;color:var(--apagado);
-    margin:var(--e5) var(--e3) 7px;font-weight:400;display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 var(--e2);}
-  .grupo{background:var(--sup);border-radius:var(--radio);overflow:hidden;}
-  .nota{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:var(--e2) 0 0;}
-
-  /* ---------------------------------------------------------- mantenimiento
-     (.mant a secas es la pantalla de mantenimiento.js: no reusar ese nombre) */
-  .mantCaja{display:grid;grid-template-columns:1fr auto;gap:var(--e3) var(--e4);align-items:center;padding:var(--e4);}
-  .mantCaja b{display:block;font-size:var(--t4);font-weight:600;}
-  .mantCaja small{display:block;font-size:var(--t2);color:var(--apagado);line-height:1.5;margin-top:2px;}
-  .mantCaja input, .mantCaja select{grid-column:1 / -1;width:100%;}
-  .mantCaja.cerrado b{color:var(--negativo);}
-  .mantCaja .btn{min-height:44px;}
-
-  /* ---------------------------------------------------------- beta cerrada */
-  .btNuevo{display:flex;flex-wrap:wrap;gap:var(--e2) var(--e3);align-items:end;padding:var(--e4);}
-  .btNuevo label{display:grid;gap:4px;font-size:var(--t2);color:var(--apagado);}
-  .btNuevo .nota{flex:1 1 100%;margin:0;}
-  #btNota{min-width:min(100%,280px);}
-  #btMax,#btCant{width:7em;}
-  .codigo{font-weight:700;letter-spacing:.08em;font-variant-numeric:tabular-nums;}
-
-  /* ---------------------------------------------------------- tiendas */
-  .tfila{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:12px 14px;position:relative;}
-  .tfila + .tfila::before{content:"";position:absolute;top:0;right:0;left:14px;height:1px;background:var(--divider);}
-  .tfila b{font-weight:600;overflow-wrap:anywhere;}
-  .tfila small{display:block;font-size:var(--t2);color:var(--apagado);line-height:1.45;margin-top:1px;}
-  .tfila small a{margin-right:10px;}
-  .estado{font-size:var(--t2);font-weight:600;color:var(--apagado);white-space:nowrap;}
-  .estado.e0{color:var(--accion-texto);} .estado.e1{color:var(--ok);}
-  .acc{grid-column:2 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:var(--e2);margin-top:var(--e2);}
-  .acc .btn{min-height:38px;padding:0 14px;box-sizing:border-box;}
-  .btn.peligro{color:var(--negativo);}
-  .logoT{flex:none;display:grid;place-items:center;border-radius:50%;background:var(--c, var(--franja));overflow:hidden;
-    color:#fff;font-weight:700;letter-spacing:-.02em;width:44px;height:44px;font-size:15px;grid-row:span 2;align-self:start;}
-  .logoT img{width:100%;height:100%;object-fit:cover;display:block;}
-
-  /* ---------------------------------------------------------- cifras */
-  .cifras{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--e2);margin-top:var(--e5);}
-  .cifra{background:var(--sup);border-radius:var(--radio);padding:var(--e3) var(--e4);}
-  .cifra b{display:block;font-size:var(--d3);font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;}
-  .cifra span{display:block;font-size:var(--t2);color:var(--apagado);margin-top:2px;}
-  .cifra small{display:block;font-size:var(--t1);color:var(--rotulo);margin-top:4px;line-height:1.4;}
-  .cifra.enlinea{display:block;white-space:normal;}
-  .cifra.enlinea::before{display:none;}
-  .cifra .punto{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-right:8px;vertical-align:middle;}
-
-  /* ---------------------------------------------------------- buzón */
-  .msg{padding:12px 14px;position:relative;}
-  .msg + .msg::before{content:"";position:absolute;top:0;right:0;left:14px;height:1px;background:var(--divider);}
-  .msg .cab{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:var(--t2);color:var(--apagado);}
-  .msg .cab b{color:var(--texto);font-weight:600;}
-  .msg .tipo{font-size:var(--t1);font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:999px;
-    background:var(--sup-alta);color:var(--apagado);}
-  .msg .tipo.error,.msg .tipo.reporte{background:var(--alerta);color:var(--negativo);}
-  .msg p{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;}
-  .msg.nuevo p{font-weight:500;}
-  .msg.nuevo::after{content:"";position:absolute;left:4px;top:18px;width:6px;height:6px;border-radius:50%;background:var(--accion);}
-  .msg .acc{margin-top:8px;}
-
-  /* ---------------------------------------------------------- cuentas */
-  #cuBuscar{width:100%;box-sizing:border-box;padding:10px 12px;font-size:var(--t3);margin-bottom:var(--e2);}
-  .uid{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--t1);overflow-wrap:anywhere;}
-  @media (max-width:600px){ .cifras{grid-template-columns:repeat(2,1fr);} }
-
-  /* ---------------------------------------------------------- publicado y uso de la base */
-  .barraAcc{display:flex;flex-wrap:wrap;align-items:center;gap:var(--e2) var(--e3);padding:var(--e4);}
-  .barraAcc .btn{min-height:40px;}
-  .linea{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:10px 14px;position:relative;align-items:baseline;}
-  .linea + .linea::before{content:"";position:absolute;top:0;right:0;left:14px;height:1px;background:var(--divider);}
-  .linea i{font-style:normal;font-weight:700;}
-  .linea.ok i{color:var(--ok);} .linea.mal i{color:var(--negativo);} .linea.aviso i{color:var(--accion-texto);}
-  .linea small{grid-column:2;font-size:var(--t2);color:var(--apagado);line-height:1.45;}
-  .medidor{height:10px;border-radius:999px;background:var(--sup-alta);overflow:hidden;margin:0 var(--e4) var(--e4);}
-  .medidor b{display:block;height:100%;background:var(--ok);}
-  .peso{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;}
-
-  /* ---------------------------------------------------------- borrar */
-  dialog.hoja{border:none;border-radius:var(--radio-hoja);padding:var(--e4) var(--e5) var(--e5);max-width:480px;width:calc(100% - 32px);
-    background:var(--pagina);color:var(--texto);}
-  dialog.hoja::backdrop{background:rgba(10,30,26,.45);}
-  dialog.hoja h2{font-size:var(--t5);font-weight:700;margin-top:var(--e2);overflow-wrap:anywhere;}
-  dialog.hoja ul{margin:var(--e2) 0 0;padding-left:20px;line-height:1.6;}
-  dialog.hoja label{display:block;margin-top:var(--e4);font-size:var(--t2);color:var(--apagado);}
-  dialog.hoja label input{display:block;width:100%;margin-top:6px;font-size:var(--t4);}
-  .pie{display:flex;justify-content:flex-end;gap:var(--e2);margin-top:var(--e4);flex-wrap:wrap;}
-  .pie .btn{min-height:44px;}
-  dialog.hoja label input[readonly]{background:transparent;}
-  dialog.hoja label textarea{display:block;width:100%;margin-top:6px;font:inherit;font-size:var(--t3);line-height:1.5;min-height:200px;resize:vertical;box-sizing:border-box;}
-  #dpVista canvas{display:block;width:100%;max-width:340px;height:auto;margin:var(--e3) auto 0;border-radius:var(--radio);background:var(--sup);}
-  #dbSi{background:var(--negativo);color:var(--sobre-negativo);font-weight:600;}
-  #dbMsg{min-height:1.5em;}
-
-  @media (max-width:600px){
-    .mantCaja{grid-template-columns:1fr;}
-    .mantCaja .btn{width:100%;}
-    .acc{grid-column:1 / -1;}
-    dialog.hoja{margin:auto 0 0;width:100%;max-width:none;border-radius:var(--radio-hoja) var(--radio-hoja) 0 0;padding:var(--e3) var(--e4) var(--e5);}
-  }
-</style>
+<link rel="stylesheet" href="/paginas/herramientas.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="/sistema.css?v=cc72b6ac4534">
+<script src="/sistema.js?v=cc72b6ac4534" defer></script>
 </head>
-<body>
+<body data-pagina="herramientas">
   <header class="sup vidrio">
-    <a class="marca" href="index.html" data-link="inicio">ByePass</a>
+    <a class="marca bp-brand" href="index.html" data-link="inicio" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-4 -1.5 44 44" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g transform="rotate(4 18 38)"><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a>
     <a class="btn" href="estadisticas.html" data-link="estadisticas">Estadísticas</a>
     <a class="btn" href="tienda.html" data-link="tiendas">Tiendas</a>
     <a class="btn" href="muro.html" data-link="muro">Mi muro</a>
@@ -305,15 +189,16 @@
       <button class="btn" id="dbSi" disabled>Descargar respaldo y eliminar</button></div>
   </dialog>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=cc72b6ac4534"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
+import { avisarError } from "./errores.js?v=cc72b6ac4534";
 import { ref, onValue, get, set, update, remove, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=15";
-import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=6";
-import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=4";
-import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=3";
+import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=cc72b6ac4534";
+import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=cc72b6ac4534";
+import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=cc72b6ac4534";
+import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=cc72b6ac4534";
 estoyEnLinea(db, "herramientas");
 
 const $ = id => document.getElementById(id);
@@ -334,7 +219,7 @@ onAuthStateChanged(auth, async u => {
     return;
   }
   let admin = false;
-  try { admin = (await get(ref(db, "admins/" + u.uid))).val() === true; } catch(e){}
+  try { admin = (await get(ref(db, "admins/" + u.uid))).val() === true; } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   if (!admin){
     $("bajada").textContent = "Esta página es solo para quien administra el sitio. Tu cuenta no tiene ese permiso.";
     return;
@@ -421,7 +306,7 @@ async function limpiarInvitados(){
   const rutas = {};
   vencidas.forEach(c => ["salas/", "jugadores/", "invitados/"].forEach(n => rutas[n + c] = null));
   let borradas = 0;
-  if (vencidas.length){ try { await update(ref(db), rutas); borradas = vencidas.length; } catch(e){} }
+  if (vencidas.length){ try { await update(ref(db), rutas); borradas = vencidas.length; } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }
   const abiertas = Object.keys(lista).length - vencidas.length;
   $("invEstado").textContent = (abiertas === 1 ? "1 sala abierta" : abiertas + " salas abiertas") + " ahora" +
     (borradas ? " · se borraron " + borradas + (borradas === 1 ? " vencida" : " vencidas") : "") +
@@ -540,7 +425,7 @@ function pintarCodigos(){
   });
   $("btLista").querySelectorAll("[data-btborrar]").forEach(b => b.onclick = () => {
     if (confirm("¿Borrar el código " + b.dataset.btborrar + "? Nadie más podrá usarlo; las cuentas que ya lo usaron siguen igual."))
-      remove(ref(db, "beta/codigos/" + b.dataset.btborrar)).catch(() => {});
+      remove(ref(db, "beta/codigos/" + b.dataset.btborrar)).catch(e => avisarError(e));
   });
 }
 
@@ -651,9 +536,9 @@ function pintarBuzon(){
       '<button class="btn chico peligro" data-bzborrar="' + esc(id) + '">Borrar</button></div></div>';
   }).join("") || '<div class="nota" style="padding:var(--e4)">No hay mensajes.</div>';
   $("bzLista").querySelectorAll("[data-leido]").forEach(b => b.onclick = () =>
-    set(ref(db, "buzon/" + b.dataset.leido + "/leido"), b.dataset.v === "1").catch(() => {}));
+    set(ref(db, "buzon/" + b.dataset.leido + "/leido"), b.dataset.v === "1").catch(e => avisarError(e)));
   $("bzLista").querySelectorAll("[data-bzborrar]").forEach(b => b.onclick = () => {
-    if (confirm("¿Borrar este mensaje?")) remove(ref(db, "buzon/" + b.dataset.bzborrar)).catch(() => {});
+    if (confirm("¿Borrar este mensaje?")) remove(ref(db, "buzon/" + b.dataset.bzborrar)).catch(e => avisarError(e));
   });
   $("bzLista").querySelectorAll("[data-responder]").forEach(b => b.onclick = () => {
     const m = BZ[b.dataset.responder]; if (!m) return;
@@ -707,7 +592,7 @@ $("dcCierra").onclick = () => $("dlgCorreo").close();
 
 /* El post: la imagen se vuelve a dibujar con cada cambio (la última manda); el texto se rehace solo mientras no lo hayas editado a mano. */
 let POST_N = 0, POST_LOGO = null, POST_EDITADO = false, POST_MOD = null;
-const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=1"));
+const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=cc72b6ac4534"));
 const datosPost = () => ({ nombre: $("dpNombre").value, comuna: $("dpComuna").value, instagram: $("dpIg").value, logo: POST_LOGO, tema: $("dpTema").value });
 async function pintarPost(){
   const n = ++POST_N, m = await postMod(), d = datosPost();
@@ -942,7 +827,7 @@ const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "ti
                  "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "mazos.html", "rulings.html", "404.html"];
 /* El archivo tal como está publicado ahora (sin copias guardadas). */
 const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
-/* Lo que pide un archivo: «./clasificacion.js?v=6», «estilo.css?v=14»… → [archivo, versión]. */
+/* Lo que pide un archivo: «./clasificacion.js?v=cc72b6ac4534», «estilo.css?v=cc72b6ac4534»… → [archivo, versión]. */
 const pide = txt => [...String(txt).matchAll(/["'(]\.?\/?([a-z0-9-]+\.(?:js|css))\?v=(\d+)/g)].map(m => [m[1], +m[2]]);
 const versionDe = txt => { const m = /Versión actual: v=(\d+)/.exec(txt || ""); return m ? +m[1] : null; };
 const lineaPub = (tipo, titulo, det) => '<div class="linea ' + tipo + '"><i>' + (tipo === "ok" ? "✓" : tipo === "mal" ? "✗" : "!") + "</i><b>" + esc(titulo) + "</b>" + (det ? "<small>" + esc(det) + "</small>" : "") + "</div>";

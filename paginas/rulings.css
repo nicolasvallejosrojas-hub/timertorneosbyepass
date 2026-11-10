@@ -1,0 +1,161 @@
+/* rulings.html — composición y componentes propios de la vista. */
+/* Rulings: la base sale de rulings.json (lo arma rulings-compendium.py desde el Compendium; se sirve con el sitio, sin costo de
+     Firebase). Lo que cambia la administración queda en rulingsEd/ (solo lo distinto) y se superpone. El foro, en rulingsForo/.
+     Diseño (elegido el 04-11-2026): lista y detalle. En el computador, tres columnas —filtros, lista, el ruling abierto—; en el
+     celular, la lista con los filtros rápidos fijos arriba, y el ruling abierto en su propia vista (#r2432, que también es su enlace). */
+  body{min-height:100vh;}
+  .sup{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 var(--e4);gap:var(--e3);}
+  .sup span{display:flex;align-items:center;gap:var(--e4);}
+  .sup a,#tema{min-height:44px;display:inline-flex;align-items:center;}
+  .sup a{color:var(--accion-texto);font-size:var(--t3);}
+  #tema{background:none;border:none;font:inherit;font-size:var(--t3);color:var(--apagado);cursor:pointer;padding:0;gap:6px;}
+  #tema svg,.ico{width:18px;height:18px;flex:none;}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto)!important;text-decoration:none;}
+  .marca b{font-weight:300;color:var(--accion-texto);}
+  .oculto{display:none!important;}
+  .enObra{max-width:520px;margin:0 auto;padding:var(--e6) var(--e4);display:flex;flex-direction:column;gap:var(--e3);align-items:flex-start;}
+  .enObra h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
+  .enObra .btn{min-height:44px;display:inline-flex;align-items:center;text-decoration:none;}
+  p{margin:0;}
+  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
+  .pista a,.legal a,.ref a{color:var(--accion-texto);}
+  .enlace{background:none;border:none;padding:0;min-height:44px;color:var(--accion-texto);text-decoration:underline;text-underline-offset:3px;font:inherit;font-size:var(--t2);cursor:pointer;}
+
+  /* el marco: tres columnas en el computador, una en el celular */
+  .marco{display:grid;grid-template-columns:var(--fil,250px) minmax(320px,400px) 1fr;height:calc(100vh - 56px);border-top:1px solid var(--divider);}
+  .marco > *{min-width:0;overflow:auto;overscroll-behavior:contain;grid-row:1;}
+  #filtrosCol{padding:var(--e4);border-right:1px solid var(--divider);grid-column:1;}
+  #listaCol{border-right:1px solid var(--divider);display:flex;flex-direction:column;grid-column:2;}
+  #detCol{padding:var(--e5);grid-column:3;}
+  /* la columna de filtros se achica, se agranda (arrastrando su borde o con las flechas) y se pliega; se recuerda en este navegador */
+  .filCab{display:flex;align-items:center;justify-content:space-between;gap:var(--e2);margin:calc(-1 * var(--e2)) 0 var(--e2);}
+  .filCab h2{font-size:var(--t3);font-weight:700;margin:0;}
+  #plegar{min-width:44px;display:inline-flex;align-items:center;justify-content:center;gap:4px;text-decoration:none;}
+  #plegar b{font-size:var(--t1);background:var(--texto);color:var(--pagina);border-radius:999px;min-width:18px;padding:1px 5px;box-sizing:border-box;}
+  .tirador{grid-column:1;justify-self:end;width:12px;margin-right:-6px;cursor:col-resize;z-index:3;overflow:visible;touch-action:none;outline:none;}
+  .tirador::after{content:"";display:block;width:3px;height:100%;margin:0 auto;}
+  .tirador:hover::after,.tirador:focus-visible::after{background:var(--accion-texto);}
+  body.sinFil #fCol,body.sinFil .filCab h2,body.sinFil .tirador{display:none;}
+  body.sinFil #filtrosCol{padding:var(--e3) 5px;}
+
+  /* filtros completos (columna o hoja): casillas con su cuenta */
+  .grupo{margin-bottom:var(--e4);}
+  .grupo h3{font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--rotulo);font-weight:600;margin:0 0 4px;}
+  .grupo label{display:flex;align-items:center;gap:10px;font-size:var(--t3);min-height:40px;cursor:pointer;}
+  .grupo label input{width:18px;height:18px;margin:0;accent-color:var(--texto);}
+  .grupo label small{margin-left:auto;color:var(--apagado);font-size:var(--t2);font-variant-numeric:tabular-nums;}
+  .grupo label.cero{color:var(--apagado);}
+
+  /* la lista */
+  .cab{position:sticky;top:0;z-index:2;background:var(--pagina);padding:var(--e4) var(--e4) var(--e3);display:flex;flex-direction:column;gap:var(--e3);border-bottom:1px solid var(--divider);}
+  .cab h1{font-size:var(--t5);font-weight:700;letter-spacing:-.02em;margin:0;}
+  #q{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;font-family:inherit;}
+  .rapidos{display:none;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--e4));padding:0 var(--e4);}
+  .rapidos::-webkit-scrollbar{display:none;}
+  .chip{font:inherit;font-size:var(--t2);color:var(--texto);background:var(--sup-alta);border:none;border-radius:999px;padding:0 14px;min-height:44px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;flex:none;}
+  .chip[aria-pressed="true"]{background:var(--texto);color:var(--pagina);}
+  .barra{display:flex;flex-wrap:wrap;gap:var(--e2);align-items:center;justify-content:space-between;}
+  .cuenta{font-size:var(--t2);color:var(--apagado);}
+  .barra .acc{display:flex;flex-wrap:wrap;gap:var(--e2);align-items:center;}
+  .barra .btn{min-height:40px;padding:0 14px;font-size:var(--t2);}
+  #lista{display:flex;flex-direction:column;}
+  .it{display:flex;flex-direction:column;gap:6px;padding:var(--e3) var(--e4);border-bottom:1px solid var(--divider);color:var(--texto);text-decoration:none;}
+  .it:hover{background:var(--sup);}
+  .it[aria-current="true"]{background:var(--sup-alta);}
+  .it .q{font-size:var(--t3);font-weight:600;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .it .m{font-size:var(--t2);color:var(--apagado);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;}
+  .it.foro .q{display:flex;align-items:center;gap:8px;}
+  .vacio{padding:var(--e5) var(--e4);text-align:center;color:var(--apagado);}
+  #mas{margin:var(--e3) var(--e4);}
+  .legal{font-size:var(--t2);color:var(--apagado);line-height:1.6;margin:auto 0 0;padding:var(--e4);max-width:68ch;}
+
+  /* marcas */
+  .etqs{display:flex;flex-wrap:wrap;gap:8px;}
+  .etq{display:inline-flex;align-items:center;font-size:var(--t2);border-radius:var(--radio-marca);padding:4px 8px;background:var(--campo);color:var(--apagado);border:none;font-family:inherit;}
+  button.etq{cursor:pointer;color:var(--accion-texto);}
+  .etq.debe{background:var(--aviso-mal);color:var(--negativo);}
+  .etq.puede{background:var(--aviso);color:var(--ok);}
+  .etq.pend{background:var(--aviso-accion);color:var(--texto);}
+  .etq.rev{background:var(--aviso);color:var(--ok);}
+
+  /* el detalle */
+  .det{max-width:720px;display:flex;flex-direction:column;gap:var(--e4);}
+  .volver{display:none;align-items:center;gap:6px;color:var(--accion-texto);font-size:var(--t3);min-height:44px;align-self:flex-start;}
+  .ref{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:var(--t2);color:var(--apagado);}
+  .seg{display:inline-flex;background:var(--campo);border-radius:var(--radio-chico);padding:3px;align-self:flex-start;}
+  .seg button{border:none;background:none;font:inherit;font-size:var(--t2);color:var(--apagado);padding:0 14px;min-height:38px;border-radius:8px;cursor:pointer;}
+  .seg button[aria-pressed="true"]{background:var(--sup);color:var(--texto);font-weight:600;}
+  .det h2{font-size:var(--t5);line-height:1.45;margin:0;font-weight:600;letter-spacing:-.01em;outline:none;}
+  .det .a{font-size:var(--t4);line-height:1.7;white-space:pre-line;overflow-wrap:anywhere;}
+  .det .cartas{font-size:var(--t2);color:var(--apagado);}
+  /* las cartas del ruling: la foto la sirve TCGdex (rulings.json guarda solo su dirección); tocarla la muestra grande */
+  .cartasF{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:var(--e3);max-width:600px;}
+  .carta{display:flex;flex-direction:column;gap:6px;background:none;border:none;padding:0;font:inherit;font-size:var(--t2);color:var(--apagado);text-align:left;cursor:zoom-in;min-width:0;}
+  .carta img,.carta i{display:block;width:100%;aspect-ratio:245/342;border-radius:6px;background:var(--campo);object-fit:cover;}
+  .carta i{display:grid;place-items:center;font-style:normal;padding:8px;box-sizing:border-box;text-align:center;font-size:var(--t1);color:var(--rotulo);}
+  span.carta{cursor:default;}
+  .carta span{overflow-wrap:anywhere;line-height:1.3;}
+  dialog.foto{border:none;background:none;padding:0;max-width:min(92vw,420px);}
+  dialog.foto::backdrop{background:rgba(10,30,26,.75);}
+  dialog.foto img{display:block;width:100%;height:auto;border-radius:4.5%/3.2%;}
+  dialog.foto p{color:#F8F7F2;text-align:center;margin-top:var(--e2);font-size:var(--t3);}
+  .det .aviso{font-size:var(--t2);}
+  .bloque{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
+  .bloque h3{margin:0;font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--rotulo);font-weight:600;}
+  .msj{padding-bottom:var(--e3);border-bottom:1px solid var(--divider);display:flex;flex-direction:column;gap:var(--e1);align-items:flex-start;}
+  .msj small{color:var(--apagado);font-size:var(--t2);}
+  .msj p{white-space:pre-line;line-height:1.55;overflow-wrap:anywhere;}
+  .escribir{display:flex;flex-direction:column;gap:var(--e3);align-items:flex-start;}
+  .escribir textarea{width:100%;min-height:76px;resize:vertical;font:inherit;box-sizing:border-box;padding:10px 12px;}
+  .pieR{display:flex;flex-wrap:wrap;gap:var(--e2);}
+  .pieR .btn{min-height:44px;}
+  .nada{color:var(--apagado);padding-top:var(--e6);text-align:center;}
+  /* casos parecidos de otras épocas */
+  .parecido{display:flex;flex-direction:column;gap:2px;justify-content:center;min-height:44px;padding:var(--e2) 0;border-bottom:1px solid var(--divider);color:var(--texto);text-decoration:none;}
+  .parecido .q{font-size:var(--t3);font-weight:600;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .parecido .m{font-size:var(--t2);color:var(--apagado);}
+  .parecido:hover .q{color:var(--accion-texto);}
+
+  /* hojas: editor y filtros en el celular */
+  dialog.hoja{border:none;border-radius:var(--radio-hoja);padding:var(--e4) var(--e5) var(--e5);max-width:640px;width:calc(100% - 32px);box-sizing:border-box;background:var(--sup);color:var(--texto);}
+  dialog.hoja::backdrop{background:rgba(10,30,26,.45);}
+  dialog.hoja h2{font-size:var(--t5);font-weight:700;margin:var(--e2) 0 0;}
+  .campo{display:flex;flex-direction:column;gap:6px;margin-top:var(--e3);font-size:var(--t2);color:var(--apagado);}
+  .campo input,.campo select,.campo textarea{width:100%;padding:10px 12px;font:inherit;font-size:var(--t3);box-sizing:border-box;color:var(--texto);}
+  .campo textarea{min-height:130px;resize:vertical;}
+  .dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 var(--e3);}
+  .marcas{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--texto);font-size:var(--t3);}
+  .marcas label{display:inline-flex;gap:6px;align-items:center;white-space:nowrap;}
+  .acc{display:flex;flex-wrap:wrap;gap:var(--e2);}
+  .hoja .acc{margin-top:var(--e4);}
+  .hoja .acc .btn{min-height:44px;}
+  #dlgFiltros .grupo:first-of-type{margin-top:var(--e4);}
+
+  /* el celular: una columna; el ruling abierto reemplaza a la lista */
+  @media (max-width:899px){
+    .marco{display:block;height:auto;border-top:none;}
+    .marco > *{overflow:visible;}
+    #filtrosCol,.tirador{display:none;}
+    #listaCol{border-right:none;}
+    .rapidos{display:flex;}
+    #detCol{display:none;padding:var(--e3) var(--e4) var(--e6);}
+    body.viendo #listaCol{display:none;}
+    body.viendo #detCol{display:block;}
+    .volver{display:inline-flex;}
+    .nada{display:none;}
+    dialog.hoja{margin:auto 0 0;width:100%;max-width:none;border-radius:var(--radio-hoja) var(--radio-hoja) 0 0;padding:var(--e3) var(--e4) var(--e5);max-height:88vh;}
+  }
+
+
+/* Biblioteca: navegación clara sin alterar el contenido específico de cada juego. */
+[data-pagina="rulings"] .marco {height:calc(100dvh - 76px)}
+[data-pagina="rulings"] .enObra {max-width:650px;padding-top:64px}
+[data-pagina="rulings"] .enObra h1 {font-size:38px;letter-spacing:-1.3px}
+[data-pagina="rulings"] .enObra .pista {font-size:15px;line-height:1.8}
+[data-pagina="rulings"] .it {border-radius:10px;margin:4px 8px;transition:background .16s}
+[data-pagina="rulings"] #det {padding:32px}
+[data-pagina="rulings"] #tLista {font-size:24px;letter-spacing:-.8px}
+[data-pagina="rulings"] #tema {font-size:12px}
+@media(max-width:600px) {[data-pagina="rulings"] .sup>span{gap:12px}[data-pagina="rulings"] .sup>span a{font-size:12px}[data-pagina="rulings"] .marco{height:calc(100dvh - 68px)}[data-pagina="rulings"] #det{padding:22px}[data-pagina="rulings"] .enObra{padding-top:38px}}
+
+[data-pagina="rulings"] fieldset.grupo{border:0;border-bottom:1px solid var(--divider);border-radius:0;padding:0 0 18px;margin:0 0 18px}

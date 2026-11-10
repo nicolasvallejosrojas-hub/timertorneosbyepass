@@ -7,35 +7,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B7F6C">
-<script src="tema.js?v=1"></script>
+<meta name="theme-color" content="#243B60">
+<script src="tema.js?v=cc72b6ac4534"></script>
 <meta name="description" content="Prueba el timer de ByePass sin crear una cuenta: reloj en la tele, mesas en el celular y sorteo, por 24 horas.">
 <title>Timer sin cuenta — ByePass</title>
-<link rel="stylesheet" href="estilo.css?v=14">
+<link rel="stylesheet" href="estilo.css?v=cc72b6ac4534">
 <!-- ▌BLOQUE 1 · Estilos -->
-<style>
-  body{min-height:100vh;}
-  .sup{display:flex;align-items:center;min-height:56px;padding:0 var(--e4);}
-  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto);text-decoration:none;}
-  .marca b{font-weight:300;color:var(--accion-texto);}
-  main{max-width:640px;margin:0 auto;padding:var(--e5) var(--e4) var(--e6);box-sizing:border-box;}
-  h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
-  .bajada{font-size:var(--t4);color:var(--apagado);line-height:1.5;margin:var(--e2) 0 0;}
-  .acc{display:flex;flex-direction:column;gap:var(--e2);margin-top:var(--e5);max-width:360px;}
-  .acc .btn{text-align:center;text-decoration:none;}
-  .msg{min-height:1.4em;margin-top:var(--e2);font-size:var(--t2);color:var(--apagado);}
-  .msg.err{color:var(--negativo);}
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:var(--e3);margin-top:var(--e6);}
-  .caja{background:var(--sup);border-radius:var(--radio);padding:var(--e4);}
-  .caja h2{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:0 0 var(--e2);}
-  .caja ul{margin:0;padding-left:1.1em;line-height:1.7;font-size:var(--t3);}
-  .nota{font-size:var(--t2);color:var(--rotulo);line-height:1.6;margin-top:var(--e5);}
-  .nota a{color:var(--apagado);}
-  @media (max-width:560px){ .cols{grid-template-columns:1fr;} }
-</style>
+
+<link rel="stylesheet" href="/paginas/invitado.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="/sistema.css?v=cc72b6ac4534">
+<script src="/sistema.js?v=cc72b6ac4534" defer></script>
 </head>
-<body>
-  <header class="sup"><a class="marca" href="index.html">Bye<b>Pass</b></a></header>
+<body data-pagina="invitado">
+  <header class="sup"><a class="marca bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-4 -1.5 44 44" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g transform="rotate(4 18 38)"><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a></header>
   <main>
     <h1>Prueba el timer sin cuenta</h1>
     <p class="bajada">El reloj en la tele, las mesas en el celular de cada jugador y el sorteo con rueda.
@@ -65,14 +49,15 @@
       y después se borran. Más en la <a href="privacidad.html">política de privacidad</a>.</p>
   </main>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=cc72b6ac4534"></script>
 <!-- ▌BLOQUE 2 · Script — Crea o retoma una sala de invitado (inv-xxxxxx, 24 h) con una sesión anónima y abre
      el panel en ella. -->
 <script type="module">
+import { avisarError } from "./errores.js?v=cc72b6ac4534";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { HORAS_INVITADO } from "./sala.js?v=6";
+import { HORAS_INVITADO } from "./sala.js?v=cc72b6ac4534";
 
 /* La misma app «invitado» que usa el panel: su sesión anónima queda aparte de
    la de una cuenta de verdad. La sesión recién se pide al tocar el botón:
@@ -124,12 +109,12 @@ $("abrir").onclick = async () => {
     let vieja = guardada();
     if (!/^inv-[a-z0-9]{6}$/.test(vieja)) vieja = (await get(ref(db, "invitadoDe/" + u.uid)).then(s => s.val()).catch(() => "")) || "";
     if (/^inv-[a-z0-9]{6}$/.test(vieja))
-      await update(ref(db), { ["salas/" + vieja]: null, ["jugadores/" + vieja]: null, ["invitados/" + vieja]: null }).catch(() => {});
+      await update(ref(db), { ["salas/" + vieja]: null, ["jugadores/" + vieja]: null, ["invitados/" + vieja]: null }).catch(e => avisarError(e));
     for (let i = 0; i < 4; i++){
       const c = codigo(), vence = now() + HORAS_INVITADO * 3600000;
       try {
         await update(ref(db), { ["salas/" + c + "/owner"]: u.uid, ["salas/" + c + "/vence"]: vence, ["invitados/" + c]: vence, ["invitadoDe/" + u.uid]: c });
-        try { localStorage.setItem(CLAVE, c); } catch(e){}
+        try { localStorage.setItem(CLAVE, c); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
         return irA(c);
       } catch(e){ /* el código ya existía: se prueba otro */ }
     }

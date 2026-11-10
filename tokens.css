@@ -1,0 +1,37 @@
+/* ByePass — valores compartidos de marca, tema y espaciado.
+   Las vistas heredan estos tokens; los diseños personalizados de una tienda
+   pueden sobrescribirlos sin cambiar los componentes. */
+:root {
+  --pagina:#F8F7F2; --campo:#EEEEE8; --sup:#FFFFFF; --sup-alta:#E9ECF2; --sup-hover:#DDE3EC;
+  --texto:#192B49; --apagado:#536078; --rotulo:#5D687B; --relleno:#F3F4F6;
+  --accion:#C74432; --accion-clara:#AD3525; --accion-texto:#B63928; --sobre-accion:#FFFFFF;
+  --ok:#267260; --sobre-ok:#FFFFFF; --negativo:#AF302A; --sobre-negativo:#FFFFFF;
+  --alerta:#F8DEDA; --aviso:#E0EEE6; --aviso-accion:#F5ECCC; --aviso-mal:#FFF0EC;
+  --divider:#DCDDDC; --linea:var(--divider); --esquema:light;
+  --franja:#243B60; --sobre-franja:#FFFFFF;
+  --lienzo:#1B2C49; --sobre-lienzo:#F8F7F2; --sobre-lienzo-2:#C2CEE0;
+  --acento2:#F3CF64; --amarillo:#F3CF64; --amarillo-suave:#F5ECCC;
+  --coral-suave:#F7E4DC; --lila:#E9E5F5; --menta:#E0EEE6;
+  --podio1:#F3CF64; --podio1-texto:#826010; --podio2:#ABB6C9; --podio2-texto:#52617A;
+  --podio3:#D99D72; --podio3-texto:#8B542D; --sobre-podio:#192B49;
+  --vidrio:rgba(248,247,242,.95); --header:var(--vidrio); --qr-papel:#FFFFFF;
+  --sombra:0 16px 44px #14243C0B; --sombra-flotante:0 20px 65px #14243C22;
+  --radio:14px; --radio-chico:9px; --radio-marca:5px; --radio-hoja:22px;
+  --fuente:Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  --fuente-reloj:Newsreader,Georgia,serif;
+  --t1:11px; --t2:13px; --t3:15px; --t4:17px; --t5:20px;
+  --d1:clamp(64px,22vw,220px); --d2:40px; --d3:30px;
+  --e1:4px; --e2:8px; --e3:12px; --e4:20px; --e5:32px; --e6:56px;
+  --motion-fast:160ms; --motion-normal:240ms; --ease-out:cubic-bezier(.2,.7,.2,1);
+}
+:root[data-tema="noche"] {
+  --pagina:#121E30; --campo:#1B2B43; --sup:#1A2940; --sup-alta:#263953; --sup-hover:#324865;
+  --texto:#F5F3EB; --apagado:#B6C2D3; --rotulo:#ACB9CC; --relleno:#152238;
+  --accion:#F58D76; --accion-clara:#F8A18F; --accion-texto:#F7A18D; --sobre-accion:#192B49;
+  --ok:#91D9BE; --sobre-ok:#192B49; --negativo:#FFAA9B; --sobre-negativo:#192B49;
+  --alerta:#482D35; --aviso:#243D3B; --aviso-accion:#3A3526; --aviso-mal:#422D35;
+  --divider:#344157; --esquema:dark; --franja:#243B60;
+  --coral-suave:#3E2E32; --lila:#302F4E; --menta:#243D3B; --amarillo-suave:#3A3526;
+  --podio1-texto:#F3CF64; --podio2-texto:#C1CCDE; --podio3-texto:#EDB38C;
+  --vidrio:rgba(18,30,48,.95); --sombra:0 16px 44px #0002; --sombra-flotante:0 20px 65px #0005;
+}

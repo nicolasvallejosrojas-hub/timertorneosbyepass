@@ -1,0 +1,112 @@
+/* afiche.html — composición y componentes propios de la vista. */
+:root{
+    --azul:#243B60;
+    --azul-osc:color-mix(in srgb, var(--azul) 62%, #000);
+    --azul-texto:color-mix(in srgb, var(--azul) 82%, #000);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#15171c;color:#e6e9f0;font-family:Montserrat,system-ui,sans-serif;display:flex;height:100vh;overflow:hidden}
+
+  /* ------------------------------------------------ panel del editor */
+  #panel{width:370px;flex:none;overflow:auto;padding:18px 18px 48px;background:#1d2027;border-right:1px solid #2b2f38}
+  #panel h1{font-size:17px;margin:0 0 2px}
+  #panel p.nota{font-size:12px;color:#8d95a6;margin:0 0 8px;line-height:1.45}
+  fieldset{border:1px solid #2d313b;border-radius:10px;margin:14px 0 0;padding:2px 12px 12px}
+  legend{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c3c9d6;padding:0 6px}
+  label{display:block;font-size:12px;font-weight:600;color:#a3abbb;margin:10px 0 4px}
+  input[type=text],input[type=number],select,textarea{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #3a3f4b;background:#111318;color:#fff;font:500 14px Montserrat,sans-serif}
+  textarea{resize:vertical;min-height:56px}
+  input[type=range]{width:100%;accent-color:var(--azul)}
+  input[type=color]{width:100%;height:36px;border:1px solid #3a3f4b;border-radius:8px;background:#111318;padding:2px}
+  .fila{display:flex;gap:8px}.fila>*{flex:1;min-width:0}
+  .botones{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  button,.boton{font:700 13px Montserrat,sans-serif;padding:9px 12px;border-radius:8px;border:0;background:var(--azul);color:#fff;cursor:pointer}
+  button.sec,.boton.sec{background:#2d323d}
+  label.boton{display:inline-block;margin:0;color:#fff}
+  .boton input{display:none}
+  .botones{align-items:center}
+
+  /* ------------------------------------------------ vista */
+  #vista{flex:1;display:grid;place-items:center;overflow:hidden}
+  #marco{position:relative}
+
+  /* ------------------------------------------------ el post */
+  #post{--arriba:0px;--abajo:0px;position:absolute;left:0;top:0;width:1080px;height:1350px;overflow:hidden;transform-origin:0 0;
+        background:radial-gradient(120% 90% at 50% 20%, #304768 0%, #1B2C49 55%, #121E30 100%);
+        font-family:Montserrat,sans-serif;cursor:grab;user-select:none}
+  #post.arrastrando{cursor:grabbing}
+  #post.historia{height:1920px;--arriba:250px;--abajo:312px}
+  #post > *{position:absolute}
+  #fondo{max-width:none;pointer-events:none}
+  #velo{inset:0;background:#000;pointer-events:none}
+  #logo,#titulo{pointer-events:none}
+  #logo{left:40px;top:calc(34px + var(--arriba))}
+  #titulo{left:50%;transform:translateX(-50%)}
+
+  .azul{background:linear-gradient(180deg, var(--azul) 0%, var(--azul-osc) 100%);color:#fff;border-radius:16px;
+        box-shadow:inset 0 2px 0 rgba(255,255,255,.28), 0 14px 34px rgba(0,0,0,.45)}
+  .linea{white-space:nowrap;overflow:hidden;width:100%}
+
+  /* Las cajas se ubican desde el script (left, top, width, min-height): ver P.pos y P.cajas. */
+  [data-caja]{cursor:move}
+  [data-caja] > *{flex-shrink:0}   /* que el texto no se aplaste: así se nota cuando no cabe */
+  .blanca,#info{background:#fff;border-radius:16px;color:var(--azul-texto);box-shadow:0 14px 34px rgba(0,0,0,.4)}
+  #info{padding:0 26px 0 40px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+  #iHora{font-weight:500;font-size:27px;line-height:1.15}
+  #iEvento{font-weight:800;font-size:37px;line-height:1.1;letter-spacing:.01em}
+  #iDetalle{font-weight:500;font-size:28px;line-height:1.15}
+
+  #fecha{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px}
+  #fDia{font-weight:800;font-size:150px;line-height:.9;letter-spacing:-.03em;text-align:center}
+  #fMes{font-weight:700;font-size:38px;line-height:1.1;margin-top:8px;text-align:center}
+
+  #qr{padding:10px;display:flex}
+  #qrImg{width:100%;height:100%;object-fit:contain;pointer-events:none}
+  #inscribe{padding:12px 24px;display:flex;flex-direction:column;justify-content:center;
+            text-align:center;font-weight:700;font-size:24px;line-height:1.35;border:2px solid rgba(190,215,255,.45)}
+  #direccion{padding:0 24px;display:flex;align-items:center;justify-content:center;
+             font-weight:700;font-size:32px;border:2px solid rgba(190,215,255,.35)}
+  #direccion .linea{text-align:center}
+  #info .linea,#direccion .linea{white-space:normal}   /* estos se parten en renglones si hace falta */
+
+  /* cajas agregadas desde el panel */
+  .extra{display:flex;flex-direction:column;justify-content:center;padding:10px 24px;line-height:1.25}
+  .extra.azul{border:2px solid rgba(190,215,255,.4)}
+  .extra.texto{color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+
+  /* selección (no sale en el PNG) */
+  #sel{pointer-events:none;outline:calc(3px / var(--s,1)) dashed #4da3ff;outline-offset:calc(4px / var(--s,1))}
+  #sel .asa{position:absolute;right:calc(-14px / var(--s,1));bottom:calc(-14px / var(--s,1));width:calc(20px / var(--s,1));height:calc(20px / var(--s,1));
+            border-radius:50%;background:#4da3ff;border:calc(2px / var(--s,1)) solid #fff;pointer-events:auto;cursor:nwse-resize}
+  #guia{top:0;bottom:0;left:539px;width:2px;background:#ff4d8d;pointer-events:none;display:none}
+  body.render #sel,body.render #guia{display:none!important}
+
+  /* ------------------------------------------------ ?render: solo el post */
+  body.render{display:block;background:none;height:auto}
+  body.render #panel{display:none}
+  body.render #vista{display:block;overflow:visible}
+  body.render #post{position:fixed;transform:none!important;cursor:default}
+
+
+/* La interfaz del editor comparte la marca; el lienzo exportable conserva su tamaño. */
+[data-pagina="afiche"] {background:var(--pagina);color:var(--texto);font-family:var(--fuente,Inter,system-ui,sans-serif)}
+[data-pagina="afiche"] #panel {width:380px;padding:28px 24px 65px;background:var(--sup);border-color:var(--divider)}
+[data-pagina="afiche"] #panel h1 {font-size:26px;letter-spacing:-1px}
+[data-pagina="afiche"] #panel p.nota {color:var(--apagado);line-height:1.7}
+[data-pagina="afiche"] #panel a {color:var(--accion-texto)!important}
+[data-pagina="afiche"] #panel fieldset {border-color:var(--divider);border-radius:12px;padding:8px 14px 16px;margin-top:22px}
+[data-pagina="afiche"] #panel legend {color:var(--texto);font-size:11px;letter-spacing:.8px}
+[data-pagina="afiche"] #panel label {color:var(--apagado);font-weight:500}
+[data-pagina="afiche"] #panel :is(input[type="text"],input[type="number"],select,textarea,input[type="color"]) {background:var(--relleno);color:var(--texto);border:1px solid var(--divider);font-family:inherit;border-radius:8px;padding:10px}
+[data-pagina="afiche"] #panel :is(button,.boton) {background:var(--accion);color:var(--sobre-accion);font-family:inherit;font-weight:550;min-height:40px;border-radius:8px}
+[data-pagina="afiche"] #panel :is(button.sec,.boton.sec) {background:var(--sup-alta);color:var(--texto)}
+[data-pagina="afiche"] #vista {background:var(--campo)}
+[data-pagina="afiche"] #panel .botones {gap:8px}
+[data-pagina="afiche"].render #vista {background:transparent}
+@media(max-width:760px) {[data-pagina="afiche"]:not(.render){display:flex;flex-direction:column;height:auto;min-height:100vh;overflow:auto}[data-pagina="afiche"] #panel{width:100%;max-height:none;border-right:0;border-bottom:1px solid var(--divider);padding:24px 20px 32px}[data-pagina="afiche"] #vista{min-height:65vh;width:100%;flex:1;padding:24px 12px;overflow:hidden}}
+
+[data-pagina="afiche"] #panel .bp-theme{display:grid;place-items:center;width:36px;height:36px;min-height:36px;padding:0;border:1px solid var(--divider);border-radius:50%;background:transparent;color:var(--texto)}
+@media(max-width:760px) {
+  [data-pagina="afiche"]:not(.render) #vista{height:calc((100vw - 40px) * 1.25 + 40px);min-height:0;flex:none;padding:20px}
+  [data-pagina="afiche"]:not(.render) #vista:has(#post.historia){height:calc((100vw - 40px) * 1.77778 + 40px)}
+}

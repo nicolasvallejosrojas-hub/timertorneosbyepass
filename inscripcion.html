@@ -14,72 +14,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B7F6C">
-<script src="tema.js?v=1"></script>
+<meta name="theme-color" content="#243B60">
+<script src="tema.js?v=cc72b6ac4534"></script>
 <meta name="description" content="Inscripción a un torneo con lista de mazo.">
 <title>Inscripción — ByePass</title>
-<link rel="stylesheet" href="estilo.css?v=14">
-<link rel="stylesheet" href="armador.css?v=1">
+<link rel="stylesheet" href="estilo.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="armador.css?v=cc72b6ac4534">
 <!-- ▌BLOQUE 1 · Estilos — Formulario, categorías y acuerdo (el armador de la lista trae los suyos en
      armador.css). -->
-<style>
-  /* Inscripción a un torneo de una tienda (League Challenge, League Cup).
-     Llega por un enlace que comparte la tienda. La cuenta es opcional: sin
-     cuenta se usa una sesión anónima que solo sirve para volver a esta misma
-     inscripción desde este navegador. */
-  body{min-height:100vh;}
-  .sup{display:flex;align-items:center;min-height:56px;padding:0 var(--e4);}
-  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto);text-decoration:none;}
-  .marca b{font-weight:300;color:var(--accion-texto);}
-  main{max-width:640px;margin:0 auto;padding:var(--e4) var(--e4) var(--e6);box-sizing:border-box;display:flex;flex-direction:column;gap:var(--e4);}
-  h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
-  .meta{font-size:var(--t3);color:var(--apagado);line-height:1.6;margin:var(--e1) 0 0;}
-  .estado{font-size:var(--t2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);}
-  .estado.cerrado{color:var(--rotulo);}
-  .caja{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
-  .caja h2{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:0;}
-  .dos{display:grid;grid-template-columns:1fr 1fr;gap:var(--e3);}
-  .campo{display:flex;flex-direction:column;gap:7px;}
-  .campo > span:not(.pista){font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
-  .campo input,.campo textarea{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;font-family:inherit;}
-  .campo textarea{min-height:120px;font-size:var(--t3);line-height:1.5;resize:vertical;font-variant-numeric:tabular-nums;}
-  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
-  .pista a,.meta a{color:var(--accion-texto);}
-  /* Pantalla ancha: buscador a la izquierda (fijo al bajar) y el mazo a la
-     derecha; desde 1180 px el mazo va en dos columnas, Pokémon y Energías
-     a un lado y Entrenadores al otro. El resto del formulario sigue en 640 px. */
-  @media (min-width:960px){
-    main{max-width:1160px;}
-    main > div:first-child,#noHay,#form > *{width:100%;max-width:640px;margin-left:auto;margin-right:auto;}
-    #form > #cajaLista{max-width:none;}
-  }
-  /* la categoría: tres casillas grandes con los cupos que quedan */
-  .categoria{border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:var(--e2);}
-  .categoria legend{padding:0;margin-bottom:7px;font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
-  .cats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--e2);}
-  .cat{display:flex;flex-direction:column;gap:2px;padding:var(--e3);border-radius:var(--radio);background:var(--campo);cursor:pointer;
-    box-shadow:inset 0 0 0 2px transparent;min-height:44px;box-sizing:border-box;position:relative;}
-  .cat input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;}
-  .cat b{font-size:var(--t4);font-weight:700;}
-  .cat small{font-size:var(--t2);color:var(--apagado);font-variant-numeric:tabular-nums;}
-  .cat:has(input:checked){background:var(--sup-alta);box-shadow:inset 0 0 0 2px var(--accion);}
-  .cat:has(input:focus-visible){outline:2px solid var(--texto);outline-offset:2px;}
-  .cat:has(input:disabled){opacity:.55;cursor:default;}
-  .cat .lleno{color:var(--negativo);font-weight:600;}
-  .acuerdo{max-height:220px;overflow:auto;background:var(--campo);border-radius:var(--radio);padding:var(--e3) var(--e4);font-size:var(--t2);line-height:1.6;}
-  .acuerdo h3{font-size:var(--t3);margin:0 0 var(--e1);} .acuerdo p{margin:0 0 var(--e2);}
-  .chk{display:flex;gap:var(--e2);align-items:flex-start;font-size:var(--t3);line-height:1.45;min-height:44px;cursor:pointer;}
-  .chk input{width:22px;height:22px;margin:1px 0 0;flex:none;}
-  .acc{display:flex;gap:var(--e2);flex-wrap:wrap;}
-  .acc .btn{min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
-  .enlace{background:none;border:none;color:var(--apagado);font:inherit;font-size:var(--t3);text-decoration:underline;cursor:pointer;min-height:44px;padding:0;}
-  .oculto{display:none!important;}
-  @media (max-width:560px){ .dos{grid-template-columns:1fr;} .acc .btn{flex:1 1 100%;} .cats{grid-template-columns:1fr;} }
-</style>
+
+<link rel="stylesheet" href="/paginas/inscripcion.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="/sistema.css?v=cc72b6ac4534">
+<script src="/sistema.js?v=cc72b6ac4534" defer></script>
 </head>
-<body>
+<body data-pagina="inscripcion">
   <!-- ▌BLOQUE 2 · Marcado — Datos del jugador, categoría, lista de mazo, acuerdo y botones. -->
-  <header class="sup"><a class="marca" href="index.html">Bye<b>Pass</b></a></header>
+  <header class="sup"><a class="marca bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-4 -1.5 44 44" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g transform="rotate(4 18 38)"><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a></header>
   <main>
     <div>
       <div class="estado" id="estado">Cargando…</div>
@@ -140,17 +90,18 @@
     </form>
   </main>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=cc72b6ac4534"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sesion, sala, agenda, listamazo y armador. -->
 <script type="module">
+import { guardarInscripcion } from "./inscripcion-datos.js?v=cc72b6ac4534";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=15";
-import { slug, nombreTienda } from "./sala.js?v=6";
-import { fechaLegible, urlGoogle } from "./agenda.js?v=5";
-import { leerLista, division, hoja, imprimir, TEMPORADA } from "./listamazo.js?v=7";
-import { armador } from "./armador.js?v=1";
+import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=cc72b6ac4534";
+import { slug, nombreTienda } from "./sala.js?v=cc72b6ac4534";
+import { fechaLegible, urlGoogle } from "./agenda.js?v=cc72b6ac4534";
+import { leerLista, division, hoja, imprimir, TEMPORADA } from "./listamazo.js?v=cc72b6ac4534";
+import { armador } from "./armador.js?v=cc72b6ac4534";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
@@ -262,7 +213,7 @@ const suya = d => YO ? (Object.entries(PLAZAS[d] || {}).find(([, v]) => v === YO
 const catDe = nac => division(nac).toLowerCase();
 async function cargarPlazas(){
   if (!EV || !EV.inscripcion || !EV.inscripcion.cupos) return;
-  try { PLAZAS = (await get(ref(db, "cupos/" + T + "/" + E))).val() || {}; } catch(e){}
+  try { PLAZAS = (await get(ref(db, "cupos/" + T + "/" + E))).val() || {}; } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   pintarCategorias();
 }
 function pintarCategorias(){
@@ -369,16 +320,9 @@ $("form").onsubmit = async e => {
     if (!YO){ const u = authInv.currentUser || (await signInAnonymously(authInv)).user; YO = { db: dbInv, uid: u.uid, cuenta: false }; }
     const ahora = Date.now();
     const dato = { ...d, acepta: true, creado: (MIA && MIA.creado) || ahora, actualizado: ahora };
-    let nueva = "";
-    if (limite(d.division)){
-      const antes = suya(d.division);
-      dato.cupo = await plazaPara(d.division);
-      if (!dato.cupo){ await cargarPlazas(); b.disabled = false; pintarMia(); return error("Los cupos de " + NOM_DIV[d.division] + " se llenaron. Si alguien anula, se liberan: vuelve a intentarlo más tarde."); }
-      if (!antes) nueva = dato.cupo;
-    }
-    try { await set(ref(YO.db, ruta(YO.uid)), dato); }
-    catch(err){ if (nueva) update(ref(YO.db, "cupos/" + T + "/" + E), { [d.division + "/" + nueva]: "", ["quien/" + YO.uid]: null }).catch(() => {}); throw err; }
-    MIA = dato; pintarMia(); cargarPlazas();
+    const guardada = await guardarInscripcion({ tienda:T, evento:E, uid:YO.uid, dato, limitada:!!limite(d.division),
+      cargar: async () => { await cargarPlazas(); return PLAZAS; }, escribir: cambios => update(ref(YO.db), cambios) });
+    MIA = guardada; pintarMia(); await cargarPlazas();
     $("yaInscrito").scrollIntoView({ block: "center", behavior: "smooth" });
   } catch(err){
     const c = (err && (err.code || err.message)) || "";
@@ -386,7 +330,7 @@ $("form").onsubmit = async e => {
       ? "La inscripción sin cuenta todavía no está activada. Avísale a la tienda o entra con tu cuenta."
       : /permission|PERMISSION_DENIED/i.test(c)
       ? "No se pudo guardar: puede que las inscripciones se hayan cerrado recién. Recarga la página."
-      : "No se pudo guardar. Revisa la conexión y vuelve a intentarlo.");
+      : (err.message || "No se pudo guardar. Revisa la conexión y vuelve a intentarlo."));
     console.warn("Inscripción:", c);
   }
   b.disabled = false; pintarMia();
@@ -445,10 +389,10 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
       "Para corregir tu lista después, vuelve a este enlace desde este mismo navegador. " +
       '¿Tienes cuenta? <a href="cuenta.html' + (params() ? params() + "&" : "?") + "volver=" + encodeURIComponent("inscripcion.html" + location.search) + '#ingresar">Entra</a> y tus datos se rellenan solos.';
   }
-  try { if (YO) MIA = (await get(ref(YO.db, ruta(YO.uid)))).val(); } catch(e){ MIA = null; }
+  try { if (YO) MIA = (await get(ref(YO.db, ruta(YO.uid)))).val(); } catch(e){ return noHay("No se pudo comprobar tu inscripción. Recarga antes de volver a enviar tus datos."); }
   if (MIA){ rellenar(MIA, false); $("acepta").checked = true; }
   else if (u){
-    let p = null; try { p = (await get(ref(db, "usuarios/" + u.uid))).val(); } catch(e){}
+    let p = null; try { p = (await get(ref(db, "usuarios/" + u.uid))).val(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
     const partes = String((p && p.nombre) || u.displayName || "").trim().split(/\s+/);
     rellenar({ correo: u.email || "", playerId: (p && p.playerId) || "", nacimiento: (p && p.nacimiento) || "",
                nombre: partes[0] || "", apellido: partes.slice(1).join(" ") }, true);

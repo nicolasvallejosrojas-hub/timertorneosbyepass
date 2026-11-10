@@ -65,7 +65,7 @@ const CSS = `
 export function vigilar(db, auth, { aviso: conAvisoGeneral = true } = {}){
   if (conAvisoGeneral) avisoGeneral(db);
   let activo = false, mensaje = "", admin = false, primera = true, authListo = false, seCerro = false;
-  try { activo = localStorage.getItem(RECUERDO) === "1"; } catch(e){}
+  try { activo = localStorage.getItem(RECUERDO) === "1"; } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   const estilo = document.createElement("style");
   estilo.textContent = CSS;
   document.head.appendChild(estilo);
@@ -120,7 +120,7 @@ export function vigilar(db, auth, { aviso: conAvisoGeneral = true } = {}){
   onValue(ref(db, "sistema/mantenimiento"), s => {
     const v = s.val() || {}, antes = activo;
     activo = v.activo === true; mensaje = typeof v.mensaje === "string" ? v.mensaje : "";
-    try { localStorage.setItem(RECUERDO, activo ? "1" : "0"); } catch(e){}
+    try { localStorage.setItem(RECUERDO, activo ? "1" : "0"); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
     /* Mientras estuvo cerrado, las lecturas de esta página se cortaron: al
        abrirse, quien estaba afuera recarga para volver a verlo todo. */
     if (!primera && antes && !activo && !admin) return location.reload();
@@ -129,7 +129,7 @@ export function vigilar(db, auth, { aviso: conAvisoGeneral = true } = {}){
   }, () => {});
   onAuthStateChanged(auth, async u => {
     admin = false;
-    if (u) try { admin = (await get(ref(db, "admins/" + u.uid))).val() === true; } catch(e){}
+    if (u) try { admin = (await get(ref(db, "admins/" + u.uid))).val() === true; } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
     authListo = true;
     /* Quien administra entró desde la pantalla: la página se armó sin datos
        (se los negaron), así que se recarga una vez para verla entera. */
@@ -155,7 +155,7 @@ function avisoGeneral(db){
   caja.className = "avisoG"; caja.setAttribute("role", "status");
   estilo.textContent = CSS_AVISO; document.head.appendChild(estilo);
   let visto = "";
-  try { visto = localStorage.getItem(VISTO) || ""; } catch(e){}
+  try { visto = localStorage.getItem(VISTO) || ""; } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   onValue(ref(db, "sistema/aviso"), s => {
     const v = s.val();
     caja.remove();
@@ -169,7 +169,7 @@ function avisoGeneral(db){
     }
     caja.querySelector("button").onclick = () => {
       visto = String(v.desde); caja.remove();
-      try { localStorage.setItem(VISTO, visto); } catch(e){}
+      try { localStorage.setItem(VISTO, visto); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
     };
     document.body.prepend(caja);
   }, () => {});

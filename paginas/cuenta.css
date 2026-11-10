@@ -1,0 +1,190 @@
+/* cuenta.html — composición y componentes propios de la vista. */
+/* =========================================================
+     Cuenta de jugador: entrar, crear cuenta y ajustes
+     ---------------------------------------------------------
+     La entrada depende de cómo llega la persona:
+
+       · Desde cero (el QR de la tienda, la página de inicio, un enlace
+         guardado): la pantalla es «Entra», directo al formulario, y crear
+         cuenta son tres pasos cortos que caben enteros en un teléfono.
+       · Desde el enlace de un torneo que está corriendo: arriba va la
+         vitrina con la ronda y su reloj, y pestañas Ingresar | Crear cuenta.
+         Quien se registra en plena ronda no pierde de vista cuánto le queda.
+
+     El registro es el mismo en los dos casos. Lo que cambia es la entrada.
+
+     La sesión sigue siendo OPCIONAL: el timer se ve sin cuenta, como siempre.
+     La cuenta agrega historial y perfil, no permiso de entrada.
+
+     Colores, tipografía, botones y campos salen de estilo.css.
+     ========================================================= */
+  html,body{margin:0;min-height:100%;}
+  body{display:flex;flex-direction:column;min-height:100vh;}
+
+  /* --- barra superior --- */
+  .sup{display:flex;align-items:center;gap:var(--e3);padding:var(--e2) var(--e4);
+    position:sticky;top:0;z-index:10;min-height:60px;box-sizing:border-box;}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);
+    margin-right:auto;text-decoration:none;color:var(--texto);
+    display:inline-flex;align-items:center;min-height:44px;}
+
+  /* --- botones: los del sistema, con piso táctil de 44 px --- */
+  .btn{min-height:44px;font-weight:500;}
+  .btn.ancho{display:block;width:100%;text-align:center;}
+  a.btn{display:inline-flex;align-items:center;justify-content:center;
+    text-decoration:none;box-sizing:border-box;}
+  .fant{background:none;border:none;color:var(--apagado);font-family:inherit;
+    font-size:var(--t3);cursor:pointer;min-height:44px;padding:0 var(--e3);
+    display:flex;align-items:center;justify-content:center;text-decoration:none;}
+  .fant:hover{color:var(--texto);}
+  .enlace{color:var(--apagado);font-size:var(--t3);text-decoration:underline;
+    display:inline-flex;align-items:center;min-height:44px;background:none;border:none;
+    font-family:inherit;cursor:pointer;padding:0;}
+  .enlace:hover{color:var(--texto);}
+
+  /* --- columna --- */
+  main{flex:1;width:100%;}
+  .centro{max-width:440px;margin:0 auto;padding:var(--e5) var(--e4);box-sizing:border-box;
+    display:flex;flex-direction:column;gap:var(--e4);min-height:calc(100vh - 60px);}
+  .vista{display:flex;flex-direction:column;gap:var(--e4);flex:1;}
+  .titulo{font-weight:700;font-size:var(--d3);
+    line-height:1.1;margin:0;}
+  .titulo:focus{outline:none;}
+  .bajada{font-size:var(--t3);color:var(--apagado);margin:var(--e1) 0 0;line-height:1.5;}
+  /* En el teléfono, el botón principal baja a donde llega el pulgar. En
+     escritorio eso lo alejaría de los campos a media pantalla de distancia,
+     así que ahí se queda pegado al formulario. */
+  .abajo{display:flex;flex-direction:column;gap:var(--e1);margin-top:var(--e2);}
+  @media (max-width:600px){ .abajo{margin-top:auto;padding-top:var(--e4);} }
+  .enlaces{display:flex;justify-content:space-between;gap:var(--e3);flex-wrap:wrap;}
+  .linea{height:1px;background:var(--divider);}
+
+  /* --- campos --- */
+  .campo{display:flex;flex-direction:column;gap:7px;}
+  .campo > span:not(.pista){font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;
+    color:var(--apagado);}
+  .opcional{letter-spacing:0;text-transform:none;color:var(--rotulo);}
+  .campo input{width:100%;padding:14px 15px;font-size:var(--t4);}
+  .campo select,.campo textarea{width:100%;padding:12px 14px;font-size:var(--t3);box-sizing:border-box;font-family:inherit;}
+  .campo textarea{min-height:120px;resize:vertical;line-height:1.5;}
+  /* Escríbenos y Eliminar: formularios sueltos dentro de Ajustes. */
+  #btnEliminar{color:var(--negativo);font-weight:600;}
+  .tarjetaForm{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
+  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.45;}
+  .pista a{color:var(--accion-texto);}
+  /* El botón Ver va dentro del campo: en el teléfono, escribir una clave de
+     ocho caracteres con símbolos sin poder mirarla es donde más se equivoca
+     la gente. */
+  .conVer{position:relative;}
+  .conVer input{padding-right:84px;}
+  .ver{position:absolute;right:4px;top:50%;transform:translateY(-50%);height:44px;
+    background:none;border:none;color:var(--apagado);font-family:inherit;
+    font-size:var(--t2);cursor:pointer;padding:0 var(--e3);}
+  .ver:hover{color:var(--texto);}
+
+  /* --- medidor de contraseña --- */
+  /* Seis tramos, uno por requisito, y debajo SOLO lo que falta. Antes eran
+     seis viñetas siempre a la vista, que en el teléfono ocupaban lo mismo
+     que el resto del formulario. */
+  /* .medidor y .falta viven en estilo.css: la portada también los usa. */
+
+  /* --- riel de pasos --- */
+  .riel{display:flex;gap:6px;align-items:center;}
+  .riel i{flex:1;height:4px;border-radius:var(--radio-marca);background:var(--sup-alta);}
+  .riel i.si{background:var(--ok);}
+  .riel em{font-style:normal;font-size:var(--t2);color:var(--apagado);margin-left:var(--e2);
+    white-space:nowrap;font-variant-numeric:tabular-nums;}
+  /* Div y no fieldset: el fieldset no estira su caja interna al alto
+     disponible, y el botón de abajo no llegaba a la zona del pulgar. */
+  .paso{display:flex;flex-direction:column;gap:var(--e4);flex:1;}
+
+  /* --- interruptor: .sw vive en estilo.css, lo usa también el muro --- */
+
+  /* --- vitrina: la sala en vivo, solo si llegaste desde un torneo --- */
+  .vitrina{background:var(--lienzo);border-radius:var(--radio);padding:var(--e3) var(--e4);}
+  .vivo{display:flex;align-items:center;gap:var(--e2);font-size:var(--t2);color:var(--apagado);}
+  .punto{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none;}
+  .punto.pausa{background:var(--rotulo);}
+  /* Mismo gesto que .reloj.pausado del sistema: detenido se lee sin leer la
+     palabra. */
+  .vitrina.pausa .relojMini{opacity:.5;}
+  .relojMini{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--d2);
+    line-height:1;font-variant-numeric:tabular-nums;margin:var(--e2) 0 var(--e1);}
+  .vtProx{border-top:1px solid var(--divider);margin-top:var(--e3);padding-top:var(--e2);}
+  .vtProx b{color:var(--texto);font-weight:600;}
+  /* Mientras se registra, la vitrina se achica a una línea: el reloj sigue a
+     la vista sin empujar el formulario fuera de la pantalla. */
+  .vitrina.compacta{padding:11px var(--e4);}
+  .vitrina.compacta .relojMini,.vitrina.compacta .vtRonda,.vitrina.compacta .vtProx{display:none;}
+  .vitrina .vtLinea{display:none;}
+  .vitrina.compacta .vtLinea{display:inline;}
+  .vitrina.compacta .vtNombre{display:none;}
+
+  .pestanas{display:flex;gap:var(--e1);padding:var(--e1);border-radius:var(--radio);
+    background:var(--campo);}
+  .pestanas a{flex:1;text-align:center;padding:11px 0;border-radius:var(--radio);
+    font-size:var(--t3);color:var(--apagado);text-decoration:none;min-height:44px;
+    box-sizing:border-box;display:flex;align-items:center;justify-content:center;}
+  .pestanas a[aria-current="page"]{background:var(--sup);color:var(--texto);font-weight:600;
+    box-shadow:0 1px 3px rgba(16,35,30,.12);}
+  /* En vivo, las pestañas ya ofrecen el otro camino: el pie «¿Primera vez?» y
+     el «Ya tengo cuenta» del primer paso sobran. */
+  .en-vivo .solo-frio{display:none !important;}
+  /* El título «Entra» repetía la pestaña Ingresar y bajaba el botón unos 50 px.
+     En vivo se esconde a la vista pero no al lector de pantalla, que sigue
+     necesitando el encabezado de la página. */
+  .en-vivo #vIngresar .encabezado{position:absolute;width:1px;height:1px;margin:-1px;
+    padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+
+  /* --- ajustes --- */
+  .grupo{display:flex;flex-direction:column;gap:var(--e2);}
+  /* Al saltar a una parte (#tienda, #sugerencias…), que la barra de arriba no tape su título. */
+  .grupo{scroll-margin-top:72px;}
+  .grupo h2{font-size:var(--t1);letter-spacing:.1em;text-transform:uppercase;
+    color:var(--apagado);font-weight:500;margin:0;}
+  .filas{display:flex;flex-direction:column;border-radius:var(--radio);overflow:hidden;}
+  .filaj{display:flex;align-items:center;gap:var(--e3);padding:13px var(--e4);
+    background:var(--sup);min-height:52px;box-sizing:border-box;width:100%;
+    border:none;font-family:inherit;color:var(--texto);text-align:left;font-size:var(--t3);}
+  button.filaj{cursor:pointer;}
+  button.filaj.peligro .k{color:var(--negativo);}
+  button.filaj:hover{background:var(--sup-alta);}
+  .filaj .k{flex:1;min-width:0;}
+  .filaj .k small{display:block;font-size:var(--t2);color:var(--apagado);margin-top:3px;line-height:1.4;}
+  .filaj .v{color:var(--apagado);text-align:right;overflow-wrap:anywhere;}
+  .filaj .v small{display:block;font-size:var(--t2);color:var(--rotulo);}
+  .filaj svg{flex:none;color:var(--rotulo);}
+  label.filaj{cursor:pointer;}
+  a.filaj{text-decoration:none;}
+  a.filaj:hover{background:var(--sup-alta);}
+  /* Va DESPUÉS de .filaj: ese border:none, que limpia el borde de los
+     botones, se comía el divisor entre filas. */
+  .filas > * + *{border-top:1px solid var(--divider);}
+  .edicion{background:var(--sup);padding:var(--e3) var(--e4) var(--e4);
+    display:flex;flex-direction:column;gap:var(--e3);}
+  .edicion .acciones{display:flex;justify-content:flex-end;gap:var(--e2);}
+
+  .oculto{display:none !important;}
+  .solo-lector{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+
+
+/* Cuenta: formulario en una superficie propia, con jerarquía y espacio. */
+[data-pagina="cuenta"] {background-image:radial-gradient(ellipse at 12% 16%,var(--lila),transparent 40%)}
+[data-pagina="cuenta"] .centro {width:min(520px,calc(100% - 40px));max-width:520px;min-height:0;margin:48px auto 80px;padding:36px;background:var(--sup);border:1px solid var(--divider);border-radius:20px;box-shadow:var(--sombra);gap:24px}
+[data-pagina="cuenta"] .titulo {font-size:34px;letter-spacing:-1.3px}
+[data-pagina="cuenta"] .bajada {line-height:1.7;margin-top:10px}
+[data-pagina="cuenta"] .campo>span:not(.pista) {font-size:12px;text-transform:none;letter-spacing:0;font-weight:550;color:var(--texto)}
+[data-pagina="cuenta"] .campo input {font-size:16px;min-height:48px;padding:12px 14px}
+[data-pagina="cuenta"] .pestanas {border:1px solid var(--divider);padding:4px;border-radius:10px;background:var(--campo)}
+[data-pagina="cuenta"] .tarjetaForm {background:var(--pagina);border:1px solid var(--divider)}
+[data-pagina="cuenta"] .pista {line-height:1.65}
+[data-pagina="cuenta"] .abajo {margin-top:8px;padding-top:4px}
+[data-pagina="cuenta"] .perfil-pendiente>.grupo{display:none}
+[data-pagina="cuenta"] .recuperacion{display:flex;flex-direction:column;gap:18px;padding:22px;background:var(--pagina);border:1px solid var(--divider);border-radius:14px}
+[data-pagina="cuenta"] .recuperacion h2{font-size:21px;letter-spacing:-.6px;margin:0 0 8px}
+[data-pagina="cuenta"] .opRecuperar{display:flex;align-items:start;gap:10px;font-size:13px;line-height:1.6;color:var(--apagado)}
+[data-pagina="cuenta"] .opRecuperar input{flex:none;margin-top:4px}
+[data-pagina="cuenta"] #edCorreo .filaj .k{flex:none}
+[data-pagina="cuenta"] #edCorreo .filaj .v{flex:1;min-width:0}
+@media(max-width:600px) {[data-pagina="cuenta"] .centro{width:calc(100% - 32px);padding:26px 22px;margin-top:26px;border-radius:16px}[data-pagina="cuenta"] .titulo{font-size:29px}}

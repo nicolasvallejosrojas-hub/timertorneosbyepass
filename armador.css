@@ -71,3 +71,12 @@
 #misMazos select{flex:1 1 180px;min-height:44px;padding:0 10px;font:inherit;font-size:var(--t3);}
 #misMazos .btn{min-height:44px;}
 #misMazos .pista{flex:1 1 100%;}
+
+/* Integración visual con ByePass. */
+#sugerencias {background:var(--sup);border:1px solid var(--divider);box-shadow:var(--sombra-flotante);padding:6px;border-radius:12px}
+#sugerencias li {padding:10px;gap:10px}
+.carta {border:1px solid var(--divider);background:var(--sup);padding:7px;border-radius:11px}
+.carta:hover {background:var(--campo)}
+.carta button {border-radius:7px}
+.conteo {padding-block:16px;background:var(--pagina);gap:16px}
+.barra i {height:7px;border-radius:3px}

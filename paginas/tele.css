@@ -1,0 +1,84 @@
+/* tele.html — composición y componentes propios de la vista. */
+html,body{margin:0;padding:0;height:100%;overflow:hidden;}
+  body{background:#1B2C49;color:#F8F7F2;font-family:Inter,Arial,sans-serif;}
+  #bg{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none;z-index:0;}
+  .caja{position:fixed;z-index:1;}
+  .caja img{width:100%;height:100%;object-fit:contain;}
+  #cab{position:fixed;top:0;left:0;right:0;z-index:2;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;padding:2.2vh 2.4vw;}
+  #logo{max-height:6vh;max-width:30vw;display:none;margin-right:1.4vw;}
+  #marca{display:none;font-family:Newsreader,Georgia,serif;font-weight:300;font-size:4.2vh;margin-right:1.4vw;}
+  #marca b{font-weight:300;color:#F58D76;}
+  #titulo{font-size:2.8vh;font-weight:600;}
+  #sub{font-size:2.2vh;color:#C2CEE0;margin-top:.4vh;}
+  #centro{position:fixed;top:0;left:0;right:0;bottom:0;z-index:2;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;
+    -webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;}
+  #ronda{font-size:2.4vh;letter-spacing:.22em;text-transform:uppercase;color:#C2CEE0;margin-bottom:1.6vh;display:none;}
+  #reloj{font-family:Newsreader,Georgia,serif;font-weight:300;line-height:1;letter-spacing:.01em;text-shadow:0 .6vh 3vh rgba(0,0,0,.35);}
+  #reloj.pausado{opacity:.55;}
+  #reloj.pulso{-webkit-animation:pulso 1s ease-in-out infinite;animation:pulso 1s ease-in-out infinite;}
+  @-webkit-keyframes pulso{50%{opacity:.45;}}
+  @keyframes pulso{50%{opacity:.45;}}
+  #extras{margin-top:2vh;font-size:2.4vh;color:#F8F7F2;text-align:center;}
+  #extras span{display:inline-block;margin:0 1vw;padding:.6vh 1.2vw;border-radius:1vh;background:rgba(0,0,0,.28);}
+  #estado{position:fixed;bottom:2vh;left:0;right:0;z-index:2;text-align:center;font-size:2vh;color:#C2CEE0;}
+  #aviso{position:fixed;top:0;left:0;right:0;bottom:0;z-index:5;display:none;background:#1B2C49;text-align:center;padding-top:36vh;}
+  #aviso h2{margin:0;font-size:5vh;}
+  #aviso p{color:#C2CEE0;font-size:2.6vh;}
+
+  /* Barra de pestañas: se esconde sola en el reloj para no ensuciar la pantalla. */
+  #nav{position:fixed;left:0;right:0;bottom:0;z-index:4;display:-webkit-flex;display:flex;-webkit-justify-content:center;justify-content:center;
+    padding:1.3vh 0;background:rgba(10,34,31,.94);-webkit-transition:opacity .4s;transition:opacity .4s;}
+  #nav.oculta{opacity:0;}
+  #nav span{position:relative;margin:0 .8vw;padding:1.1vh 2.6vw;border-radius:1.2vh;color:#C2CEE0;font-size:2.6vh;font-weight:600;cursor:pointer;}
+  #nav span.on{background:#F58D76;color:#1B2C49;}
+  #dot{position:absolute;top:.5vh;right:.7vw;width:1.5vh;height:1.5vh;border-radius:50%;background:#F3CF64;display:none;}
+
+  /* Las tres pantallas nuevas ocupan lo que hay entre la cabecera y la barra. */
+  .pag{position:fixed;left:0;right:0;top:11vh;bottom:9vh;z-index:3;display:none;overflow:hidden;background:#1B2C49;padding:0 2.4vw;box-sizing:border-box;}
+  .pag.ver{display:block;}
+  .barra{height:6.4vh;padding-top:.6vh;overflow:hidden;white-space:nowrap;}
+  .info{float:right;color:#C2CEE0;font-size:2.2vh;line-height:5vh;}
+  .chips span{display:inline-block;margin-right:1vw;padding:.7vh 1.6vw;border-radius:1vh;background:#263C5D;color:#C2CEE0;font-size:2.4vh;font-weight:600;cursor:pointer;}
+  .chips span.on{background:#F8F7F2;color:#1B2C49;}
+  .cols2,.cols3{height:70vh;overflow:hidden;}
+  .cols2{-webkit-column-count:2;column-count:2;-webkit-column-gap:1.6vw;column-gap:1.6vw;}
+  .cols3{-webkit-column-count:3;column-count:3;-webkit-column-gap:1.6vw;column-gap:1.6vw;}
+  .mesa,.fila{display:block;box-sizing:border-box;overflow:hidden;background:#263C5D;border-radius:1.4vh;margin:0 0 1.6vh;
+    -webkit-column-break-inside:avoid;break-inside:avoid;page-break-inside:avoid;}
+  .mesa{height:15.6vh;padding:1.1vh 1.2vw;}
+  .mn{font-size:1.8vh;letter-spacing:.16em;color:#C2CEE0;}
+  .mn b{font-family:Newsreader,Georgia,serif;font-weight:300;font-size:3.4vh;color:#F3CF64;letter-spacing:0;margin-left:.4vw;}
+  .jug{font-size:2.5vh;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .jug small{font-size:1.9vh;color:#C2CEE0;}
+  .jug b{font-size:1.7vh;letter-spacing:.1em;color:#1B2C49;background:#F3CF64;border-radius:.6vh;padding:.1vh .5vw;margin-left:.4vw;vertical-align:middle;}
+  .jug.g{color:#F3CF64;font-weight:600;}
+  .fila{height:8vh;line-height:8vh;padding:0 1.2vw;white-space:nowrap;margin-bottom:1.2vh;}
+  .fila .pt{float:right;font-size:3.2vh;font-weight:600;color:#F3CF64;}
+  .fila .pos{display:inline-block;min-width:4vw;font-size:3vh;font-weight:700;color:#C2CEE0;}
+  .fila .pos.p1{color:#E0A800;} .fila .pos.p2{color:#8A97AD;} .fila .pos.p3{color:#C07A3A;}
+  .fila .nom{display:inline-block;max-width:44%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;font-size:2.8vh;font-weight:600;}
+  .fila .met{margin-left:1vw;font-size:2vh;color:#C2CEE0;}
+  .catT{height:4.6vh;line-height:4.6vh;margin:0 0 .8vh;font-size:2.2vh;letter-spacing:.18em;color:#F3CF64;font-weight:600;text-transform:uppercase;overflow:hidden;
+    -webkit-column-break-inside:avoid;break-inside:avoid;-webkit-column-break-after:avoid;break-after:avoid;}
+  .vacio{padding-top:12vh;text-align:center;color:#C2CEE0;font-size:3vh;}
+  .vacio b{display:block;color:#F8F7F2;font-size:4vh;margin-bottom:1vh;}
+
+  /* Sorteo: la rueda a la izquierda, el ganador y la lista a la derecha. */
+  #pSort.ver{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;}
+  #sRueda{position:relative;-webkit-flex:none;flex:none;width:68vh;height:68vh;margin:0 4vw 0 1vw;}
+  #sCanvas{width:100%;height:100%;display:block;}
+  #sPin{position:absolute;top:-1vh;left:50%;margin-left:-1.6vh;width:0;height:0;border-left:1.6vh solid transparent;border-right:1.6vh solid transparent;border-top:3.4vh solid #F58D76;}
+  #sInfo{-webkit-flex:1;flex:1;min-width:0;}
+  #sTitulo{font-size:3vh;font-weight:600;color:#C2CEE0;margin-bottom:2vh;}
+  #sGanador .lbl{font-size:2.4vh;letter-spacing:.16em;color:#C2CEE0;font-weight:600;}
+  #sGanador .who{font-family:Newsreader,Georgia,serif;font-weight:300;font-size:8vh;line-height:1.1;color:#F3CF64;margin-top:1vh;word-wrap:break-word;}
+  #sLista{margin-top:3vh;font-size:2.8vh;line-height:1.5;}
+  #sLista .secLabel{font-size:2vh;letter-spacing:.16em;color:#C2CEE0;margin-bottom:.6vh;}
+  #sLista div div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #sEstado{margin-top:2vh;font-size:2.2vh;color:#C2CEE0;}
+
+/* La marca usa la tipografía de interfaz; el reloj conserva su serif. */
+#marca{font-family:Inter,Arial,sans-serif;font-weight:700;letter-spacing:-.04em}#marca b{font-weight:700}
+.entorno-local #nav{bottom:28px}
+.entorno-local #estado{bottom:calc(2vh + 28px)}
+.entorno-local .pag{bottom:calc(9vh + 28px)}

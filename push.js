@@ -45,7 +45,7 @@ export async function activarPush({ app, db, uid, tienda, rol }){
     const token = await getToken(getMessaging(app), { vapidKey: VAPID, serviceWorkerRegistration: registro });
     if (!token) return "No se pudo activar los avisos. Inténtalo otra vez.";
     await set(ref(db, "fcmTokens/" + tienda + "/" + uid), { token, rol, t: serverTimestamp() });
-    try { localStorage.setItem(marca(tienda), "1"); } catch(e){}
+    try { localStorage.setItem(marca(tienda), "1"); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
     return "";
   } catch(e){ return "No se pudo activar los avisos (" + (e.code || e.message || "error") + ")."; }
 }
@@ -57,11 +57,11 @@ export async function renovarPush({ app, db, uid, tienda, rol }){
     const { getMessaging, getToken } = await import(MENSAJERIA);
     const token = await getToken(getMessaging(app), { vapidKey: VAPID, serviceWorkerRegistration: await navigator.serviceWorker.ready });
     if (token) await set(ref(db, "fcmTokens/" + tienda + "/" + uid), { token, rol, t: serverTimestamp() });
-  } catch(e){}
+  } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
 }
 
 export async function desactivarPush({ app, db, uid, tienda }){
-  try { localStorage.removeItem(marca(tienda)); } catch(e){}
-  try { await remove(ref(db, "fcmTokens/" + tienda + "/" + uid)); } catch(e){}
-  try { const { getMessaging, deleteToken } = await import(MENSAJERIA); await deleteToken(getMessaging(app)); } catch(e){}
+  try { localStorage.removeItem(marca(tienda)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
+  try { await remove(ref(db, "fcmTokens/" + tienda + "/" + uid)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
+  try { const { getMessaging, deleteToken } = await import(MENSAJERIA); await deleteToken(getMessaging(app)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
 }

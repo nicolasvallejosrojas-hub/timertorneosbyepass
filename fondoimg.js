@@ -16,10 +16,10 @@
 /* ▌BLOQUE 1 · Fondo de las imágenes ═════════════════════════════════════════════
    El fondo por defecto, la paleta según el fondo (letras claras u oscuras, o a mano) y el dibujo
    del fondo en un canvas. */
-export const FONDO_DEF = { tipo: "color", color1: "#0F2E2A", color2: "#0A221F", dir: "to bottom", fondo: "", oscuro: 40, letras: "auto" };
+export const FONDO_DEF = { tipo: "color", color1: "#1B2C49", color2: "#121E30", dir: "to bottom", fondo: "", oscuro: 40, letras: "auto" };
 export const DIRECCIONES = { "to bottom": [0, 0, 0, 1], "to right": [0, 0, 1, 0], "to bottom right": [0, 0, 1, 1], "to top right": [0, 1, 1, 0] };
 
-const OSCURA = { texto: "#F3FFFB", suave: "#9DBDB4", coral: "#F45B45", ambar: "#FFB020", fila: "rgba(243,255,251,.055)",
+const OSCURA = { texto: "#F8F7F2", suave: "#C2CEE0", coral: "#F45B45", ambar: "#FFB020", fila: "rgba(243,255,251,.055)",
                  filaFuerte: "rgba(243,255,251,.11)", filaTenue: "rgba(243,255,251,.035)", linea: "rgba(243,255,251,.1)", apagado: "rgba(157,189,180,.35)" };
 const CLARA = { texto: "#10231E", suave: "#3E5E55", coral: "#D43A25", ambar: "#A85F00", fila: "rgba(16,35,30,.06)",
                 filaFuerte: "rgba(16,35,30,.12)", filaTenue: "rgba(16,35,30,.04)", linea: "rgba(16,35,30,.14)", apagado: "rgba(62,94,85,.45)" };

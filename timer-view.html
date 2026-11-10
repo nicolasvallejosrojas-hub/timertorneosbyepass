@@ -27,288 +27,22 @@
    vista usa módulos, ?. y ?? y ahí ni arranca. Se van a tele.html, la vista
    liviana del timer. ?completa=1 fuerza esta página igual. */
 (function(){
-  var viejo = !("noModule" in document.createElement("script"));
-  try { new Function("var a = {}; return a?.b ?? 1"); } catch(e){ viejo = true; }
+  // Capacidades modernas sin eval: la CSP local bloquea new Function incluso
+  // en navegadores actuales y antes provocaba un desvío incorrecto a tele.html.
+  var viejo = !("noModule" in document.createElement("script"))
+    || typeof String.prototype.replaceAll !== "function";
   if (viejo && !/[?&]completa=1/.test(location.search)) location.replace("tele.html" + location.search);
 })();
 </script>
 <title>Torneo — Timer y emparejamientos</title>
-<link rel="stylesheet" href="estilo.css?v=14">
+<link rel="stylesheet" href="estilo.css?v=cc72b6ac4534">
 <!-- ▌BLOQUE 2 · Estilos de la vista de jugadores — Reloj, pestañas, mesas, clasificación, ruleta y agenda.
      -->
-<style>
-  /* Lo compartido vive en estilo.css. Acá queda solo el acomodo de esta
-     página: el reloj a pantalla completa, la rejilla de mesas y las tarjetas.
-     Las medidas de los componentes comunes se ajustan con variables. */
-  :root{--text:var(--texto);--accent:var(--accion);
-        --surface:var(--sup);
-        --cal-alto:46px;--rueda:min(86vw,420px);}
 
-  html,body{height:100%;}
-  html{background:var(--lienzo);}
-  /* Detrás del reloj va el lienzo, oscuro, hasta que llega el diseño de la
-     tienda. Con la página clara de fondo, una sala sin diseño guardado dejaba
-     el reloj blanco sobre menta. Las demás pestañas traen su propio fondo. */
-  body{overflow:hidden;position:relative;background:var(--lienzo);}
-  #bg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;
-      display:none;transition:opacity .2s;}
-  .page{position:fixed;inset:0;box-sizing:border-box;z-index:1;}
-  .page.hide{display:none !important;}
-  .sub{font-size:var(--t2);color:var(--apagado);}
-
-  /* =========================================================
-     Barra inferior de 5 iconos
-     Cinco pestañas con texto no caben a 375 px. Abajo y con icono se llega
-     con el pulgar, que es como el jugador sostiene el teléfono mientras
-     tiene el mazo en la otra mano.
-     ========================================================= */
-  /* Translúcida como la de iOS (.vidrio de estilo.css), con la línea arriba. */
-  #tabbar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;
-    box-shadow:inset 0 1px 0 var(--divider);
-    padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));}
-  #tabbar button{flex:1;border:none;background:transparent;color:var(--rotulo);
-    font-family:inherit;cursor:pointer;padding:6px 2px 4px;display:flex;
-    flex-direction:column;align-items:center;gap:3px;border-radius:var(--radio);
-    position:relative;min-width:0;}
-  #tabbar button svg{width:22px;height:22px;stroke:currentColor;fill:none;
-    stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
-  #tabbar button span{font-size:var(--t1);font-weight:500;letter-spacing:.01em;}
-  #tabbar button.on{color:var(--accion-texto);}
-  #dot{position:absolute;top:4px;right:calc(50% - 17px);width:7px;height:7px;
-    border-radius:50%;background:var(--accion);visibility:hidden;}
-
-  /* Las páginas con scroll dejan sitio para la barra de abajo. El timer NO:
-     ahí la cabecera y la línea de estado se posicionan aparte, para que el
-     reloj quede centrado en la pantalla completa. Con padding-bottom quedaba
-     59 px más arriba del centro. */
-  #pPair,#pClas,#pSort,#pAgenda{padding-bottom:76px;}
-
-  /* =========================================================
-     Timer
-     ========================================================= */
-  #pTimer{display:flex;align-items:center;justify-content:center;
-          text-align:center;padding:0 14px;}
-  #relojGrupo{display:flex;flex-direction:column;align-items:center;gap:1.6vh;
-              max-width:100%;}
-  /* Mismo rótulo que el lienzo de la tienda: espaciado y en mayúsculas, para
-     que se lea "en qué vamos" sin competir con el número. */
-  #pronda{font-size:clamp(var(--t1),3.2vw,var(--t3));letter-spacing:.22em;text-transform:uppercase;
-    color:var(--apagado);text-shadow:0 1px 3px rgba(0,0,0,.85);display:none;}
-  /* La cabecera va arriba a la izquierda y no estorba al reloj, que sigue
-     centrado en la pantalla completa. */
-  #cabecera{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;
-    gap:11px;padding:14px 16px;text-align:left;min-width:0;}
-  #logo{max-height:38px;max-width:38vw;object-fit:contain;display:none;flex-shrink:0;}
-  /* Sala de invitado: la marca de ByePass en vez del logo de la tienda. */
-  #marcaBP{display:none;font-family:var(--fuente-reloj);font-weight:300;font-size:30px;line-height:1;color:#F3FFFB;flex-shrink:0;}
-  #marcaBP b{font-weight:300;color:#F45B45;}
-  #vencida{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-    padding:24px;text-align:center;background:#0F2E2A;color:#F3FFFB;}
-  #vencida h2{margin:0;font-size:clamp(24px,5vw,44px);}
-  #vencida p{margin:0;color:#9DBDB4;max-width:30em;line-height:1.5;}
-  #vencida a{color:#F45B45;font-weight:600;}
-  #cabtxt{min-width:0;}
-  #ctitulo{font-size:var(--t4);font-weight:600;line-height:1.25;overflow-wrap:anywhere;
-    text-shadow:0 1px 3px rgba(0,0,0,.85);}
-  #csub{font-size:var(--t2);color:var(--apagado);margin-top:2px;line-height:1.25;
-    text-shadow:0 1px 3px rgba(0,0,0,.85);}
-  #names{display:none;}
-  #clock{font-size:var(--d1);}
-  /* Tiempo extra por mesa (timer/extras): debajo del reloj. Antes del cero dice
-     cuánto se sumó; después, cuánto le queda a esa mesa. Toma el color del texto
-     de la pantalla, así sirve con cualquier fondo que elija la tienda. */
-  #extras{display:flex;flex-wrap:wrap;justify-content:center;gap:1vh 1.2vw;max-width:92vw;}
-  #extras[hidden]{display:none;}
-  .extra{font-size:clamp(var(--t2),2.6vh,var(--t5));padding:.3em .8em;border-radius:999px;white-space:nowrap;
-    background:color-mix(in srgb, currentColor 13%, transparent);font-variant-numeric:tabular-nums;
-    text-shadow:0 1px 3px rgba(0,0,0,.6);}
-  .extra b{font-weight:700;margin-left:.35em;}
-  .extra.fin{opacity:.55;}
-  /* Llamada a mesas (timer/llamada): cuánto lleva el juez llamando a los jugadores. */
-  #llamada{margin-top:1.2vh;font-size:clamp(var(--t2),2.6vh,var(--t5));padding:.3em .9em;border-radius:999px;white-space:nowrap;
-    background:color-mix(in srgb, currentColor 13%, transparent);font-variant-numeric:tabular-nums;text-shadow:0 1px 3px rgba(0,0,0,.6);}
-  #llamada[hidden]{display:none;}
-  #llamada b{font-weight:700;margin-left:.4em;}
-  /* Visible solo para lectores de pantalla */
-  .solo-lectores{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
-    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
-  #tstatus{position:absolute;left:0;right:0;bottom:88px;font-size:var(--t2);
-           color:var(--apagado);min-height:1.3em;text-shadow:0 1px 3px rgba(0,0,0,.85);}
-  .imgbox{position:fixed;z-index:0;pointer-events:none;}
-  .imgbox img{width:100%;height:100%;object-fit:contain;}
-
-  /* =========================================================
-     Emparejamientos
-     ========================================================= */
-  #pPair{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 76px;
-         background:var(--pagina);}
-  #tname{font-weight:700;font-size:var(--d3);margin:0 0 2px;}
-  #tsub{font-size:var(--t2);color:var(--rotulo);margin-bottom:14px;}
-  /* Superficie teñida en vez de borde lateral de color, igual que .aviso: el
-     borde grueso de un solo lado es el recurso más reconocible de interfaz
-     hecha a destajo, y el fondo comunica lo mismo mejor. */
-  .banner{background:var(--aviso-accion);border-radius:var(--radio);padding:11px 14px;
-    font-size:var(--t2);margin-bottom:14px;line-height:1.5;}
-
-  /* El buscador es lo primero que toca el jugador, por eso va grande */
-  #q{width:100%;font-size:var(--t4);padding:14px 16px;margin-bottom:14px;}
-
-  #rounds{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
-  #rounds button{border:none;background:var(--sup);color:var(--apagado);
-    border-radius:var(--radio);padding:8px 15px;font-size:var(--t3);
-    font-family:inherit;cursor:pointer;}
-  #rounds button.on{background:var(--texto);color:var(--pagina);font-weight:600;}
-
-  /* Las mesas van de a dos: el jugador escanea, no lee */
-  #list.mesas{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:start;}
-  @media (min-width:1100px){ #list.mesas{grid-template-columns:1fr 1fr 1fr;} }
-  .match{background:var(--sup);border-radius:var(--radio);overflow:hidden;
-    display:flex;flex-direction:column;}
-  /* outline y no box-shadow inset: la sombra interior se pinta debajo del
-     fondo de la cabecera MESA y el anillo quedaba cortado arriba. */
-  .match.hl{outline:2px solid var(--accion);outline-offset:-2px;}
-  .mnum{display:flex;align-items:baseline;justify-content:center;gap:6px;
-    padding:5px 8px;background:var(--campo);}
-  .mlbl{font-size:var(--t1);letter-spacing:.14em;color:var(--rotulo);font-weight:600;}
-  .mval{font-size:var(--t4);font-weight:700;color:var(--accion-texto);
-        font-variant-numeric:tabular-nums;}
-  .mbody{flex:1;display:flex;flex-direction:column;gap:7px;padding:11px 12px;}
-  /* Si el récord y la marca de resultado no caben juntos, la marca baja a su
-     propia línea en vez de recortar el récord: "3-0-0 · 9 pts · 10…" se lee
-     como 10% y no como 100%. Un dato a medias miente. */
-  .prow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  /* El récord se lleva la fila completa y la marca de resultado baja debajo.
-     Compitiendo en la misma línea, el récord se partía en dos y las tarjetas
-     quedaban desparejas; así cada dato ocupa un renglón entero y limpio. */
-  .pinfo{flex:1 1 100%;min-width:0;}
-  /* A 375 px con dos columnas el nombre y el récord se parten feo. Se achican
-     lo justo para que la mayoría entre en una línea; el récord no se parte
-     nunca, se recorta, porque leerlo a medias confunde más que no verlo. */
-  .pname{font-size:var(--t3);font-weight:600;line-height:1.3;overflow-wrap:anywhere;}
-  /* El récord se parte en sus propios separadores si no cabe, en vez de
-     recortarse: "3-0-0 · 9 pts · 10…" se lee como 10% y no como 100%. Un dato
-     a medias miente, y dos líneas no. */
-  /* El récord usa el token de metadato, no el de rótulo. Estaba en el piso de
-     11 px solo porque competía con la marca de resultado por el ancho; ahora
-     que tiene la fila entera, puede respirar. */
-  .pmeta{font-size:var(--t2);color:var(--apagado);margin-top:3px;
-         font-variant-numeric:tabular-nums;line-height:1.35;}
-  .mbody{padding:10px;}
-  .win,.tie{font-size:var(--t1);padding:3px 6px;}
-  .prow.won .pname{color:var(--accion-texto);}
-  .win,.tie{font-size:var(--t1);letter-spacing:.1em;font-weight:700;padding:3px 7px;
-    border-radius:var(--radio-marca);white-space:nowrap;}
-  .win{background:var(--accion);color:var(--sobre-accion);}
-  .tie{background:var(--sup-alta);color:var(--apagado);}
-  .byetag{font-size:var(--t2);color:var(--apagado);}
-  .byetag b{color:var(--texto);}
-
-  .secLabel,.chead{font-size:var(--t1);letter-spacing:.12em;color:var(--rotulo);
-    font-weight:600;padding:0 2px 10px;display:flex;justify-content:space-between;}
-  .frow,.crow{display:flex;align-items:center;gap:12px;padding:12px 10px;
-    background:var(--sup);border-radius:var(--radio);margin-bottom:5px;}
-  .hlrow{box-shadow:inset 0 0 0 2px var(--accion);}
-  .fmid{flex:1;min-width:0;}
-
-  /* =========================================================
-     Clasificación
-     ========================================================= */
-  #pClas{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 76px;
-         background:var(--pagina);}
-  #pClas h1,#rTitle,#aTitle{font-weight:700;
-    font-size:var(--d3);margin:0 0 12px;}
-  #mes{min-width:190px;font-size:var(--t3);}
-  .aCuenta{text-align:center;font-size:var(--t2);color:var(--apagado);margin:var(--e5) 0 var(--e3);}
-  .aCuenta a{color:var(--accion-texto);}
-  .aPerfil{display:inline-block;font-size:var(--t2);color:var(--accion-texto);margin:-6px 0 14px;}
-  #cstatus,#sstatus,#astatus,#pstatus{text-align:center;color:var(--apagado);
-    font-size:var(--t2);margin-top:16px;}
-  .crow{cursor:pointer;}
-  .crow.sel{box-shadow:inset 0 0 0 2px var(--accion);}
-  .cdet{display:none;gap:22px;margin:-3px 0 5px;padding:12px 14px;
-    background:var(--campo);border-radius:var(--radio);}
-  .cdet.open{display:flex;}
-  .cdet span{display:block;font-size:var(--t1);letter-spacing:.1em;color:var(--rotulo);
-    font-weight:600;}
-  .cdet b{font-size:var(--t4);font-weight:600;}
-  .cdet b.ac{color:var(--accion-texto);}
-  .chint{font-size:var(--t2);color:var(--rotulo);padding:14px 4px 0;text-align:center;}
-
-  /* Podio del top 3. El primero va al centro y más alto, como en un podio de
-     verdad; el orden en pantalla es 2 · 1 · 3. Los colores salen de la paleta
-     (oro, plata, bronce del sistema) y no del rojo y verde de la referencia,
-     que pelearían con el amarillo de acción. */
-  .podio{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:7px;align-items:end;
-         margin:4px 0 22px;position:relative;padding-bottom:5px;}
-  /* Una base para que los tres bloques se apoyen en algo y no floten */
-  .podio::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;
-    background:var(--sup-alta);border-radius:0 0 var(--radio) var(--radio);}
-  .pod{display:flex;flex-direction:column;align-items:center;min-width:0;}
-  .podNom{font-size:var(--t2);font-weight:600;text-align:center;line-height:1.25;
-    margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;
-    -webkit-box-orient:vertical;overflow-wrap:anywhere;}
-  .podPts{font-size:var(--t2);color:var(--apagado);margin-bottom:7px;
-    font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .podCaja{width:100%;border-radius:var(--radio) var(--radio) 0 0;display:flex;
-    align-items:center;justify-content:center;font-family:var(--fuente-reloj);
-    font-weight:300;color:var(--sobre-podio);line-height:1;}
-  .p1 .podCaja{height:104px;background:var(--podio1);font-size:var(--d2);}
-  .p2 .podCaja{height:76px; background:var(--podio2);font-size:var(--d3);}
-  .p3 .podCaja{height:58px; background:var(--podio3);font-size:var(--d3);}
-
-  /* =========================================================
-     Sorteo
-     ========================================================= */
-  #pSort{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 76px;
-    background:var(--pagina);display:flex;flex-direction:column;align-items:center;}
-  #rList{width:100%;max-width:420px;margin-top:20px;}
-
-  /* =========================================================
-     Agenda
-     ========================================================= */
-  #pAgenda{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 76px;
-           background:var(--pagina);}
-  .evCard{background:var(--sup);border-radius:var(--radio);padding:14px;
-    margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;}
-  .evCard.prox{box-shadow:inset 0 0 0 2px var(--accion);}
-  .evCard.destacada{box-shadow:inset 0 0 0 2px var(--accion-clara);}
-  .evCal{min-width:52px;text-align:center;flex-shrink:0;}
-  .evCal .d{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--d3);
-            line-height:1;font-variant-numeric:tabular-nums;}
-  .evCal .m{font-size:var(--t1);letter-spacing:.1em;color:var(--rotulo);font-weight:600;
-            margin-top:2px;}
-  .evBody{flex:1;min-width:0;}
-  .evTit{font-size:var(--t4);font-weight:600;line-height:1.3;}
-  .evJuego{font-weight:600;opacity:.72;margin-right:8px;}   /* el juego del evento, antes del título */
-  .evCuando{font-size:var(--t2);color:var(--apagado);margin-top:4px;line-height:1.5;}
-  .evFalta{display:inline-block;font-size:var(--t1);letter-spacing:.08em;font-weight:700;
-    color:var(--sobre-accion);background:var(--accion);border-radius:var(--radio-marca);padding:3px 8px;
-    margin-top:8px;text-transform:uppercase;}
-  .evDet{font-size:var(--t2);color:var(--apagado);margin-top:8px;line-height:1.5;
-         white-space:pre-wrap;}
-  .evBtns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
-  /* Sobre la tarjeta (--sup) el botón necesita ser --sup-alta o se pierde */
-  .evBtns a,.evBtns button{border:none;background:var(--sup-alta);color:var(--texto);
-    border-radius:var(--radio);padding:9px 14px;font-size:var(--t2);font-family:inherit;
-    cursor:pointer;text-decoration:none;white-space:nowrap;}
-  .evBtns a.gcal{background:var(--accion);color:var(--sobre-accion);font-weight:600;}
-  #calCaja{margin-bottom:20px;}
-  /* 44 px de lado en TODO lo que se toca. Es una regla de dedo, así que aplica
-     a esta superficie y no al panel, que se usa con mouse a 30 cm. Pesa más
-     acá porque hay jugadores en edad escolar. */
-  #calNav button,#rounds button,#mes{min-height:44px;}
-  #calNav button{min-width:44px;display:inline-flex;align-items:center;justify-content:center;}
-  .evBtns a,.evBtns button{min-height:44px;display:inline-flex;align-items:center;}
-
-  /* La pantalla no muestra titulos —el reloj es el titulo— pero un lector de
-     pantalla necesita saber en que pestana esta parado. Estos existen solo
-     para el: fuera del flujo, sin display:none, que los borraria tambien del
-     arbol de accesibilidad. */
-  .solo-lector{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
-    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
-</style>
+<link rel="stylesheet" href="/paginas/timer-view.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="/sistema.css?v=cc72b6ac4534">
 </head>
-<body>
+<body data-pagina="timer-view">
 
 <!-- ============ Fondo y barra de pestañas ============ -->
 <img id="bg" alt="">
@@ -360,6 +94,7 @@
   <a class="aPerfil" id="aPerfil" href="tienda.html">Ver el perfil de la tienda</a>
   <div id="banner" class="banner" role="status" aria-live="polite" style="display:none"></div>
   <input id="q" placeholder="Escribe tu nombre">
+  <details class="esperaCaja"><summary>Jugar mientras espero</summary><section id="espera"></section></details>
   <div id="rounds"></div>
   <div id="list" aria-live="polite" aria-relevant="additions text"></div>
   <div id="pstatus">Conectando…</div>
@@ -422,17 +157,19 @@
 
 </main>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=cc72b6ac4534"></script>
 <!-- ▌BLOQUE 4 · Módulos que usa la vista — Imports de Firebase y módulos compartidos. -->
 <script type="module">
+import { montarEspera } from "./espera.js";
+import { aplicarMarca } from "./identidad.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { vigilar } from "./mantenimiento.js?v=4";
+import { getAuth, connectAuthEmulator, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { vigilar } from "./mantenimiento.js?v=cc72b6ac4534";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=5";
-import { SALA, BASE, TIENDA, BASE_T, INVITADO, SIN_TIENDA, numTimer } from "./sala.js?v=6";
-import { estoyEnLinea } from "./presencia.js?v=4";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=cc72b6ac4534";
+import { SALA, BASE, TIENDA, BASE_T, INVITADO, SIN_TIENDA, numTimer } from "./sala.js?v=cc72b6ac4534";
+import { estoyEnLinea } from "./presencia.js?v=cc72b6ac4534";
 
 /* Sin ?sala= no hay qué mostrar (antes abría «principal», que no era de
    nadie): se va al directorio, a elegir la tienda. */
@@ -454,9 +191,9 @@ if (!new URLSearchParams(location.search).get("sala"))
   document.getElementById("aPerfil").href = "tienda.html?" + q;
 }
 import { resolver as palResolver, esOriginal as palEsOriginal, aplicar as palAplicarEn,
-         alDia } from "./paleta.js?v=4";
-import { vistaDe } from "./vistapub.js?v=2";
-import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=6";
+         alDia } from "./paleta.js?v=cc72b6ac4534";
+import { vistaDe } from "./vistapub.js?v=cc72b6ac4534";
+import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=cc72b6ac4534";
 
 /* ▌BLOQUE 5 · Arranque ══════════════════════════════════════════════════════════
    Conecta Firebase en modo lectura y calcula la hora del servidor. */
@@ -544,7 +281,7 @@ const RK = "tv-back-" + SALA;
 try {
   const b = JSON.parse(localStorage.getItem(RK) || "null");
   if (b){ S = b.S || null; TH = b.TH || null; }
-} catch(e){}
+} catch(e){ console.warn("No se pudo completar una operación opcional", e); }
 
 let backTimer = null, backupWarned = false;
 function guardarRespaldo(){
@@ -618,7 +355,7 @@ function dibujarReloj(){
   dibujarExtras(sec);
   const c = $("clock");
   c.textContent = fmt(sec);
-  c.style.color = sec < 0 ? (alDia(S.negativeColor)||"#FF7A6B") : (alDia(S.timerColor)||"#F3FFFB");
+  c.style.color = sec < 0 ? (alDia(S.negativeColor)||"#FF7A6B") : (alDia(S.timerColor)||"#F8F7F2");
   const porVencer = !S.paused && sec <= 10 && sec >= 0;
   c.classList.toggle("porvencer", porVencer);
   c.classList.toggle("pulsing", porVencer);
@@ -631,7 +368,7 @@ function dibujarReloj(){
    (o que se escape una excepción) para que el bucle no se vuelva a pedir nunca
    más y el número quede clavado. Un intervalo no se muere, y como el reloj
    muestra segundos enteros nadie nota la diferencia. */
-setInterval(() => { try { dibujarReloj(); } catch(e){} }, 250);
+setInterval(() => { try { dibujarReloj(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250);
 
 /* Anuncio para lector de pantalla. Solo en hitos: narrar cada segundo dejaría
    la app inusable. Se dispara al cruzar cada umbral, una sola vez. */
@@ -651,10 +388,10 @@ setInterval(() => {
 
 // Al volver a primer plano se redibuja de inmediato, sin esperar el intervalo
 ["visibilitychange","pageshow","focus","online"].forEach(ev =>
-  window.addEventListener(ev, () => { try { dibujarReloj(); } catch(e){} }));
+  window.addEventListener(ev, () => { try { dibujarReloj(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }));
 
 /* Mantener la pantalla encendida mientras corre la ronda */
-const pedirWakeLock = () => { try { navigator.wakeLock?.request("screen").catch(()=>{}); } catch(e){} };
+const pedirWakeLock = () => { try { navigator.wakeLock?.request("screen").catch(e => console.warn("Operación secundaria sin confirmar", e)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
 pedirWakeLock();
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") pedirWakeLock();
@@ -675,7 +412,7 @@ let MED = null, medVer = null;
 try {
   const c = JSON.parse(localStorage.getItem(CK) || "null");
   if (c && c.m){ MED = c.m; medVer = c.v; }
-} catch(e){}
+} catch(e){ console.warn("No se pudo completar una operación opcional", e); }
 
 onValue(ref(db, BASE + "/timer/theme"), snap => { TH = snap.val(); applyTheme(); guardarRespaldo(); });
 
@@ -683,8 +420,8 @@ async function bajarMedia(v){
   try {
     const s = await get(ref(db, BASE + "/timer/media"));
     MED = s.val(); medVer = v; applyTheme();
-    try { localStorage.setItem(CK, JSON.stringify({ v, m: MED })); } catch(e){}
-  } catch(e){}
+    try { localStorage.setItem(CK, JSON.stringify({ v, m: MED })); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
+  } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
 }
 onValue(ref(db, BASE + "/timer/mediaVersion"), s => {
   const v = s.val();
@@ -724,8 +461,8 @@ function applyTheme(){
   } else {
     $("bg").style.display = "none";
     document.body.style.background = V.bgType === "gradient"
-      ? `linear-gradient(${V.bgDir||"to right"}, ${alDia(V.bgColor1)||"#0F2E2A"}, ${alDia(V.bgColor2)||"#0A221F"})`
-      : (alDia(V.bgColor1) || "#0F2E2A");
+      ? `linear-gradient(${V.bgDir||"to right"}, ${alDia(V.bgColor1)||"#1B2C49"}, ${alDia(V.bgColor2)||"#121E30"})`
+      : (alDia(V.bgColor1) || "#1B2C49");
   }
 
   if (logoSrc){ $("logo").src = logoSrc; $("logo").style.display = "block"; }
@@ -792,8 +529,24 @@ function limpiarPair(msg){
   $("pstatus").textContent = msg;
 }
 
+async function memoriaApi(accion,extra={}){
+  const u=auth.currentUser;if(!u||u.isAnonymous)throw Error('Ingresa con tu cuenta para jugar.');
+  const token=await u.getIdToken();
+  const {juego,...datos}=extra;
+  const r=await fetch(juego==='minas'?'/api/minas':juego==='salto'?'/api/salto':'/api/memoria',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...datos,accion,sala:SALA,token}),signal:AbortSignal.timeout(12000)});
+  const data=await r.json();if(!r.ok)throw Object.assign(new Error(data.error||'No se pudo guardar tu partida.'),{status:r.status});return data;
+}
+const espera = montarEspera({root:$("espera"),api:memoriaApi,volver:nombre=>{show('pair');$("q").value=nombre;renderPair();$("q").focus();}});
+onAuthStateChanged(auth,async u=>{
+  espera.cuenta(null);if(!u||u.isAnonymous)return;
+  try{const p=(await get(ref(db,'usuarios/'+u.uid))).val();if(auth.currentUser?.uid===u.uid&&p?.nombre)espera.cuenta({uid:u.uid,nombre:p.nombre});}
+  catch(e){console.warn('No se pudo comprobar el perfil del juego',e);}
+});
+onValue(ref(db,".info/connected"),snap=>espera.conexion(snap.val()===true));
+onValue(ref(db,"tiendas/"+TIENDA+"/perfil/color"),snap=>aplicarMarca(document.documentElement,snap.val()));
 onValue(ref(db, BASE + "/pairings"), snap => {
   P = snap.val();
+  espera.actualizar(P);
   // El organizador borró lo publicado: hay que limpiar lo que quedó en pantalla,
   // si no los nombres siguen visibles aunque ya no existan en Firebase.
   if (!P || !P.rounds || !P.rounds.length){
@@ -956,9 +709,9 @@ function suscribirHistorial(){
 $("mes").onchange = e => { mesSel = e.target.value; renderClas(true); };
 /* General o por categoría: se recuerda en este navegador. */
 let VISTA = "cat";
-try { VISTA = localStorage.getItem(VISTA_RANKING) === "general" ? "general" : "cat"; } catch(e){}
+try { VISTA = localStorage.getItem(VISTA_RANKING) === "general" ? "general" : "cat"; } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
 $("vistaClas").value = VISTA;
-$("vistaClas").onchange = e => { VISTA = e.target.value; try { localStorage.setItem(VISTA_RANKING, VISTA); } catch(x){} renderClas(true); };
+$("vistaClas").onchange = e => { VISTA = e.target.value; try { localStorage.setItem(VISTA_RANKING, VISTA); } catch(x){ console.warn("No se pudo completar una operación opcional", x); } renderClas(true); };
 
 /* El podio repite a los tres primeros que ya están en la tabla de abajo. No
    es información nueva: es para que se vea de un vistazo quién va ganando el

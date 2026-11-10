@@ -18,7 +18,7 @@
 
 /* ▌BLOQUE 1 · Tabla como imagen ═════════════════════════════════════════════════
    Dibuja la tabla en un canvas, sobre el fondo elegido (fondoimg.js), y la comparte o descarga. */
-import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=1";
+import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=cc72b6ac4534";
 const W = 1080, PAD = 72, FILA = 66, CAB = 330, PIE = 170;
 
 /* Corta con «…» lo que no cabe en el ancho dado. */
@@ -41,7 +41,7 @@ const NOM_CAT = ["Junior", "Senior", "Masters"];     // cat: 0, 1, 2 (igual que 
 /* estilo: el fondo elegido (fondoimg.js); puede venir como promesa. Sin él, el lienzo oscuro de siempre. */
 export async function dibujarTabla({ torneo, fecha, tienda, filas, estilo }){
   estilo = await estilo; const C = paletaDe(estilo);   // colores del texto y las filas según el fondo
-  await Promise.all(["700 56px Inter", "600 30px Inter", "400 26px Inter", "300 60px Newsreader"].map(f => document.fonts.load(f).catch(() => {})));
+  await Promise.all(["700 56px Inter", "600 30px Inter", "400 26px Inter", "300 60px Newsreader"].map(f => document.fonts.load(f).catch(e => console.warn("Operación secundaria sin confirmar", e))));
   const hayCats = filas.some(f => f.cat != null && f.cat !== filas[0].cat);
   const lineas = [];
   filas.forEach((f, i) => {

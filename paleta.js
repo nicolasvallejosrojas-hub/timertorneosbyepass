@@ -56,17 +56,18 @@ const EXTRA = Object.keys(OSCURA).concat(["--sup-hover", "--vidrio", "--aviso",
 /* 25-09-2026: la original pasa a menta y coral, clara. La ciruela con
    amarillo que hubo hasta entonces queda como preset, igual que el índigo con
    coral que duró un día. */
-export const DEF = { accion: "#F45B45", base: "#EEF8F4" };
+export const DEF = { accion: "#C74432", base: "#F8F7F2" };
 
 /* La original de antes. Cada diseño guardado hasta el 25-09 la trae grabada
    como su paleta aunque nadie la haya elegido —era el valor por defecto—, así
    que se sigue tratando como «la original» y esas salas pasan solas a la
    nueva. Sin esto, el timer y el panel de la tienda seguirían en ciruela y la
    cuenta y el muro en índigo. */
-const LEGADOS = [{ accion: "#F9D746", base: "#2A242F" }, { accion: "#FF6B81", base: "#120F2B" }];
+const LEGADOS = [{ accion: "#F45B45", base: "#EEF8F4" }, { accion: "#F9D746", base: "#2A242F" }, { accion: "#FF6B81", base: "#120F2B" }];
 
 export const PRESETS = [
-  ["Original", "#F45B45", "#EEF8F4"],
+  ["ByePass · crema y coral", "#C74432", "#F8F7F2"],
+  ["Azul de torneo", "#F58D76", "#1B2C49"],
   /* Un punto más claras que LEGADOS a propósito (#2B2530, #13102C): con el
      valor exacto las tomaría por la original y elegirlas no haría nada. */
   ["Ciruela y amarillo", "#F9D746", "#2B2530"],

@@ -31,7 +31,7 @@ import { ref, query, orderByKey, startAfter, onValue }
 export function leerHistorial(db, sala, cb, fallo = () => {}){
   const k = "hist-" + (typeof EMULADOR !== "undefined" && EMULADOR ? "emu-" : "") + sala;
   let c = null, apagar = null;
-  try { c = JSON.parse(localStorage.getItem(k) || "null"); } catch(e){}
+  try { c = JSON.parse(localStorage.getItem(k) || "null"); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   const parar = onValue(ref(db, "salas/" + sala + "/historialVer"), s => {
     const ver = s.val() ?? null;
     if (!c || c.ver !== ver || typeof c.datos !== "object") c = { ver, datos: {} };
@@ -39,7 +39,7 @@ export function leerHistorial(db, sala, cb, fallo = () => {}){
     const ult = Object.keys(c.datos).sort().pop(), base = ref(db, "salas/" + sala + "/historial");
     apagar = onValue(ult ? query(base, orderByKey(), startAfter(ult)) : base, s2 => {
       Object.assign(c.datos, s2.val() || {});
-      try { localStorage.setItem(k, JSON.stringify(c)); } catch(e){}
+      try { localStorage.setItem(k, JSON.stringify(c)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
       cb({ ...c.datos });
     }, fallo);
   }, fallo);

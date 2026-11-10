@@ -9,53 +9,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B7F6C">
-<script src="tema.js?v=1"></script>
+<meta name="theme-color" content="#243B60">
+<script src="tema.js?v=cc72b6ac4534"></script>
 <meta name="description" content="Tus listas de mazo guardadas, para usarlas al inscribirte en un torneo.">
 <title>Mis mazos — ByePass</title>
-<link rel="stylesheet" href="estilo.css?v=14">
-<link rel="stylesheet" href="armador.css?v=1">
+<link rel="stylesheet" href="estilo.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="armador.css?v=cc72b6ac4534">
 <!-- ▌BLOQUE 1 · Estilos — La lista de mazos y el editor (el armador trae los suyos en armador.css). -->
-<style>
-  /* Mis mazos: hasta 10 listas guardadas en la cuenta (mazos/<uid>/m1…m10). Se arman con el mismo armador que la
-     inscripción y se eligen al inscribirse. Las fotos de las cartas las sirve TCGdex: aquí no se guarda ninguna imagen. */
-  body{min-height:100vh;}
-  .sup{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 var(--e4);gap:var(--e3);}
-  .sup a{color:var(--accion-texto);font-size:var(--t3);}
-  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto)!important;text-decoration:none;}
-  .marca b{font-weight:300;color:var(--accion-texto);}
-  main{max-width:640px;margin:0 auto;padding:var(--e4) var(--e4) var(--e6);box-sizing:border-box;display:flex;flex-direction:column;gap:var(--e4);}
-  h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
-  .meta{font-size:var(--t3);color:var(--apagado);line-height:1.6;margin:var(--e1) 0 0;}
-  .caja{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
-  .caja h2{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:0;}
-  .dos{display:grid;grid-template-columns:1fr 180px;gap:var(--e3);}
-  .campo{display:flex;flex-direction:column;gap:7px;}
-  .campo > span{font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
-  .campo input,.campo select{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;font-family:inherit;}
-  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
-  .pista a{color:var(--accion-texto);}
-  .acc{display:flex;gap:var(--e2);flex-wrap:wrap;align-items:center;}
-  .acc .btn{min-height:44px;}
-  .oculto{display:none!important;}
-  .mazoF{display:flex;align-items:center;gap:var(--e3);padding:var(--e2) 0;}
-  .mazoF + .mazoF{border-top:1px solid var(--divider);}
-  .mazoF .tapa{flex:none;width:44px;height:62px;border-radius:4px;background:var(--campo);object-fit:cover;}
-  .mazoF .dato{flex:1;min-width:0;}
-  .mazoF .dato b{display:block;overflow-wrap:anywhere;}
-  .mazoF .dato small{color:var(--apagado);font-size:var(--t2);}
-  .mazoF .btn{min-height:40px;}
-  .vacio{color:var(--apagado);font-size:var(--t3);margin:0;}
-  @media (min-width:960px){
-    main{max-width:1160px;}
-    main > div:first-child,#sinSesion,#vistaLista,#editorDatos,#editorAcc{width:100%;max-width:640px;margin-left:auto;margin-right:auto;box-sizing:border-box;}
-  }
-  @media (max-width:560px){ .dos{grid-template-columns:1fr;} .mazoF{flex-wrap:wrap;} .mazoF .acc{flex:1 1 100%;} }
-</style>
+
+<link rel="stylesheet" href="/paginas/mazos.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="/sistema.css?v=cc72b6ac4534">
+<script src="/sistema.js?v=cc72b6ac4534" defer></script>
 </head>
-<body>
+<body data-pagina="mazos">
   <!-- ▌BLOQUE 2 · Marcado — La lista de mazos guardados y el editor de uno. -->
-  <header class="sup"><a class="marca" href="index.html">Bye<b>Pass</b></a><a id="aMuro" href="muro.html">Mi muro</a></header>
+  <header class="sup"><a class="marca bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-4 -1.5 44 44" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g transform="rotate(4 18 38)"><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a><a id="aMuro" href="muro.html">Mi muro</a></header>
   <main>
     <div>
       <h1>Mis mazos</h1>
@@ -88,14 +56,14 @@
     </section>
   </main>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=cc72b6ac4534"></script>
 <!-- ▌BLOQUE 3 · Módulos — Firebase, sesion, listamazo y el armador. -->
 <script type="module">
 import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=15";
-import { leerLista, cargarEstandar, imagenCarta } from "./listamazo.js?v=7";
-import { armador } from "./armador.js?v=1";
+import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=cc72b6ac4534";
+import { leerLista, cargarEstandar, imagenCarta } from "./listamazo.js?v=cc72b6ac4534";
+import { armador } from "./armador.js?v=cc72b6ac4534";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Mis mazos ═════════════════════════════════════════════════════════

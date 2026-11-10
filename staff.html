@@ -10,84 +10,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B7F6C">
-<script src="tema.js?v=1"></script>
+<meta name="theme-color" content="#243B60">
+<script src="tema.js?v=cc72b6ac4534"></script>
 <meta name="robots" content="noindex">
 <title>Staff de la sala — ByePass</title>
-<link rel="stylesheet" href="estilo.css?v=14">
+<link rel="stylesheet" href="estilo.css?v=cc72b6ac4534">
 <!-- ▌BLOQUE 1 · Estilos — Formularios, espera y chat del staff. -->
-<style>
-  /* Para el staff de un torneo (jueces y ayudantes que no organizan la tienda). Se entra con el código que da el
-     organizador, con un nombre y sin cuenta; el organizador admite o rechaza. Admitido, tiene el reloj de la ronda con su
-     alarma, las mesas, un cronómetro para dar tiempo extra a una mesa, y el chat de la sala. */
-  body{min-height:100vh;}
-  .sup{display:flex;align-items:center;min-height:56px;padding:0 var(--e4);}
-  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto);text-decoration:none;}
-  .marca b{font-weight:300;color:var(--accion-texto);}
-  main{max-width:640px;margin:0 auto;padding:var(--e4) var(--e4) 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:var(--e4);}
-  h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
-  .meta{font-size:var(--t3);color:var(--apagado);line-height:1.6;margin:var(--e1) 0 0;}
-  .caja{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
-  .campo{display:grid;gap:4px;font-size:var(--t2);color:var(--apagado);}
-  .campo input,.campo select{width:100%;box-sizing:border-box;font-size:var(--t4);padding:12px;}
-  #codigo{text-transform:uppercase;letter-spacing:.14em;font-weight:700;}
-  .fila{display:flex;gap:var(--e3);flex-wrap:wrap;align-items:center;}
-  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
-  .aviso{padding:var(--e3);border-radius:var(--radio);background:var(--sup-alta);font-size:var(--t3);line-height:1.5;}
-  .aviso.mal{color:var(--negativo);}
-  .estado{font-size:var(--t2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);}
-  .estado.espera{color:var(--rotulo);}
-  .oculto{display:none !important;}
-  main a:not(.btn){color:var(--accion-texto);}
 
-  /* el reloj */
-  .reloj{font-family:var(--fuente-reloj);font-weight:300;font-size:clamp(84px,26vw,170px);line-height:1;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
-  .reloj.neg{color:var(--negativo);}
-  .reloj.pausa{opacity:.55;}
-  .rondaT{text-align:center;font-size:var(--t4);font-weight:600;}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
-  .chip{font-size:var(--t2);padding:4px 12px;border-radius:999px;background:var(--sup-alta);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .chip b{font-weight:700;margin-left:4px;}
-  .chip button{min-height:28px;min-width:28px;padding:0;border:none;border-radius:50%;background:transparent;font-size:16px;line-height:1;cursor:pointer;color:inherit;}
-
-  /* las mesas */
-  .mesaF{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--divider);}
-  .mesaF:first-of-type{border-top:none;}
-  .mesaF .n{font-size:var(--d3);font-weight:700;min-width:1.6em;font-variant-numeric:tabular-nums;}
-  .mesaF .jug{font-size:var(--t3);line-height:1.35;min-width:0;overflow-wrap:anywhere;}
-  .mesaF .jug small{color:var(--apagado);display:block;font-variant-numeric:tabular-nums;}
-  .mesaF .res{grid-column:2;font-size:var(--t2);color:var(--apagado);}
-  .mesaF .ex{grid-column:2;}
-
-  /* tiempo por mesa */
-  .crono{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;padding:12px;border-radius:var(--radio);background:var(--sup-alta);}
-  .crono .m{font-size:var(--d3);font-weight:700;}
-  .crono .t{font-family:var(--fuente-reloj);font-size:var(--d3);font-weight:300;font-variant-numeric:tabular-nums;text-align:right;}
-  .crono .acc{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-  .crono input[type=number]{width:5em;font-size:var(--t4);padding:8px;text-align:center;}
-
-  /* el chat */
-  .feed{display:flex;flex-direction:column;gap:6px;height:min(52vh,420px);overflow:auto;padding:4px 2px;}
-  .msg{align-self:flex-start;max-width:92%;background:var(--sup-alta);border-radius:14px;padding:7px 12px;}
-  .msg.mio{align-self:flex-end;background:color-mix(in srgb, var(--accion) 16%, var(--sup));}
-  .msg .quien{font-size:var(--t2);color:var(--apagado);}
-  .msg .quien b{color:var(--texto);font-weight:600;}
-  .msg p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;}
-  .enviar{display:flex;gap:8px;}
-  .enviar input{flex:1;min-width:0;font-size:var(--t4);padding:12px;}
-
-  /* la barra de abajo */
-  #nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:4px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));
-    background:var(--sup);border-top:1px solid var(--divider);}
-  #nav button{flex:1;max-width:150px;min-height:48px;border:none;border-radius:12px;background:transparent;font:inherit;font-size:var(--t2);font-weight:600;color:var(--apagado);cursor:pointer;position:relative;}
-  #nav button.on{background:var(--sup-alta);color:var(--accion-texto);}
-  .insig{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:999px;background:var(--accion);color:var(--sobre-accion);font-size:12px;font-weight:700;line-height:18px;text-align:center;}
-  .insig[hidden]{display:none;}
-</style>
+<link rel="stylesheet" href="/paginas/staff.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="/sistema.css?v=cc72b6ac4534">
+<script src="/sistema.js?v=cc72b6ac4534" defer></script>
 </head>
-<body>
+<body data-pagina="staff">
   <!-- ▌BLOQUE 2 · Marcado — Código, nombre, espera y chat. -->
-  <header class="sup"><a class="marca" href="index.html">Bye<b>Pass</b></a></header>
+  <header class="sup"><a class="marca bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-4 -1.5 44 44" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g transform="rotate(4 18 38)"><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a></header>
   <main>
     <div id="cabeza">
       <div class="estado espera" id="estado" role="status">Staff de la sala</div>
@@ -176,14 +112,14 @@
     <button type="button" data-v="Chat">Chat<span class="insig" id="badgeChat" hidden></span></button>
   </nav>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=cc72b6ac4534"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y la app «staff» (sesión anónima aparte). -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, push, remove, onValue, query, limitToLast, serverTimestamp, runTransaction }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=1";
+import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=cc72b6ac4534";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
@@ -198,7 +134,7 @@ if (EMU){
 }
 const LS = { tienda: "staff:tienda", codigo: "staff:codigo", nombre: "staff:nombre", sala: "staff:sala", sonido: "staff:sonido" };
 const guardado = k => { try { return localStorage.getItem(k) || ""; } catch(e){ return ""; } };
-const guardar = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch(e){} };
+const guardar = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
 const limpio = v => String(v || "").toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g, "").slice(0, 6);
 const hora = ms => new Date(ms || 0).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
 const error = (id, t) => { $(id).textContent = t; $(id).classList.toggle("oculto", !t); };
@@ -300,7 +236,7 @@ $("btnSalir").onclick = () => { if (confirm("¿Salir del staff? Dejas de ver el 
 async function salir(){
   const u = auth.currentUser;
   if (u && TIENDA) await desactivarPush({ app, db, uid: u.uid, tienda: TIENDA });
-  try { if (u && TIENDA) await remove(ref(db, "salaStaff/" + TIENDA + "/miembros/" + u.uid)); } catch(e){}
+  try { if (u && TIENDA) await remove(ref(db, "salaStaff/" + TIENDA + "/miembros/" + u.uid)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   detener(); guardar(LS.tienda, ""); TIENDA = ""; inicio();
 }
 
@@ -356,9 +292,9 @@ function audio(){ if (!ctx){ const C = window.AudioContext || window.webkitAudio
 function pitido(f, d){
   try { const a = audio(); if (!a) return; const o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = f;
     g.gain.setValueAtTime(.0001, a.currentTime); g.gain.exponentialRampToValueAtTime(.35, a.currentTime + .02); g.gain.exponentialRampToValueAtTime(.0001, a.currentTime + d);
-    o.start(); o.stop(a.currentTime + d + .05); } catch(e){}
+    o.start(); o.stop(a.currentTime + d + .05); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
 }
-function alarma(){ pitido(880, .35); setTimeout(() => pitido(880, .35), 420); setTimeout(() => pitido(880, .5), 840); try { navigator.vibrate && navigator.vibrate([300, 150, 300, 150, 500]); } catch(e){} }
+function alarma(){ pitido(880, .35); setTimeout(() => pitido(880, .35), 420); setTimeout(() => pitido(880, .5), 840); try { navigator.vibrate && navigator.vibrate([300, 150, 300, 150, 500]); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }
 $("btnSonido").onclick = () => { if (sonidoOn()){ guardar(LS.sonido, ""); } else { guardar(LS.sonido, "1"); alarma(); } pintar(); };
 document.addEventListener("pointerdown", () => { if (sonidoOn()) audio(); }, { passive: true });
 
@@ -475,7 +411,7 @@ function avisar(m){
     document.title = "(" + nuevos + ") " + TITULO;
     if (sonidoOn()) pitido(740, .12);
     if ("Notification" in window && Notification.permission === "granted")
-      try { new Notification((m.rol === "org" ? "Organizador" : m.nombre), { body: String(m.texto).slice(0, 140), tag: "staff-chat" }); } catch(e){}
+      try { new Notification((m.rol === "org" ? "Organizador" : m.nombre), { body: String(m.texto).slice(0, 140), tag: "staff-chat" }); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   } else if (sonidoOn()) pitido(740, .1);
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && vista === "Chat"){ nuevos = 0; $("badgeChat").hidden = true; document.title = TITULO; } });
@@ -489,7 +425,7 @@ async function activarAvisos(btn, etiqueta){
   $("avisosMsg").textContent = "";
   const razon = await activarPush({ app, db, uid: u.uid, tienda: TIENDA, rol: "staff" });
   if (!razon){ btn.textContent = "Avisos activados"; $("avisosMsg").textContent = "Listo: te avisaremos de los mensajes y de que termine la ronda aunque cierres esta página."; return; }
-  if (Notification.permission === "default") await Notification.requestPermission().catch(() => {});
+  if (Notification.permission === "default") await Notification.requestPermission().catch(e => console.warn("Operación secundaria sin confirmar", e));
   btn.textContent = Notification.permission === "granted" ? "Avisos con la página abierta" : etiqueta;
   $("avisosMsg").textContent = razon;
 }

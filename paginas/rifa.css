@@ -1,0 +1,52 @@
+/* rifa.html — composición y componentes propios de la vista. */
+/* La rifa de una tienda. Los números se ven sin cuenta. Para elegirlos hace falta el código de un solo
+     uso que la tienda entrega a quien le pagó por su enlace de pago: ByePass no cobra nada. */
+  body{min-height:100vh;}
+  .sup{display:flex;align-items:center;min-height:56px;padding:0 var(--e4);}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto);text-decoration:none;}
+  .marca b{font-weight:300;color:var(--accion-texto);}
+  main{max-width:720px;margin:0 auto;padding:var(--e4) var(--e4) var(--e6);box-sizing:border-box;display:flex;flex-direction:column;gap:var(--e4);}
+  h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
+  .meta{font-size:var(--t3);color:var(--apagado);line-height:1.6;margin:var(--e1) 0 0;}
+  .estado{font-size:var(--t2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);}
+  .estado.cerrado{color:var(--rotulo);}
+  .caja{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
+  .caja h2{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:0;}
+  .premios{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--e2);}
+  .premios li{display:flex;gap:var(--e3);align-items:baseline;font-size:var(--t4);}
+  .premios .pos{flex:none;min-width:1.6em;font-weight:700;color:var(--accion-texto);}
+  .premios .gana{margin-left:auto;font-size:var(--t2);font-weight:700;color:var(--ok);white-space:nowrap;}
+  .barra{height:8px;border-radius:999px;background:var(--sup-alta);overflow:hidden;}
+  .barra b{display:block;height:100%;background:var(--ok);}
+  .rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px;}
+  .rejilla button{min-height:52px;border-radius:14px;border:1.5px solid var(--divider);background:var(--sup);color:var(--texto);
+    font:inherit;font-size:var(--t4);font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;}
+  .rejilla button:disabled{cursor:default;}
+  .rejilla button.ocupado{background:var(--sup-alta);color:var(--apagado);border-color:transparent;text-decoration:line-through;opacity:.7;}
+  .rejilla button.pick{background:var(--texto);border-color:var(--texto);color:var(--pagina);}
+  .rejilla button.mio{background:var(--ok);border-color:var(--ok);color:var(--sobre-ok);text-decoration:none;opacity:1;}
+  .rejilla button.gano{box-shadow:0 0 0 3px var(--accion-texto);}
+  .rejilla button:focus-visible{outline:3px solid var(--accion-texto);outline-offset:2px;}
+  .leyenda{display:flex;flex-wrap:wrap;gap:var(--e3);font-size:var(--t2);color:var(--apagado);}
+  .leyenda i{display:inline-block;width:14px;height:14px;border-radius:5px;border:1.5px solid var(--divider);vertical-align:-2px;margin-right:5px;}
+  .leyenda .o{background:var(--sup-alta);border-color:transparent;} .leyenda .p{background:var(--texto);border-color:var(--texto);}
+  .campo{display:grid;gap:4px;font-size:var(--t2);color:var(--apagado);}
+  .campo input{width:100%;box-sizing:border-box;font-size:var(--t4);padding:12px;}
+  #codigo{text-transform:uppercase;letter-spacing:.12em;font-weight:700;}
+  .fila{display:flex;gap:var(--e3);flex-wrap:wrap;align-items:center;}
+  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
+  .aviso{padding:var(--e3);border-radius:var(--radio);background:var(--sup-alta);font-size:var(--t3);line-height:1.5;}
+  .aviso.mal{color:var(--negativo);} .aviso.bien{color:var(--ok);font-weight:600;}
+  main a:not(.btn){color:var(--accion-texto);}
+  .oculto{display:none !important;}
+
+
+/* rifa: formularios y superficies alineados con el sistema. */
+[data-pagina="rifa"] main {padding-top:42px;max-width:780px}
+[data-pagina="rifa"] h1 {font-size:38px;letter-spacing:-1.4px}
+[data-pagina="rifa"] .meta {line-height:1.8;margin-top:12px}
+[data-pagina="rifa"] .caja {padding:26px;border:1px solid var(--divider);box-shadow:var(--sombra);border-radius:16px}
+[data-pagina="rifa"] .caja h2 {font-size:12px;letter-spacing:.8px;font-weight:650}
+[data-pagina="rifa"] .campo>span:not(.pista) {text-transform:none;letter-spacing:0;font-size:12px;font-weight:550;color:var(--texto)}
+[data-pagina="rifa"] .estado {font-size:10px;letter-spacing:1px;margin-bottom:12px;color:var(--accion-texto)}
+@media(max-width:600px) {[data-pagina="rifa"] main{padding-top:30px}[data-pagina="rifa"] h1{font-size:32px}[data-pagina="rifa"] .caja{padding:22px}}

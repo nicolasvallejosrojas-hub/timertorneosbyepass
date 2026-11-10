@@ -26,7 +26,7 @@
    Lo usan el muro (perfil propio y ajeno) y el panel (las de evento). No lee
    nada del navegador al cargarse, así que se puede probar con node.
    ============================================================ */
-import { clasificarPorCategoria, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=6";
+import { clasificarPorCategoria, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=cc72b6ac4534";
 
 /* ▌BLOQUE 1 · Catálogo e íconos ═════════════════════════════════════════════════
    Íconos SVG, medallas (permanentes) y parches (de tienda). */
@@ -85,7 +85,7 @@ export function medalla(ico, tono, { s = 64, ok = true, anillo = 0 } = {}){
 
 /* El color de la tienda en degradé: el guardado abajo, uno más claro arriba. */
 export function colorTienda(hex){
-  const c = /^#[0-9a-f]{6}$/i.test(hex || "") ? hex : "#0B7F6C";
+  const c = /^#[0-9a-f]{6}$/i.test(hex || "") ? hex : "#243B60";
   const n = parseInt(c.slice(1), 16), rgb = [n >> 16, (n >> 8) & 255, n & 255];
   const hacia = (k, t) => "#" + rgb.map(v => Math.round(v + (t - v) * k).toString(16).padStart(2, "0")).join("");
   return [hacia(.24, 255), hacia(.12, 0)];

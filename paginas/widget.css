@@ -1,0 +1,47 @@
+/* widget.html — composición y componentes propios de la vista. */
+/* La agenda y el ranking del mes de UNA tienda, para meter en su propia web
+     con un <iframe> (el código lo da el panel, pestaña Tienda).
+       widget.html?sala=<tienda>              agenda y ranking
+       widget.html?sala=<tienda>&ver=agenda   solo la agenda (o ver=ranking)
+     Lee una vez, cuenta la visita como «widget» y suelta la conexión: una web
+     ajena no debe dejar abierta una conexión a Firebase por cada visitante.
+     Sin sesión ni pantalla de mantenimiento: todo lo que muestra es público. */
+  body{margin:0;background:var(--pagina);color:var(--texto);}
+  .w{padding:16px;max-width:520px;margin:0 auto;box-sizing:border-box;}
+  .cab{display:flex;align-items:center;gap:12px;}
+  .logoT{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--c, var(--franja));
+    color:#fff;font-weight:700;font-size:15px;letter-spacing:-.02em;}
+  .cab b{display:block;font-size:var(--t4);font-weight:700;letter-spacing:-.01em;line-height:1.25;overflow-wrap:anywhere;}
+  .cab small{display:block;font-size:var(--t2);color:var(--apagado);margin-top:1px;}
+  .tit{font-size:var(--t1);text-transform:uppercase;letter-spacing:.06em;color:var(--apagado);margin:18px 4px 8px;font-weight:600;}
+  .grupo{background:var(--sup);border-radius:var(--radio);overflow:hidden;}
+  .fila{display:flex;align-items:center;gap:12px;padding:10px 14px;min-height:48px;color:inherit;text-decoration:none;}
+  .fila + .fila{border-top:1px solid var(--divider);}
+  a.fila:hover{background:color-mix(in srgb, var(--texto) 4%, transparent);}
+  .fecha{flex:none;width:40px;text-align:center;}
+  .fecha .d{font-size:var(--t5);font-weight:700;line-height:1;font-variant-numeric:tabular-nums;}
+  .fecha .m{font-size:var(--t1);letter-spacing:.08em;text-transform:uppercase;color:var(--accion-texto);font-weight:700;margin-top:3px;}
+  .txt{flex:1;min-width:0;}
+  .txt b{display:block;font-weight:600;line-height:1.3;overflow-wrap:anywhere;}
+  .txt small{display:block;font-size:var(--t2);color:var(--apagado);line-height:1.4;margin-top:1px;}
+  .chipJuego{display:inline-block;font-size:var(--t2);font-weight:600;line-height:1.35;padding:1px 9px;border-radius:999px;
+    background:color-mix(in srgb, var(--franja) 14%, transparent);color:var(--franja);vertical-align:1px;margin-right:6px;white-space:nowrap;}
+  .pos{flex:none;width:26px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;color:var(--apagado);}
+  .pos.p1{color:var(--accion-texto);}
+  .pts{flex:none;font-weight:700;font-variant-numeric:tabular-nums;}
+  .pts small{font-weight:400;color:var(--apagado);font-size:var(--t2);margin-left:3px;}
+  .vacio{padding:16px 14px;color:var(--apagado);font-size:var(--t2);}
+  .pie{display:flex;justify-content:center;margin-top:14px;font-size:var(--t2);}
+  .pie a{color:var(--apagado);text-decoration:none;display:inline-flex;align-items:baseline;gap:6px;min-height:32px;align-items:center;}
+  .pie a:hover{color:var(--texto);}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t4);color:var(--texto);}
+  .marca span{color:var(--accion-texto);}
+
+
+[data-pagina="widget"] .w {padding:24px}
+[data-pagina="widget"] .grupo {border:1px solid var(--divider);box-shadow:var(--sombra)}
+[data-pagina="widget"] .tit {margin-top:26px;font-weight:600;letter-spacing:.8px}
+[data-pagina="widget"] .fila {padding:13px 16px}
+[data-pagina="widget"] .logoT {border-radius:13px;background:var(--c,#243B60)}
+
+[data-pagina="widget"] .marca{font-family:var(--fuente);font-weight:700;letter-spacing:-.5px}

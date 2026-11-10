@@ -8,9 +8,9 @@
 /* ============================================================
    sesion.js — entrar y crear cuenta
    ------------------------------------------------------------
-   Versión actual: v=15  (subir el ?v= al tocar este archivo)
+   Versión actual: v=16  (subir el ?v= al tocar este archivo)
 
-   Lo usan la portada (index.html), que tiene el registro a la vista, y la
+   Lo usan la portada (index.html), con su ventana de acceso, y la
    cuenta (cuenta.html), con sus tres pasos. Vive acá para que las reglas de
    la contraseña, los mensajes de error y lo que se guarda al registrarse sean
    los mismos en las dos: copiadas, un día dejan de serlo (ver sala.js).
@@ -18,12 +18,14 @@
    Necesita config.js cargado antes: de ahí salen FIREBASE_CONFIG y EMULADOR.
    ============================================================ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, connectDatabaseEmulator, ref, set, get, update, increment }
+import { getDatabase, connectDatabaseEmulator, ref, get, update, increment }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, updateProfile, sendEmailVerification }
+import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, updateProfile, sendEmailVerification, deleteUser }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { SALA } from "./sala.js?v=6";
-import { vigilar } from "./mantenimiento.js?v=4";
+import { crearRegistro, perfilCompleto } from "./registro.js?v=cc72b6ac4534";
+export { perfilCompleto };
+import { SALA } from "./sala.js?v=cc72b6ac4534";
+import { vigilar } from "./mantenimiento.js?v=cc72b6ac4534";
 
 /* ▌BLOQUE 1 · Firebase y enlaces ════════════════════════════════════════════════
    app, db, auth compartidos; params() conserva ?emu y ?sala en los enlaces. */
@@ -76,15 +78,23 @@ const ERRORES = {
   "auth/too-many-requests":      "Demasiados intentos seguidos. Espera un momento y vuelve a probar.",
   "auth/network-request-failed": "Sin conexión. Revisa tu internet y vuelve a intentar.",
   "auth/operation-not-allowed":  "El registro con correo no está habilitado en Firebase. Avísale al organizador.",
+  "registro/no-guardado":        "No pudimos guardar tus datos. La cuenta nueva se revirtió; puedes intentarlo de nuevo.",
+  "registro/pendiente":          "Tu cuenta existe, pero falta confirmar tus datos. Puedes completar el registro sin crear otra cuenta.",
+  "registro/no-disponible":      "No pudimos comprobar si el registro está disponible. Revisa la conexión y vuelve a intentar.",
+  "registro/en-curso":           "Ya estamos procesando tu registro. Espera un momento.",
+  "registro/sesion-activa":      "Ya tienes una sesión abierta. Entra a tus ajustes para completar tus datos.",
+  "registro/sin-sesion":         "Inicia sesión para completar tu cuenta.",
+  "registro/tiempo-agotado":     "La operación está tardando demasiado. Revisa tu conexión y reintenta.",
   "beta/falta":                  "ByePass está en beta cerrada: para crear tu cuenta necesitas un código de invitación.",
   "beta/codigo":                 "Ese código de invitación no existe o ya se usó todas las veces que permite.",
 };
 export const decir = e => {
   const c = e && e.code;
+  if (c === "registro/datos-invalidos") return e.detalle;
   /* Con el emulador encendido, un fallo de red NO es el wifi del usuario: es
      que no levantaron emulador.cmd. */
   if (c === "auth/network-request-failed" && enEmulador())
-    return "El emulador no responde. ¿Está corriendo emulador.cmd en la otra ventana?";
+    return "El entorno local no responde. Ejecuta tests/iniciar.cmd y vuelve a intentar.";
   return ERRORES[c] || "No se pudo completar. Intenta de nuevo.";
 };
 
@@ -182,34 +192,72 @@ export async function revisarCodigo(c){
    Crea la cuenta y guarda el perfil. Quien llama tiene que esperar a que
    termine antes de salir de la página: onAuthStateChanged dispara ANTES de
    que el perfil se guarde, y redirigir ahí dejaba la cuenta huérfana. */
-export async function registrar({ nombre, correo, clave, nacimiento, playerId = "", publico = false, invitacion = "" }){
-  /* En beta cerrada el código se revisa ANTES de crear el acceso: si no sirve,
-     no queda una cuenta a medias. Fuera de la beta no se usa. */
-  const beta = await betaActiva();
-  invitacion = beta ? normCodigo(invitacion) : "";
-  if (beta && !invitacion) throw { code: "beta/falta" };
-  if (invitacion){ const mal = await revisarCodigo(invitacion); if (mal) throw { code: mal }; }
-  const cred = await createUserWithEmailAndPassword(auth, correo, clave);
-  await updateProfile(cred.user, { displayName: nombre });
-  const perfil = { nombre, nacimiento, playerId, publico, creado: Date.now() }, uid = cred.user.uid;
-  if (!invitacion) await set(ref(db, "usuarios/" + uid), perfil);
-  else try {
-    /* Perfil, uso y contador van juntos: las reglas exigen los tres a la vez.
-       beta/testers es público y da la insignia Beta tester. */
-    const c = "beta/codigos/" + invitacion;
-    await update(ref(db), { ["usuarios/" + uid]: { ...perfil, invitacion },
-      [c + "/quienes/" + uid]: Date.now(), [c + "/usados"]: increment(1), ["beta/testers/" + uid]: true });
-  } catch(e){
-    /* Otro alcanzó a usar el último cupo entre la revisión y ahora: se borra
-       el acceso recién creado para no dejarlo huérfano. */
-    try { await cred.user.delete(); } catch(_){}
-    throw { code: "beta/codigo" };
-  }
-  /* El correo para confirmar la dirección. Si no sale, el muro lo ofrece de
-     nuevo; la marca le dice al muro que este ya se mandó. */
+/* Confirmación sin caché local: no confundir una escritura pendiente del SDK
+   con un perfil ya confirmado en el servidor. El token nunca se guarda ni se registra. */
+export async function consultarPerfil(user = auth.currentUser){
+  if (!user) throw { code: "registro/sin-sesion" };
+  const token = await user.getIdToken();
+  const base = enEmulador() ? "http://" + EMULADOR.host + ":" + EMULADOR.db : FIREBASE_CONFIG.databaseURL;
+  const url = new URL(base.replace(/\/$/, "") + "/usuarios/" + encodeURIComponent(user.uid) + ".json");
+  if (enEmulador()) url.searchParams.set("ns", new URL(FIREBASE_CONFIG.databaseURL).hostname.split(".")[0]);
+  url.searchParams.set("auth", token);
+  const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 12000);
   try {
-    await sendEmailVerification(cred.user);
-    sessionStorage.setItem("correoMandado", "1");
-  } catch(e){}
-  return cred.user;
+    const respuesta = await fetch(url, { cache: "no-store", signal: controller.signal });
+    if (!respuesta.ok) throw { code: [401,403].includes(respuesta.status) ? "PERMISSION_DENIED" : "registro/no-disponible" };
+    return await respuesta.json();
+  } finally { clearTimeout(timer); }
 }
+
+const registro = crearRegistro({
+  usuarioActual: () => auth.currentUser,
+  crearCuenta: async (correo, clave) => (await createUserWithEmailAndPassword(auth, correo, clave)).user,
+  cambiarNombre: (user, nombre) => updateProfile(user, { displayName: nombre }),
+  leerPerfil: consultarPerfil,
+  leerBeta: async () => (await get(ref(db, "beta/activa"))).val() === true,
+  validarInvitacion: revisarCodigo,
+  normalizarCodigo: normCodigo,
+  borrarCuenta: user => deleteUser(user),
+  guardarPerfil: (user, dato) => {
+    const { invitacion, ...perfil } = dato;
+    const base = "usuarios/" + user.uid + "/";
+    // Rutas por campo: no borrar tiendas u otros datos de una cuenta incompleta antigua.
+    const rutas = Object.fromEntries(Object.entries(perfil).map(([k,v]) => [base + k, v]));
+    if (invitacion){
+      const c = "beta/codigos/" + invitacion;
+      rutas[base + "invitacion"] = invitacion;
+      rutas[c + "/quienes/" + user.uid] = Date.now();
+      rutas[c + "/usados"] = increment(1);
+      rutas["beta/testers/" + user.uid] = true;
+    }
+    return update(ref(db), rutas);
+  },
+  verificarCorreo: async user => {
+    if (user.emailVerified) return;
+    await sendEmailVerification(user);
+    try { sessionStorage.setItem("correoMandado", "1"); } catch {}
+  },
+  avisar: tipo => { try { sessionStorage.setItem("registroAviso", tipo); } catch {} },
+  pendientes: {
+    guardar: (uid, dato) => sessionStorage.setItem("registroPendiente:" + uid, JSON.stringify(dato)),
+    leer: uid => JSON.parse(sessionStorage.getItem("registroPendiente:" + uid) || "null"),
+    quitar: uid => sessionStorage.removeItem("registroPendiente:" + uid),
+  },
+});
+
+function validarDatosPerfil(datos){
+  let detalle = "";
+  if (String(datos.nombre || "").trim().length < 3) detalle = "Escribe tu nombre y apellido.";
+  else if ((datos.nombre || "").length > 80) detalle = "El nombre puede tener hasta 80 caracteres.";
+  else detalle = errorNacimiento(datos.nacimiento);
+  if (!detalle){
+    const f = new Date(datos.nacimiento + "T12:00:00");
+    if (f.getMonth()+1 !== +datos.nacimiento.slice(5,7) || f.getDate() !== +datos.nacimiento.slice(8,10))
+      detalle = "Revisa la fecha de nacimiento: esa fecha no existe.";
+  }
+  if (!detalle && datos.playerId && !ID_OK(datos.playerId)) detalle = "El ID de jugador debe tener de 6 a 8 números.";
+  if (detalle) throw { code: "registro/datos-invalidos", detalle };
+}
+export function registrar(datos){ validarDatosPerfil(datos); return registro.registrar(datos); }
+export function reanudarRegistro(datos){ validarDatosPerfil(datos); return registro.reanudar(datos); }
+export const registroPendiente = (user = auth.currentUser) => registro.pendiente(user && user.uid);

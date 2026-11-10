@@ -58,11 +58,11 @@ export function contarVisita(db, pagina, tienda){
       const k = localStorage.key(i);
       if (k && k.startsWith("visita:") && !k.startsWith("visita:" + dia + ":")) localStorage.removeItem(k);
     }
-  } catch(e){}
+  } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   const suma = unica ? { v: increment(1), u: increment(1) } : { v: increment(1) };
-  const envios = [update(ref(db, "stats/visitas/" + dia + "/" + pagina), suma).catch(() => {})];
+  const envios = [update(ref(db, "stats/visitas/" + dia + "/" + pagina), suma).catch(e => console.warn("Operación secundaria sin confirmar", e))];
   if (tienda && /^[a-z0-9-]{1,40}$/.test(tienda) && tienda !== "principal")
-    envios.push(update(ref(db, "stats/tiendas/" + tienda + "/" + dia + "/" + pagina), suma).catch(() => {}));
+    envios.push(update(ref(db, "stats/tiendas/" + tienda + "/" + dia + "/" + pagina), suma).catch(e => console.warn("Operación secundaria sin confirmar", e)));
   return Promise.all(envios);   // el widget espera esto antes de soltar la conexión
 }
 
@@ -73,22 +73,22 @@ export function estoyEnLinea(db, pagina, tienda){
   contarVisita(db, pagina, tienda);
   const yo = push(ref(db, "presencia"));
   let latido = null;
-  const marcar = () => set(yo, { t: serverTimestamp(), p: pagina }).catch(() => {});
+  const marcar = () => set(yo, { t: serverTimestamp(), p: pagina }).catch(e => console.warn("Operación secundaria sin confirmar", e));
   onValue(ref(db, ".info/connected"), s => {
     clearInterval(latido);
     if (s.val() !== true) return;
     /* Primero el aviso de salida y después la marca: si la conexión se corta
        en medio, no queda una entrada sin quien la borre. */
-    onDisconnect(yo).remove().then(marcar).catch(() => {});
+    onDisconnect(yo).remove().then(marcar).catch(e => console.warn("Operación secundaria sin confirmar", e));
     latido = setInterval(marcar, LATIDO);
   });
   if (pagina === "panel") return;
   let dormir = null;
   document.addEventListener("visibilitychange", () => {
     clearTimeout(dormir);
-    if (document.hidden) dormir = setTimeout(() => { try { goOffline(db); } catch(e){} }, 20000);
+    if (document.hidden) dormir = setTimeout(() => { try { goOffline(db); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 20000);
     // Siempre al volver: si el teléfono cortó por su cuenta, es inofensivo.
-    else try { goOnline(db); } catch(e){}
+    else try { goOnline(db); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   });
 }
 
@@ -102,7 +102,7 @@ export function contarEnLinea(db, cb){
     s.forEach(c => {
       const v = c.val() || {};
       if (typeof v.t !== "number") return;
-      if (v.t < ahora - VIEJA){ remove(c.ref).catch(() => {}); return; }
+      if (v.t < ahora - VIEJA){ remove(c.ref).catch(e => console.warn("Operación secundaria sin confirmar", e)); return; }
       if (v.t < ahora - VIGENTE) return;
       total++;
       porPagina[v.p || "otra"] = (porPagina[v.p || "otra"] || 0) + 1;

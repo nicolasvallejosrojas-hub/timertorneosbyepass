@@ -12,96 +12,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B7F6C">
-<script src="tema.js?v=1"></script>
+<meta name="theme-color" content="#243B60">
+<script src="tema.js?v=cc72b6ac4534"></script>
 <meta name="robots" content="noindex">
 <title>Estadísticas — ByePass</title>
-<link rel="stylesheet" href="estilo.css?v=14">
+<link rel="stylesheet" href="estilo.css?v=cc72b6ac4534">
 <!-- ▌BLOQUE 1 · Estilos — Controles, cifras, gráficos y tablas. -->
-<style>
-  /* Cómo se usa ByePass, para quien administra el sitio (admins/<uid> = true).
-     Lo protegen las reglas: stats/, usuarios/ y solicitudes/ solo los lee
-     administración; la página solo esconde. Todo se calcula acá al abrirla,
-     con una lectura de cada cosa (el historial, con la caché de historial.js). */
-  body{min-height:100vh;}
-  .oculto{display:none !important;}
-  .ancho{width:100%;max-width:1000px;margin:0 auto;padding:var(--e4) var(--e4) var(--e6);box-sizing:border-box;}
-  h1,h2{margin:0;}
-  a{color:var(--accion-texto);}
-  .btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
 
-  .sup{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:var(--e2);
-    min-height:56px;padding:0 max(var(--e4), env(safe-area-inset-right)) 0 max(var(--e4), env(safe-area-inset-left));}
-  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);margin-right:auto;
-    color:var(--texto);text-decoration:none;display:inline-flex;align-items:center;min-height:44px;}
-  .sup .btn{min-height:36px;padding:0 14px;font-size:var(--t2);background:transparent;}
-
-  .grande{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;}
-  .bajada{color:var(--apagado);font-size:var(--t3);margin:var(--e2) 0 0;line-height:1.5;}
-  .gtit{font-size:var(--t2);text-transform:uppercase;letter-spacing:.02em;color:var(--apagado);
-    margin:var(--e5) var(--e3) 7px;font-weight:400;display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 var(--e2);}
-  .grupo{background:var(--sup);border-radius:var(--radio);overflow:hidden;}
-  .nota{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:var(--e2) 0 0;}
-
-  /* ---------------------------------------------------------- controles */
-  .controles{display:flex;flex-wrap:wrap;align-items:center;gap:var(--e2);margin-top:var(--e4);}
-  .seg{display:inline-flex;background:var(--sup);border-radius:999px;padding:3px;}
-  .seg button{border:0;background:transparent;border-radius:999px;padding:0 14px;min-height:36px;font:inherit;font-size:var(--t2);
-    color:var(--apagado);cursor:pointer;font-variant-numeric:tabular-nums;}
-  .seg button[aria-pressed="true"]{background:var(--pagina);color:var(--texto);font-weight:600;box-shadow:0 1px 2px rgba(16,35,30,.14);}
-  .controles .btn{min-height:40px;padding:0 14px;font-size:var(--t2);}
-  .controles .hueco{flex:1;}
-  #leido{font-size:var(--t2);color:var(--rotulo);}
-
-  /* ---------------------------------------------------------- cifras */
-  .cifras{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--e2);margin-top:var(--e4);}
-  .cifra{background:var(--sup);border-radius:var(--radio);padding:var(--e3) var(--e4);}
-  .cifra b{display:block;font-size:var(--d3);font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;}
-  .cifra span{display:block;font-size:var(--t2);color:var(--apagado);margin-top:2px;}
-  .cifra small{display:block;font-size:var(--t2);color:var(--rotulo);margin-top:4px;line-height:1.4;}
-  .cifra .punto{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-right:8px;vertical-align:middle;}
-
-  /* ---------------------------------------------------------- gráficos */
-  .graf{padding:var(--e3) var(--e4) var(--e3);}
-  .graf svg{display:block;width:100%;height:auto;}
-  .ley{display:flex;flex-wrap:wrap;gap:4px var(--e3);font-size:var(--t2);color:var(--apagado);margin-top:8px;font-variant-numeric:tabular-nums;}
-  .ley i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;}
-  .b0{fill:color-mix(in srgb, var(--franja) 30%, transparent);} .b1{fill:var(--franja);}
-  .ley .b0{background:color-mix(in srgb, var(--franja) 30%, transparent);} .ley .b1{background:var(--franja);}
-  .ejes text{font-size:12px;fill:var(--rotulo);font-variant-numeric:tabular-nums;}
-  .ejes line{stroke:var(--divider);stroke-width:1;}
-  .vacio{padding:var(--e5) var(--e4);text-align:center;color:var(--apagado);font-size:var(--t2);}
-
-  /* ---------------------------------------------------------- tablas */
-  .desliza{overflow-x:auto;}
-  table.t{width:100%;border-collapse:collapse;font-size:var(--t2);}
-  table.t th{text-align:left;font-weight:600;color:var(--apagado);font-size:var(--t1);text-transform:uppercase;letter-spacing:.03em;
-    padding:10px 14px;border-bottom:1px solid var(--divider);white-space:nowrap;}
-  table.t td{padding:10px 14px;border-bottom:1px solid var(--divider);font-variant-numeric:tabular-nums;vertical-align:top;}
-  table.t tr:last-child td{border-bottom:0;}
-  table.t .n{text-align:right;}
-  table.t td small{display:block;color:var(--apagado);font-size:var(--t2);margin-top:1px;}
-  table.t td b{font-weight:600;}
-
-  /* ---------------------------------------------------------- barras horizontales */
-  .fila{display:grid;grid-template-columns:minmax(110px,190px) 1fr 64px;gap:12px;align-items:center;padding:9px 14px;font-size:var(--t2);}
-  .fila + .fila{border-top:1px solid var(--divider);}
-  .fila .bar{height:10px;border-radius:5px;background:var(--sup-alta);overflow:hidden;}
-  .fila .bar span{display:block;height:100%;background:var(--franja);border-radius:5px;}
-  .fila b{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
-  .dos{display:grid;grid-template-columns:1fr 1fr;gap:0 var(--e3);}
-
-  @media (max-width:760px){
-    .cifras{grid-template-columns:repeat(2,1fr);}
-    .dos{grid-template-columns:1fr;}
-    .fila{grid-template-columns:96px 1fr 52px;}
-    .controles .hueco{display:none;}
-  }
-</style>
+<link rel="stylesheet" href="/paginas/estadisticas.css?v=cc72b6ac4534">
+<link rel="stylesheet" href="/sistema.css?v=cc72b6ac4534">
+<script src="/sistema.js?v=cc72b6ac4534" defer></script>
 </head>
-<body>
+<body data-pagina="estadisticas">
   <header class="sup vidrio">
-    <a class="marca" href="index.html" data-link="inicio">ByePass</a>
+    <a class="marca bp-brand" href="index.html" data-link="inicio" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-4 -1.5 44 44" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g transform="rotate(4 18 38)"><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a>
     <a class="btn" href="herramientas.html" data-link="herramientas">Herramientas</a>
     <a class="btn" href="tienda.html" data-link="tiendas">Tiendas</a>
   </header>
@@ -166,18 +90,18 @@
     </div>
   </main>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=cc72b6ac4534"></script>
 <!-- ▌BLOQUE 2 · Módulos — Imports. -->
 <script type="module">
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta } from "./sesion.js?v=15";
-import { nombreTienda } from "./sala.js?v=6";
-import { contarEnLinea } from "./presencia.js?v=4";
-import { historialUnaVez } from "./historial.js?v=1";
-import { barras } from "./graficos.js?v=2";
-import { norm } from "./insignias.js?v=9";
-import { claveGlobal } from "./clasificacion.js?v=6";
+import { db, auth, enEmulador, urlCuenta } from "./sesion.js?v=cc72b6ac4534";
+import { nombreTienda } from "./sala.js?v=cc72b6ac4534";
+import { contarEnLinea } from "./presencia.js?v=cc72b6ac4534";
+import { historialUnaVez } from "./historial.js?v=cc72b6ac4534";
+import { barras } from "./graficos.js?v=cc72b6ac4534";
+import { norm } from "./insignias.js?v=cc72b6ac4534";
+import { claveGlobal } from "./clasificacion.js?v=cc72b6ac4534";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 3 · Arranque ══════════════════════════════════════════════════════════
@@ -192,7 +116,7 @@ onAuthStateChanged(auth, async u => {
   $("est").classList.add("oculto");
   if (!u){ $("bajada").innerHTML = 'Entra con tu cuenta de administrador. <a href="' + urlCuenta("ingresar") + '">Entrar</a>'; return; }
   let admin = false;
-  try { admin = (await get(ref(db, "admins/" + u.uid))).val() === true; } catch(e){}
+  try { admin = (await get(ref(db, "admins/" + u.uid))).val() === true; } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   if (!admin){ $("bajada").textContent = "Esta página es solo para quien administra el sitio."; return; }
   $("bajada").textContent = "Cómo se usa ByePass: cuentas, tiendas, torneos y visitas.";
   $("est").classList.remove("oculto");

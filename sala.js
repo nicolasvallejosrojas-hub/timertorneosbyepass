@@ -61,7 +61,7 @@ export const SIN_TIENDA = INVITADO || PERSONAL;
 /* Desde el 25-09-2026 una sala es también una TIENDA: tiendas/<id> en Firebase
    guarda su nombre, su color y quiénes la organizan, con el mismo id. Estas
    dos cosas se muestran igual en el perfil, el muro y el panel. */
-export const COLOR_TIENDA = "#0B7F6C";
+export const COLOR_TIENDA = "#243B60";
 
 /* Sin perfil guardado, el nombre sale del id: «cartas-del-sur» → «Cartas del sur». */
 export const nombreTienda = (perfil, id) => (perfil && perfil.nombre) ||

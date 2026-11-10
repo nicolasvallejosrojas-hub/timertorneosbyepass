@@ -1,0 +1,64 @@
+/* inscripcion.html — composición y componentes propios de la vista. */
+/* Inscripción a un torneo de una tienda (League Challenge, League Cup).
+     Llega por un enlace que comparte la tienda. La cuenta es opcional: sin
+     cuenta se usa una sesión anónima que solo sirve para volver a esta misma
+     inscripción desde este navegador. */
+  body{min-height:100vh;}
+  .sup{display:flex;align-items:center;min-height:56px;padding:0 var(--e4);}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);color:var(--texto);text-decoration:none;}
+  .marca b{font-weight:300;color:var(--accion-texto);}
+  main{max-width:640px;margin:0 auto;padding:var(--e4) var(--e4) var(--e6);box-sizing:border-box;display:flex;flex-direction:column;gap:var(--e4);}
+  h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
+  .meta{font-size:var(--t3);color:var(--apagado);line-height:1.6;margin:var(--e1) 0 0;}
+  .estado{font-size:var(--t2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);}
+  .estado.cerrado{color:var(--rotulo);}
+  .caja{background:var(--sup);border-radius:var(--radio);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
+  .caja h2{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:0;}
+  .dos{display:grid;grid-template-columns:1fr 1fr;gap:var(--e3);}
+  .campo{display:flex;flex-direction:column;gap:7px;}
+  .campo > span:not(.pista){font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
+  .campo input,.campo textarea{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;font-family:inherit;}
+  .campo textarea{min-height:120px;font-size:var(--t3);line-height:1.5;resize:vertical;font-variant-numeric:tabular-nums;}
+  .pista{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:0;}
+  .pista a,.meta a{color:var(--accion-texto);}
+  /* Pantalla ancha: buscador a la izquierda (fijo al bajar) y el mazo a la
+     derecha; desde 1180 px el mazo va en dos columnas, Pokémon y Energías
+     a un lado y Entrenadores al otro. El resto del formulario sigue en 640 px. */
+  @media (min-width:960px){
+    main{max-width:1160px;}
+    main > div:first-child,#noHay,#form > *{width:100%;max-width:640px;margin-left:auto;margin-right:auto;}
+    #form > #cajaLista{max-width:none;}
+  }
+  /* la categoría: tres casillas grandes con los cupos que quedan */
+  .categoria{border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:var(--e2);}
+  .categoria legend{padding:0;margin-bottom:7px;font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--apagado);}
+  .cats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--e2);}
+  .cat{display:flex;flex-direction:column;gap:2px;padding:var(--e3);border-radius:var(--radio);background:var(--campo);cursor:pointer;
+    box-shadow:inset 0 0 0 2px transparent;min-height:44px;box-sizing:border-box;position:relative;}
+  .cat input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;}
+  .cat b{font-size:var(--t4);font-weight:700;}
+  .cat small{font-size:var(--t2);color:var(--apagado);font-variant-numeric:tabular-nums;}
+  .cat:has(input:checked){background:var(--sup-alta);box-shadow:inset 0 0 0 2px var(--accion);}
+  .cat:has(input:focus-visible){outline:2px solid var(--texto);outline-offset:2px;}
+  .cat:has(input:disabled){opacity:.55;cursor:default;}
+  .cat .lleno{color:var(--negativo);font-weight:600;}
+  .acuerdo{max-height:220px;overflow:auto;background:var(--campo);border-radius:var(--radio);padding:var(--e3) var(--e4);font-size:var(--t2);line-height:1.6;}
+  .acuerdo h3{font-size:var(--t3);margin:0 0 var(--e1);} .acuerdo p{margin:0 0 var(--e2);}
+  .chk{display:flex;gap:var(--e2);align-items:flex-start;font-size:var(--t3);line-height:1.45;min-height:44px;cursor:pointer;}
+  .chk input{width:22px;height:22px;margin:1px 0 0;flex:none;}
+  .acc{display:flex;gap:var(--e2);flex-wrap:wrap;}
+  .acc .btn{min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
+  .enlace{background:none;border:none;color:var(--apagado);font:inherit;font-size:var(--t3);text-decoration:underline;cursor:pointer;min-height:44px;padding:0;}
+  .oculto{display:none!important;}
+  @media (max-width:560px){ .dos{grid-template-columns:1fr;} .acc .btn{flex:1 1 100%;} .cats{grid-template-columns:1fr;} }
+
+
+/* inscripcion: formularios y superficies alineados con el sistema. */
+[data-pagina="inscripcion"] main {padding-top:42px;max-width:780px}
+[data-pagina="inscripcion"] h1 {font-size:38px;letter-spacing:-1.4px}
+[data-pagina="inscripcion"] .meta {line-height:1.8;margin-top:12px}
+[data-pagina="inscripcion"] .caja {padding:26px;border:1px solid var(--divider);box-shadow:var(--sombra);border-radius:16px}
+[data-pagina="inscripcion"] .caja h2 {font-size:12px;letter-spacing:.8px;font-weight:650}
+[data-pagina="inscripcion"] .campo>span:not(.pista) {text-transform:none;letter-spacing:0;font-size:12px;font-weight:550;color:var(--texto)}
+[data-pagina="inscripcion"] .estado {font-size:10px;letter-spacing:1px;margin-bottom:12px;color:var(--accion-texto)}
+@media(max-width:600px) {[data-pagina="inscripcion"] main{padding-top:30px}[data-pagina="inscripcion"] h1{font-size:32px}[data-pagina="inscripcion"] .caja{padding:22px}}

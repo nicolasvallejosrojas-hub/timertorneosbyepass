@@ -1,0 +1,356 @@
+/* muro.html — composición y componentes propios de la vista. */
+/* =========================================================
+     El muro
+     ---------------------------------------------------------
+     La estructura es la de una red social de 2010: tres columnas, bloques con
+     cabecera, pestañas y una barra arriba. La paleta ya no.
+
+     Antes esta era la única pantalla clara del recorrido —se entra desde
+     cuenta.html, que es oscura, y se sale al timer, que también— y se sentía
+     otro producto. Se fue el gris de 2010; se quedan la densidad, la rejilla y
+     las líneas de 1 px, que es lo que hace que esto se lea como red social y
+     no como panel de control.
+
+     Los colores, la tipografía y los componentes salen de estilo.css. Acá va
+     solo el acomodo propio de esta página.
+
+     Todo lo que se muestra sale de datos REALES:
+       · el perfil, de usuarios/<uid>
+       · el récord, del historial del jugador
+       · «Próximo torneo», de la agenda
+       · «En vivo», de los emparejamientos publicados y del estado del timer
+       · el muro, de los torneos archivados
+     ========================================================= */
+  *{box-sizing:border-box;}
+  body{font-size:var(--t3);line-height:1.45;}
+  a{color:var(--accion-texto);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  a.btn:hover{text-decoration:none;}
+
+  /* --- barra superior --- */
+  /* Translúcida y pegada arriba (.vidrio), igual que en la cuenta y la
+     portada. Antes era ladrillo —el azul de Facebook de 2010— y la marca se
+     veía distinta en cada página. */
+  .barra{position:sticky;top:0;z-index:10;}
+  .barra .dentro{max-width:1000px;margin:0 auto;display:flex;align-items:center;
+    gap:var(--e3);padding:0 var(--e3);min-height:44px;}
+  .logo{color:var(--texto);font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);letter-spacing:0;
+    display:inline-flex;align-items:center;min-height:44px;}
+  .logo:hover{text-decoration:none;}
+  #buscar{flex:1;max-width:280px;padding:5px 8px;font-size:var(--t2);min-height:26px;}
+  .yo{margin-left:auto;display:flex;align-items:center;gap:var(--e2);color:var(--texto);
+    font-size:var(--t2);}
+  .yo button{background:var(--sup-alta);color:var(--texto);border:none;
+    border-radius:var(--radio);font:inherit;font-size:var(--t2);padding:6px 10px;
+    cursor:pointer;min-height:30px;}
+  .yo button:hover{background:var(--sup-hover);}
+
+  /* --- pestañas --- */
+  .pestanas{background:var(--campo);border-bottom:1px solid var(--divider);}
+  .pestanas .dentro{max-width:1000px;margin:0 auto;display:flex;gap:2px;padding:0 var(--e3);}
+  .pestanas button{background:none;border:none;border-bottom:3px solid transparent;
+    font:inherit;font-size:var(--t3);color:var(--rotulo);padding:10px 14px;
+    cursor:pointer;min-height:42px;}
+  .pestanas button:hover{color:var(--texto);}
+  .pestanas button.on{color:var(--texto);border-bottom-color:var(--texto);font-weight:600;}
+
+  /* --- rejilla de tres columnas, como la de 2010 --- */
+  .hoja{max-width:1000px;margin:0 auto;padding:var(--e3);
+    display:grid;grid-template-columns:186px minmax(0,1fr) 196px;gap:var(--e3);
+    align-items:start;}
+  /* En la pestaña En vivo la columna derecha se esconde, porque repetiría la
+     misma tarjeta. Si el track se quedara igual, esa pestaña mostraría 196 px
+     vacíos al costado, que se lee como algo que no cargó. */
+  .hoja.sinDerecha{grid-template-columns:186px minmax(0,1fr);}
+  @media (max-width:900px){
+    .hoja,.hoja.sinDerecha{grid-template-columns:minmax(0,1fr);}
+    /* Apilado, la columna del medio es lo que se vino a ver. Sin esto hay que
+       pasar de largo la ficha, el menú y el próximo torneo
+       antes de llegar a la mesa propia — en el teléfono, que es justo donde
+       se mira esto entre ronda y ronda. */
+    .hoja > main{order:-1;}
+  }
+
+  /* Grupo de iOS: el título va afuera, chico y en mayúsculas, y la superficie
+     empieza debajo. Un bloque sin título es superficie entera. Antes era la
+     caja de 2010, con cabecera en banda y borde de 1 px. */
+  .bloque{margin-bottom:var(--e4);}
+  .bloque > h2{font-size:var(--t2);font-weight:400;text-transform:uppercase;letter-spacing:.02em;
+    color:var(--apagado);margin:0;padding:0 var(--e3) 7px;}
+  .bloque > :not(h2){background:var(--sup);}
+  .bloque > :not(h2):first-child,.bloque > h2 + *{border-radius:var(--radio) var(--radio) 0 0;}
+  .bloque > :not(h2):last-child{border-bottom-left-radius:var(--radio);
+    border-bottom-right-radius:var(--radio);}
+  .bloque .cuerpo{padding:var(--e3);}
+  .bloque .cuerpo.junto{padding:0;}
+  /* --- mis tiendas, en el orden que eligió el jugador --- */
+  .bloque > h2.conBoton{display:flex;justify-content:space-between;align-items:center;gap:var(--e2);}
+  .bloque > h2 button{background:none;border:none;font:inherit;text-transform:none;letter-spacing:0;
+    color:var(--accion-texto);cursor:pointer;padding:4px 0;min-height:32px;}
+  .mt{display:flex;align-items:center;gap:10px;padding:8px var(--e3);min-height:44px;box-sizing:border-box;
+    color:var(--texto);text-decoration:none;}
+  .mt + .mt{border-top:1px solid var(--divider);}
+  a.mt:hover{background:var(--sup-alta);text-decoration:none;color:var(--texto);}
+  .mt .sig{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    background:var(--c);color:#fff;font-size:12px;font-weight:700;letter-spacing:-.02em;}
+  .mt .nom{flex:1;min-width:0;font-size:var(--t3);overflow-wrap:anywhere;}
+  .mt .fav{color:var(--podio1);}
+  .mt .flechas{display:flex;gap:4px;flex:none;}
+  .mt .flechas button{width:34px;height:34px;border-radius:8px;border:none;background:var(--sup-alta);
+    color:var(--texto);font-size:16px;line-height:1;cursor:pointer;}
+  .mt .flechas button:disabled{opacity:.3;cursor:default;}
+  .mtPie{padding:var(--e2) var(--e3) var(--e3);font-size:var(--t2);color:var(--apagado);line-height:1.5;}
+  .mt + .mtPie{border-top:1px solid var(--divider);padding-top:var(--e2);}
+
+  /* --- tarjeta de perfil --- */
+  .yoficha{display:flex;gap:var(--e2);padding:var(--e3);align-items:center;}
+  .avatar{width:46px;height:46px;flex:none;border-radius:50%;
+    background:var(--sup-alta);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:var(--t5);color:var(--rotulo);}
+  .yoficha .nom{font-weight:700;font-size:var(--t3);line-height:1.25;}
+  .yoficha .sub{font-size:var(--t2);color:var(--apagado);margin-top:2px;}
+
+  /* --- mi perfil --- */
+  /* La cabecera es la del perfil de 2010: foto grande a la izquierda, nombre y
+     una línea debajo. Sin fotos que subir, la foto es la inicial, en un
+     círculo como los contactos del teléfono. El nombre es el título visible de la pestaña, así que
+     aquí vive el único escalón grande de la página. */
+  .cabPerfil{display:flex;gap:var(--e4);align-items:center;padding:var(--e4);}
+  .avatar.grande{width:76px;height:76px;font-weight:600;
+    font-size:var(--d3);color:var(--texto);}
+  .quienSoy{flex:1;min-width:0;}
+  .nomPerfil{font-weight:700;font-size:var(--d3);
+    line-height:1.1;margin:0;overflow-wrap:anywhere;}
+  .idLinea{font-size:var(--t2);color:var(--apagado);margin-top:var(--e1);line-height:1.45;}
+  /* La ficha: el cuadro de "Información" de 2010, en una sola fila densa. No es
+     un tablero de cifras grandes: el valor va a tamaño de título y la etiqueta
+     arriba, chica, como en una planilla. */
+  .ficha{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;
+    border-top:1px solid var(--divider);}
+  .ficha div{padding:var(--e3) var(--e4);border-left:1px solid var(--divider);}
+  .ficha div:first-child{border-left:none;}
+  .ficha dt{font-size:var(--t2);color:var(--rotulo);margin:0;}
+  .ficha dd{margin:2px 0 0;font-size:var(--t4);font-weight:600;
+    font-variant-numeric:tabular-nums;}
+  .tabla .pos.p1{color:var(--podio1-texto);font-weight:700;}
+  .tabla .pos.p2{color:var(--podio2-texto);font-weight:700;}
+  .tabla .pos.p3{color:var(--podio3-texto);font-weight:700;}
+  @media (max-width:520px){
+    .cabPerfil{flex-wrap:wrap;}
+    .cabPerfil .btn{flex:1 1 100%;text-align:center;}
+    .ficha{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .ficha div:nth-child(3){border-left:none;}
+    .ficha div:nth-child(n+3){border-top:1px solid var(--divider);}
+  }
+
+  /* --- lista de navegación --- */
+  .menu{list-style:none;margin:0;padding:0;}
+  .menu li{border-top:1px solid var(--divider);}
+  .menu li:first-child{border-top:none;}
+  .menu a,.menu button{display:block;width:100%;text-align:left;background:none;
+    border:none;font:inherit;font-size:var(--t3);color:var(--apagado);
+    padding:9px var(--e3);cursor:pointer;min-height:38px;}
+  #bTema{display:flex;align-items:center;gap:10px;}
+  #bTema svg{width:18px;height:18px;flex:none;color:var(--apagado);}
+  .menu a:hover,.menu button:hover{background:var(--sup-alta);text-decoration:none;color:var(--texto);}
+
+  /* --- próximo torneo --- */
+  /* La cuenta regresiva tenia 22 px propios y al pasar al sistema la deje en
+     19, que es el mismo escalon del resto: se perdio como dato destacado.
+     Vuelve al rol "headline", igual que el numero de mesa. */
+  .cuenta{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--d3);
+    line-height:1.1;font-variant-numeric:tabular-nums;margin:var(--e2) 0;}
+  .rotulito{font-size:var(--t1);letter-spacing:.09em;text-transform:uppercase;
+    color:var(--rotulo);}
+  /* El .btn del sistema viene con white-space:nowrap y 20 px de costado,
+     pensado para una fila de botones. En una columna de 186 px eso se
+     desborda: "Agregar a mi calendario" se salia 7 px por la derecha. */
+  .btn.ancho{display:block;width:100%;text-align:center;white-space:normal;
+    padding-left:var(--e2);padding-right:var(--e2);}
+  /* El .btn del sistema es --sup, pensado para ir sobre la página. Aquí casi
+     todos los botones viven DENTRO de un bloque que ya es --sup, y quedaban
+     sin forma: "Agregar a mi calendario" se leía como texto suelto. Dentro de
+     un bloque el secundario sube un escalón y al pasar por encima baja. */
+  .bloque .btn:not(.primario),.post .btn:not(.primario){background:var(--sup-alta);}
+  .bloque .btn:not(.primario):hover,.post .btn:not(.primario):hover{background:var(--sup-hover);}
+
+  /* --- publicaciones --- */
+  .post{background:var(--sup);border-radius:var(--radio);
+    margin-bottom:var(--e3);}
+  .post .cab{display:flex;gap:var(--e2);padding:var(--e3);
+    border-bottom:1px solid var(--divider);align-items:flex-start;}
+  .post .quien{font-weight:700;}
+  .post .cuando{font-size:var(--t2);color:var(--apagado);margin-top:1px;}
+  .post .texto{padding:var(--e3);line-height:1.55;overflow-wrap:anywhere;}
+  .post .quien a{color:inherit;text-decoration:none;}
+  .post .sig{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+    background:var(--c);color:#fff;font-size:14px;font-weight:700;letter-spacing:-.02em;}
+  /* «En vivo ahora»: una fila por tienda con el timer en uso */
+  .vivoT{display:block;color:inherit;text-decoration:none;padding:var(--e2) 0;}
+  .vivoT + .vivoT{border-top:1px solid var(--divider);}
+  .vivoT b{font-weight:600;}
+  .vivoSub{font-size:var(--t2);color:var(--apagado);margin:2px 0 0 18px;}
+  #vivoElegir{display:flex;flex-wrap:wrap;margin-bottom:var(--e3);}
+  .tabla{width:100%;border-collapse:collapse;font-size:var(--t3);}
+  .tabla caption{text-align:left;font-size:var(--t1);letter-spacing:.09em;
+    text-transform:uppercase;color:var(--rotulo);padding:0 var(--e3) var(--e2);}
+  .tabla td{padding:var(--e2) var(--e3);border-top:1px solid var(--divider);}
+  /* Mi fila: en 2010 era un fondo crema. Acá es el anillo de acento que el
+     producto ya usa para decir "esto es lo tuyo" —.match.hl y .hlrow en la
+     vista proyectada, .evCard.destacada en el calendario—. Un borde de color
+     en UN solo costado es lo que estilo.css desterró por escrito cuando sacó
+     el que tenía .aviso. */
+  .tabla tr.yo-fila{background:var(--sup-alta);box-shadow:inset 0 0 0 2px var(--accion);}
+  .tabla .pos{width:34px;color:var(--rotulo);font-variant-numeric:tabular-nums;}
+  .tabla .pts{text-align:right;white-space:nowrap;color:var(--apagado);
+    font-variant-numeric:tabular-nums;}
+  .post .pie{padding:var(--e2) var(--e3);border-top:1px solid var(--divider);
+    font-size:var(--t2);color:var(--apagado);background:var(--sup-alta);
+    border-radius:0 0 var(--radio) var(--radio);}
+
+  /* --- en vivo --- */
+  /* La partida propia se saca del montón: es lo único de esta pestaña que el
+     jugador viene a buscar para sí mismo. El resto de la ronda va abajo, que
+     es para mirar cómo les está yendo a los demás. */
+  .miMesa{margin-top:var(--e2);padding:var(--e3);background:var(--sup-alta);
+    border-radius:var(--radio);box-shadow:inset 0 0 0 2px var(--accion);}
+  /* El numero de mesa es el unico dato de esta pagina que se busca de un
+     vistazo, entre ronda y ronda, con el telefono en la mano. Va en el rol
+     "headline" del sistema —28 px en negrita—, que es el doble del
+     cuerpo: el resto del muro vive entre 11 y 19 px y no tiene ningun ancla. */
+  .miMesa .mesa{font-weight:700;font-size:var(--d3);
+    line-height:1.1;font-variant-numeric:tabular-nums;}
+  .miMesa .rival{font-size:var(--t2);color:var(--apagado);margin-top:2px;line-height:1.35;}
+  .tabla .mesa{width:44px;color:var(--rotulo);font-variant-numeric:tabular-nums;}
+  .tabla .rec{font-size:var(--t2);color:var(--apagado);font-variant-numeric:tabular-nums;}
+  .tabla .res{text-align:right;white-space:nowrap;font-size:var(--t2);color:var(--apagado);}
+  /* La estrella de favorita: dorada cuando lo es, y de 44 px para el dedo. */
+  .estrella{background:none;border:none;cursor:pointer;color:var(--rotulo);width:44px;height:44px;
+    display:inline-grid;place-items:center;border-radius:50%;margin:-10px -8px -10px 0;}
+  .estrella.on{color:var(--podio1);}
+  .estrella.on svg{fill:currentColor;}
+  /* --- insignias: el dibujo vive en estilo.css; acá, el acomodo --- */
+  .insCab{padding:var(--e3) var(--e3) 0;}
+  .seg{display:inline-flex;background:var(--campo);border-radius:10px;padding:3px;}
+  .seg button{border:none;background:none;font:inherit;font-size:var(--t2);color:var(--apagado);padding:7px 14px;
+    border-radius:8px;cursor:pointer;min-height:34px;}
+  .seg button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--sup);color:var(--texto);font-weight:600;box-shadow:0 1px 3px rgba(16,35,30,.12);}
+  .insGrupo{padding:var(--e4) var(--e3);}
+  .insGrupo + .insGrupo{border-top:1px solid var(--divider);}
+  .insGrupo h3{font-size:var(--t1);letter-spacing:.08em;text-transform:uppercase;color:var(--rotulo);font-weight:600;margin:0 0 var(--e4);}
+  .tiendaCab{display:flex;align-items:center;gap:var(--e2);margin-bottom:var(--e4);}
+  .tiendaCab .logoT{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;
+    font-size:12px;flex:none;}
+  .tiendaCab b{display:block;font-size:var(--t3);} .tiendaCab small{color:var(--apagado);font-size:var(--t2);}
+  .insignias{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:var(--e4) var(--e2);}
+  .insNota{margin:var(--e2) 0 0;font-size:var(--t2);color:var(--apagado);line-height:1.45;}
+  /* Una que oculté: sigue en MI perfil, apagada, para poder volver a mostrarla. */
+  .ins.oculta .med,.ins.oculta .par{opacity:.4;}
+  .ins .etqOculta{position:absolute;top:-6px;left:calc(50% + 12px);background:var(--sup-alta);color:var(--apagado);z-index:1;
+    font-size:var(--t1);font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;}
+  /* Términos y Privacidad, al final: discretos, como en cualquier sitio. */
+  .legal{font-size:var(--t1);color:var(--rotulo);line-height:1.6;margin:var(--e4) 0 0;}
+  .legal a{color:var(--apagado);}
+  .vitrina{display:flex;align-items:center;gap:10px;margin-top:var(--e2);flex-wrap:wrap;}
+  .vitrina:empty{display:none;}
+  .vitrina button{background:none;border:none;padding:0;cursor:pointer;border-radius:50%;}
+  .vitrina small{font-size:var(--t2);color:var(--apagado);}
+  /* El detalle: hoja desde abajo en el teléfono, tarjeta al centro en el computador. */
+  dialog.hojaIns{border:none;padding:var(--e3) var(--e5) var(--e5);border-radius:var(--radio-hoja);max-width:420px;width:calc(100% - 32px);
+    background:var(--sup);color:var(--texto);text-align:center;box-shadow:0 30px 60px -20px rgba(16,35,30,.45);}
+  dialog.hojaIns::backdrop{background:rgba(10,30,26,.45);}
+  @media (max-width:600px){ dialog.hojaIns{margin:auto 0 0;width:100%;max-width:none;border-radius:var(--radio-hoja) var(--radio-hoja) 0 0;} }
+  .hojaIns .asa{width:38px;height:5px;border-radius:3px;background:var(--divider);margin:0 auto var(--e4);}
+  .hojaIns .med,.hojaIns .par{margin:0 auto;}
+  .hojaIns h3{margin:var(--e4) 0 2px;font-size:var(--t5);}
+  .hojaIns .de{color:var(--apagado);font-size:var(--t2);}
+  .datosIns{text-align:left;margin:var(--e4) 0 var(--e3);border-radius:12px;background:var(--pagina);}
+  .datosIns div{display:flex;justify-content:space-between;gap:var(--e3);padding:10px 14px;font-size:var(--t2);
+    border-top:1px solid var(--divider);color:var(--apagado);}
+  .datosIns div:first-child{border-top:none;}
+  .datosIns b{color:var(--texto);font-weight:600;text-align:right;}
+  .hojaIns .btn{display:block;width:100%;margin-top:var(--e2);}
+  .hojaIns .msg{font-size:var(--t2);color:var(--apagado);margin-top:var(--e2);}
+  .hojaIns .msg:empty{display:none;}
+  /* La celebración: una sola vez por insignia, sobre el lienzo oscuro del timer. */
+  dialog.celebra{border:none;padding:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;
+    background:radial-gradient(120% 70% at 50% 34%,#304768 0%,#1B2C49 55%,#121E30 100%);color:#F8F7F2;overflow:hidden;}
+  dialog.celebra[open]{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  dialog.celebra::backdrop{background:#121E30;}
+  #celCuerpo{display:contents;}
+  .celebra .rayos{position:absolute;left:50%;top:38%;width:620px;height:620px;transform:translate(-50%,-50%);border-radius:50%;
+    background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.07) 0 6deg,transparent 6deg 18deg);pointer-events:none;
+    -webkit-mask:radial-gradient(circle,#000 20%,transparent 62%);mask:radial-gradient(circle,#000 20%,transparent 62%);}
+  .celebra .med,.celebra .par{--fondo-ins:#1B2C49;}
+  .celebra .par em{background:#1B2C49;}
+  .celebra .rot{position:relative;font-size:var(--t1);letter-spacing:.14em;text-transform:uppercase;color:#C2CEE0;margin-top:var(--e5);}
+  .celebra h2{position:relative;margin:8px 0 6px;font-size:var(--d3);letter-spacing:-.02em;padding:0 var(--e4);}
+  .celebra p{position:relative;margin:0;color:#C2CEE0;max-width:26em;line-height:1.5;padding:0 var(--e4);}
+  .celebra .acc{position:relative;display:flex;flex-direction:column;gap:var(--e2);margin-top:var(--e5);width:min(280px,calc(100% - 48px));}
+  .celebra .btn:not(.primario){background:rgba(255,255,255,.1);color:#F8F7F2;}
+  @media (prefers-reduced-motion:no-preference){
+    dialog.celebra[open] .med,dialog.celebra[open] .par{animation:aparece 560ms cubic-bezier(.23,1,.32,1) both;}
+    dialog.celebra[open] .rayos{animation:gira 30s linear infinite;}
+    @keyframes aparece{from{transform:scale(.55);opacity:0}to{transform:none;opacity:1}}
+    @keyframes gira{to{transform:translate(-50%,-50%) rotate(360deg)}}
+  }
+
+  /* El aviso de correo sin confirmar, arriba de la columna central. */
+  #avisoCorreo{margin-bottom:var(--e3);}
+  /* Rachas: verde si vas ganando, rojo si vas perdiendo, como el reloj en negativo. */
+  .racha{font-weight:600;font-variant-numeric:tabular-nums;}
+  .racha.w{color:var(--ok);}
+  .racha.l{color:var(--negativo);}
+  .filaSw{display:flex;align-items:center;gap:var(--e3);border-top:1px solid var(--divider);cursor:pointer;}
+  .filaSw span{flex:1;}
+  .filaSw small{display:block;font-size:var(--t2);color:var(--apagado);margin-top:2px;line-height:1.4;}
+  a[data-jug]{color:inherit;}
+  #avisoCorreo .acc{display:flex;gap:var(--e2);flex-wrap:wrap;margin-top:var(--e2);}
+
+  .vacio{padding:var(--e5) var(--e3);text-align:center;color:var(--apagado);
+    font-size:var(--t3);line-height:1.6;}
+  .vivo{display:flex;align-items:center;gap:6px;font-size:var(--t2);
+    color:var(--apagado);}
+  .punto{width:8px;height:8px;border-radius:50%;background:var(--rotulo);flex:none;}
+  .punto.si{background:var(--ok);}
+  .oculto{display:none !important;}
+
+  /* El diseno de 2010 no tiene titulo de pagina visible, pero un lector de
+     pantalla necesita saber en que esta parado. Estos encabezados existen solo
+     para el: se sacan del flujo sin usar display:none, que los borraria
+     tambien del arbol de accesibilidad. */
+  .solo-lector{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+
+  /* El look de 2010 es denso a propósito: cromo compacto, 30 px de alto. Eso
+     está bien con un mouse y no con un dedo. En vez de romper la densidad en
+     todas partes, el piso táctil de 44 px entra donde de verdad se toca —la
+     misma anchura en que la rejilla se apila, que es cuando esto es un
+     teléfono. */
+  @media (max-width:900px){
+    #buscar,.yo button,.menu a,.menu button,.pestanas button,.btn{min-height:44px;}
+    .barra .dentro{flex-wrap:wrap;padding:var(--e2) var(--e3);}
+    #buscar{max-width:none;order:3;flex:1 1 100%;}
+  }
+
+
+/* Comunidad: navegación generosa, bloques legibles y ficha de jugador. */
+[data-pagina="muro"] .barra .dentro {max-width:1180px;min-height:76px;padding-inline:24px;gap:24px}
+[data-pagina="muro"] #buscar {max-width:340px;min-height:40px;padding:9px 13px;border-radius:10px;background:var(--sup)}
+[data-pagina="muro"] .yo button {min-height:36px;padding:8px 14px;border:1px solid var(--divider);background:var(--sup)}
+[data-pagina="muro"] .pestanas .dentro {max-width:1180px;padding-inline:24px;gap:18px}
+[data-pagina="muro"] .pestanas button {padding:14px 7px;font-size:14px;font-weight:550}
+[data-pagina="muro"] .hoja {max-width:1180px;padding-top:32px;gap:24px}
+[data-pagina="muro"] .bloque {margin-bottom:24px}
+[data-pagina="muro"] .bloque>h2 {font-size:11px;font-weight:650;letter-spacing:.8px;padding-bottom:11px}
+[data-pagina="muro"] .bloque .cuerpo {padding:18px}
+[data-pagina="muro"] .bloque .cuerpo.junto {padding:0}
+[data-pagina="muro"] .yoficha {padding:18px;gap:13px}
+[data-pagina="muro"] .avatar {background:var(--lila);color:var(--texto);border-radius:15px}
+[data-pagina="muro"] .mt {min-height:54px;padding:12px 16px}
+[data-pagina="muro"] .cabPerfil {padding:28px;background:var(--lila);border-radius:18px 18px 0 0}
+[data-pagina="muro"] .bloque .vacio {padding:30px 20px}
+[data-pagina="muro"] dialog.celebra {background:radial-gradient(ellipse at 50% 25%,#304768,#1B2C49 65%);color:#F8F7F2}
+[data-pagina="muro"] dialog.celebra::backdrop {background:#121E30DD}
+@media(max-width:600px) {[data-pagina="muro"] .barra .dentro{padding:12px 16px;gap:10px;flex-wrap:wrap;min-height:68px}[data-pagina="muro"] #buscar{order:4;max-width:none;flex:1 1 100%}[data-pagina="muro"] .yo{margin-left:auto;font-size:11px}[data-pagina="muro"] .hoja{padding-top:22px;gap:18px}[data-pagina="muro"] .pestanas .dentro{padding-inline:16px;gap:15px}}

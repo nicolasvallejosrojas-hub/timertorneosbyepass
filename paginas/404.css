@@ -1,0 +1,7 @@
+/* Enlaces cortos y estado de enlace no encontrado. */
+body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;background:var(--pagina);color:var(--texto);font:16px/1.65 var(--fuente)}
+main{max-width:500px;width:calc(100% - 40px);padding:38px;text-align:center;background:var(--sup);border:1px solid var(--divider);border-radius:20px;box-shadow:var(--sombra)}
+h1{font-size:29px;letter-spacing:-1px;line-height:1.2;margin:0 0 16px}
+p{color:var(--apagado);margin:0 0 24px}
+main>a{display:inline-flex;align-items:center;justify-content:center;background:var(--accion);color:var(--sobre-accion);border-radius:10px;min-height:44px;padding:12px 22px;text-decoration:none;font-size:14px;font-weight:600}
+@media(max-width:500px){main{padding:28px 24px}h1{font-size:26px}}

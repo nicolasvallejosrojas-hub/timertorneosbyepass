@@ -12,9 +12,9 @@
    Se entrega como PNG: en el celular abre el menú de compartir; en el
    computador se descarga. No sube nada: la imagen queda solo en el aparato.
    ============================================================ */
-import { cabe, entregarImagen } from "./tablafinal.js?v=4";
-import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=1";
-import { celdasDelMes, porFecha, ordenar, DOWS, MES_LARGO } from "./agenda.js?v=5";
+import { cabe, entregarImagen } from "./tablafinal.js?v=cc72b6ac4534";
+import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=cc72b6ac4534";
+import { celdasDelMes, porFecha, ordenar, DOWS, MES_LARGO } from "./agenda.js?v=cc72b6ac4534";
 
 /* ▌BLOQUE 1 · Calendario del mes como imagen ════════════════════════════════════
    Dibuja el mes (rejilla lunes a domingo y lista, un color por juego) sobre el fondo elegido y lo
@@ -34,7 +34,7 @@ const conAlfa = (hex, a) => { const n = parseInt(hex.slice(1), 16); return "rgba
 /* estilo: el fondo elegido (fondoimg.js); puede venir como promesa. */
 export async function dibujarCalendario({ tienda, a, m, eventos, estilo }){
   estilo = await estilo; const C = paletaDe(estilo);   // colores del texto y las filas según el fondo
-  await Promise.all(["300 100px Newsreader", "700 30px Inter", "600 22px Inter", "400 22px Inter"].map(f => document.fonts.load(f).catch(() => {})));
+  await Promise.all(["300 100px Newsreader", "700 30px Inter", "600 22px Inter", "400 22px Inter"].map(f => document.fonts.load(f).catch(e => console.warn("Operación secundaria sin confirmar", e))));
   const delMes = ordenar(eventos.filter(e => e.fecha && e.fecha.slice(0, 7) === a + "-" + String(m + 1).padStart(2, "0")));
   const colores = coloresDe(delMes), colorDe = e => colores.get(e.juego) || SIN_JUEGO;
   const celdas = celdasDelMes(a, m), semanas = celdas.length / 7, ix = porFecha(delMes);

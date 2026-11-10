@@ -1,0 +1,57 @@
+/* privacidad.html — composición y componentes propios de la vista. */
+/* Términos y Privacidad: dos páginas de lectura con el mismo molde. No
+     cargan Firebase: se leen aunque el sitio esté en mantenimiento. Si se toca
+     este bloque, copiarlo igual en terminos.html. */
+  body{min-height:100vh;}
+  .sup{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:var(--e2);
+    min-height:56px;padding:0 max(var(--e4), env(safe-area-inset-right)) 0 max(var(--e4), env(safe-area-inset-left));}
+  .marca{font-family:var(--fuente-reloj);font-weight:300;font-size:var(--t5);margin-right:auto;
+    color:var(--texto);text-decoration:none;display:inline-flex;align-items:center;min-height:44px;}
+  .sup nav{display:flex;gap:var(--e1);}
+  .sup nav a{color:var(--apagado);text-decoration:none;font-size:var(--t2);padding:8px 12px;border-radius:999px;}
+  .sup nav a:hover{background:var(--sup-alta);color:var(--texto);}
+  .sup nav a[aria-current="page"]{background:var(--sup);color:var(--texto);font-weight:600;}
+  .doc{max-width:720px;margin:0 auto;padding:var(--e5) var(--e4) var(--e6);box-sizing:border-box;}
+  .doc h1{font-size:var(--d3);font-weight:700;letter-spacing:-.022em;line-height:1.1;margin:0;}
+  .bajada{font-size:var(--t4);color:var(--apagado);line-height:1.5;margin:var(--e2) 0 0;}
+  .meta{font-size:var(--t2);color:var(--rotulo);margin:var(--e3) 0 0;}
+  .doc a{color:var(--accion-texto);}
+  .resumen{background:var(--sup);border-radius:var(--radio);padding:var(--e4) var(--e5);margin:var(--e5) 0 0;}
+  .doc .resumen h2{font-size:var(--t2);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;margin:0 0 var(--e2);}
+  .resumen ul{margin:0;padding-left:1.1em;line-height:1.6;font-size:var(--t3);}
+  .indice{margin:var(--e5) 0 0;font-size:var(--t3);line-height:1.9;columns:2;column-gap:var(--e5);padding-left:1.4em;}
+  .indice a{color:var(--texto);text-decoration:none;} .indice a:hover{color:var(--accion-texto);text-decoration:underline;}
+  .doc section{margin-top:var(--e6);scroll-margin-top:72px;}
+  .doc h2{font-size:var(--t5);font-weight:700;letter-spacing:-.01em;margin:0 0 var(--e2);}
+  .doc p,.doc li{font-size:var(--t3);line-height:1.65;}
+  .doc p{margin:var(--e2) 0 0;max-width:68ch;}
+  .doc ul{margin:var(--e2) 0 0;padding-left:1.2em;max-width:68ch;}
+  .doc li + li{margin-top:6px;}
+  .tabla-datos{width:100%;border-collapse:collapse;margin-top:var(--e3);font-size:var(--t2);background:var(--sup);border-radius:var(--radio);overflow:hidden;}
+  .tabla-datos th,.tabla-datos td{text-align:left;vertical-align:top;padding:10px 12px;border-top:1px solid var(--divider);line-height:1.5;}
+  .tabla-datos thead th{border-top:none;font-size:var(--t1);text-transform:uppercase;letter-spacing:.06em;color:var(--rotulo);font-weight:600;}
+  .tabla-datos td:first-child{font-weight:600;}
+  .pie-doc{border-top:1px solid var(--divider);margin-top:var(--e6);padding-top:var(--e4);font-size:var(--t2);color:var(--rotulo);
+    display:flex;flex-wrap:wrap;gap:var(--e2) var(--e4);justify-content:space-between;}
+  .pie-doc a{color:var(--apagado);}
+  @media (max-width:600px){
+    .indice{columns:1;}
+    .resumen{padding:var(--e4);}
+    .tabla-datos thead{display:none;}
+    .tabla-datos tr{display:block;border-top:1px solid var(--divider);padding:8px 0;}
+    .tabla-datos td{display:block;border:none;padding:2px 12px;}
+    /* Sin encabezados a la vista, cada celda dice qué es. */
+    .tabla-datos td:nth-child(2)::before{content:"Para qué: ";font-weight:600;color:var(--rotulo);}
+    .tabla-datos td:nth-child(3)::before{content:"Quién lo ve: ";font-weight:600;color:var(--rotulo);}
+  }
+
+
+/* Documentos: columna de lectura estable y resúmenes destacados. */
+[data-pagina="privacidad"] .doc {max-width:850px;padding-top:50px}
+[data-pagina="privacidad"] h1 {font-size:clamp(32px,4vw,44px);letter-spacing:-1.5px}
+[data-pagina="privacidad"] .bajada {font-size:17px;line-height:1.8;margin-top:18px}
+[data-pagina="privacidad"] .resumen {background:var(--lila);border:1px solid var(--divider);border-radius:17px;padding:28px;margin-block:30px}
+[data-pagina="privacidad"] .doc section {scroll-margin-top:100px;line-height:1.85}
+[data-pagina="privacidad"] .indice {background:var(--sup);border:1px solid var(--divider);border-radius:14px;padding:24px 24px 24px 45px}
+[data-pagina="privacidad"] .sup nav {margin-left:auto}
+@media(max-width:600px) {[data-pagina="privacidad"] .doc{padding-top:32px}[data-pagina="privacidad"] .resumen{padding:23px}}

@@ -26,7 +26,7 @@ const CAJA = "copias-1";
 /* Avisos push (FCM, solo datos): el servidor manda { title, body, url, tag } y acá se muestran. Lo usa el staff de
    sala (functions/index.js). Tocar el aviso abre o enfoca la página que dice «url». */
 self.addEventListener("push", e => {
-  let p = {}; try { p = e.data ? e.data.json() : {}; } catch(x){}
+  let p = {}; try { p = e.data ? e.data.json() : {}; } catch(x){ console.warn("No se pudo completar una operación opcional", x); }
   const d = p.data || p, n = p.notification || {};
   e.waitUntil(self.registration.showNotification(d.title || n.title || "ByePass", {
     body: d.body || n.body || "", tag: d.tag || undefined, icon: "icono-192.png", data: { url: d.url || "./" } }));
@@ -58,7 +58,7 @@ self.addEventListener("fetch", e => {
   if (firebase || u.searchParams.has("v")){
     e.respondWith(caches.match(r).then(c => {
       const red = fetch(r).then(res => { e.waitUntil(guardar(r, res)); return res; });
-      if (c){ e.waitUntil(red.catch(() => {})); return c; }
+      if (c){ e.waitUntil(red.catch(e => console.warn("Operación secundaria sin confirmar", e))); return c; }
       return red;
     }));
     return;

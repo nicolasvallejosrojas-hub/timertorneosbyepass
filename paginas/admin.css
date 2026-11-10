@@ -1,0 +1,546 @@
+/* admin.html — composición y componentes propios de la vista. */
+/* =========================================================
+     1. Base y controles comunes
+     ========================================================= */
+  /* Las variables viejas ahora apuntan a la paleta de estilo.css: cada regla
+     que ya usaba var(--sup) o var(--accion) hereda el diseño nuevo sin
+     reescribirla. El divisor no desaparece del todo: la regla de "sin líneas
+     de 1 px" se justificaba por la proyección, y el panel se mira en un
+     notebook a 30 cm, donde una línea sutil ordena. */
+  html,body{margin:0;min-height:100%;}
+  body{background:var(--pagina);color:var(--texto);font-family:var(--fuente);padding:18px;box-sizing:border-box;}
+  h1{font-size:var(--t5);font-weight:500;margin:0 0 14px;}
+  .card{background:var(--sup);border:1px solid var(--divider);border-radius:var(--radio);padding:16px;margin-bottom:14px;max-width:840px;}
+  button{border:none;background:var(--accion);color:var(--sobre-accion);font-weight:600;
+         border-radius:var(--radio);padding:10px 20px;font-family:inherit;font-size:var(--t3);
+         cursor:pointer;}
+  button:hover{background:var(--accion-clara);}
+  /* El secundario va un nivel MÁS ALTO que la tarjeta, no igual: sobre una
+     tarjeta del mismo color desaparecía y parecía texto suelto. */
+  button.sec{background:var(--sup-alta);color:var(--texto);font-weight:400;}
+  button.sec:hover{background:var(--sup);box-shadow:inset 0 0 0 1px var(--rotulo);}
+  button.small{padding:5px 10px;font-size:var(--t2);}
+  button:disabled{opacity:.4;cursor:default;}
+  input,select,textarea{background:var(--campo);border:none;border-radius:var(--radio);color:var(--texto);
+        padding:7px 9px;font-family:inherit;font-size:var(--t2);box-sizing:border-box;}
+  label{font-size:var(--t2);display:block;margin-top:10px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .muted{font-size:var(--t2);color:var(--apagado);} .ok{color:var(--ok);} .err{color:var(--negativo);} .warnc{color:var(--accion-texto);}
+  .center{display:flex;flex-direction:column;align-items:center;}
+
+  /* Misma píldora que usa la vista del jugador: relleno, radio 12, sin borde; la elegida, en tinta */
+  nav#tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  nav#tabs button{border:none;background:var(--sup);color:var(--apagado);
+    border-radius:var(--radio);padding:9px 18px;font-size:var(--t3);}
+  nav#tabs button:hover{background:var(--sup-alta);color:var(--texto);}
+  nav#tabs button.on{background:var(--texto);color:var(--pagina);font-weight:600;}
+  .panel.hide{display:none;}
+  [hidden]{display:none !important;}
+  a{color:var(--accion-texto);}
+
+  /* --- tiendas: selector, invitación y pestaña Tienda --- */
+  .h2p{font-size:var(--t4);font-weight:600;margin:0 0 6px;}
+  .logoT{flex:none;display:inline-grid;place-items:center;border-radius:50%;background:var(--c, var(--franja));
+    color:#fff;font-weight:700;letter-spacing:-.02em;}
+  .tfila{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--pagina);
+    color:var(--texto);border-radius:var(--radio);padding:12px 14px;margin-top:8px;font-weight:400;
+    box-shadow:inset 0 0 0 1px var(--divider);}
+  .tfila:hover{background:var(--sup-alta);}
+  .tfila b{display:block;font-size:var(--t4);}
+  .tfila small{display:block;font-size:var(--t2);color:var(--apagado);margin-top:2px;}
+  .tfila .txt{flex:1;min-width:0;}
+  .crear{margin-top:16px;padding-top:14px;border-top:1px solid var(--divider);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+  .grid2 input{width:100%;font-size:var(--t3);padding:9px 10px;margin-top:4px;}
+  .grid2 input[type=color]{height:38px;padding:3px;}
+  .grid2 select{width:100%;font-size:var(--t3);padding:9px 10px;margin-top:4px;}
+  .rifa{border-top:1px solid var(--divider);padding:12px 0;}
+  .rifa:first-of-type{border-top:none;}
+  .rifa .cod{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:var(--t2);flex-wrap:wrap;}
+  .rifa .cod code{font-family:var(--fuente-mono,monospace);font-size:var(--t3);font-weight:700;letter-spacing:.08em;}
+  .rifa .cod.usado code{color:var(--apagado);text-decoration:line-through;}
+  .rifa .gan{font-size:var(--t2);padding:3px 0;}
+  #rfForm{margin-top:12px;} #rfForm textarea{width:100%;font-size:var(--t3);padding:9px 10px;margin-top:4px;box-sizing:border-box;min-height:90px;}
+  .miembro{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--divider);}
+  .miembro:first-child{border-top:none;}
+  .miembro .txt{flex:1;min-width:0;}
+  .miembro small{display:block;font-size:var(--t2);color:var(--apagado);}
+  .invLink{display:flex;gap:8px;align-items:center;margin-top:8px;}
+  .invLink input{flex:1;font-size:var(--t2);}
+  /* Insignias de la tienda (el dibujo, en estilo.css) */
+  .insFila{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--divider);}
+  .insFila:first-child{border-top:none;}
+  .insFila .txt{flex:1;min-width:0;} .insFila b{display:block;}
+  .insFila small{display:block;font-size:var(--t2);color:var(--apagado);}
+  .chipIns{font-size:var(--t1);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;
+    border-radius:999px;background:var(--sup-alta);color:var(--apagado);white-space:nowrap;}
+  .h3ins{font-size:var(--t3);font-weight:600;margin:20px 0 2px;}
+  .insForm{display:grid;grid-template-columns:1fr 200px;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--divider);}
+  .insForm label.campoIns{display:block;margin-bottom:12px;font-size:var(--t2);color:var(--apagado);}
+  .insForm label.campoIns input{display:block;width:100%;margin-top:4px;font-size:var(--t3);padding:9px 10px;}
+  .insForm .lbl{font-size:var(--t2);color:var(--apagado);margin:0 0 6px;}
+  .icos{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .icos .ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--sup-alta);
+    color:var(--apagado);border:none;padding:0;cursor:pointer;}
+  .icos .ico svg{width:20px;height:20px;}
+  .icos .ico.on{background:var(--texto);color:var(--sup);}
+  .opIns{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:var(--t3);}
+  .opIns input[type=number]{width:64px;padding:5px 8px;}
+  .elegidos{max-height:180px;overflow:auto;margin:4px 0 8px 24px;font-size:var(--t2);}
+  .elegidos label{display:flex;align-items:center;gap:6px;padding:3px 0;}
+  .prevIns{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--pagina);
+    border-radius:14px;padding:20px;text-align:center;align-self:start;}
+  .prevIns .par{--fondo-ins:var(--pagina);margin-bottom:6px;}
+  .prevIns small{color:var(--apagado);font-size:var(--t2);}
+  @media (max-width:640px){ .insForm{grid-template-columns:1fr;} }
+  @media (max-width:640px){ .grid2{grid-template-columns:1fr;} }
+
+  /* --- emparejamientos: desde archivo o con la página --- */
+  .modos{display:inline-flex;background:var(--campo);border-radius:10px;padding:3px;gap:2px;}
+  .modos button{background:none;color:var(--apagado);font-weight:500;padding:8px 16px;border-radius:8px;font-size:var(--t3);}
+  .modos button:hover{background:var(--sup-alta);color:var(--texto);}
+  .modos button[aria-selected="true"]{background:var(--sup);color:var(--texto);font-weight:600;box-shadow:0 1px 3px rgba(16,35,30,.12);}
+  /* Una mesa: se toca al ganador. */
+  .mesa{display:grid;grid-template-columns:62px 1fr 24px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--divider);}
+  .mesa:first-child{border-top:none;}
+  .mesa .n{font-size:var(--t2);color:var(--apagado);}
+  .mesa .vs{font-size:var(--t2);color:var(--apagado);text-align:center;}
+  .mesa .solo{grid-column:2 / -1;font-size:var(--t3);}
+  .jugBtn{background:var(--sup-alta);color:var(--texto);font-weight:500;text-align:left;padding:8px 12px;font-size:var(--t3);min-height:44px;}
+  .jugBtn:hover{background:var(--sup-hover);}
+  .jugBtn small{display:block;font-size:var(--t1);color:var(--apagado);font-weight:400;margin-top:1px;}
+  .jugBtn.gana{background:var(--texto);color:var(--pagina);font-weight:700;}
+  .jugBtn.gana:hover{background:var(--texto);opacity:.9;}
+  .jugBtn.gana small{color:inherit;opacity:.8;}
+  .jugBtn.pierde{opacity:.5;}
+  .otros{display:flex;gap:6px;}
+  .otros button{background:var(--sup-alta);color:var(--texto);font-weight:400;padding:6px 10px;font-size:var(--t2);}
+  .otros button:hover{background:var(--sup-hover);}
+  .otros button.on{background:var(--texto);color:var(--sup);font-weight:600;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .chip{display:inline-flex;align-items:center;gap:2px;background:var(--sup-alta);border-radius:999px;padding:3px 4px 3px 12px;font-size:var(--t2);}
+  .chip button{background:none;color:var(--apagado);padding:4px 8px;font-size:var(--t3);line-height:1;font-weight:400;}
+  .chip button:hover{background:var(--sup-hover);border-radius:999px;}
+  .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .retirado{color:var(--apagado);}
+  details.plegable{margin-top:14px;border-top:1px solid var(--divider);padding-top:10px;}
+  /* las rondas del torneo, arriba y a la vista (archivo y página) */
+  .rondasBox{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:10px 0;padding:10px 12px;border-radius:var(--radio);
+    background:var(--sup-alta);box-shadow:inset 0 0 0 1px var(--accion);}
+  .rondasBox label{margin:0;font-weight:600;white-space:nowrap;}
+  .rondasBox input{width:70px;margin-left:6px;font-size:var(--t4);font-weight:700;text-align:center;}
+  .rondasBox .muted{flex:1;min-width:200px;}
+  /* corregir a mano el orden de la tabla general (solo para la imagen) */
+  .ordenG{list-style:none;margin:8px 0;padding:0;max-height:420px;overflow:auto;}
+  .ordenG li{display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--divider);font-size:var(--t3);}
+  .ordenG li b{min-width:2em;color:var(--apagado);font-variant-numeric:tabular-nums;}
+  .ordenG li span{flex:1;min-width:0;}
+  .ordenG li small{color:var(--apagado);}
+  .ordenG button{min-width:40px;min-height:36px;}
+  details.plegable summary{cursor:pointer;font-size:var(--t3);font-weight:600;}
+  #bjBuscar{width:100%;font-size:var(--t3);padding:10px 12px;margin-top:10px;}
+  @media (max-width:640px){
+    .mesa{grid-template-columns:1fr 1fr;}
+    .mesa .n{grid-column:1 / -1;} .mesa .vs{display:none;} .mesa .otros,.mesa .solo{grid-column:1 / -1;}
+  }
+
+  table{border-collapse:collapse;width:100%;font-size:var(--t2);margin-top:10px;}
+  td,th{border-bottom:1px solid var(--divider);padding:6px 8px;text-align:left;}
+  .rec{opacity:.6;font-size:var(--t2);}
+
+  /* =========================================================
+     2. Lienzo del timer
+     ========================================================= */
+  #stageWrap{width:100%;overflow:hidden;display:flex;justify-content:center}
+  #scaler{transform-origin:top center}
+  /* El fondo de la tienda lo pone el diseño; mientras no llega, el lienzo. */
+  #canvas{position:relative;overflow:hidden;border-radius:var(--radio);background:var(--lienzo);
+    box-shadow:0 18px 50px rgba(0,0,0,.45);display:flex;flex-direction:column;
+    color:var(--texto);font-family:var(--fuente)}
+  #bgImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+
+  /* Sin línea de 1 px: las hairlines desaparecen en proyección. La barra se
+     separa del escenario con su propio fondo, que sobrevive a cualquier
+     proyector y a cualquier imagen que ponga la tienda debajo. */
+  #topbar{position:relative;z-index:1;display:flex;align-items:center;gap:14px;
+    padding:16px 26px;background:rgba(36,31,41,.55)}
+  #ttitle{font-weight:600;font-size:var(--t4);line-height:1.2}
+  #tsubt{font-size:var(--t2);color:var(--apagado);margin-top:2px;line-height:1.2}
+  #tnombre{margin-right:auto;min-width:0}
+  #logo{max-height:30px;max-width:120px;object-fit:contain}
+  .tbtn{border:none;background:var(--sup);color:var(--texto);
+    border-radius:var(--radio);padding:7px 13px;font-size:var(--t2);cursor:pointer;
+    white-space:nowrap;flex-shrink:0;font-family:inherit}
+  .tbtn:hover{background:var(--sup-alta)}
+  .tbtn.on{background:var(--texto);color:var(--pagina);font-weight:600}
+
+  /* Los cuatro botones del organizador salieron del lienzo, asi que el apano
+     de envolver la barra en dos filas ya no hace falta: aca solo queda lo que
+     de verdad ven los jugadores. */
+  #canvas.vmobile #topbar{padding:14px 18px}
+  #canvas.vmobile #logo{max-height:26px}
+
+  #stage{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:18px}
+
+  /* El rótulo de ronda y el reloj llevan su propio respaldo: caja
+     semitransparente del color del fondo. Sobre el lienzo liso es casi
+     invisible; sobre una foto ruidosa de la tienda es lo que salva la
+     legibilidad. */
+  /* El rótulo es texto chico: sin nada detrás se pierde sobre una foto, así
+     que conserva un velo, pero mucho más tenue que el del reloj. */
+  #ronda{font-size:var(--t4);letter-spacing:.22em;text-transform:uppercase;
+    color:var(--apagado);padding:6px 14px;border-radius:var(--radio);
+    background:rgba(36,31,41,.28);
+    text-shadow:0 1px 2px rgba(0,0,0,.9), 0 2px 10px rgba(0,0,0,.6);display:none}
+  /* Sin caja detrás del número: tres sombras en capas protegen igual sobre un
+     fondo ruidoso y no dibujan un rectángulo. */
+  #clock{cursor:pointer;line-height:.95;min-width:280px;text-align:center;
+    font-family:Newsreader,Georgia,serif;font-weight:300;font-variant-numeric:tabular-nums;
+    user-select:none;text-shadow:0 1px 2px rgba(0,0,0,.92), 0 3px 10px rgba(0,0,0,.75),
+    0 0 36px rgba(0,0,0,.65)}
+  /* En pausa el número se apaga sin perder el color que eligió la tienda: a
+     3 m se lee "no está corriendo" sin leer la palabra. */
+  #clock.pausado{opacity:.5}
+  #clock.porvencer{color:var(--accion) !important}
+  #clockEdit{line-height:.95;width:320px;text-align:center;background:transparent;
+    border:none;border-bottom:2px solid var(--accion);outline:none;color:inherit;
+    display:none;font-family:Newsreader,Georgia,serif;font-weight:300}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+  .pulsing{animation:pulse 1s ease-in-out infinite}
+
+  .mainbtn{border:none;background:var(--accion);color:var(--sobre-accion);font-weight:600;
+    border-radius:var(--radio);padding:14px 38px;font-size:var(--t4);cursor:pointer;
+    font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+  .mainbtn:hover{background:var(--accion-clara)}
+  .greybtn{border:none;background:var(--sup);color:var(--texto);
+    border-radius:var(--radio);padding:14px 32px;font-size:var(--t4);cursor:pointer;
+    font-family:inherit}
+  .greybtn:hover{background:var(--sup-alta)}
+  #presets{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+  .preset{border:none;background:var(--sup);color:var(--apagado);
+    border-radius:var(--radio);padding:7px 13px;font-size:var(--t2);cursor:pointer;
+    font-family:inherit}
+  .preset.sel{background:var(--texto);color:var(--pagina);font-weight:600}
+  .presetX{border:none;background:transparent;color:var(--apagado);opacity:.6;
+    cursor:pointer;font-size:var(--t3)}
+
+  /* Cajitas de imagen que se arrastran sobre el lienzo */
+  .box{position:absolute;z-index:2;display:flex;flex-direction:column}
+  .boxbar{height:16px;cursor:move;background:var(--sup);border:1px solid var(--divider);
+    border-bottom:none;border-radius:var(--radio)}
+  .boxbody{flex:1;border-radius:var(--radio);border:1px dashed var(--divider);
+    position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .boxbody img{width:100%;height:100%;object-fit:contain}
+  .boxempty{font-size:var(--t2);color:var(--apagado);text-align:center;padding:4px}
+  .handle{position:absolute;background:transparent;z-index:3}
+
+  #menu{position:fixed;z-index:60;display:none;min-width:190px;padding:5px;background:var(--sup);
+    border:1px solid var(--divider);border-radius:var(--radio);box-shadow:0 18px 50px rgba(0,0,0,.45)}
+  #menu button{display:block;width:100%;text-align:left;border:none;background:transparent;color:var(--texto);
+    font-size:var(--t2);padding:8px 12px;border-radius:var(--radio);cursor:pointer}
+  #menu button:hover{background:var(--sup-hover)}
+  #menu hr{border:none;border-top:1px solid var(--divider);margin:4px 0}
+  #menu .danger{color:var(--negativo)}
+
+  /* =========================================================
+     2b. Apariencia: rail al lado del lienzo
+     ---------------------------------------------------------
+     Antes esto era una hoja modal DENTRO de #canvas. Como #canvas cuelga de
+     #scaler, que lleva transform:scale(), la hoja se encogia junto con la
+     maqueta: a escala 0,6 un selector de color de 32 px se veia a 19 y un
+     objetivo tactil de 44 px quedaba en 26. Ademas se ataba a los 660 px de
+     alto del lienzo y tapaba con un velo justo lo que uno estaba ajustando,
+     que es lo unico que hacen esos controles: fondo, brillo, opacidad, color
+     y tamano del reloj.
+
+     Ahora vive afuera del transform, a tamano real, y al lado en vez de
+     encima: cada cambio se ve en vivo mientras se hace. */
+  #timerLayout{display:grid;grid-template-columns:minmax(0,1fr);
+    gap:var(--e3);align-items:start;max-width:1320px}
+  #timerLayout.diseno{grid-template-columns:minmax(0,1fr) 400px}
+  /* La tarjeta del panel esta topada en 840 px; aca la rejilla manda. */
+  #timerLayout > .card{max-width:none;margin-bottom:0}
+
+  /* Barra del organizador: fuera del lienzo, para que no se escale ni se
+     confunda con lo que ven los jugadores. */
+  .barra{display:flex;align-items:center;gap:var(--e2);flex-wrap:wrap;
+    margin-bottom:var(--e3)}
+  .barra .tbtn,.barra .seg button{min-height:44px}
+  .barra .seg button{padding:0 14px}
+
+  /* Barra de cambios sin publicar. Va sobre el lienzo y no en el rail porque
+     lo que avisa es que la maqueta y la pantalla proyectada no coinciden. */
+  #pendiente{display:flex;align-items:center;gap:var(--e2);flex-wrap:wrap;
+    margin-bottom:var(--e3)}
+  #pendiente span{flex:1 1 200px}
+  #pendiente .tbtn{min-height:36px}
+  #pendienteAviso{font-size:var(--t2);color:var(--apagado);margin-bottom:var(--e2)}
+  #pendienteAviso:empty{display:none}
+
+  /* Consola de la ronda (modo «En vivo»): el reloj del panel es del panel, con
+     los colores del panel, y al lado va lo que ve la sala. El rail de apariencia
+     y la vista computador/celular solo aparecen en «Diseñar la pantalla». */
+  #tGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:var(--e4);align-items:start}
+  #consola{display:flex;flex-direction:column;gap:var(--e3);min-width:0}
+  #pRonda{font-size:var(--t2);color:var(--apagado)}
+  #pRonda:empty{display:none}
+  #pClock{font-family:Newsreader,Georgia,serif;font-weight:300;font-variant-numeric:tabular-nums;
+    font-size:clamp(72px,8vw,120px);line-height:.95;color:var(--texto);cursor:pointer;
+    align-self:flex-start;border-radius:var(--radio-chico)}
+  #pClock:focus-visible{outline:2px solid var(--accion);outline-offset:4px}
+  #pClock.pausado,#fClock.pausado{opacity:.5}
+  #pClock.porvencer,#fClock.porvencer{color:var(--accion-texto)}
+  #pClock.negativo,#fClock.negativo{color:var(--negativo)}
+  #mandos{display:flex;flex-direction:column;gap:var(--e3)}
+  #stage #mandos{align-items:center}
+  #pBotones{display:flex;gap:var(--e2);flex-wrap:wrap}
+  #consola .mainbtn,#consola .greybtn{min-height:52px;box-shadow:none}
+  #consola .greybtn,#consola .preset,#consola .tbtn{background:var(--sup-alta)}
+  #consola .greybtn:hover,#consola .preset:hover,#consola .tbtn:hover{background:var(--sup-hover)}
+  #consola #presets{justify-content:flex-start}
+  #consola .preset{min-height:36px}
+  #consola .preset.sel{color:var(--texto);font-weight:600;box-shadow:inset 0 0 0 2px var(--texto)}
+  #consola #extraMesa{margin-top:var(--e2)}
+  #monTit{font-size:var(--t2);color:var(--apagado);margin-bottom:var(--e2)}
+  #timerLayout:not(.diseno) #settings,#timerLayout:not(.diseno) #vistaBarra,
+  #timerLayout.diseno #consola,#timerLayout.diseno #monTit{display:none}
+  #timerLayout.diseno #tGrid{grid-template-columns:minmax(0,1fr)}
+
+  /* Franja del reloj en las otras pestañas. Sin coral: en esas pestañas la
+     acción principal es otra (publicar, girar, guardar). */
+  #franja{position:sticky;top:var(--e2);z-index:20;display:flex;align-items:center;gap:var(--e3);
+    flex-wrap:wrap;padding:var(--e2) var(--e3);border-radius:var(--radio);margin-bottom:var(--e3);
+    max-width:874px;box-sizing:border-box}
+  #fClock{font-family:Newsreader,Georgia,serif;font-weight:300;font-size:var(--d3);
+    font-variant-numeric:tabular-nums;line-height:1}
+  #fRonda{font-size:var(--t2);color:var(--apagado)}
+  #franja .tbtn{min-height:40px;background:var(--sup-alta)}
+  #franja .tbtn:hover{background:var(--sup-hover)}
+  @media (prefers-reduced-motion: reduce){
+    #pClock.pulsing,#fClock.pulsing{animation:none;text-decoration:underline;
+      text-decoration-thickness:.06em;text-underline-offset:.12em}
+  }
+
+  #settings{background:var(--sup);border:1px solid var(--divider);
+    border-radius:var(--radio);padding:var(--e4);box-sizing:border-box;
+    position:sticky;top:var(--e2);max-height:calc(100vh - 36px);overflow:auto}
+  #sheet{display:flex;flex-direction:column;gap:var(--e4)}
+  #sheet h2{font-size:var(--t5);font-weight:500;margin:0}
+  /* El secundario va un nivel MAS ALTO que la superficie que lo contiene: el
+     rail es --surface y .tbtn tambien, asi que sin esto desaparecerian. */
+  #settings .tbtn{background:var(--sup-alta);min-height:36px}
+  #settings .tbtn:hover{background:var(--sup-hover);color:var(--texto)}
+  /* El piso de 44 px es para la vista de jugador, que se toca con el dedo en
+     un telefono. Este rail se maneja con mouse en un notebook, asi que baja a
+     36: sigue muy por encima del minimo AA de 24 y deja ver mas controles sin
+     scrollear. */
+  #settings .seg button{min-height:36px;padding:0 12px}
+  #settings input[type=number],#settings input[type=range],
+  #settings select,#settings .col{min-height:36px}
+
+  .grupo{display:flex;flex-direction:column;gap:var(--e2)}
+  .grupo > h3{font-size:var(--t1);letter-spacing:.12em;text-transform:uppercase;
+    color:var(--rotulo);font-weight:600;margin:0}
+  .grupo + .grupo{border-top:1px solid var(--divider);padding-top:var(--e4)}
+
+  /* Tira de muestras de la paleta derivada. */
+  #palMuestra{display:flex;gap:2px;border-radius:var(--radio);overflow:hidden}
+  #palMuestra span{flex:1;height:24px}
+  #palPresets{flex-wrap:wrap}
+  #palPresets .tbtn{flex:1 1 auto}
+
+  /* Mapa de la paleta: cada token con lo que hace y su codigo editable. */
+  #palMapa{display:flex;flex-direction:column;gap:var(--e1)}
+  .palfila{display:flex;align-items:center;gap:var(--e2)}
+  .palsw{flex:0 0 26px;height:26px;border-radius:var(--radio-marca);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+  .palrol{flex:1 1 auto;min-width:0;font-size:var(--t2);line-height:1.3}
+  .palrol .palmal{color:var(--negativo);display:block;font-size:var(--t1)}
+  .palcod{flex:0 0 118px;font-size:var(--t1);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    min-height:30px;padding:2px 6px}
+  #palPegar{width:100%;box-sizing:border-box;font-size:var(--t2);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  /* Apilado, el rail deja de ser barra lateral: pegarlo y darle scroll propio
+     solo estorbaria, porque ya no compite por ancho con la maqueta. */
+  @media (max-width:1000px){
+    #timerLayout,#timerLayout.diseno,#tGrid{grid-template-columns:minmax(0,1fr)}
+    #settings{position:static;max-height:none}
+  }
+  .lab{font-size:var(--t2);display:block}
+  .lab input[type=range]{display:block;width:100%;margin-top:4px}
+  .col{display:block;width:100%;height:32px;margin-top:4px;border:1px solid var(--divider);
+    border-radius:var(--radio);background:transparent;cursor:pointer}
+  .seg{display:inline-flex;border:1px solid var(--divider);border-radius:var(--radio);overflow:hidden}
+  .seg button{padding:6px 12px;font-size:var(--t2);border:none;background:transparent;
+    color:var(--apagado);cursor:pointer}
+  .seg button.on{color:var(--texto);font-weight:600;box-shadow:inset 0 0 0 2px var(--texto)}
+  /* --t1 es para rótulos en mayúscula, no para frases. Estas son oraciones
+     completas que explican un control, así que van en el token de metadato. */
+  .hint{font-size:var(--t2);color:var(--apagado);margin-top:4px;line-height:1.45}
+  .imgrow{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;}
+  .imgrow img{height:44px;border:1px solid var(--divider);border-radius:var(--radio);background:var(--campo);}
+
+  /* =========================================================
+     3. Emparejamientos
+     ========================================================= */
+  #drop{border:2px dashed var(--divider);border-radius:var(--radio);padding:34px 16px;text-align:center;
+    cursor:pointer;transition:border-color .15s, background .15s;}
+  #drop:hover{border-color:var(--accion);}
+  #drop.over{border-color:var(--accion);background:color-mix(in srgb, var(--accion) 12%, var(--sup));}
+  #drop.busy{opacity:.55;pointer-events:none;}
+  #drop .big{font-size:var(--t4);font-weight:500;margin:8px 0 3px;}
+  #drop .sm{font-size:var(--t2);opacity:.6;}
+  /* Icono dibujado, no un emoji: un emoji cambia de forma según el sistema
+     operativo y no pertenece a ningún sistema de diseño. */
+  #drop .ico{opacity:.5;line-height:0;color:var(--rotulo);}
+  .chk{display:flex;align-items:center;gap:7px;font-size:var(--t2);opacity:.85;margin-top:10px;cursor:pointer;}
+
+  /* =========================================================
+     4. Ruleta de sorteos
+     ========================================================= */
+  #sortLayout{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;}
+  #sortCol{flex:1;min-width:260px;}
+  #rItems{width:100%;height:190px;resize:vertical;font-size:var(--t2);line-height:1.5;}
+  #rGanadores{margin-top:12px;font-size:var(--t2);}
+  #rGanadores div{padding:5px 0;border-bottom:1px solid var(--divider);}
+
+  /* =========================================================
+     3b. Vigilancia de la carpeta
+     ========================================================= */
+  /* Hereda .card. El estado activo se marca con el realce interno amarillo,
+     que es como se marca todo lo activo en el sistema, y no con un tinte de
+     fondo propio que no estaba en la paleta. */
+  #vigCard.activo{box-shadow:inset 0 0 0 2px var(--accion);}
+  #vigEstado{font-size:var(--t2);line-height:1.6;margin-top:8px;}
+  #vigEstado b{font-weight:600;}
+  .latido{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);
+    margin-right:7px;vertical-align:middle;}
+  #vigCard.activo .latido{animation:latir 2s ease-in-out infinite;}
+  /* Sin movimiento el latido se congela y deja de decir "esto esta vivo".
+     El anillo del propio punto lo reemplaza: estatico, pero distinto de
+     apagado. Tiene que ir despues de la regla que lo anima. */
+  @media (prefers-reduced-motion: reduce){
+    #vigCard.activo .latido{animation:none;box-shadow:0 0 0 3px color-mix(in srgb, var(--ok) 35%, transparent);}
+  }
+  @keyframes latir{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+
+  /* =========================================================
+     5. Calendario de torneos
+     ========================================================= */
+  /* En el panel se agenda tocando el día: la celda responde al mouse. */
+  .calDia{cursor:pointer;}
+  @media (hover:hover){ .calDia:hover{background:var(--sup-alta);} }
+  .calHint{font-size:var(--t2);color:var(--rotulo);margin-top:10px;}
+
+
+  .evRow{display:flex;gap:12px;align-items:flex-start;padding:11px 2px;border-bottom:1px solid var(--divider);}
+  .evRow.pasado{opacity:.45;}
+  .evFecha{min-width:64px;text-align:center;flex-shrink:0;}
+  .evFecha .d{font-size:var(--t5);font-weight:700;line-height:1;font-variant-numeric:tabular-nums;}
+  .evFecha .m{font-size:var(--t1);letter-spacing:.1em;color:var(--apagado);font-weight:600;text-transform:uppercase;margin-top:3px;}
+  .evMid{flex:1;min-width:0;}
+  .evTit{font-size:var(--t4);font-weight:600;line-height:1.3;}
+  /* El juego del evento o del torneo, como etiqueta chica antes del título. */
+  /* Tiempo extra por mesa, debajo del lienzo del timer. */
+  #extraMesa{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--divider);}
+  #extraMesa b{font-size:var(--t3);font-weight:600;margin-right:4px;}
+  #extraMesa input{width:5.5em;}
+  .exChip{display:inline-flex;align-items:center;gap:4px;font-size:var(--t2);padding:3px 4px 3px 11px;border-radius:999px;
+    background:color-mix(in srgb, var(--franja) 14%, transparent);font-variant-numeric:tabular-nums;}
+  .exChip button{min-height:28px;min-width:28px;padding:0;border-radius:50%;background:transparent;font-size:16px;line-height:1;}
+  /* Llamada a mesas, debajo del tiempo extra. */
+  #llamadaBox{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--divider);}
+  #llamadaBox b{font-size:var(--t3);font-weight:600;margin-right:4px;}
+  #llamadaTiempo{font-family:var(--fuente-reloj);font-size:var(--d3);font-weight:300;min-width:3.4em;font-variant-numeric:tabular-nums;color:var(--apagado);}
+  #llamadaTiempo.on{color:var(--accion-texto);}
+  /* Pestaña Chat: mensajes de la sala y entre tiendas. */
+  .chatFeed{display:flex;flex-direction:column;gap:6px;max-height:360px;min-height:120px;overflow:auto;padding:6px 2px;}
+  .msg{align-self:flex-start;max-width:min(92%,560px);background:var(--sup-alta);border-radius:14px;padding:7px 12px;}
+  .msg.mio{align-self:flex-end;background:color-mix(in srgb, var(--accion) 16%, var(--sup));}
+  .msg .quien{font-size:var(--t2);color:var(--apagado);}
+  .msg .quien b{color:var(--texto);font-weight:600;}
+  .msg p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;}
+  .msg button{min-height:28px;padding:0 8px;font-size:var(--t1);margin-left:6px;}
+  .chatForm{display:flex;gap:8px;margin-top:8px;}
+  .chatForm input{flex:1;min-width:0;font-size:var(--t3);padding:10px 12px;}
+  .stCod{font-family:var(--fuente-mono,monospace);font-size:var(--d3);font-weight:700;letter-spacing:.14em;}
+  .insig{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:999px;background:var(--accion);color:var(--sobre-accion);font-size:12px;font-weight:700;line-height:18px;text-align:center;}
+  .insig[hidden]{display:none;}
+  /* Estadísticas de la tienda: cifras, gráficos (graficos.js) y barras. */
+  .etCifras{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+  .etCifra{background:var(--pagina);border-radius:var(--radio);padding:10px 12px;}
+  .etCifra b{display:block;font-size:var(--d3);font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;}
+  .etCifra span{display:block;font-size:var(--t2);color:var(--apagado);margin-top:2px;}
+  .etCifra small{display:block;font-size:var(--t2);color:var(--rotulo);margin-top:4px;line-height:1.4;}
+  .etTit{font-size:var(--t3);font-weight:600;margin-bottom:8px;}
+  .etGraf svg{display:block;width:100%;height:auto;}
+  .etGraf .b0{fill:color-mix(in srgb, var(--franja) 30%, transparent);} .etGraf .b1{fill:var(--franja);}
+  .etGraf .ejes text{font-size:12px;fill:var(--rotulo);font-variant-numeric:tabular-nums;}
+  .etGraf .ejes line{stroke:var(--divider);}
+  .etGraf .vacio{padding:20px 0;text-align:center;color:var(--apagado);font-size:var(--t2);}
+  .etLey{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:var(--t2);color:var(--apagado);margin-top:6px;}
+  .etLey i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;}
+  .etLey .b0{background:color-mix(in srgb, var(--franja) 30%, transparent);} .etLey .b1{background:var(--franja);}
+  .etFila{display:grid;grid-template-columns:minmax(90px,170px) 1fr 52px;gap:10px;align-items:center;padding:7px 0;font-size:var(--t2);}
+  .etFila + .etFila{border-top:1px solid var(--divider);}
+  .etFila small{display:block;color:var(--apagado);}
+  .etFila b{text-align:right;font-variant-numeric:tabular-nums;}
+  .etBar{height:10px;border-radius:5px;background:var(--pagina);overflow:hidden;}
+  .etBar span{display:block;height:100%;background:var(--franja);border-radius:5px;}
+  .etNum{text-align:right;font-variant-numeric:tabular-nums;}
+  .etDos{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;max-width:872px;align-items:start;}
+  #sinRed{max-width:840px;margin-bottom:14px;}
+  @media (max-width:700px){ .etCifras{grid-template-columns:repeat(2,1fr);} .etDos{grid-template-columns:1fr;} }
+  .chipJuego{display:inline-block;font-size:var(--t2);font-weight:600;line-height:1.35;padding:1px 9px;border-radius:999px;
+    background:color-mix(in srgb, var(--franja) 14%, transparent);color:var(--franja);vertical-align:2px;margin-right:6px;white-space:nowrap;}
+  .evMeta{font-size:var(--t2);color:var(--apagado);margin-top:3px;line-height:1.5;}
+  .evAcc{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+  /* Inscritos de un evento: se abren debajo de su fila. */
+  .inscCaja{flex:1 1 100%;background:var(--sup-alta);border-radius:var(--radio);padding:10px 12px;}
+  .inscTabla{width:100%;border-collapse:collapse;font-size:var(--t2);margin-top:8px;}
+  .inscTabla th,.inscTabla td{padding:6px 5px;border-bottom:1px solid var(--divider);text-align:left;vertical-align:top;}
+  .inscTabla th{color:var(--rotulo);font-weight:600;}
+  .inscTabla td:last-child{white-space:nowrap;text-align:right;}
+  #evForm.editando{box-shadow:inset 0 0 0 1px var(--accion);border-radius:var(--radio);padding:10px;margin:-10px;}
+
+  /* =========================================================
+     5. QR
+     ========================================================= */
+  #qr{width:190px;height:190px;background:var(--qr-papel);padding:8px;border-radius:var(--radio);}
+
+
+/* Panel: estructura de aplicación y controles densos sin perder contraste. */
+[data-pagina="admin"] {padding:0 28px 70px}
+[data-pagina="admin"] .bp-app-header {display:flex;align-items:center;gap:20px;min-height:80px;margin:0 -28px 28px;padding:16px 28px;background:var(--vidrio);border-bottom:1px solid var(--divider)}
+[data-pagina="admin"] .bp-app-header .bp-brand {margin-right:auto}
+[data-pagina="admin"] .bp-app-header p {font-size:12px;color:var(--apagado);margin:0}
+[data-pagina="admin"]>h1 {font-size:30px;font-weight:650;letter-spacing:-1px;margin-bottom:25px}
+[data-pagina="admin"] .card {padding:24px;border-radius:17px;margin-bottom:20px}
+[data-pagina="admin"] button {border-radius:9px;min-height:40px;line-height:1.4;transition:background .16s,box-shadow .16s,transform .16s}
+[data-pagina="admin"] button.sec {border:1px solid var(--divider);background:var(--sup);font-weight:500}
+[data-pagina="admin"] button.small {min-height:34px;padding:7px 11px}
+[data-pagina="admin"] nav#tabs {padding:5px;border:1px solid var(--divider);border-radius:13px;background:var(--campo);gap:5px;width:fit-content;max-width:100%;margin-bottom:25px}
+[data-pagina="admin"] nav#tabs button {border-radius:8px;min-height:42px;padding:10px 17px;background:transparent;font-size:13px}
+[data-pagina="admin"] nav#tabs button.on {background:var(--texto);color:var(--pagina);box-shadow:0 2px 6px #14243C10}
+[data-pagina="admin"] #loginCard {max-width:560px;margin:56px auto;padding:32px}
+[data-pagina="admin"] #loginCard .row {display:grid;grid-template-columns:1fr;gap:12px;margin-top:20px}
+[data-pagina="admin"] #loginCard input {width:100%;min-height:46px;padding:12px;font-size:16px}
+[data-pagina="admin"] #loginCard #loginBtn {min-height:46px}
+[data-pagina="admin"] #tGrid {gap:24px}
+[data-pagina="admin"] #consola>section,[data-pagina="admin"] #monitor {border:1px solid var(--divider);border-radius:17px;overflow:hidden}
+[data-pagina="admin"] #consola .mainbtn {min-height:56px}
+[data-pagina="admin"] .tfila {border:1px solid var(--divider);box-shadow:none;padding:16px;background:var(--sup)}
+[data-pagina="admin"] .h2p {font-size:18px;letter-spacing:-.4px}
+[data-pagina="admin"] .chipJuego {color:var(--accion-texto);background:var(--coral-suave)}
+[data-pagina="admin"] :is(.etGraf,.etLey,.etBar) {--franja:var(--accion)}
+@media(max-width:680px) {[data-pagina="admin"]{padding:0 16px 65px}[data-pagina="admin"] .bp-app-header{margin-inline:-16px;padding:14px 16px;gap:10px;min-height:70px}[data-pagina="admin"] .bp-app-header p{display:none}[data-pagina="admin"]>h1{font-size:27px}[data-pagina="admin"] .card{padding:18px}[data-pagina="admin"] #loginCard{margin-top:28px;padding:24px}[data-pagina="admin"] nav#tabs{gap:3px;width:100%}[data-pagina="admin"] nav#tabs button{padding:9px 12px;font-size:12px}}
+
+/* Cabecera y vista previa. */
+[data-pagina="admin"] #salaCard {max-width:none}
+[data-pagina="admin"] #salaCard #logoutBtn {margin-left:auto}
+[data-pagina="admin"] .bp-app-header .bp-theme {border-radius:50%;width:38px;height:38px;min-height:38px;padding:0;background:transparent;color:var(--texto);border:1px solid var(--divider)}
+[data-pagina="admin"] #monTit {padding:12px 16px;margin-bottom:0;border-bottom:1px solid var(--divider);background:var(--pagina);font-size:11px;font-weight:600;letter-spacing:.4px}
+
+#identidadTienda{margin-top:24px} .marcaPreview{padding:24px;border:2px solid var(--franja);border-radius:18px;margin-top:16px;max-width:420px;background:var(--sup);color:var(--texto)} .marcaPreview img{width:88px;height:88px;object-fit:contain;border-radius:12px} .marcaPreview button{background:var(--accion);color:var(--sobre-accion)}

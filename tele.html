@@ -14,7 +14,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0F2E2A">
+<meta name="theme-color" content="#1B2C49">
 <title>Timer — ByePass</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Newsreader:opsz,wght@6..72,300&display=swap">
 <!-- ▌BLOQUE 1 · Estilos — Pantalla completa para la tele: logo, ronda, reloj grande, tiempo extra y estado.
@@ -39,87 +39,10 @@
   pasan solas de página. No tiene Ranking a propósito: necesita la cuenta de
   clasificacion.js (un módulo) y las teles no la corren; se ve en el celular.
 -->
-<style>
-  html,body{margin:0;padding:0;height:100%;overflow:hidden;}
-  body{background:#0F2E2A;color:#F3FFFB;font-family:Inter,Arial,sans-serif;}
-  #bg{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none;z-index:0;}
-  .caja{position:fixed;z-index:1;}
-  .caja img{width:100%;height:100%;object-fit:contain;}
-  #cab{position:fixed;top:0;left:0;right:0;z-index:2;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;padding:2.2vh 2.4vw;}
-  #logo{max-height:6vh;max-width:30vw;display:none;margin-right:1.4vw;}
-  #marca{display:none;font-family:Newsreader,Georgia,serif;font-weight:300;font-size:4.2vh;margin-right:1.4vw;}
-  #marca b{font-weight:300;color:#F45B45;}
-  #titulo{font-size:2.8vh;font-weight:600;}
-  #sub{font-size:2.2vh;color:#9DBDB4;margin-top:.4vh;}
-  #centro{position:fixed;top:0;left:0;right:0;bottom:0;z-index:2;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;
-    -webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;}
-  #ronda{font-size:2.4vh;letter-spacing:.22em;text-transform:uppercase;color:#9DBDB4;margin-bottom:1.6vh;display:none;}
-  #reloj{font-family:Newsreader,Georgia,serif;font-weight:300;line-height:1;letter-spacing:.01em;text-shadow:0 .6vh 3vh rgba(0,0,0,.35);}
-  #reloj.pausado{opacity:.55;}
-  #reloj.pulso{-webkit-animation:pulso 1s ease-in-out infinite;animation:pulso 1s ease-in-out infinite;}
-  @-webkit-keyframes pulso{50%{opacity:.45;}}
-  @keyframes pulso{50%{opacity:.45;}}
-  #extras{margin-top:2vh;font-size:2.4vh;color:#F3FFFB;text-align:center;}
-  #extras span{display:inline-block;margin:0 1vw;padding:.6vh 1.2vw;border-radius:1vh;background:rgba(0,0,0,.28);}
-  #estado{position:fixed;bottom:2vh;left:0;right:0;z-index:2;text-align:center;font-size:2vh;color:#9DBDB4;}
-  #aviso{position:fixed;top:0;left:0;right:0;bottom:0;z-index:5;display:none;background:#0F2E2A;text-align:center;padding-top:36vh;}
-  #aviso h2{margin:0;font-size:5vh;}
-  #aviso p{color:#9DBDB4;font-size:2.6vh;}
 
-  /* Barra de pestañas: se esconde sola en el reloj para no ensuciar la pantalla. */
-  #nav{position:fixed;left:0;right:0;bottom:0;z-index:4;display:-webkit-flex;display:flex;-webkit-justify-content:center;justify-content:center;
-    padding:1.3vh 0;background:rgba(10,34,31,.94);-webkit-transition:opacity .4s;transition:opacity .4s;}
-  #nav.oculta{opacity:0;}
-  #nav span{position:relative;margin:0 .8vw;padding:1.1vh 2.6vw;border-radius:1.2vh;color:#9DBDB4;font-size:2.6vh;font-weight:600;cursor:pointer;}
-  #nav span.on{background:#F45B45;color:#0F2E2A;}
-  #dot{position:absolute;top:.5vh;right:.7vw;width:1.5vh;height:1.5vh;border-radius:50%;background:#FFB020;display:none;}
-
-  /* Las tres pantallas nuevas ocupan lo que hay entre la cabecera y la barra. */
-  .pag{position:fixed;left:0;right:0;top:11vh;bottom:9vh;z-index:3;display:none;overflow:hidden;background:#0F2E2A;padding:0 2.4vw;box-sizing:border-box;}
-  .pag.ver{display:block;}
-  .barra{height:6.4vh;padding-top:.6vh;overflow:hidden;white-space:nowrap;}
-  .info{float:right;color:#9DBDB4;font-size:2.2vh;line-height:5vh;}
-  .chips span{display:inline-block;margin-right:1vw;padding:.7vh 1.6vw;border-radius:1vh;background:#143833;color:#9DBDB4;font-size:2.4vh;font-weight:600;cursor:pointer;}
-  .chips span.on{background:#F3FFFB;color:#0F2E2A;}
-  .cols2,.cols3{height:70vh;overflow:hidden;}
-  .cols2{-webkit-column-count:2;column-count:2;-webkit-column-gap:1.6vw;column-gap:1.6vw;}
-  .cols3{-webkit-column-count:3;column-count:3;-webkit-column-gap:1.6vw;column-gap:1.6vw;}
-  .mesa,.fila{display:block;box-sizing:border-box;overflow:hidden;background:#143833;border-radius:1.4vh;margin:0 0 1.6vh;
-    -webkit-column-break-inside:avoid;break-inside:avoid;page-break-inside:avoid;}
-  .mesa{height:15.6vh;padding:1.1vh 1.2vw;}
-  .mn{font-size:1.8vh;letter-spacing:.16em;color:#9DBDB4;}
-  .mn b{font-family:Newsreader,Georgia,serif;font-weight:300;font-size:3.4vh;color:#FFB020;letter-spacing:0;margin-left:.4vw;}
-  .jug{font-size:2.5vh;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .jug small{font-size:1.9vh;color:#9DBDB4;}
-  .jug b{font-size:1.7vh;letter-spacing:.1em;color:#0F2E2A;background:#FFB020;border-radius:.6vh;padding:.1vh .5vw;margin-left:.4vw;vertical-align:middle;}
-  .jug.g{color:#FFB020;font-weight:600;}
-  .fila{height:8vh;line-height:8vh;padding:0 1.2vw;white-space:nowrap;margin-bottom:1.2vh;}
-  .fila .pt{float:right;font-size:3.2vh;font-weight:600;color:#FFB020;}
-  .fila .pos{display:inline-block;min-width:4vw;font-size:3vh;font-weight:700;color:#9DBDB4;}
-  .fila .pos.p1{color:#E0A800;} .fila .pos.p2{color:#8A97AD;} .fila .pos.p3{color:#C07A3A;}
-  .fila .nom{display:inline-block;max-width:44%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;font-size:2.8vh;font-weight:600;}
-  .fila .met{margin-left:1vw;font-size:2vh;color:#9DBDB4;}
-  .catT{height:4.6vh;line-height:4.6vh;margin:0 0 .8vh;font-size:2.2vh;letter-spacing:.18em;color:#FFB020;font-weight:600;text-transform:uppercase;overflow:hidden;
-    -webkit-column-break-inside:avoid;break-inside:avoid;-webkit-column-break-after:avoid;break-after:avoid;}
-  .vacio{padding-top:12vh;text-align:center;color:#9DBDB4;font-size:3vh;}
-  .vacio b{display:block;color:#F3FFFB;font-size:4vh;margin-bottom:1vh;}
-
-  /* Sorteo: la rueda a la izquierda, el ganador y la lista a la derecha. */
-  #pSort.ver{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;}
-  #sRueda{position:relative;-webkit-flex:none;flex:none;width:68vh;height:68vh;margin:0 4vw 0 1vw;}
-  #sCanvas{width:100%;height:100%;display:block;}
-  #sPin{position:absolute;top:-1vh;left:50%;margin-left:-1.6vh;width:0;height:0;border-left:1.6vh solid transparent;border-right:1.6vh solid transparent;border-top:3.4vh solid #F45B45;}
-  #sInfo{-webkit-flex:1;flex:1;min-width:0;}
-  #sTitulo{font-size:3vh;font-weight:600;color:#9DBDB4;margin-bottom:2vh;}
-  #sGanador .lbl{font-size:2.4vh;letter-spacing:.16em;color:#9DBDB4;font-weight:600;}
-  #sGanador .who{font-family:Newsreader,Georgia,serif;font-weight:300;font-size:8vh;line-height:1.1;color:#FFB020;margin-top:1vh;word-wrap:break-word;}
-  #sLista{margin-top:3vh;font-size:2.8vh;line-height:1.5;}
-  #sLista .secLabel{font-size:2vh;letter-spacing:.16em;color:#9DBDB4;margin-bottom:.6vh;}
-  #sLista div div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  #sEstado{margin-top:2vh;font-size:2.2vh;color:#9DBDB4;}
-</style>
+<link rel="stylesheet" href="/paginas/tele.css?v=cc72b6ac4534">
 </head>
-<body>
+<body data-pagina="tele">
 <img id="bg" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
 <!-- ▌BLOQUE 2 · Marcado — Cabecera, reloj, estado y aviso de sala no disponible. -->
 <div id="cab"><img id="logo" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><span id="marca">Bye<b>Pass</b></span><div><div id="titulo"></div><div id="sub"></div></div></div>
@@ -135,7 +58,7 @@
 <div id="nav"><span id="tabT" class="on">Timer</span><span id="tabM">Mesas<i id="dot"></i></span><span id="tabS">Sorteo</span></div>
 <div id="aviso"><h2 id="avisoT">Esta sala no está disponible</h2><p id="avisoP">Revisa el enlace, o crea tu sala en byepass.cl</p></div>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=cc72b6ac4534"></script>
 <!-- ▌BLOQUE 3 · Script ES5 para Smart TV — Sin módulos ni SDK de Firebase: lee por la API REST con
      EventSource (o cada 3 s). Calibra la hora con la cabecera Date del sitio y con el updatedAt del panel.
      -->
@@ -221,7 +144,7 @@
         x.open("GET", url(ruta) + (url(ruta).indexOf("?") < 0 ? "?" : "&") + "t=" + Date.now());
         x.onload = function(){
           if (x.status === 401 || x.status === 403){ negada = true; return noDisponible(); }
-          try { alCambiar(JSON.parse(x.responseText), false); } catch(e){}
+          try { alCambiar(JSON.parse(x.responseText), false); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
           $("estado").innerHTML = S ? "" : "Esperando al organizador…";
         };
         x.onerror = function(){ $("estado").innerHTML = "Sin conexión, reintentando…"; };
@@ -284,7 +207,7 @@
         dibujar();
       };
       x.send();
-    } catch(e){}
+    } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   }
   calibrarConSitio();
 
@@ -293,7 +216,7 @@
     var sec = (S.paused || !S.endTime) ? Math.round(S.remaining || 0) : Math.round((S.endTime - ahora()) / 1000);
     var c = $("reloj");
     c.innerHTML = fmt(sec);
-    c.style.color = sec < 0 ? (S.negativeColor || "#FF7A6B") : (S.timerColor || "#F3FFFB");
+    c.style.color = sec < 0 ? (S.negativeColor || "#FF7A6B") : (S.timerColor || "#F8F7F2");
     c.className = S.paused ? "pausado" : (sec <= 10 && sec >= 0 ? "pulso" : "");
     /* Igual que la vista completa: el tamaño del panel, con tope de 26 % del ancho. */
     c.style.fontSize = Math.min(S.timerSize || 150, window.innerWidth * 0.26) + "px";
@@ -320,10 +243,10 @@
     var V = TH.desktop || TH, M = (MED && MED.desktop) || {};
     var bgSrc = INVITADO ? "" : (M.bgImage || V.bgImage || "");
     var logo = SIN_TIENDA ? "" : ((MED && MED.logo) || TH.logo || "");
-    if (V.bgType === "image" && bgSrc){ $("bg").src = bgSrc; $("bg").style.display = "block"; document.body.style.background = "#0F2E2A"; }
+    if (V.bgType === "image" && bgSrc){ $("bg").src = bgSrc; $("bg").style.display = "block"; document.body.style.background = "#1B2C49"; }
     else {
       $("bg").style.display = "none";
-      var c1 = V.bgColor1 || "#0F2E2A", c2 = V.bgColor2 || "#0A221F";
+      var c1 = V.bgColor1 || "#1B2C49", c2 = V.bgColor2 || "#121E30";
       document.body.style.background = c1;
       if (V.bgType === "gradient"){
         document.body.style.background = "-webkit-linear-gradient(" + (V.bgDir === "to bottom" ? "top" : "left") + ", " + c1 + ", " + c2 + ")";
@@ -354,7 +277,7 @@
     if (v == null || v === medVer) return;
     medVer = v;
     var x = new XMLHttpRequest(); x.open("GET", url("salas/" + SALA + "/timer/media"));
-    x.onload = function(){ try { MED = JSON.parse(x.responseText); pintarDiseno(); } catch(e){} };
+    x.onload = function(){ try { MED = JSON.parse(x.responseText); pintarDiseno(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
     x.send();
   });
 
@@ -541,7 +464,7 @@
       ctx.fillText(nom.length > 22 ? nom.slice(0, 21) + "…" : nom, R - 16, 0);
       ctx.restore();
     }
-    ctx.beginPath(); ctx.arc(R, R, R * 0.13, 0, TAU); ctx.fillStyle = "#0F2E2A"; ctx.fill();
+    ctx.beginPath(); ctx.arc(R, R, R * 0.13, 0, TAU); ctx.fillStyle = "#1B2C49"; ctx.fill();
     ctx.strokeStyle = "rgba(243,255,251,.28)"; ctx.lineWidth = 2; ctx.stroke();
   }
 

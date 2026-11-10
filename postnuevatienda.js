@@ -11,13 +11,13 @@
    los días de liga ni de torneos: así se publica en un minuto. Se descarga o se comparte igual que la tabla final.
    El logo se elige desde el equipo (un archivo), así el lienzo no queda bloqueado para exportar.
    ============================================================ */
-import { cabe, entregarImagen } from "./tablafinal.js?v=4";
-import { paletaDe, pintarFondo } from "./fondoimg.js?v=1";
+import { cabe, entregarImagen } from "./tablafinal.js?v=cc72b6ac4534";
+import { paletaDe, pintarFondo } from "./fondoimg.js?v=cc72b6ac4534";
 
 /* ▌BLOQUE 1 · Post de «nueva tienda» ════════════════════════════════════════════
    El texto para acompañar la imagen y el dibujo de la imagen (claro u oscuro, con el logo si hay). */
 const W = 1080, H = 1350, PAD = 72;
-const FONDOS = { claro: { tipo: "color", color1: "#DDEFE7" }, oscuro: { tipo: "color", color1: "#0F2E2A" } };
+const FONDOS = { claro: { tipo: "color", color1: "#DDEFE7" }, oscuro: { tipo: "color", color1: "#1B2C49" } };
 
 const limpio = t => String(t || "").trim().replace(/\s+/g, " ");
 const arroba = t => { const u = limpio(t).replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@/, ""); return /^[A-Za-z0-9._]{1,30}$/.test(u) ? u : ""; };
@@ -46,7 +46,7 @@ function partir(g, texto, ancho, max){
 /* datos: { nombre, comuna, instagram, logo (una imagen ya cargada, opcional), tema: "claro" | "oscuro" } */
 export async function dibujarPost({ nombre, comuna, instagram, logo, tema } = {}){
   const estilo = FONDOS[tema] || FONDOS.claro, C = paletaDe(estilo);
-  await Promise.all(["300 100px Newsreader", "600 36px Inter", "700 30px Inter"].map(f => document.fonts.load(f).catch(() => {})));
+  await Promise.all(["300 100px Newsreader", "600 36px Inter", "700 30px Inter"].map(f => document.fonts.load(f).catch(e => console.warn("Operación secundaria sin confirmar", e))));
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const g = cv.getContext("2d"); pintarFondo(g, W, H, estilo, null); g.textBaseline = "alphabetic"; g.textAlign = "left";
 
