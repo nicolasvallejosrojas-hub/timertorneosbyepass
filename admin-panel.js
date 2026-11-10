@@ -196,6 +196,9 @@ if (SIN_TIENDA){
   ["tabC", "tabO", "tabE", "tabM", "timerSel"].forEach(id => $(id).hidden = true);
   $("fLogo").closest("section").hidden = true;
   ["archiveBtn", "archFechaLbl", "archJuegoLbl"].forEach(id => $(id).hidden = true);
+  /* Sin tienda no se archiva ni hay clasificación del mes: fuera los torneos archivados y los puntos por puesto. */
+  ["archCard", "ptsCard"].forEach(id => $(id).hidden = true);
+  $("bjTit").textContent = "Jugadores";
   $("archTxt").textContent = "Cuando termine el torneo, descarga la tabla final como imagen para compartirla.";
 }
 /* Solo el invitado: además sin imagen de fondo ni cajas, y sin salir (perdería su sala). */
@@ -551,7 +554,9 @@ function escucharTienda(u){
         (esDueno && m.rol !== "dueno" ? '<button class="small sec" data-quitar="' + esc(uid) + '">Quitar</button>' : "") + "</div>").join("");
     $("miembrosLista").querySelectorAll("[data-quitar]").forEach(b => b.onclick = async () => {
       if (!confirm("¿Quitar a esta persona? Deja de poder organizar en esta tienda.")) return;
-      try { await remove(ref(db, "tiendas/" + TIENDA + "/miembros/" + b.dataset.quitar)); }
+      /* Junto con su marca de organizador: sin ella deja de leer el chat entre tiendas (las reglas solo dejan
+         al dueño borrarla si la persona ya no es miembro, por eso van en la misma escritura). */
+      try { await update(ref(db), { ["tiendas/" + TIENDA + "/miembros/" + b.dataset.quitar]: null, ["organiza/" + b.dataset.quitar + "/" + TIENDA]: null }); }
       catch(e){ $("orgMsg").textContent = "No se pudo quitar. Revisa la conexión."; }
     });
   });
@@ -2122,11 +2127,19 @@ function escucharEnlaces(){
   onValue(ref(db, "enlaces/" + TIENDA), s => {
     const v = s.val() || {};
     ENLACES = {};
+    const repetidos = new Set();
     Object.entries(v).forEach(([uid, e]) => {
       /* publico ausente = sí sale: es como funcionaba todo antes de que
          existiera la opción, y un enlace sin el dato no pidió reservarse. */
-      if (e && e.playerId) ENLACES[String(e.playerId)] = { uid, publico: e.publico !== false };
+      if (!e || !e.playerId) return;
+      const id = String(e.playerId);
+      if (ENLACES[id] && ENLACES[id].uid !== uid) repetidos.add(id);
+      ENLACES[id] = { uid, publico: e.publico !== false };
     });
+    /* El ID de jugador lo declara cada cuenta y nadie puede comprobarlo: si dos cuentas dicen tener el mismo ID en
+       esta tienda, no se le asignan los torneos a ninguna (si no, la que se vincula después le quitaba el historial
+       a la otra). Queda pendiente hasta que una de las dos lo corrija. */
+    repetidos.forEach(id => delete ENLACES[id]);
     enlazarPasados();
   }, () => { ENLACES = {}; });
   onValue(ref(db, "idsHistorial/" + TIENDA), s => { IDS_HIST = s.val() || {}; enlazarPasados(); }, () => {});
@@ -3129,7 +3142,7 @@ $("evTodoDia").onchange = modoTodoDia;
 const modoInsc = () => {
   const on = $("evInsc").checked;
   $("evModoWrap").style.display = $("evCuposWrap").style.display = on ? "" : "none";
-  $("evFmtWrap").style.display = on && $("evModo").value !== "id" ? "" : "none";
+  $("evFmtWrap").style.display = on && $("evModo").value === "lista" ? "" : "none";
 };
 $("evInsc").onchange = $("evModo").onchange = modoInsc;
 
@@ -3189,7 +3202,7 @@ function leerForm(){
     cupos[d] = n;
   }
   return { ev: {
-    inscripcion: $("evInsc").checked ? { abierta: antes ? antes.abierta : true, formato: $("evFmt").value, ...($("evModo").value === "id" ? { modo: "id" } : {}), ...(Object.keys(cupos).length ? { cupos } : {}) } : null,
+    inscripcion: $("evInsc").checked ? { abierta: antes ? antes.abierta : true, formato: $("evFmt").value, ...($("evModo").value !== "lista" ? { modo: $("evModo").value } : {}), ...(Object.keys(cupos).length ? { cupos } : {}) } : null,
     titulo, fecha, hora,
     duracion: todoDia ? 0 : +$("evDur").value,
     lugar:    $("evLugar").value.trim(),
@@ -3306,7 +3319,8 @@ let BASE_E = null;
 function pintarInscritos(){
   const c = $("inscCaja"), ev = AGENDA.find(e => e.id === inscAbierto);
   if (!c || !ev || !ev.inscripcion) return;
-  const conLista = ev.inscripcion.modo !== "id", estandar = conLista && ev.inscripcion.formato !== "expandido";
+  const conLista = !ev.inscripcion.modo || ev.inscripcion.modo === "lista", conNick = ev.inscripcion.modo === "nick";
+  const estandar = conLista && ev.inscripcion.formato !== "expandido";
   if (estandar && !BASE_E) cargarEstandar().then(b => { if (b){ BASE_E = b; pintarInscritos(); } });
   if (!INSC){ c.textContent = "Cargando…"; return; }
   const filas = Object.entries(INSC).map(([uid, d]) => ({ uid, ...d })).sort((a, b) => (a.creado || 0) - (b.creado || 0));
@@ -3334,9 +3348,9 @@ function pintarInscritos(){
     (sueltas.length ? '<div class="row" style="align-items:center;gap:8px;margin-top:6px"><span class="err" style="flex:1">' + sueltas.length +
       (sueltas.length === 1 ? " cupo tomado por alguien que no llegó a inscribirse" : " cupos tomados por gente que no llegó a inscribirse") +
       '</span><button class="small sec" data-i="liberar">Liberar</button></div>' : "") +
-    (filas.length && !conLista ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th><th>Nombre</th><th>ID</th>' +
+    (filas.length && !conLista ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th>' + (conNick ? "<th>Nick</th><th>Nombre</th>" : "<th>Nombre</th><th>ID</th>") +
       (Object.keys(cupos).length ? "<th>Categoría</th>" : "") + "<th></th></tr></thead><tbody>" +
-      filas.map((f, i) => "<tr><td>" + (i + 1) + "</td><td>" + esc(f.nombre + " " + f.apellido) + '<br><span class="muted">' + esc(f.correo) + "</span></td><td>" + esc(f.playerId) + "</td>" +
+      filas.map((f, i) => "<tr><td>" + (i + 1) + "</td>" + (conNick ? "<td>" + esc(f.nick) + "</td>" : "") + "<td>" + esc(f.nombre + " " + f.apellido) + '<br><span class="muted">' + esc(f.correo) + "</span></td>" + (conNick ? "" : "<td>" + esc(f.playerId) + "</td>") +
         (Object.keys(cupos).length ? "<td>" + esc(catF(f)) + "</td>" : "") + '<td><button class="small sec" data-quitar="' + esc(f.uid) + '">Quitar</button></td></tr>').join("") + "</tbody></table></div>" : "") +
     (filas.length && conLista ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th><th>Nick</th><th>Nombre</th><th>ID</th>' +
       "<th>Nacimiento</th><th>Categoría</th><th>Lista</th><th></th></tr></thead><tbody>" +
@@ -3398,6 +3412,9 @@ function bajarCsvInscritos(ev, filas, conLista = true){
   const t = conLista
     ? [["Nombre", "Apellido", "Nick", "ID de jugador", "Nacimiento", "Categoría", "Correo", "Inscrito", "Lista de mazo"]]
         .concat(filas.map(f => [f.nombre, f.apellido, f.nick, f.playerId, ddmmaaaa(f.nacimiento), catF(f), f.correo, cuando(f), f.lista]))
+    : ev.inscripcion.modo === "nick"
+    ? [["Nick", "Nombre", "Apellido", "Categoría", "Correo", "Inscrito"]]
+        .concat(filas.map(f => [f.nick, f.nombre, f.apellido, f.division ? catF(f) : "", f.correo, cuando(f)]))
     : [["Nombre", "Apellido", "ID de jugador", "Categoría", "Correo", "Inscrito"]]
         .concat(filas.map(f => [f.nombre, f.apellido, f.playerId, f.division ? catF(f) : "", f.correo, cuando(f)]));
   const a = document.createElement("a");
@@ -3485,7 +3502,7 @@ function filaEvento(ev, pasado){
       (ev.lugar ? "<br>" + esc(ev.lugar) : "") +
       (ev.detalle ? '<br><span style="opacity:.75">' + esc(ev.detalle) + "</span>" : "") +
       (ev.inscripcion ? "<br><b>Inscripciones " + (ev.inscripcion.abierta ? "abiertas" : "cerradas") + "</b> · " +
-        (ev.inscripcion.modo === "id" ? "Solo con ID" : ev.inscripcion.formato === "expandido" ? "Expandido" : "Estándar") : "") +
+        (ev.inscripcion.modo === "id" ? "Solo con ID" : ev.inscripcion.modo === "nick" ? "Sin lista de mazo" : ev.inscripcion.formato === "expandido" ? "Expandido" : "Estándar") : "") +
     "</div></div>";
 
   const acc = document.createElement("div");

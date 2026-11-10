@@ -553,7 +553,7 @@
 </div>
 
 <div class="card" id="bjCard">
-  <div class="row"><h2 class="h2p" style="margin:0;flex:1">Jugadores de la tienda</h2>
+  <div class="row"><h2 class="h2p" style="margin:0;flex:1" id="bjTit">Jugadores de la tienda</h2>
     <span class="muted" id="bjCuenta"></span></div>
   <div class="muted" style="margin-top:4px">Se inscriben por nombre. Búscalo y toca Inscribir; si no está, escríbelo y agrégalo.
     Con Enter: inscribe al único que coincida, o agrega el nombre nuevo.</div>
@@ -575,7 +575,7 @@
   <div id="prTabla" class="muted" style="margin-top:10px"></div>
 </div>
 
-<div class="card">
+<div class="card" id="ptsCard">
   <div style="font-size:var(--t3);margin-bottom:6px">Puntos por puesto</div>
   <div class="muted" style="margin-bottom:8px">Puntos que gana cada puesto en la clasificaci&oacute;n mensual.
     Separa con comas: el primer n&uacute;mero es el 1&ordm; lugar, el segundo el 2&ordm;, y as&iacute;.</div>
@@ -587,7 +587,7 @@
   <div id="ptsMsg" class="muted" style="margin-top:6px"></div>
 </div>
 
-<div class="card">
+<div class="card" id="archCard">
   <div style="font-size:var(--t3);margin-bottom:6px">Torneos archivados</div>
   <div id="histList" class="muted">Cargando&hellip;</div>
   <div id="recBox">
@@ -737,6 +737,7 @@
       <select id="evModo" style="display:block;margin-top:4px">
         <option value="lista">Lista de mazo (con sus datos)</option>
         <option value="id">Solo ID de jugador, nombre completo y correo</option>
+        <option value="nick">Nick, nombre y correo (cualquier evento: sin ID de jugador ni lista de mazo)</option>
       </select>
     </label>
     <label id="evFmtWrap" style="display:none">Formato

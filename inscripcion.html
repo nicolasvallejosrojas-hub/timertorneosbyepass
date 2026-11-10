@@ -16,7 +16,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
 <script src="tema.js?v=cc72b6ac4534"></script>
-<meta name="description" content="Inscripción a un torneo con lista de mazo.">
+<meta name="description" content="Inscripción a un torneo o evento de una tienda.">
 <title>Inscripción — ByePass</title>
 <link rel="stylesheet" href="estilo.css?v=cc72b6ac4534">
 <link rel="stylesheet" href="armador.css?v=cc72b6ac4534">
@@ -49,7 +49,7 @@
         <h2>Tus datos</h2>
         <label class="campo"><span>Correo electrónico</span>
           <input id="correo" type="email" autocomplete="email" maxlength="120" required></label>
-        <label class="campo"><span>ID de jugador de Play! Pokémon</span>
+        <label class="campo" id="campoId"><span>ID de jugador de Play! Pokémon</span>
           <input id="playerId" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="6 a 8 números" required></label>
         <label class="campo" id="campoNick"><span>Nickname</span>
           <input id="nick" autocomplete="nickname" maxlength="40" required></label>
@@ -121,11 +121,13 @@ if (typeof EMULADOR !== "undefined" && EMULADOR){
 const primera = a => new Promise(r => { const off = onAuthStateChanged(a, u => { off(); r(u); }); });
 
 let EV = null, TIENDA = "", YO = null, MIA = null;   // YO: { db, uid, cuenta }
-/* Una tienda puede pedir solo el ID de jugador, el nombre completo y el correo (inscripcion.modo === "id"): sin nick ni lista de mazo.
-   La fecha de nacimiento y la categoría se piden solo si hay cupos por categoría (para saber en cuál va). */
-const soloId = () => !!(EV && EV.inscripcion && EV.inscripcion.modo === "id");
+/* Qué pide la tienda (inscripcion.modo): "lista" (o nada: nick, nacimiento y lista de mazo), "id" (solo el ID de jugador, el nombre
+   completo y el correo) o "nick" (nick, nombre completo y correo, para cualquier tipo de evento: sin ID de Play! Pokémon). En los dos
+   últimos no hay lista de mazo, y la fecha de nacimiento y la categoría se piden solo si hay cupos por categoría (para saber en cuál va). */
+const modo = () => (EV && EV.inscripcion && EV.inscripcion.modo) || "lista";
+const sinLista = () => modo() !== "lista", soloId = () => modo() === "id", pideId = () => modo() !== "nick";
 const hayCupos = () => !!(EV && EV.inscripcion && EV.inscripcion.cupos);
-const pideNacimiento = () => !soloId() || hayCupos();
+const pideNacimiento = () => !sinLista() || hayCupos();
 const abierta = () => EV && EV.inscripcion && EV.inscripcion.abierta === true && (EV.inicioMs || 0) > Date.now();
 const ruta = uid => "inscripciones/" + T + "/" + E + "/" + uid;
 
@@ -153,7 +155,7 @@ function pintarAcuerdo(){
 /* ▌BLOQUE 6 · Lista de mazo y mis mazos ═════════════════════════════════════════
    El armador (armador.js: buscador con fotos, filas, contador y revisión) y, con cuenta, usar o
    guardar uno de «Mis mazos». */
-let A = null;   // el armador; una inscripción solo con ID no tiene
+let A = null;   // el armador; una inscripción sin lista (solo con ID, o con nick) no tiene
 const lista = () => A ? A.lista() : "";
 const ponerLista = t => { if (A) A.poner(t); };
 const revisarLista = () => A ? A.revisar() : null;
@@ -274,13 +276,14 @@ function rellenar(d, soloVacios){
 function leer(){
   const d = {};
   CAMPOS.forEach(k => d[k] = $(k).value.trim().replace(/[ \t]+/g, " "));
-  if (!soloId()){
+  if (!sinLista()){
     d.lista = lista().replace(/[ \t]+/g, " ");
     if (d.lista.length > 6000) return { error: "La lista es demasiado larga: revisa que no se haya pegado dos veces." };
-  } else { delete d.nick; if (!pideNacimiento()) delete d.nacimiento; }
+  } else { if (soloId()) delete d.nick; if (!pideNacimiento()) delete d.nacimiento; }
   d.playerId = d.playerId.replace(/\D/g, "");
   if (!CORREO_OK(d.correo)) return { error: "Revisa el correo: no tiene un formato válido." };
-  if (!ID_OK(d.playerId)) return { error: "El ID de jugador son de 6 a 8 números. Está en tu cuenta de Play! Pokémon." };
+  if (!pideId()) delete d.playerId;
+  else if (!ID_OK(d.playerId)) return { error: "El ID de jugador son de 6 a 8 números. Está en tu cuenta de Play! Pokémon." };
   if (!soloId() && !d.nick) return { error: "Escribe tu nickname." };
   if (!d.nombre || !d.apellido) return { error: "Escribe tu nombre y tu apellido." };
   if (pideNacimiento()){
@@ -289,7 +292,7 @@ function leer(){
     if (!d.division) return { error: "Marca la categoría en la que te inscribes (Junior, Senior o Masters)." };
     if (d.division !== catDe(d.nacimiento)) return { error: "Por tu fecha de nacimiento juegas en " + NOM_DIV[catDe(d.nacimiento)] + ". Marca esa categoría." };
   }
-  if (!soloId()){
+  if (!sinLista()){
     const r = leerLista(d.lista);
     if (r.errores.length) return { error: "La lista de mazo tiene problemas: " + r.errores[0] };
   }
@@ -301,12 +304,12 @@ const error = t => { $("err").textContent = t; $("err").classList.toggle("oculto
 function pintarMia(){
   const hay = !!MIA;
   $("enviar").textContent = hay ? "Guardar cambios" : "Inscribirme";
-  $("imprimir").classList.toggle("oculto", !hay || soloId());
+  $("imprimir").classList.toggle("oculto", !hay || sinLista());
   $("anular").classList.toggle("oculto", !hay || !abierta());
   $("yaInscrito").classList.toggle("oculto", !hay);
   pintarCategorias();
   if (hay) $("yaInscrito").innerHTML = "<b>Estás inscrito</b>" + (MIA.nacimiento ? " · División " + esc(division(MIA.nacimiento)) : "") + ". " +
-    (soloId() ? "La tienda te avisa a " + esc(MIA.correo) + " si hay novedades del torneo. " + (abierta() ? "Puedes corregir tus datos hasta que empiece." : "Las inscripciones ya cerraron.")
+    (sinLista() ? "La tienda te avisa a " + esc(MIA.correo) + " si hay novedades del torneo. " + (abierta() ? "Puedes corregir tus datos hasta que empiece." : "Las inscripciones ya cerraron.")
       : abierta() ? "Puedes corregir tus datos y tu lista hasta que empiece el torneo." : "Las inscripciones ya cerraron: tu lista quedó así.");
 }
 
@@ -366,14 +369,15 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
   $("estado").classList.toggle("cerrado", !abierta());
   $("meta").innerHTML = esc(fechaLegible(EV.fecha) + (EV.hora ? ", " + EV.hora + " h" : "")) + " · " +
     '<a href="tienda.html?sala=' + encodeURIComponent(T) + '">' + esc(TIENDA) + "</a>" +
-    (EV.lugar ? "<br>" + esc(EV.lugar) : "") + (soloId() ? "" : "<br>Formato " + (EV.inscripcion.formato === "expandido" ? "Expandido" : "Estándar")) +
+    (EV.lugar ? "<br>" + esc(EV.lugar) : "") + (sinLista() ? "" : "<br>Formato " + (EV.inscripcion.formato === "expandido" ? "Expandido" : "Estándar")) +
     (EV.detalle ? "<br>" + esc(EV.detalle) : "");
   $("google").href = urlGoogle(EV);
   pintarAcuerdo();
   const estandar = EV.inscripcion.formato !== "expandido";
-  $("campoNick").classList.toggle("oculto", soloId()); $("cajaLista").classList.toggle("oculto", soloId());
+  $("campoNick").classList.toggle("oculto", soloId()); $("cajaLista").classList.toggle("oculto", sinLista());
+  $("campoId").classList.toggle("oculto", !pideId()); $("playerId").required = pideId();
   $("campoNac").classList.toggle("oculto", !pideNacimiento()); $("categoria").classList.toggle("oculto", !pideNacimiento());
-  if (!soloId()) A = armador({ estandar, pista: estandar ? PISTA_E : PISTA_X });
+  if (!sinLista()) A = armador({ estandar, pista: estandar ? PISTA_E : PISTA_X });
   pintarCategorias(); await cargarPlazas();
 
   /* ¿Quién se inscribe? Primero una cuenta de ByePass; si no, la sesión
@@ -386,7 +390,7 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
     const a = await primera(authInv);
     if (a) YO = { db: dbInv, uid: a.uid, cuenta: false };
     $("quien").innerHTML = "No necesitas cuenta para inscribirte. <b>Si no tienes una, tus datos se usan solo para esta inscripción y no crean una cuenta en ByePass.</b> " +
-      "Para corregir tu lista después, vuelve a este enlace desde este mismo navegador. " +
+      "Para corregir tu " + (sinLista() ? "inscripción" : "lista") + " después, vuelve a este enlace desde este mismo navegador. " +
       '¿Tienes cuenta? <a href="cuenta.html' + (params() ? params() + "&" : "?") + "volver=" + encodeURIComponent("inscripcion.html" + location.search) + '#ingresar">Entra</a> y tus datos se rellenan solos.';
   }
   try { if (YO) MIA = (await get(ref(YO.db, ruta(YO.uid)))).val(); } catch(e){ return noHay("No se pudo comprobar tu inscripción. Recarga antes de volver a enviar tus datos."); }

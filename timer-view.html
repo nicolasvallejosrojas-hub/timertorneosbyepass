@@ -496,6 +496,7 @@ window.addEventListener("orientationchange", () => setTimeout(() => { if (TH) ap
 if (SIN_TIENDA){
   $("marcaBP").style.display = "block";
   ["tabC", "tabA"].forEach(id => $(id).style.display = "none");   // la barra les pone display: hidden no alcanza
+  $("aPerfil").style.display = "none";   // sin tienda no hay perfil que ver
 }
 if (INVITADO){
   const vencida = () => { $("vencida").style.display = "flex"; };

@@ -61,7 +61,7 @@ export function contarVisita(db, pagina, tienda){
   } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   const suma = unica ? { v: increment(1), u: increment(1) } : { v: increment(1) };
   const envios = [update(ref(db, "stats/visitas/" + dia + "/" + pagina), suma).catch(e => console.warn("Operación secundaria sin confirmar", e))];
-  if (tienda && /^[a-z0-9-]{1,40}$/.test(tienda) && tienda !== "principal")
+  if (tienda && /^[a-z0-9-]{1,40}$/.test(tienda) && tienda !== "principal" && !/^(inv|mi)-/.test(tienda))
     envios.push(update(ref(db, "stats/tiendas/" + tienda + "/" + dia + "/" + pagina), suma).catch(e => console.warn("Operación secundaria sin confirmar", e)));
   return Promise.all(envios);   // el widget espera esto antes de soltar la conexión
 }
