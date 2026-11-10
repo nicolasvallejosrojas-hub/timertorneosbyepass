@@ -77,7 +77,8 @@ function barajar(lista, rnd){
    Resumen por jugador, % de victorias de rivales, cara a cara y tabla ordenada. */
 /* Firebase devuelve las listas como arreglo o como objeto: acá, siempre en orden. */
 const enOrden = o => Object.keys(o || {}).sort((x, y) => x - y).map(k => o[k]).filter(Boolean);
-export const rondasDe = t => Object.keys((t && t.ronda) || {}).map(Number).sort((x, y) => x - y)
+/* Las rondas 1, 2, 3… pueden llegar como arreglo con un hueco en el 0 ([null, r1, r2]): los huecos se saltan. */
+export const rondasDe = t => Object.keys((t && t.ronda) || {}).filter(k => t.ronda[k]).map(Number).sort((x, y) => x - y)
   .map(n => ({ n, mesas: enOrden(t.ronda[n].mesas) }));
 /* Hasta dónde llega el suizo. Sin rondas fijas todavía, todo es suizo. */
 const finSuizo = t => (t && t.rondas > 0) ? t.rondas : Infinity;
