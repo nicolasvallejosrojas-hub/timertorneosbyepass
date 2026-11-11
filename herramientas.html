@@ -20,15 +20,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=dc5c59237a36"></script>
+<script src="tema.js?v=7d478797013e"></script>
 <meta name="robots" content="noindex">
 <title>Herramientas de administrador — ByePass</title>
-<link rel="stylesheet" href="estilo.css?v=dc5c59237a36">
+<link rel="stylesheet" href="estilo.css?v=7d478797013e">
 <!-- ▌BLOQUE 1 · Estilos — Mantenimiento, beta, tiendas, cifras, buzón, cuentas y borrar. -->
 
-<link rel="stylesheet" href="/paginas/herramientas.css?v=dc5c59237a36">
-<link rel="stylesheet" href="/sistema.css?v=dc5c59237a36">
-<script src="/sistema.js?v=dc5c59237a36" defer></script>
+<link rel="stylesheet" href="/paginas/herramientas.css?v=7d478797013e">
+<link rel="stylesheet" href="/sistema.css?v=7d478797013e">
+<script src="/sistema.js?v=7d478797013e" defer></script>
 </head>
 <body data-pagina="herramientas">
   <header class="sup vidrio">
@@ -125,6 +125,9 @@
       <h2 class="gtit">Salas de invitado</h2>
       <div class="grupo"><p class="nota" id="invEstado" style="padding:var(--e4)">Revisando…</p></div>
 
+      <h2 class="gtit">Marcas de organizador</h2>
+      <div class="grupo"><p class="nota" id="orgEstado" style="padding:var(--e4)">Revisando…</p></div>
+
       <h2 class="gtit">Solicitudes de tienda <span id="solResumen"></span></h2>
       <div class="grupo" id="solLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
       <p class="nota" style="margin:var(--e2) var(--e3) 0">Aprobada, quien la pidió la crea desde su cuenta y queda de dueño. «Avisarle» le manda el aviso por
@@ -189,16 +192,16 @@
       <button class="btn" id="dbSi" disabled>Descargar respaldo y eliminar</button></div>
   </dialog>
 
-<script src="config.js?v=dc5c59237a36"></script>
+<script src="config.js?v=7d478797013e"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=dc5c59237a36";
+import { avisarError } from "./errores.js?v=7d478797013e";
 import { ref, onValue, get, set, update, remove, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=dc5c59237a36";
-import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=dc5c59237a36";
-import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=dc5c59237a36";
-import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=dc5c59237a36";
+import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=7d478797013e";
+import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=7d478797013e";
+import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=7d478797013e";
+import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=7d478797013e";
 estoyEnLinea(db, "herramientas");
 
 const $ = id => document.getElementById(id);
@@ -229,7 +232,7 @@ onAuthStateChanged(auth, async u => {
   escucharMantenimiento();
   escucharBeta(); escucharRulings();
   escucharSolicitudes();
-  limpiarInvitados();
+  limpiarInvitados(); limpiarOrganiza();
   escucharCifras();
   pintarTiendas();
 });
@@ -311,6 +314,23 @@ async function limpiarInvitados(){
   $("invEstado").textContent = (abiertas === 1 ? "1 sala abierta" : abiertas + " salas abiertas") + " ahora" +
     (borradas ? " · se borraron " + borradas + (borradas === 1 ? " vencida" : " vencidas") : "") +
     ". Duran 24 horas; al vencer se cierran solas y se borran al abrir esta página.";
+}
+
+/* Marcas de organizador (organiza/<uid>/<tienda>) sin la membresía que las respalda: antes de las reglas del 10-11-2026
+   cualquiera podía crearse una (y con ella leer el chat entre tiendas). Se borran las que no calzan con
+   tiendas/<tienda>/miembros/<uid>/rol, cada vez que se abre esta página. */
+async function limpiarOrganiza(){
+  let org, tiendas;
+  try { [org, tiendas] = await Promise.all(["organiza", "tiendas"].map(n => get(ref(db, n)).then(x => x.val() || {}))); }
+  catch(e){ $("orgEstado").textContent = "No se pudo leer. ¿Publicaste las reglas nuevas?"; return; }
+  const rutas = {};
+  for (const [u, ts] of Object.entries(org)) for (const [t, rol] of Object.entries(ts || {}))
+    if (tiendas[t]?.miembros?.[u]?.rol !== rol) rutas["organiza/" + u + "/" + t] = null;
+  const n = Object.keys(rutas).length;
+  try { if (n) await update(ref(db), rutas); }
+  catch(e){ $("orgEstado").textContent = "Hay " + n + " marcas sin membresía, pero no se pudieron borrar. Revisa la conexión."; return; }
+  $("orgEstado").textContent = (n ? "Se borraron " + n + (n === 1 ? " marca" : " marcas") + " de organizador sin membresía." : "Todas las marcas de organizador calzan con su tienda.") +
+    " Se revisan al abrir esta página.";
 }
 
 /* ▌BLOQUE 7 · Beta cerrada ══════════════════════════════════════════════════════
@@ -594,7 +614,7 @@ $("dcCierra").onclick = () => $("dlgCorreo").close();
 
 /* El post: la imagen se vuelve a dibujar con cada cambio (la última manda); el texto se rehace solo mientras no lo hayas editado a mano. */
 let POST_N = 0, POST_LOGO = null, POST_EDITADO = false, POST_MOD = null;
-const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=dc5c59237a36"));
+const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=7d478797013e"));
 const datosPost = () => ({ nombre: $("dpNombre").value, comuna: $("dpComuna").value, instagram: $("dpIg").value, logo: POST_LOGO, tema: $("dpTema").value });
 async function pintarPost(){
   const n = ++POST_N, m = await postMod(), d = datosPost();
@@ -829,7 +849,7 @@ const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "ti
                  "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "mazos.html", "rulings.html", "404.html"];
 /* El archivo tal como está publicado ahora (sin copias guardadas). */
 const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
-/* Lo que pide un archivo: «./clasificacion.js?v=dc5c59237a36», «estilo.css?v=dc5c59237a36»… → [archivo, versión]. */
+/* Lo que pide un archivo: «./clasificacion.js?v=7d478797013e», «estilo.css?v=7d478797013e»… → [archivo, versión]. */
 const pide = txt => [...String(txt).matchAll(/["'(]\.?\/?([a-z0-9-]+\.(?:js|css))\?v=(\d+)/g)].map(m => [m[1], +m[2]]);
 const versionDe = txt => { const m = /Versión actual: v=(\d+)/.exec(txt || ""); return m ? +m[1] : null; };
 const lineaPub = (tipo, titulo, det) => '<div class="linea ' + tipo + '"><i>' + (tipo === "ok" ? "✓" : tipo === "mal" ? "✗" : "!") + "</i><b>" + esc(titulo) + "</b>" + (det ? "<small>" + esc(det) + "</small>" : "") + "</div>";
