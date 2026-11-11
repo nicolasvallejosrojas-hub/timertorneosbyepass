@@ -23,16 +23,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=7d478797013e"></script>
+<script src="tema.js?v=f418b98580a6"></script>
 <title>ByePass — Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="estilo.css?v=7d478797013e">
+<link rel="stylesheet" href="estilo.css?v=f418b98580a6">
 <!-- ▌BLOQUE 1 · Estilos del muro — Rejilla de tres columnas, perfil, publicaciones, en vivo e insignias. -->
 
-<link rel="stylesheet" href="/paginas/muro.css?v=7d478797013e">
-<link rel="stylesheet" href="/sistema.css?v=7d478797013e">
-<script src="/sistema.js?v=7d478797013e" defer></script>
+<link rel="stylesheet" href="/paginas/muro.css?v=f418b98580a6">
+<link rel="stylesheet" href="/sistema.css?v=f418b98580a6">
+<script src="/sistema.js?v=f418b98580a6" defer></script>
 </head>
 <body data-pagina="muro">
 
@@ -102,6 +102,14 @@
     <section id="tabInicio" aria-labelledby="hInicio">
       <h1 class="solo-lector" id="hInicio">Inicio</h1>
       <div id="muro" aria-live="polite"></div>
+      <!-- Noticias de Pokémon TCG: las pinta noticias.js (el mismo de la portada); sin noticias, no aparece. -->
+      <div class="bloque noticias oculto" id="noticias" data-pocas="3">
+        <h2 class="conBoton">Lo último del TCG
+          <span class="noticias-lengua" role="group" aria-label="Idioma de las noticias"><button type="button" data-lengua="es" aria-pressed="true">Español</button><button type="button" data-lengua="en" aria-pressed="false">English</button></span></h2>
+        <ul class="noticias-lista" id="noticiasLista"></ul>
+        <div class="noticias-pie"><button class="btn" type="button" id="noticiasMas" hidden>Ver más noticias</button>
+          <p><span id="noticiasNota"></span> Fuente: <a href="https://www.pokebeach.com/" target="_blank" rel="noopener">PokéBeach</a>.</p></div>
+      </div>
     </section>
 
     <section id="tabPerfil" class="oculto" aria-labelledby="hPerfil">
@@ -210,23 +218,24 @@
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
-<script src="config.js?v=7d478797013e"></script>
+<script src="config.js?v=f418b98580a6"></script>
+<script src="noticias.js?v=f418b98580a6"></script>
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=7d478797013e";
+import { avisarError } from "./errores.js?v=f418b98580a6";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, serverTimestamp, query, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signOut, onAuthStateChanged, sendEmailVerification }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=7d478797013e";
-import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=7d478797013e";
-import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=7d478797013e";
-import { estoyEnLinea } from "./presencia.js?v=7d478797013e";
-import { perfilCompleto } from "./registro.js?v=7d478797013e";
-import { leerHistorial } from "./historial.js?v=7d478797013e";
-import { vigilar } from "./mantenimiento.js?v=7d478797013e";
-import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=7d478797013e";
+import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=f418b98580a6";
+import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=f418b98580a6";
+import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=f418b98580a6";
+import { estoyEnLinea } from "./presencia.js?v=f418b98580a6";
+import { perfilCompleto } from "./registro.js?v=f418b98580a6";
+import { leerHistorial } from "./historial.js?v=f418b98580a6";
+import { vigilar } from "./mantenimiento.js?v=f418b98580a6";
+import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=f418b98580a6";
 
 const $ = id => document.getElementById(id);
 /* El muro es el inicio de cada persona y no depende de una tienda. El ?sala= solo cuenta con #jugador=

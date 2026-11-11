@@ -1,4 +1,4 @@
-/* Noticias de Pokémon TCG en la portada. Las lee de la base (las deja functions/noticias.mjs cada 3 horas desde el
+/* Noticias de Pokémon TCG en la portada y en el muro. Las lee de la base (las deja functions/noticias.mjs cada 3 horas desde el
    RSS de PokéBeach) y muestra las últimas, en español o en el original en inglés, a elección de cada persona.
    Si el archivo no está o viene vacío, la sección no aparece. */
 (() => {
@@ -8,7 +8,7 @@
   const mas = document.getElementById('noticiasMas');
   const nota = document.getElementById('noticiasNota');
   const botones = [...caja.querySelectorAll('[data-lengua]')];
-  const CLAVE = 'bp-noticias-lengua', POCAS = matchMedia('(max-width:560px)').matches ? 3 : 6;
+  const CLAVE = 'bp-noticias-lengua', POCAS = +caja.dataset.pocas || (matchMedia('(max-width:560px)').matches ? 3 : 6);   // el muro muestra 3
   let lengua = 'es', todas = false, datos = null;
   try { lengua = localStorage.getItem(CLAVE) === 'en' ? 'en' : 'es'; } catch { /* sin almacenamiento */ }
 

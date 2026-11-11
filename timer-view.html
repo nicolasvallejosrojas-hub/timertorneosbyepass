@@ -35,12 +35,12 @@
 })();
 </script>
 <title>Torneo — Timer y emparejamientos</title>
-<link rel="stylesheet" href="estilo.css?v=7d478797013e">
+<link rel="stylesheet" href="estilo.css?v=f418b98580a6">
 <!-- ▌BLOQUE 2 · Estilos de la vista de jugadores — Reloj, pestañas, mesas, clasificación, ruleta y agenda.
      -->
 
-<link rel="stylesheet" href="/paginas/timer-view.css?v=7d478797013e">
-<link rel="stylesheet" href="/sistema.css?v=7d478797013e">
+<link rel="stylesheet" href="/paginas/timer-view.css?v=f418b98580a6">
+<link rel="stylesheet" href="/sistema.css?v=f418b98580a6">
 </head>
 <body data-pagina="timer-view">
 
@@ -157,19 +157,19 @@
 
 </main>
 
-<script src="config.js?v=7d478797013e"></script>
+<script src="config.js?v=f418b98580a6"></script>
 <!-- ▌BLOQUE 4 · Módulos que usa la vista — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { montarEspera } from "./espera.js";
 import { aplicarMarca } from "./identidad.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, connectAuthEmulator, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { vigilar } from "./mantenimiento.js?v=7d478797013e";
+import { vigilar } from "./mantenimiento.js?v=f418b98580a6";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=7d478797013e";
-import { SALA, BASE, TIENDA, BASE_T, INVITADO, SIN_TIENDA, numTimer } from "./sala.js?v=7d478797013e";
-import { estoyEnLinea } from "./presencia.js?v=7d478797013e";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=f418b98580a6";
+import { SALA, BASE, TIENDA, BASE_T, INVITADO, SIN_TIENDA, numTimer } from "./sala.js?v=f418b98580a6";
+import { estoyEnLinea } from "./presencia.js?v=f418b98580a6";
 
 /* Sin ?sala= no hay qué mostrar (antes abría «principal», que no era de
    nadie): se va al directorio, a elegir la tienda. */
@@ -191,9 +191,9 @@ if (!new URLSearchParams(location.search).get("sala"))
   document.getElementById("aPerfil").href = "tienda.html?" + q;
 }
 import { resolver as palResolver, esOriginal as palEsOriginal, aplicar as palAplicarEn,
-         alDia } from "./paleta.js?v=7d478797013e";
-import { vistaDe } from "./vistapub.js?v=7d478797013e";
-import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=7d478797013e";
+         alDia } from "./paleta.js?v=f418b98580a6";
+import { vistaDe } from "./vistapub.js?v=f418b98580a6";
+import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=f418b98580a6";
 
 /* ▌BLOQUE 5 · Arranque ══════════════════════════════════════════════════════════
    Conecta Firebase en modo lectura y calcula la hora del servidor. */
