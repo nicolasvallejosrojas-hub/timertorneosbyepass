@@ -1,35 +1,35 @@
 import { montarIdentidad, aplicarMarca } from './identidad.js';
-import { planPublicacion } from "./admin-publicacion.js?v=9beff3299439";
-import { avisarError } from "./errores.js?v=9beff3299439";
+import { planPublicacion } from "./admin-publicacion.js?v=4c685bfff923";
+import { avisarError } from "./errores.js?v=4c685bfff923";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=9beff3299439";
-import { activarPush, renovarPush, pushActivo } from "./push.js?v=9beff3299439";
-import { qrImg, qrPng } from "./qr.js?v=9beff3299439";
-import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=9beff3299439";
-import { vigilar } from "./mantenimiento.js?v=9beff3299439";
-import { estoyEnLinea } from "./presencia.js?v=9beff3299439";
-import { barras } from "./graficos.js?v=9beff3299439";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=9beff3299439";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=9beff3299439";
-import { planClaves } from "./jugadores.js?v=9beff3299439";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=9beff3299439";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=4c685bfff923";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=4c685bfff923";
+import { qrImg, qrPng } from "./qr.js?v=4c685bfff923";
+import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=4c685bfff923";
+import { vigilar } from "./mantenimiento.js?v=4c685bfff923";
+import { estoyEnLinea } from "./presencia.js?v=4c685bfff923";
+import { barras } from "./graficos.js?v=4c685bfff923";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=4c685bfff923";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=4c685bfff923";
+import { planClaves } from "./jugadores.js?v=4c685bfff923";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=4c685bfff923";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=9beff3299439";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=4c685bfff923";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
-         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=9beff3299439";
+         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=4c685bfff923";
 /* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
-const entregarTabla = datos => import("./tablafinal.js?v=9beff3299439").then(m => m.entregarTabla(datos));
-const entregarCalendario = datos => import("./calendarioimg.js?v=9beff3299439").then(m => m.entregarCalendario(datos));
-const dibujarCalendario = datos => import("./calendarioimg.js?v=9beff3299439").then(m => m.dibujarCalendario(datos));
+const entregarTabla = datos => import("./tablafinal.js?v=4c685bfff923").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=4c685bfff923").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=4c685bfff923").then(m => m.dibujarCalendario(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
-import { celdaCsv } from "./csv.js?v=9beff3299439";
-import { vistaDe, publicable } from "./vistapub.js?v=9beff3299439";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=9beff3299439";
+import { celdaCsv } from "./csv.js?v=4c685bfff923";
+import { vistaDe, publicable } from "./vistapub.js?v=4c685bfff923";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=4c685bfff923";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
@@ -1156,7 +1156,7 @@ function renderClock(){
 let latidoPagina = null;
 const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250); };
 try {
-  const w = new Worker("reloj-worker.js?v=9beff3299439");
+  const w = new Worker("reloj-worker.js?v=4c685bfff923");
   w.onmessage = () => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
   w.onerror = latidoDePagina;
 } catch(e){ latidoDePagina(); }
@@ -3155,19 +3155,20 @@ $("evInsc").onchange = $("evModo").onchange = modoInsc;
    existen y solo una vez). Al guardar el evento se ajustan a los cupos nuevos:
    se crean o borran plazas, y a quien ya estaba inscrito sin plaza se le asigna
    una. Si hay más inscritos que cupos, no se guarda. */
-const DIVS = ["junior", "senior", "masters"], NOM_DIV = { junior: "Junior", senior: "Senior", masters: "Masters" };
+/* «general»: un cupo total para todos, sin separar por categoría (va solo; si está, las categorías van vacías). */
+const DIVS = ["junior", "senior", "masters"], NOM_DIV = { junior: "Junior", senior: "Senior", masters: "Masters" }, CUPOS = [...DIVS, "general"];
 const catDe = nac => division(nac).toLowerCase();
-const catF = f => f.division ? NOM_DIV[f.division] : division(f.nacimiento);
+const catF = f => f.division && f.division !== "general" ? NOM_DIV[f.division] : division(f.nacimiento) || (f.division ? "General" : "");
 async function planCupos(id, cupos, existe){
   const [sl, ins] = existe ? await Promise.all([get(ref(db, "cupos/" + TIENDA + "/" + id)), get(ref(db, "inscripciones/" + TIENDA + "/" + id))]) : [null, null];
   const S = (sl && sl.val()) || {}, I = (ins && ins.val()) || {}, up = {}, asignado = {};
-  for (const d of DIVS){
+  for (const d of CUPOS){
     const n = cupos[d], viejas = S[d] || {}, base = "cupos/" + TIENDA + "/" + id + "/" + d;
     if (!n){ if (Object.keys(viejas).length) up[base] = null; continue; }
     const duenos = [...new Set(Object.values(viejas).filter(Boolean))];
-    const sinPlaza = Object.entries(I).filter(([u, f]) => (f.division || catDe(f.nacimiento)) === d && !duenos.includes(u)).map(([u]) => u);
+    const sinPlaza = Object.entries(I).filter(([u, f]) => (d === "general" || (f.division || catDe(f.nacimiento)) === d) && !duenos.includes(u)).map(([u]) => u);
     const todos = duenos.concat(sinPlaza);
-    if (todos.length > n) return { error: "Ya hay " + todos.length + " inscritos en " + NOM_DIV[d] + ": no puedes bajar el cupo a " + n + ". Quita inscritos primero." };
+    if (todos.length > n) return { error: "Ya hay " + todos.length + " inscritos" + (NOM_DIV[d] ? " en " + NOM_DIV[d] : "") + ": no puedes bajar el cupo a " + n + ". Quita inscritos primero." };
     const plazas = {}, sin = [];
     for (const u of todos){ const k = Object.keys(viejas).find(x => viejas[x] === u); if (k && +k <= n && !plazas[k]) plazas[k] = u; else sin.push(u); }
     for (let k = 1; k <= n; k++) if (!plazas[k]) plazas[k] = sin.shift() || "";
@@ -3195,12 +3196,13 @@ function leerForm(){
   /* Al editar se respeta si la tienda ya las había cerrado. */
   const antes = editandoId && (AGENDA.find(e => e.id === editandoId) || {}).inscripcion;
   const cupos = {};
-  for (const d of DIVS){
+  for (const d of CUPOS){
     const v = $("evCupo-" + d).value.trim(); if (!v) continue;
     const n = +v;
     if (!Number.isInteger(n) || n < 1 || n > 200) return { error:"Los cupos son números de 1 a 200. Déjalos vacíos si no quieres limitar esa categoría." };
     cupos[d] = n;
   }
+  if (cupos.general && Object.keys(cupos).length > 1) return { error:"Usa el cupo general o los cupos por categoría, no los dos." };
   return { ev: {
     inscripcion: $("evInsc").checked ? { abierta: antes ? antes.abierta : true, formato: $("evFmt").value, ...($("evModo").value !== "lista" ? { modo: $("evModo").value } : {}), ...(Object.keys(cupos).length ? { cupos } : {}) } : null,
     titulo, fecha, hora,
@@ -3218,7 +3220,7 @@ function limpiarForm(){
   editandoId = null;
   $("evTit").value = ""; $("evJuego").value = ""; $("evTipo").value = ""; $("evLugar").value = ""; $("evDet").value = "";
   $("evTodoDia").checked = false; modoTodoDia();
-  $("evInsc").checked = false; $("evFmt").value = "estandar"; $("evModo").value = "lista"; DIVS.forEach(d => $("evCupo-" + d).value = ""); modoInsc();
+  $("evInsc").checked = false; $("evFmt").value = "estandar"; $("evModo").value = "lista"; CUPOS.forEach(d => $("evCupo-" + d).value = ""); modoInsc();
   $("evGuardar").textContent = "Agregar fecha";
   $("evCancelar").style.display = "none";
   $("evForm").classList.remove("editando");
@@ -3259,7 +3261,7 @@ function editar(ev){
   $("evInsc").checked = !!ev.inscripcion;
   $("evFmt").value   = (ev.inscripcion && ev.inscripcion.formato) || "estandar";
   $("evModo").value  = (ev.inscripcion && ev.inscripcion.modo) || "lista";
-  DIVS.forEach(d => $("evCupo-" + d).value = (ev.inscripcion && ev.inscripcion.cupos && ev.inscripcion.cupos[d]) || "");
+  CUPOS.forEach(d => $("evCupo-" + d).value = (ev.inscripcion && ev.inscripcion.cupos && ev.inscripcion.cupos[d]) || "");
   modoTodoDia(); modoInsc();
   $("evGuardar").textContent = "Guardar cambios";
   $("evCancelar").style.display = "";
@@ -3326,9 +3328,9 @@ function pintarInscritos(){
   const filas = Object.entries(INSC).map(([uid, d]) => ({ uid, ...d })).sort((a, b) => (a.creado || 0) - (b.creado || 0));
   const abierta = ev.inscripcion.abierta, empezo = (ev.inicioMs || 0) <= Date.now();
   const cupos = ev.inscripcion.cupos || {}, porCat = { junior: 0, senior: 0, masters: 0 };
-  filas.forEach(f => { const c = f.division || catDe(f.nacimiento); if (c) porCat[c]++; });
+  filas.forEach(f => { const c = (f.division !== "general" && f.division) || catDe(f.nacimiento); if (c) porCat[c]++; });
   /* plazas tomadas por alguien que no llegó a inscribirse (se cortó la conexión): se pueden liberar */
-  const sueltas = Object.entries(PLZ || {}).filter(([d]) => DIVS.includes(d)).flatMap(([d, m]) => Object.entries(m).filter(([, v]) => v && !INSC[v]).map(([n]) => d + "/" + n));
+  const sueltas = Object.entries(PLZ || {}).filter(([d]) => CUPOS.includes(d)).flatMap(([d, m]) => Object.entries(m).filter(([, v]) => v && !INSC[v]).map(([n]) => d + "/" + n));
   c.innerHTML =
     '<div class="row" style="align-items:center;gap:8px">' +
       '<input readonly id="inscUrl" value="' + esc(urlInscripcion(ev)) + '" style="flex:1;min-width:220px">' +
@@ -3344,7 +3346,8 @@ function pintarInscritos(){
       (!abierta ? "cerradas</b>: el enlace no deja inscribirse" : empezo ? "cerradas</b>: el torneo ya empezó" : "abiertas</b> hasta que empiece el torneo") + "</span>" +
       (empezo ? "" : '<button class="small sec" data-i="abrir">' + (abierta ? "Dejar de recibir inscripciones" : "Volver a abrir inscripciones") + "</button>") +
     "</div>" +
-    (conLista || Object.keys(cupos).length ? '<div class="muted" style="margin-top:6px">Por categoría: ' + DIVS.map(d => "<b>" + NOM_DIV[d] + "</b> " + porCat[d] + (cupos[d] ? " de " + cupos[d] : " (sin límite)")).join(" · ") + "</div>" : "") +
+    (cupos.general ? '<div class="muted" style="margin-top:6px">Cupo general: <b>' + filas.length + " de " + cupos.general + "</b></div>" : "") +
+    (conLista || (Object.keys(cupos).length && !cupos.general) ? '<div class="muted" style="margin-top:6px">Por categoría: ' + DIVS.map(d => "<b>" + NOM_DIV[d] + "</b> " + porCat[d] + (cupos[d] ? " de " + cupos[d] : " (sin límite)")).join(" · ") + "</div>" : "") +
     (sueltas.length ? '<div class="row" style="align-items:center;gap:8px;margin-top:6px"><span class="err" style="flex:1">' + sueltas.length +
       (sueltas.length === 1 ? " cupo tomado por alguien que no llegó a inscribirse" : " cupos tomados por gente que no llegó a inscribirse") +
       '</span><button class="small sec" data-i="liberar">Liberar</button></div>' : "") +
@@ -3357,7 +3360,7 @@ function pintarInscritos(){
       filas.map((f, i) => { const r = leerLista(f.lista, estandar ? BASE_E : null), av = r.avisos.filter(a => /Estándar|ACE SPEC|Pokémon Básico/.test(a));
         return "<tr><td>" + (i + 1) + "</td><td>" + esc(f.nick) + "</td><td>" + esc(f.nombre + " " + f.apellido) +
           '<br><span class="muted">' + esc(f.correo) + "</span></td><td>" + esc(f.playerId) + "</td><td>" + esc(ddmmaaaa(f.nacimiento)) +
-          "</td><td>" + esc(catF(f)) + (f.division && f.division !== catDe(f.nacimiento) ? ' <span class="err" title="La categoría que marcó no coincide con su fecha de nacimiento">· revisar</span>' : "") + "</td><td>" + (r.errores.length ? '<span class="err">' + r.total + " cartas</span>" : "60 ✓") +
+          "</td><td>" + esc(catF(f)) + (f.division && f.division !== "general" && f.division !== catDe(f.nacimiento) ? ' <span class="err" title="La categoría que marcó no coincide con su fecha de nacimiento">· revisar</span>' : "") + "</td><td>" + (r.errores.length ? '<span class="err">' + r.total + " cartas</span>" : "60 ✓") +
           (av.length ? ' <span class="err" title="' + esc(av.join(" ")) + '">· revisar</span>' : "") +
           '</td><td><button class="small sec" data-imp="' + esc(f.uid) + '">Imprimir</button> <button class="small sec" data-quitar="' + esc(f.uid) + '">Quitar</button></td></tr>';
       }).join("") + "</tbody></table></div>" : "") +
@@ -3398,7 +3401,7 @@ function pintarInscritos(){
     }
     if (d.quitar && INSC[d.quitar] && confirm("¿Quitar a " + INSC[d.quitar].nombre + " " + INSC[d.quitar].apellido + " de «" + ev.titulo + "»? Se borra su lista y se libera su cupo.")){
       const cambios = { ["inscripciones/" + TIENDA + "/" + ev.id + "/" + d.quitar]: null };
-      Object.entries(PLZ || {}).filter(([cat]) => DIVS.includes(cat)).forEach(([cat, m]) => Object.entries(m).forEach(([n, v]) => { if (v === d.quitar) cambios["cupos/" + TIENDA + "/" + ev.id + "/" + cat + "/" + n] = ""; }));
+      Object.entries(PLZ || {}).filter(([cat]) => CUPOS.includes(cat)).forEach(([cat, m]) => Object.entries(m).forEach(([n, v]) => { if (v === d.quitar) cambios["cupos/" + TIENDA + "/" + ev.id + "/" + cat + "/" + n] = ""; }));
       if ((PLZ.quien || {})[d.quitar]) cambios["cupos/" + TIENDA + "/" + ev.id + "/quien/" + d.quitar] = null;
       try { await update(ref(db), cambios); } catch(err){ alert(mensajeConexion(err)); }
     }
@@ -4249,7 +4252,7 @@ const fiCambio = () => { fiControles(); clearTimeout(fiDeb); fiDeb = setTimeout(
 
 async function fiAbrir(){
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
-  FONDO_DEF = (await import("./fondoimg.js?v=9beff3299439")).FONDO_DEF;
+  FONDO_DEF = (await import("./fondoimg.js?v=4c685bfff923")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };

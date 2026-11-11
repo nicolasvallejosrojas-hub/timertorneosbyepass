@@ -15,21 +15,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=9beff3299439"></script>
+<script src="tema.js?v=4c685bfff923"></script>
 <meta name="description" content="Inscripción a un torneo o evento de una tienda.">
 <title>Inscripción — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=9beff3299439">
-<link rel="stylesheet" href="estilo.css?v=9beff3299439">
-<link rel="stylesheet" href="armador.css?v=9beff3299439">
+<link rel="stylesheet" href="tokens.css?v=4c685bfff923">
+<link rel="stylesheet" href="estilo.css?v=4c685bfff923">
+<link rel="stylesheet" href="armador.css?v=4c685bfff923">
 <!-- ▌BLOQUE 1 · Estilos — Formulario, categorías y acuerdo (el armador de la lista trae los suyos en
      armador.css). -->
 
-<link rel="stylesheet" href="/paginas/inscripcion.css?v=9beff3299439">
-<link rel="stylesheet" href="/sistema.css?v=9beff3299439">
-<script src="/sistema.js?v=9beff3299439" defer></script>
+<link rel="stylesheet" href="/paginas/inscripcion.css?v=4c685bfff923">
+<link rel="stylesheet" href="/sistema.css?v=4c685bfff923">
+<script src="/sistema.js?v=4c685bfff923" defer></script>
 </head>
 <body data-pagina="inscripcion">
   <!-- ▌BLOQUE 2 · Marcado — Datos del jugador, categoría, lista de mazo, acuerdo y botones. -->
@@ -67,7 +67,7 @@
           <input id="nacimiento" type="date" autocomplete="bday" required>
           <span class="pista" id="divPista">Día, mes y año. Define tu división (Junior, Senior o Masters).</span></label>
         <fieldset class="categoria" id="categoria">
-          <legend>Categoría en la que te inscribes</legend>
+          <legend id="catTitulo">Categoría en la que te inscribes</legend>
           <div class="cats" id="cats" role="radiogroup"></div>
           <p class="pista" id="catPista"></p>
         </fieldset>
@@ -94,18 +94,18 @@
     </form>
   </main>
 
-<script src="config.js?v=9beff3299439"></script>
+<script src="config.js?v=4c685bfff923"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sesion, sala, agenda, listamazo y armador. -->
 <script type="module">
-import { guardarInscripcion } from "./inscripcion-datos.js?v=9beff3299439";
+import { guardarInscripcion } from "./inscripcion-datos.js?v=4c685bfff923";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=9beff3299439";
-import { slug, nombreTienda } from "./sala.js?v=9beff3299439";
-import { fechaLegible, urlGoogle } from "./agenda.js?v=9beff3299439";
-import { leerLista, division, hoja, imprimir, TEMPORADA } from "./listamazo.js?v=9beff3299439";
-import { armador } from "./armador.js?v=9beff3299439";
+import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=4c685bfff923";
+import { slug, nombreTienda } from "./sala.js?v=4c685bfff923";
+import { fechaLegible, urlGoogle } from "./agenda.js?v=4c685bfff923";
+import { leerLista, division, hoja, imprimir, TEMPORADA } from "./listamazo.js?v=4c685bfff923";
+import { armador } from "./armador.js?v=4c685bfff923";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
@@ -130,8 +130,9 @@ let EV = null, TIENDA = "", YO = null, MIA = null;   // YO: { db, uid, cuenta }
    últimos no hay lista de mazo, y la fecha de nacimiento y la categoría se piden solo si hay cupos por categoría (para saber en cuál va). */
 const modo = () => (EV && EV.inscripcion && EV.inscripcion.modo) || "lista";
 const sinLista = () => modo() !== "lista", soloId = () => modo() === "id", pideId = () => modo() !== "nick";
-const hayCupos = () => !!(EV && EV.inscripcion && EV.inscripcion.cupos);
-const pideNacimiento = () => !sinLista() || hayCupos();
+/* general(): la tienda puso un cupo total para todos (cupos.general), sin separar por categoría. */
+const hayCupos = () => !!(EV && EV.inscripcion && EV.inscripcion.cupos), general = () => !!(hayCupos() && EV.inscripcion.cupos.general);
+const pideNacimiento = () => !sinLista() || (hayCupos() && !general());
 const abierta = () => EV && EV.inscripcion && EV.inscripcion.abierta === true && (EV.inicioMs || 0) > Date.now();
 const ruta = uid => "inscripciones/" + T + "/" + E + "/" + uid;
 
@@ -210,8 +211,8 @@ async function pintarMisMazos(){
    vale "" si está libre o el uid de quien la tiene: las reglas de Firebase no
    dejan que dos personas tomen la misma ni que alguien se inscriba sin la suya,
    así que el límite se cumple aunque se salten esta página. */
-const DIVS = ["junior", "senior", "masters"], NOM_DIV = { junior: "Junior", senior: "Senior", masters: "Masters" };
-const RANGO = { junior: () => TEMPORADA - 12 + " o después", senior: () => TEMPORADA - 16 + "–" + (TEMPORADA - 13), masters: () => TEMPORADA - 17 + " o antes" };
+const DIVS = ["junior", "senior", "masters"], NOM_DIV = { junior: "Junior", senior: "Senior", masters: "Masters", general: "General" };
+const RANGO = { junior: () => TEMPORADA - 12 + " o después", senior: () => TEMPORADA - 16 + "–" + (TEMPORADA - 13), masters: () => TEMPORADA - 17 + " o antes", general: () => "Todas las categorías" };
 let PLAZAS = {};   // categoría → { n: "" | uid }
 const limite = d => ((EV && EV.inscripcion && EV.inscripcion.cupos) || {})[d] || 0;
 const libres = d => Object.values(PLAZAS[d] || {}).filter(v => v === "").length;
@@ -223,8 +224,9 @@ async function cargarPlazas(){
   pintarCategorias();
 }
 function pintarCategorias(){
-  const marcada = (document.querySelector("#cats input:checked") || {}).value || (MIA && MIA.division) || catDe($("nacimiento").value);
-  $("cats").innerHTML = DIVS.map(d => {
+  const gen = general(), marcada = gen ? "general" : (document.querySelector("#cats input:checked") || {}).value || (MIA && MIA.division) || catDe($("nacimiento").value);
+  $("catTitulo").textContent = gen ? "Cupos" : "Categoría en la que te inscribes";
+  $("cats").innerHTML = (gen ? ["general"] : DIVS).map(d => {
     const lim = limite(d), lleno = lim && !libres(d) && !suya(d);
     return '<label class="cat"><input type="radio" name="cat" value="' + d + '"' + (marcada === d ? " checked" : "") + (lleno ? " disabled" : "") + ">" +
       "<b>" + NOM_DIV[d] + "</b><small>" + RANGO[d]() + "</small><small>" +
@@ -233,7 +235,7 @@ function pintarCategorias(){
   /* inscrito: la categoría ya no se cambia desde acá (el cupo está tomado) */
   if (MIA) $("cats").querySelectorAll("input").forEach(i => i.disabled = true);
   const d = catDe($("nacimiento").value), el = (document.querySelector("#cats input:checked") || {}).value;
-  $("catPista").textContent = MIA ? "Para cambiar de categoría, anula tu inscripción y vuelve a inscribirte."
+  $("catPista").textContent = gen ? "Un solo cupo para todas las categorías." : MIA ? "Para cambiar de categoría, anula tu inscripción y vuelve a inscribirte."
     : el && d && el !== d ? "Tu fecha de nacimiento corresponde a " + NOM_DIV[d] + "." : "Se marca sola según tu fecha de nacimiento.";
 }
 $("cats").onchange = pintarCategorias;
@@ -292,10 +294,13 @@ function leer(){
   if (!d.nombre || !d.apellido) return { error: "Escribe tu nombre y tu apellido." };
   if (pideNacimiento()){
     const n = errorNacimiento(d.nacimiento); if (n) return { error: n };
-    d.division = (document.querySelector("#cats input:checked") || {}).value || "";
-    if (!d.division) return { error: "Marca la categoría en la que te inscribes (Junior, Senior o Masters)." };
-    if (d.division !== catDe(d.nacimiento)) return { error: "Por tu fecha de nacimiento juegas en " + NOM_DIV[catDe(d.nacimiento)] + ". Marca esa categoría." };
+    if (!general()){
+      d.division = (document.querySelector("#cats input:checked") || {}).value || "";
+      if (!d.division) return { error: "Marca la categoría en la que te inscribes (Junior, Senior o Masters)." };
+      if (d.division !== catDe(d.nacimiento)) return { error: "Por tu fecha de nacimiento juegas en " + NOM_DIV[catDe(d.nacimiento)] + ". Marca esa categoría." };
+    }
   }
+  if (general()) d.division = "general";
   if (!sinLista()){
     const r = leerLista(d.lista);
     if (r.errores.length) return { error: "La lista de mazo tiene problemas: " + r.errores[0] };
@@ -380,7 +385,7 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
   const estandar = EV.inscripcion.formato !== "expandido";
   $("campoNick").classList.toggle("oculto", soloId()); $("cajaLista").classList.toggle("oculto", sinLista());
   $("campoId").classList.toggle("oculto", !pideId()); $("playerId").required = pideId();
-  $("campoNac").classList.toggle("oculto", !pideNacimiento()); $("categoria").classList.toggle("oculto", !pideNacimiento());
+  $("campoNac").classList.toggle("oculto", !pideNacimiento()); $("categoria").classList.toggle("oculto", !pideNacimiento() && !general());
   if (!sinLista()) A = armador({ estandar, pista: estandar ? PISTA_E : PISTA_X });
   pintarCategorias(); await cargarPlazas();
 

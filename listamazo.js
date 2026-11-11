@@ -76,15 +76,21 @@ export const norm = normNom;
    impresiones viejas. `cartas` queda entera para el buscador, con las
    reimpresiones (lista «reimp» del JSON) al final. Una impresión vieja de un
    Entrenador legal vale tanto como la nueva: se juega igual. */
+/* «es» (cartas-estandar.py --espanol): «SVI 196» → el nombre en castellano, solo de las que cambian. Los nombres en
+   castellano también entran en `nombres`, así una lista pegada en español se revisa igual que en inglés. */
 export function indexar(d){
-  const porCodigo = new Map(), nombres = new Map();
+  const porCodigo = new Map(), nombres = new Map(), es = d.es || {};
+  const anotar = (nom, x) => { const k = normNom(nom); nombres.set(k, (nombres.get(k) || "") + x); };
   d = { ...d, cartas: d.cartas.concat((d.reimp || []).map(c => [...c, "R"])) };
   d.cartas.forEach(([s, n, nom, , reg, x = ""]) => {
     porCodigo.set(s + " " + sinCeros(n), { reg, x });
-    const k = normNom(nom); nombres.set(k, (nombres.get(k) || "") + x);
+    anotar(nom, x);
+    if (es[s + " " + sinCeros(n)]) anotar(es[s + " " + sinCeros(n)], x);
   });
-  return { porCodigo, nombres, cartas: d.cartas, actualizado: d.actualizado, imagenes: d.imagenes || {} };
+  return { porCodigo, nombres, cartas: d.cartas, actualizado: d.actualizado, imagenes: d.imagenes || {}, es };
 }
+/* El nombre de una carta de la base en el idioma elegido ("es" o "en"); sin traducción, el de Limitless (inglés). */
+export const nombreEn = (base, c, idioma) => (idioma === "es" && base && base.es[c[0] + " " + sinCeros(c[1])]) || c[2];
 /* La foto de una carta: no se guarda en ningún lado nuestro, el navegador la pide a TCGdex. «imagenes» (lo arma
    cartas-estandar.py --imagenes) dice, por expansión, su ruta allá y con cuántas cifras van los números («sv/sv01|3»:
    SVI 5 → …/sv/sv01/005). Sin ruta, con un número raro (TG01) o sin base: "" (la fila se ve sin foto). */

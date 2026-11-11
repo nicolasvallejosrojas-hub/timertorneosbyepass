@@ -23,7 +23,7 @@
        A.formato(est)   cambia entre Estándar (true) y Expandido (false)
    `alCambiar` se llama cada vez que la persona cambia algo (no al poner una lista desde el código).
    ============================================================ */
-import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta } from "./listamazo.js?v=9beff3299439";
+import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta, nombreEn } from "./listamazo.js?v=4c685bfff923";
 
 /* ▌BLOQUE 1 · Marcado y arranque ════════════════════════════════════════════════
    El HTML del armador (con un lugar #misMazos para la página), las fotos de TCGdex y la carga de
@@ -35,13 +35,20 @@ const MARCADO = pista => `
   <h2>Lista de mazo</h2>
   <div id="misMazos" class="oculto"></div>
   <p class="pista" id="pistaLista">${esc(pista)}</p>
+  <div class="idioma oculto" id="idiomaCartas">
+    <span id="idiomaTit">Nombres de las cartas</span>
+    <div class="seg" role="group" aria-labelledby="idiomaTit">
+      <button type="button" data-idioma="es" aria-pressed="false">Español</button><button type="button" data-idioma="en" aria-pressed="false">English</button>
+    </div>
+  </div>
   <div class="busca">
     <input id="buscaCarta" type="search" role="combobox" aria-expanded="false" aria-controls="sugerencias"
       aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Busca una carta: «dragapult», «ultra ball»…" aria-label="Buscar una carta">
     <ul id="sugerencias" role="listbox" class="oculto" aria-label="Cartas encontradas"></ul>
   </div>
+  <p class="pista" id="baseFecha"></p>
   <details id="importar">
-    <summary>¿Juegas en línea? Pega la lista exportada</summary>
+    <summary>¿Juegas en línea? Pega la lista exportada (en español o inglés)</summary>
     <textarea id="pegado" rows="7" spellcheck="false" aria-label="Lista exportada" placeholder="Pokémon: 12
 3 Dreepy TWM 128
 …
@@ -128,6 +135,17 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
   /* ▌BLOQUE 3 · Buscador de cartas ════════════════════════════════════════════════
      Busca en cartas-estandar.json (legales y reimpresiones), atajo «4 iono», elegir con flechas y
      Enter, pegar la lista exportada. */
+  /* Idioma de los nombres: se busca en los dos, y se muestra y agrega en el elegido (se recuerda en este navegador). */
+  let IDIOMA = "en";
+  try { IDIOMA = localStorage.getItem("armador-idioma") === "es" ? "es" : "en"; } catch(e){ /* sin almacenamiento: inglés */ }
+  const nom = c => nombreEn(BASE, c, IDIOMA), otro = c => nombreEn(BASE, c, IDIOMA === "es" ? "en" : "es");
+  const pintarIdioma = () => $("idiomaCartas").querySelectorAll("[data-idioma]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.idioma === IDIOMA)));
+  $("idiomaCartas").onclick = e => {
+    const b = e.target.closest("[data-idioma]"); if (!b) return;
+    IDIOMA = b.dataset.idioma; pintarIdioma(); pintarSugerencias();
+    try { localStorage.setItem("armador-idioma", IDIOMA); } catch(e){ /* solo por esta visita */ }
+  };
+  pintarIdioma();
   const ORDEN_REG = { J: 0, I: 1, H: 2, G: 3, F: 4, E: 5, D: 6 };   // las legales primero; las reimpresiones, de la marca más nueva a la más vieja
   const ENERGIA_PREF = ["MEE", "SVE"];
   const prefE = s => { const i = ENERGIA_PREF.indexOf(s); return i < 0 ? 99 : i; };
@@ -136,18 +154,18 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
     if (!BASE || !ws.length) return [];
     const todo = ws.join(" "), basicas = new Map(), res = [];
     for (const c of BASE.cartas){
-      const [s, n, nom, cat, reg] = c, nn = norm(nom), k = nn + " " + s.toLowerCase() + " " + n;
+      const [s, n, , cat, reg] = c, nn = norm(nom(c)), k = nn + " " + norm(otro(c)) + " " + s.toLowerCase() + " " + n;
       if (!ws.every(w => k.includes(w))) continue;
       const punt = nn.startsWith(todo) ? 0 : nn.split(" ").some(p => p.startsWith(ws[0])) ? 1 : 2;
       if (cat === "E" && !reg){ const ya = basicas.get(nn); if (!ya || prefE(s) < prefE(ya[1][0])) basicas.set(nn, [punt, c]); continue; }
       res.push([punt, c]);
     }
     res.push(...basicas.values());
-    return res.sort((a, b) => a[0] - b[0] || a[1][2].localeCompare(b[1][2]) ||
+    return res.sort((a, b) => a[0] - b[0] || nom(a[1]).localeCompare(nom(b[1])) ||
       (ORDEN_REG[a[1][4]] ?? 7) - (ORDEN_REG[b[1][4]] ?? 7) || a[1][0].localeCompare(b[1][0])).slice(0, 8).map(x => x[1]);
   }
   let OPCIONES = [], ACTIVA = -1, CANT = 1;
-  const DETALLE = c => [c[0] + " " + c[1], c[4], c[5] === "A" ? "ACE SPEC" : c[5] === "R" ? "reimpresión" : ""].filter(Boolean).join(" · ");
+  const DETALLE = c => [otro(c) !== nom(c) ? otro(c) : "", c[0] + " " + c[1], c[4], c[5] === "A" ? "ACE SPEC" : c[5] === "R" ? "reimpresión" : ""].filter(Boolean).join(" · ");
   function pintarSugerencias(){
     const q = $("buscaCarta").value.trim();
     /* «4 iono»: el número de adelante es cuántas agregar. */
@@ -160,7 +178,7 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
     ACTIVA = OPCIONES.length ? 0 : -1;
     const NOM_SEC = { pokemon: "Pokémon", entrenador: "Entrenadores", energia: "Energías" };
     $("sugerencias").innerHTML = OPCIONES.map((o, i) => '<li role="option" id="op' + i + '" data-op="' + i + '"' + (i === ACTIVA ? ' aria-selected="true"' : "") + ">" +
-      (o.carta ? foto(o.carta[0], o.carta[1], "") + '<span class="sn"><b>' + (CANT > 1 ? CANT + " × " : "") + esc(o.carta[2]) + "</b></span><small>" + esc(DETALLE(o.carta)) + "</small>"
+      (o.carta ? foto(o.carta[0], o.carta[1], "") + '<span class="sn"><b>' + (CANT > 1 ? CANT + " × " : "") + esc(nom(o.carta)) + "</b></span><small>" + esc(DETALLE(o.carta)) + "</small>"
                : "Agregar «" + esc(o.linea) + "» a <b>" + NOM_SEC[o.sec] + "</b>") + "</li>").join("") ||
       (q.length > 1 ? '<li class="nada">' + (BASE ? "No encontramos esa carta. Si es nueva, escribe la línea completa: «2 Nombre ABC 12»."
                                                     : "Cargando las cartas…") + "</li>" : "");
@@ -174,7 +192,7 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
     const o = OPCIONES[i];
     if (!o) return;
     if (o.carta){
-      const [set, num, nombre, cat] = o.carta, sec = SEC_DE_CAT[cat] || "pokemon";
+      const [set, num, , cat] = o.carta, nombre = nom(o.carta), sec = SEC_DE_CAT[cat] || "pokemon";
       const ya = LISTA[sec].find(c => c.set === set && c.num === num);
       if (ya) ya.cant = Math.min(ya.cant + CANT, 60); else LISTA[sec].push({ cant: CANT, nombre, set, num });
     } else {
@@ -213,7 +231,17 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
   };
 
   revisarLista();
-  const cargada = cargarEstandar().then(b => { BASE = b; BASE_E = estandar ? b : null; revisarLista(); return b; });
+  const cargada = cargarEstandar().then(b => {
+    BASE = b; BASE_E = estandar ? b : null; revisarLista();
+    if (b){
+      $("idiomaCartas").classList.toggle("oculto", !Object.keys(b.es).length);
+      /* Para saber si la base ya trae la última expansión: la fecha en que se armó. */
+      const f = /^\d{4}-\d{2}-\d{2}$/.test(b.actualizado || "") && new Date(b.actualizado + "T12:00:00");
+      $("baseFecha").textContent = f ? "Cartas de Estándar al " + f.toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" }) +
+        ". Una carta de una expansión más nueva se agrega escribiendo la línea completa: «2 Nombre ABC 12»." : "";
+    }
+    return b;
+  });
   /* cambiar de Estándar a Expandido (o al revés) con la lista armada: cambia solo la revisión de legalidad */
   const formato = e => { estandar = e; BASE_E = e ? BASE : null; revisarLista(); };
   return { lista, poner: ponerLista, revisar: revisarLista, baseE: () => BASE_E, formato, cargada };

@@ -80,3 +80,9 @@
 .carta button {border-radius:7px}
 .conteo {padding-block:16px;background:var(--pagina);gap:16px}
 .barra i {height:7px;border-radius:3px}
+/* idioma de los nombres de las cartas (Español | English) */
+.idioma{display:flex;align-items:center;justify-content:space-between;gap:var(--e2);flex-wrap:wrap;margin:0 0 var(--e2);font-size:var(--t2);color:var(--apagado);}
+.idioma .seg{display:inline-flex;}
+.idioma .seg button{padding:0 14px;font-size:var(--t2);border:0;}
+.idioma .seg button:not([aria-pressed="true"]){background:transparent;color:var(--apagado);box-shadow:none;}
+.soloLectura .idioma{display:none;}
