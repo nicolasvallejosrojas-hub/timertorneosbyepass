@@ -1,7 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap');
-@import url('tokens.css?v=f418b98580a6');
 
-/* Componentes funcionales compartidos: tokens.css define la identidad;
+/* Las fuentes y tokens.css se cargan con <link> en cada página (antes, @import acá: tres descargas en fila).
+   Componentes funcionales compartidos: tokens.css define la identidad;
    sistema.css define los controles; paginas/ contiene las composiciones. */
 html,body{margin:0;}
 /* El tracking de esta letra se cierra a medida que crece: el cuerpo va casi

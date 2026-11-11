@@ -50,8 +50,10 @@
 [data-pagina="terminos"] .doc {max-width:850px;padding-top:50px}
 [data-pagina="terminos"] h1 {font-size:clamp(32px,4vw,44px);letter-spacing:-1.5px}
 [data-pagina="terminos"] .bajada {font-size:17px;line-height:1.8;margin-top:18px}
-[data-pagina="terminos"] .resumen {background:var(--lila);border:1px solid var(--divider);border-radius:17px;padding:28px;margin-block:30px}
+[data-pagina="terminos"] .resumen {background:var(--lila);border:1px solid var(--divider);border-radius:var(--radio);padding:28px;margin-block:30px}
 [data-pagina="terminos"] .doc section {scroll-margin-top:100px;line-height:1.85}
 [data-pagina="terminos"] .indice {background:var(--sup);border:1px solid var(--divider);border-radius:14px;padding:24px 24px 24px 45px}
 [data-pagina="terminos"] .sup nav {margin-left:auto}
 @media(max-width:600px) {[data-pagina="terminos"] .doc{padding-top:32px}[data-pagina="terminos"] .resumen{padding:23px}}
+  /* Los enlaces del pie se tocan con el dedo: 44 px de alto sin mover el texto. */
+  .pie-doc a{display:inline-block;padding-block:14px;margin-block:-14px;}

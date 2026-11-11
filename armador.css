@@ -18,7 +18,7 @@
 .seccion h3 b{color:var(--texto);letter-spacing:0;font-variant-numeric:tabular-nums;}
 .cartas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
 .carta{display:flex;align-items:center;gap:var(--e2);background:var(--campo);border-radius:var(--radio);padding:4px 4px 4px 6px;}
-.carta.mal{box-shadow:inset 3px 0 0 var(--negativo);}
+.carta.mal{background:var(--aviso-mal);}   /* el error tiñe la fila; sin franja lateral */
 .carta .cant{display:flex;align-items:center;flex:none;}
 .carta .cant b{min-width:1.6em;text-align:center;font-variant-numeric:tabular-nums;}
 .carta button{background:none;border:none;color:var(--texto);font:inherit;font-size:var(--t4);width:40px;height:40px;cursor:pointer;border-radius:var(--radio);}

@@ -18,14 +18,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=f418b98580a6"></script>
+<script src="tema.js?v=9beff3299439"></script>
 <title>ByePass — Cuenta</title>
-<link rel="stylesheet" href="estilo.css?v=f418b98580a6">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
+<link rel="stylesheet" href="tokens.css?v=9beff3299439">
+<link rel="stylesheet" href="estilo.css?v=9beff3299439">
 <!-- ▌BLOQUE 1 · Estilos de la cuenta — Barra, pasos, campos, medidor de contraseña, vitrina y ajustes. -->
 
-<link rel="stylesheet" href="/paginas/cuenta.css?v=f418b98580a6">
-<link rel="stylesheet" href="/sistema.css?v=f418b98580a6">
-<script src="/sistema.js?v=f418b98580a6" defer></script>
+<link rel="stylesheet" href="/paginas/cuenta.css?v=9beff3299439">
+<link rel="stylesheet" href="/sistema.css?v=9beff3299439">
+<script src="/sistema.js?v=9beff3299439" defer></script>
 </head>
 <body data-pagina="cuenta">
 
@@ -440,21 +444,21 @@
 </div>
 </main>
 
-<script src="config.js?v=f418b98580a6"></script>
+<script src="config.js?v=9beff3299439"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y de sesion.js. -->
 <script type="module">
 import { ref, get, set, remove, update, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail,
          verifyPasswordResetCode, confirmPasswordReset, applyActionCode, checkActionCode, verifyBeforeUpdateEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=f418b98580a6";
-import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=f418b98580a6";   // BASE: el timer; BASE_T: su tienda
+import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=9beff3299439";
+import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=9beff3299439";   // BASE: el timer; BASE_T: su tienda
 /* La conexión, los enlaces con ?emu y ?sala, los errores en castellano, la
    contraseña y el registro viven en sesion.js: la portada registra igual. */
 import { db, auth, urlPanel, urlMuro, urlCuenta, decir, ID_OK, CORREO_OK, revisarClave, claveOk,
          textoFalta, errorNacimiento, registrar, params, codigoInvitacion, betaActiva, revisarCodigo,
-         normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto, reanudarRegistro, registroPendiente } from "./sesion.js?v=f418b98580a6";
-import { estoyEnLinea } from "./presencia.js?v=f418b98580a6";
+         normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto, reanudarRegistro, registroPendiente } from "./sesion.js?v=9beff3299439";
+import { estoyEnLinea } from "./presencia.js?v=9beff3299439";
 estoyEnLinea(db, "cuenta");
 
 const $ = id => document.getElementById(id);

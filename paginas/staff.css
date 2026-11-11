@@ -71,8 +71,8 @@
 [data-pagina="staff"] main {padding-top:42px;max-width:780px}
 [data-pagina="staff"] h1 {font-size:38px;letter-spacing:-1.4px}
 [data-pagina="staff"] .meta {line-height:1.8;margin-top:12px}
-[data-pagina="staff"] .caja {padding:26px;border:1px solid var(--divider);box-shadow:var(--sombra);border-radius:16px}
+[data-pagina="staff"] .caja {padding:26px;border:1px solid var(--divider);box-shadow:var(--sombra);border-radius:var(--radio)}
 [data-pagina="staff"] .caja h2 {font-size:12px;letter-spacing:.8px;font-weight:650}
 [data-pagina="staff"] .campo>span:not(.pista) {text-transform:none;letter-spacing:0;font-size:12px;font-weight:550;color:var(--texto)}
-[data-pagina="staff"] .estado {font-size:10px;letter-spacing:1px;margin-bottom:12px;color:var(--accion-texto)}
+[data-pagina="staff"] .estado {font-size:var(--t1);letter-spacing:1px;margin-bottom:12px;color:var(--accion-texto)}
 @media(max-width:600px) {[data-pagina="staff"] main{padding-top:30px}[data-pagina="staff"] h1{font-size:32px}[data-pagina="staff"] .caja{padding:22px}}

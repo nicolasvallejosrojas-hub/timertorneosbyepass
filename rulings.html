@@ -16,22 +16,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=f418b98580a6"></script>
+<script src="tema.js?v=9beff3299439"></script>
 <meta name="description" content="Rulings de Pokémon TCG con buscador, filtros y traducción de apoyo al español, para jueces y jugadores.">
 <title>Rulings — ByePass</title>
 <link rel="canonical" href="https://byepass.cl/rulings">
-<link rel="stylesheet" href="estilo.css?v=f418b98580a6">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
+<link rel="stylesheet" href="tokens.css?v=9beff3299439">
+<link rel="stylesheet" href="estilo.css?v=9beff3299439">
 <!-- ▌BLOQUE 1 · Estilos — Lista y detalle: tres columnas en el computador (filtros, lista, el ruling
      abierto), una en el celular; hojas del editor y de filtros. -->
 
-<link rel="stylesheet" href="/paginas/rulings.css?v=f418b98580a6">
-<link rel="stylesheet" href="/sistema.css?v=f418b98580a6">
-<script src="/sistema.js?v=f418b98580a6" defer></script>
+<link rel="stylesheet" href="/paginas/rulings.css?v=9beff3299439">
+<link rel="stylesheet" href="/sistema.css?v=9beff3299439">
+<script src="/sistema.js?v=9beff3299439" defer></script>
 </head>
 <body data-pagina="rulings">
   <!-- ▌BLOQUE 2 · Marcado — Columna de filtros, lista (buscador, filtros rápidos, cuenta), el ruling abierto
        con su discusión, y las hojas. -->
   <header class="sup"><a class="marca bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-3.85 -0.01 41.15 41.15" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a><span><button type="button" id="tema" aria-pressed="false"></button><a id="aMuro" href="muro.html">Mi muro</a></span></header>
+  <main id="principal">
   <section class="enObra oculto" id="enObra" aria-labelledby="tObra">
     <h1 id="tObra">Rulings está en construcción</h1>
     <p class="pista">Estamos cargando y revisando los rulings con su traducción. Va a estar disponible pronto.</p>
@@ -78,6 +83,7 @@
       </article>
     </section>
   </div>
+  </main>
 
   <dialog class="foto" id="verCarta" aria-label="La carta en grande"><img alt="" id="vcImg"><p id="vcNombre"></p></dialog>
 
@@ -125,13 +131,13 @@
     </form>
   </dialog>
 
-<script src="config.js?v=f418b98580a6"></script>
+<script src="config.js?v=9beff3299439"></script>
 <!-- ▌BLOQUE 3 · Módulos — Firebase y sesion. -->
 <script type="module">
 import { ref, get, set, remove, update, push, onValue, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=f418b98580a6";
-import { contarVisita } from "./presencia.js?v=f418b98580a6";
+import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=9beff3299439";
+import { contarVisita } from "./presencia.js?v=9beff3299439";
 
 const $ = id => document.getElementById(id);
 contarVisita(db, "rulings");   // las visitas por día, en Estadísticas (solo números, no quién)

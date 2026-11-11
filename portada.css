@@ -81,7 +81,7 @@ h1,h2,h3,p {margin:0}
 .section-head h2 {font-size:clamp(31px,3.7vw,46px);line-height:1.12;letter-spacing:-1.9px;font-weight:650}
 .section-head>p {max-width:34ch;font-size:14px;line-height:1.7;color:var(--apagado)}
 .feature-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
-.feature {border:1px solid var(--linea);border-radius:16px;overflow:hidden;background:var(--sup);min-width:0;transition:transform .2s,box-shadow .2s}
+.feature {border:1px solid var(--linea);border-radius:var(--radio);overflow:hidden;background:var(--sup);min-width:0;transition:transform .2s,box-shadow .2s}
 .feature-scene {min-height:203px;display:flex;align-items:center;justify-content:center;padding:30px;background:var(--lila);color:#192B49;position:relative;overflow:hidden}
 .feature:nth-child(2) .feature-scene {background:var(--amarillo-suave)}
 .feature:nth-child(3) .feature-scene {background:var(--coral-suave)}
@@ -231,7 +231,7 @@ h1,h2,h3,p {margin:0}
   .hero h1 em{letter-spacing:-1.8px}.hero-description{font-size:14px;line-height:1.8;margin-top:22px;max-width:36ch}
   .hero-actions{margin-top:24px;gap:10px}.hero-actions .btn{font-size:12px;min-height:46px;padding:12px 15px}
   .hero-note{font-size:10px;margin-top:15px}.tournament-visual{width:100%;padding:10px 5px 36px 6px}
-  .game-board{border-radius:15px;padding:21px}.board-clock{font-size:85px;line-height:1.15}
+  .game-board{border-radius:var(--radio);padding:21px}.board-clock{font-size:85px;line-height:1.15}
   .game-sticker{right:-3px;top:-36px;width:72px;height:72px;font-size:10px}
   .visual-star{font-size:30px;left:5px;top:-20px}.table-notice{left:-5px;bottom:15px;padding:12px 14px;gap:9px}
   .table-notice b{font-size:11px}.table-notice small{font-size:9px}.notice-icon{width:31px;height:31px}
@@ -282,3 +282,11 @@ html {overflow-x:clip}
     linear-gradient(180deg,color-mix(in srgb,var(--pagina) 65%,transparent) 0%,color-mix(in srgb,var(--pagina) 90%,transparent) 26%,var(--pagina) 44%),
     url("fondo-portada-movil.webp") 32% top/auto 46% no-repeat,var(--pagina)}
 }
+
+/* Piso de 11 px (DESIGN.md, Regla del Piso de Once): todo texto que se lee. Las maquetas con aria-hidden
+   (el timer de ejemplo, .mini-*, .table-notice) son ilustración y pueden ir más chicas. Va al final para ganarle a los @media. */
+.eyebrow,.organizer .eyebrow,.feature-num,.tournament-visual figcaption,.footer-bottom,.despues {font-size:var(--t1)}
+.hero-note,.benefit,.footer-nav {font-size:12px}
+.feature-num {color:var(--apagado)}
+/* Objetivos táctiles: los enlaces de texto de la cabecera, el pie y la franja de organizadores miden 44 px de alto. */
+.header-nav a,.footer-nav a,.footer-legal a,.organizer-actions>a:last-child {display:inline-flex;align-items:center;min-height:44px}

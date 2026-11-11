@@ -31,7 +31,7 @@ input::placeholder,textarea::placeholder {color:var(--rotulo);opacity:1}
 .vidrio {background:var(--vidrio);box-shadow:none;border-bottom:1px solid var(--divider)}
 .sup {background:var(--vidrio);border-bottom:1px solid var(--divider);min-height:76px;padding-inline:clamp(20px,4vw,64px)}
 .sup>.bp-brand {margin-right:auto}
-.sup .btn {border:1px solid var(--divider);background:var(--sup);min-height:38px;border-radius:9px;color:var(--texto);font-weight:550}
+.sup .btn {border:1px solid var(--divider);background:var(--sup);min-height:38px;border-radius:var(--radio-chico);color:var(--texto);font-weight:550}
 .sup .btn.primario {background:var(--accion);color:var(--sobre-accion);border-color:transparent}
 .bp-brand {display:inline-flex!important;align-items:center;gap:9px;font:700 24px/1.2 var(--fuente)!important;letter-spacing:-1px!important;color:var(--texto)!important;text-decoration:none!important;flex:none}
 .bp-word>span {color:inherit}
@@ -43,7 +43,7 @@ input::placeholder,textarea::placeholder {color:var(--rotulo);opacity:1}
 .bp-theme svg {width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .bp-editor-header {display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px}
 .bp-theme[hidden] {display:none}
-.bp-skip {position:fixed;left:16px;top:-100px;z-index:10000;background:var(--sup);color:var(--texto);padding:12px 16px;border:2px solid var(--accion);border-radius:8px}
+.bp-skip {position:fixed;left:16px;top:-100px;z-index:10000;background:var(--sup);color:var(--texto);padding:12px 16px;border:2px solid var(--accion);border-radius:var(--radio-chico)}
 .bp-skip:focus {top:12px}
 :where(.pestanas,.seg,.tabs) button {transition:color var(--motion-fast),background var(--motion-fast),box-shadow var(--motion-fast)}
 .seg {border:1px solid var(--divider);border-radius:11px;background:var(--campo);padding:4px;gap:4px}
@@ -86,3 +86,6 @@ dialog[open] {animation:bp-dialog-in var(--motion-normal) var(--ease-out)}
   .bp-theme,.bp-skip {display:none!important}
   .vidrio,.sup {backdrop-filter:none;box-shadow:none}
 }
+/* La sigla de una tienda va sobre el color que eligió ella: blanca si el color es oscuro, casi negra si es claro
+   (con «Mostaza» o «Menta» la sigla blanca no pasaba 3:1). Sin color relativo en el navegador, queda blanca. */
+.logoT:not(.org) {color:#fff;color:oklch(from var(--c, var(--franja)) clamp(.22, (.64 - l) * 1000, 1) 0 0)}

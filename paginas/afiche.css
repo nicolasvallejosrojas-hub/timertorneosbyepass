@@ -110,3 +110,5 @@
   [data-pagina="afiche"]:not(.render) #vista{height:calc((100vw - 40px) * 1.25 + 40px);min-height:0;flex:none;padding:20px}
   [data-pagina="afiche"]:not(.render) #vista:has(#post.historia){height:calc((100vw - 40px) * 1.77778 + 40px)}
 }
+/* Los deslizadores se toman con el dedo: 32 px de alto (el riel nativo mide 16). */
+[data-pagina="afiche"] #panel input[type="range"] {min-height:32px}

@@ -173,3 +173,5 @@
 [data-pagina="tienda"] .chipJuego {color:var(--accion-texto);background:var(--coral-suave);font-size:11px;padding:4px 10px}
 [data-pagina="tienda"] .envivo {border:1px solid var(--divider);border-radius:18px;box-shadow:var(--sombra)}
 @media(max-width:600px) {[data-pagina="tienda"] #vDir{padding-top:30px}[data-pagina="tienda"] .grande{font-size:35px}[data-pagina="tienda"] .fila{padding:14px;min-height:70px}[data-pagina="tienda"] .portada{height:130px}}
+  /* «Ver todo» junto al rótulo: el área que se toca crece sin agrandar la fila. */
+  .gtit a,.gtit button{padding:12px 8px;margin:-12px -8px;}

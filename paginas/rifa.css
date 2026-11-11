@@ -48,5 +48,5 @@
 [data-pagina="rifa"] .caja {padding:26px;border:1px solid var(--divider);box-shadow:var(--sombra);border-radius:16px}
 [data-pagina="rifa"] .caja h2 {font-size:12px;letter-spacing:.8px;font-weight:650}
 [data-pagina="rifa"] .campo>span:not(.pista) {text-transform:none;letter-spacing:0;font-size:12px;font-weight:550;color:var(--texto)}
-[data-pagina="rifa"] .estado {font-size:10px;letter-spacing:1px;margin-bottom:12px;color:var(--accion-texto)}
+[data-pagina="rifa"] .estado {font-size:var(--t1);letter-spacing:1px;margin-bottom:12px;color:var(--accion-texto)}
 @media(max-width:600px) {[data-pagina="rifa"] main{padding-top:30px}[data-pagina="rifa"] h1{font-size:32px}[data-pagina="rifa"] .caja{padding:22px}}
