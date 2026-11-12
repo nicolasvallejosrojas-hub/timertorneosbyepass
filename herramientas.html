@@ -20,19 +20,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=4c685bfff923"></script>
+<script src="tema.js?v=c9c150faa1e1"></script>
 <meta name="robots" content="noindex">
 <title>Herramientas de administrador — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=4c685bfff923">
-<link rel="stylesheet" href="estilo.css?v=4c685bfff923">
+<link rel="stylesheet" href="tokens.css?v=c9c150faa1e1">
+<link rel="stylesheet" href="estilo.css?v=c9c150faa1e1">
 <!-- ▌BLOQUE 1 · Estilos — Mantenimiento, beta, tiendas, cifras, buzón, cuentas y borrar. -->
 
-<link rel="stylesheet" href="/paginas/herramientas.css?v=4c685bfff923">
-<link rel="stylesheet" href="/sistema.css?v=4c685bfff923">
-<script src="/sistema.js?v=4c685bfff923" defer></script>
+<link rel="stylesheet" href="/paginas/herramientas.css?v=c9c150faa1e1">
+<link rel="stylesheet" href="/sistema.css?v=c9c150faa1e1">
+<script src="/sistema.js?v=c9c150faa1e1" defer></script>
 </head>
 <body data-pagina="herramientas">
   <header class="sup vidrio">
@@ -100,6 +100,12 @@
           <span class="nota" id="limEstado" style="margin:0">Inscripciones de torneos de hace más de 30 días o de eventos que ya no existen. Guardan nombre, correo y fecha de nacimiento: la política de privacidad dice que se borran.</span></div>
         <div id="limLista"></div>
       </div>
+
+      <h2 class="gtit">Base de cartas</h2>
+      <div class="grupo"><div class="mantCaja" id="cartasBase">
+        <div><b id="caEstado">Revisando…</b><small id="caDesc"></small></div>
+        <a class="btn" href="https://github.com/nicolasvallejosrojas-hub/timertorneosbyepass/actions/workflows/cartas.yml" target="_blank" rel="noopener">Actualizar ahora</a>
+      </div></div>
 
       <h2 class="gtit">Rulings</h2>
       <div class="grupo"><div class="mantCaja" id="rulAbierto">
@@ -196,16 +202,16 @@
       <button class="btn" id="dbSi" disabled>Descargar respaldo y eliminar</button></div>
   </dialog>
 
-<script src="config.js?v=4c685bfff923"></script>
+<script src="config.js?v=c9c150faa1e1"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=4c685bfff923";
+import { avisarError } from "./errores.js?v=c9c150faa1e1";
 import { ref, onValue, get, set, update, remove, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=4c685bfff923";
-import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=4c685bfff923";
-import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=4c685bfff923";
-import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=4c685bfff923";
+import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=c9c150faa1e1";
+import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=c9c150faa1e1";
+import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=c9c150faa1e1";
+import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=c9c150faa1e1";
 estoyEnLinea(db, "herramientas");
 
 const $ = id => document.getElementById(id);
@@ -236,7 +242,7 @@ onAuthStateChanged(auth, async u => {
   escucharMantenimiento();
   escucharBeta(); escucharRulings();
   escucharSolicitudes();
-  limpiarInvitados(); limpiarOrganiza();
+  limpiarInvitados(); limpiarOrganiza(); estadoCartas();
   escucharCifras();
   pintarTiendas();
 });
@@ -318,6 +324,22 @@ async function limpiarInvitados(){
   $("invEstado").textContent = (abiertas === 1 ? "1 sala abierta" : abiertas + " salas abiertas") + " ahora" +
     (borradas ? " · se borraron " + borradas + (borradas === 1 ? " vencida" : " vencidas") : "") +
     ". Duran 24 horas; al vencer se cierran solas y se borran al abrir esta página.";
+}
+
+/* Base de cartas (cartas-estandar.json): la rehace GitHub cada lunes (.github/workflows/cartas.yml). Acá, de cuándo es,
+   la última expansión que salió (según Limitless) y cuántas cartas siguen sin foto en TCGdex. «Actualizar ahora» abre la
+   corrida en GitHub (con tu sesión de GitHub: «Run workflow»); a los ~10 minutos queda publicada. */
+async function estadoCartas(){
+  const dia = iso => new Date(iso + "T12:00:00").toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" });
+  let d;
+  try { d = await fetch("cartas-estandar.json", { cache: "no-cache" }).then(r => r.json()); }
+  catch(e){ $("caEstado").textContent = "No se pudo leer la base de cartas."; return; }
+  const u = d.ultima, falta = u && !d.cartas.some(c => c[0] === u.codigo), sinFoto = d.cartas.filter(c => !(d.imagenes || {})[c[0]]).length;
+  $("caEstado").textContent = "Al " + dia(d.actualizado) + (falta ? " · falta " + u.nombre : "");
+  $("cartasBase").classList.toggle("cerrado", !!falta);
+  $("caDesc").textContent = [u ? "Última expansión: " + u.nombre + " (" + u.codigo + ", " + dia(u.fecha) + ")" + (falta ? ", todavía no está en la base" : "") : "",
+    d.cartas.length.toLocaleString("es-CL") + " cartas", sinFoto ? sinFoto + " sin foto (TCGdex aún no las tiene)" : "todas con foto",
+    "se actualiza sola cada lunes"].filter(Boolean).join(" · ") + ".";
 }
 
 /* Marcas de organizador (organiza/<uid>/<tienda>) sin la membresía que las respalda: antes de las reglas del 10-11-2026
@@ -618,7 +640,7 @@ $("dcCierra").onclick = () => $("dlgCorreo").close();
 
 /* El post: la imagen se vuelve a dibujar con cada cambio (la última manda); el texto se rehace solo mientras no lo hayas editado a mano. */
 let POST_N = 0, POST_LOGO = null, POST_EDITADO = false, POST_MOD = null;
-const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=4c685bfff923"));
+const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=c9c150faa1e1"));
 const datosPost = () => ({ nombre: $("dpNombre").value, comuna: $("dpComuna").value, instagram: $("dpIg").value, logo: POST_LOGO, tema: $("dpTema").value });
 async function pintarPost(){
   const n = ++POST_N, m = await postMod(), d = datosPost();
@@ -853,7 +875,7 @@ const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "ti
                  "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "mazos.html", "rulings.html", "404.html"];
 /* El archivo tal como está publicado ahora (sin copias guardadas). */
 const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
-/* Lo que pide un archivo: «./clasificacion.js?v=4c685bfff923», «estilo.css?v=4c685bfff923»… → [archivo, versión]. */
+/* Lo que pide un archivo: «./clasificacion.js?v=c9c150faa1e1», «estilo.css?v=c9c150faa1e1»… → [archivo, versión]. */
 const pide = txt => [...String(txt).matchAll(/["'(]\.?\/?([a-z0-9-]+\.(?:js|css))\?v=(\d+)/g)].map(m => [m[1], +m[2]]);
 const versionDe = txt => { const m = /Versión actual: v=(\d+)/.exec(txt || ""); return m ? +m[1] : null; };
 const lineaPub = (tipo, titulo, det) => '<div class="linea ' + tipo + '"><i>' + (tipo === "ok" ? "✓" : tipo === "mal" ? "✗" : "!") + "</i><b>" + esc(titulo) + "</b>" + (det ? "<small>" + esc(det) + "</small>" : "") + "</div>";

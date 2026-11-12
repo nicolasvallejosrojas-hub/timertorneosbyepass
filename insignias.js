@@ -26,7 +26,7 @@
    Lo usan el muro (perfil propio y ajeno) y el panel (las de evento). No lee
    nada del navegador al cargarse, así que se puede probar con node.
    ============================================================ */
-import { clasificarPorCategoria, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=4c685bfff923";
+import { clasificarPorCategoria, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=c9c150faa1e1";
 
 /* ▌BLOQUE 1 · Catálogo e íconos ═════════════════════════════════════════════════
    Íconos SVG, medallas (permanentes) y parches (de tienda). */

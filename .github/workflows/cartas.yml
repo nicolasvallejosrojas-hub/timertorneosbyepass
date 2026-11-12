@@ -1,0 +1,43 @@
+# Base de cartas (cartas-estandar.json): se rehace sola cada lunes y se publica si cambió (expansión nueva, rotación,
+# fotos que TCGdex subió después). A mano: pestaña Actions → «Base de cartas» → Run workflow.
+# Si la base nueva sale incompleta (Limitless o TCGdex caídos), no se publica y la corrida queda en rojo (GitHub avisa por correo).
+name: Base de cartas
+on:
+  schedule:
+    - cron: "0 8 * * 1"     # lunes 08:00 UTC = 05:00 en Chile
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+concurrency: cartas
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Armar la base (Limitless y TCGdex, ~10 min)
+        run: |
+          python .github/cartas-estandar.py
+          python .github/cartas-estandar.py --reimpresiones
+          python .github/cartas-estandar.py --imagenes
+          python .github/cartas-estandar.py --espanol
+      - name: Publicar si cambió
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git show HEAD:cartas-estandar.json > /tmp/publicada.json
+          set +e; python .github/cartas-estandar.py --comparar /tmp/publicada.json > /tmp/mensaje.txt; r=$?; set -e
+          cat /tmp/mensaje.txt
+          if [ $r -eq 0 ]; then exit 0; fi
+          if [ $r -ne 1 ]; then echo "::error::$(cat /tmp/mensaje.txt)"; exit 1; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cartas-estandar.json
+          git commit -q -F /tmp/mensaje.txt
+          git push
+          # lo que sube este token no siempre dispara la publicación de Pages: se pide a mano
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" > /dev/null || echo "Pages se publica solo"
