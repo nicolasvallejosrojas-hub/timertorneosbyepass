@@ -1,4 +1,4 @@
-/* Noticias de Pokémon TCG en la portada y en el muro. Las lee de la base (las deja functions/noticias.mjs cada 3 horas desde el
+/* Noticias de Pokémon TCG en la portada y en el muro. Las lee de la base (las deja functions/noticias.mjs cada hora desde el
    RSS de PokéBeach) y muestra las últimas, en español o en el original en inglés, a elección de cada persona.
    Si el archivo no está o viene vacío, la sección no aparece. */
 (() => {
@@ -23,6 +23,9 @@
     return fmtDia.format(t);
   }
 
+  /* Un hilo viejo que PokéBeach volvió a subir (lo marca functions/noticias.mjs): «Actualizada hace 2 h», no «Hace 2 h». */
+  const actualizada = c => 'Actualizada ' + (/^\d/.test(c) ? 'el ' + c : c.charAt(0).toLowerCase() + c.slice(1));
+
   function pintar(){
     const ns = datos.noticias.slice(0, todas ? datos.noticias.length : POCAS);
     const hayEs = datos.noticias.some(n => n.es);
@@ -31,7 +34,7 @@
     lista.innerHTML = ns.map(n => {
       const en = lengua === 'en' || !n.es, t = en ? n.en : n.es;
       return '<li><a class="noticia" href="' + esc(n.url) + '" target="_blank" rel="noopener">' +
-        '<span class="noticia-meta"><time datetime="' + esc(n.fecha) + '">' + esc(cuando(n.fecha)) + '</time>' +
+        '<span class="noticia-meta"><time datetime="' + esc(n.fecha) + '">' + esc(n.actualizada ? actualizada(cuando(n.fecha)) : cuando(n.fecha)) + '</time>' +
         (lengua === 'es' && !n.es ? '<span class="noticia-sin">Solo en inglés</span>' : '') + '</span>' +
         '<b' + (en ? ' lang="en"' : '') + '>' + esc(t.titulo) + '</b>' +
         (t.resumen ? '<span class="noticia-resumen"' + (en ? ' lang="en"' : '') + '>' + esc(t.resumen) + '</span>' : '') +
