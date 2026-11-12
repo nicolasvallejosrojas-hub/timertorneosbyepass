@@ -9,9 +9,9 @@
    a los pocos segundos; un artículo publicado se cambia con «Guardar cambios» (así no se publica algo a medio escribir). */
 import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getStorage, connectStorageEmulator, ref as sref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { app, db, auth } from "./sesion.js?v=35bec71f5a2e";
-import { limpiarHtml } from "./blog-html.js?v=35bec71f5a2e";
-import { cargarEstandar, imagenCarta, nombreEn, norm } from "./listamazo.js?v=35bec71f5a2e";
+import { app, db, auth } from "./sesion.js?v=22360888a44c";
+import { limpiarHtml } from "./blog-html.js?v=22360888a44c";
+import { cargarEstandar, imagenCarta, nombreEn, norm } from "./listamazo.js?v=22360888a44c";
 
 const st = getStorage(app);
 if (typeof EMULADOR !== "undefined" && EMULADOR) connectStorageEmulator(st, EMULADOR.host, EMULADOR.storage);
@@ -39,7 +39,7 @@ const MARCADO = `
     <button type="button" data-cmd="enlace" title="Enlace (selecciona el texto primero)">Enlace</button>
     <button type="button" data-cmd="imagen" title="Imagen (también puedes pegarla o arrastrarla)">Imagen</button>
     <button type="button" data-cmd="carta" title="Una carta, buscándola por su nombre">Carta</button>
-    <button type="button" data-cmd="insertHorizontalRule" aria-label="Línea separadora" title="Línea separadora">―</button>
+    <button type="button" data-cmd="insertHorizontalRule" title="Línea separadora">Línea</button>
   </div>
   <div class="cuerpo edCuerpo" id="edCuerpo" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texto del artículo"></div>
   <div class="edPie"><button type="button" class="btn chico" id="edDespublicar" hidden>Volver a borrador</button><button type="button" class="btn chico peligro" id="edBorrar" hidden>Borrar artículo</button></div>
