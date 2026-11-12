@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<!-- ▌ÍNDICE de blog.html
+      1. Marcado: la lista de artículos, un artículo y el lugar del editor
+      2. Módulos
+      3. Lista y artículo
+      4. Administración (nuevo, borradores, editar)
+   El blog: artículos de Pokémon TCG que escribe la administración. Los publicados están en blog/lista (lo que muestra la lista)
+   y blog/articulos/<id> (el artículo entero); los borradores solo los lee la administración. Las fotos, achicadas, en el
+   Storage (blog/<carpeta>/…). El editor vive en blog-editor.js y se carga solo para la administración.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#243B60">
+<script src="tema.js?v=35bec71f5a2e"></script>
+<meta name="description" content="Blog de ByePass: artículos, guías y novedades de Pokémon TCG para la comunidad de jugadores y tiendas.">
+<title>Blog — ByePass</title>
+<link rel="canonical" href="https://byepass.cl/blog">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
+<link rel="stylesheet" href="tokens.css?v=35bec71f5a2e">
+<link rel="stylesheet" href="estilo.css?v=35bec71f5a2e">
+<link rel="stylesheet" href="/paginas/blog.css?v=35bec71f5a2e">
+<link rel="stylesheet" href="/sistema.css?v=35bec71f5a2e">
+<script src="/sistema.js?v=35bec71f5a2e" defer></script>
+</head>
+<body data-pagina="blog">
+  <!-- ▌BLOQUE 1 · Marcado -->
+  <header class="sup"><a class="marca bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-3.85 -0.01 41.15 41.15" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a><span><a href="blog.html">Blog</a><a id="aMuro" href="muro.html">Mi muro</a></span></header>
+  <main id="principal">
+    <!-- la lista -->
+    <section class="vista oculto" id="vistaLista" aria-labelledby="tBlog">
+      <div class="blogCab">
+        <h1 id="tBlog">Blog</h1>
+        <p class="bajada">Guías, análisis y novedades de Pokémon TCG, escritos por la comunidad de ByePass.</p>
+      </div>
+      <div class="adminBlog oculto" id="adminBlog">
+        <a class="btn primario" href="blog.html?nuevo">Nuevo artículo</a>
+        <details id="borradores"><summary>Borradores <span id="nBorr"></span></summary><ul id="listaBorr"></ul></details>
+      </div>
+      <ul class="tarjetas" id="tarjetas" aria-live="polite"><li class="cargando">Cargando…</li></ul>
+    </section>
+
+    <!-- un artículo -->
+    <article class="vista oculto" id="vistaArticulo" aria-labelledby="aTit">
+      <a class="volver" href="blog.html">← Todos los artículos</a>
+      <p class="aviso oculto" id="aBorrador">Borrador: solo lo ve la administración.</p>
+      <h1 id="aTit"></h1>
+      <p class="meta" id="aMeta"></p>
+      <figure class="portada oculto" id="aPortada"><img alt="" id="aPortadaImg"></figure>
+      <div class="cuerpo" id="aCuerpo"></div>
+      <div class="adminBlog oculto" id="aAdmin"><a class="btn" id="aEditar" href="#">Editar este artículo</a></div>
+    </article>
+
+    <!-- el editor (blog-editor.js) -->
+    <section class="vista oculto" id="vistaEditor" aria-label="Editor del artículo"></section>
+
+    <section class="vista oculto" id="vistaNada"><h1 id="nadaTit">No encontramos ese artículo</h1>
+      <p class="bajada" id="nadaTxt">Puede que ya no esté publicado.</p><a class="btn" href="blog.html">Ver todos los artículos</a></section>
+  </main>
+
+<script src="config.js?v=35bec71f5a2e"></script>
+<!-- ▌BLOQUE 2 · Módulos -->
+<script type="module">
+import { ref, get, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { db, auth, urlMuro } from "./sesion.js?v=35bec71f5a2e";
+import { contarVisita } from "./presencia.js?v=35bec71f5a2e";
+import { limpiarHtml } from "./blog-html.js?v=35bec71f5a2e";
+
+const $ = id => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+const ID = (q.get("a") || q.get("editar") || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 80);
+const EDITAR = q.has("editar") || q.has("nuevo");
+contarVisita(db, "blog");
+/* En byepass.cl la dirección queda sin «.html» (byepass.cl/blog?a=…), igual que rulings. */
+if (/(^|\.)byepass\.cl$/.test(location.hostname) && location.pathname.endsWith("/blog.html"))
+  history.replaceState(null, "", location.pathname.slice(0, -5) + location.search + location.hash);
+const ver = id => ["vistaLista", "vistaArticulo", "vistaEditor", "vistaNada"].forEach(v => $(v).classList.toggle("oculto", v !== id));
+const dia = ms => new Date(ms).toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" });
+
+/* ▌BLOQUE 3 · Lista y artículo */
+async function pintarLista(){
+  ver("vistaLista");
+  let filas = [];
+  try {
+    const s = await get(query(ref(db, "blog/lista"), orderByChild("publicado"), limitToLast(60)));
+    s.forEach(c => { filas.unshift({ id: c.key, ...c.val() }); });
+  } catch(e){ $("tarjetas").innerHTML = '<li class="vacio">No se pudo cargar el blog. Revisa la conexión.</li>'; return; }
+  $("tarjetas").innerHTML = filas.map((a, i) => '<li><a class="tarjeta' + (i === 0 ? " destacada" : "") + '" href="blog.html?a=' + esc(a.id) + '">' +
+      (a.min ? '<img src="' + esc(a.min) + '" alt="" loading="' + (i < 3 ? "eager" : "lazy") + '">' : '<span class="sinFoto" aria-hidden="true"></span>') +
+      '<span class="txt"><time datetime="' + new Date(a.publicado).toISOString() + '">' + esc(dia(a.publicado)) + "</time>" +
+      "<b>" + esc(a.titulo) + "</b>" + (a.resumen ? "<span>" + esc(a.resumen) + "</span>" : "") + "</span></a></li>").join("") ||
+    '<li class="vacio"><b>Todavía no hay artículos.</b>Muy pronto vas a encontrar acá guías y novedades del TCG.</li>';
+}
+
+async function pintarArticulo(id){
+  let a = null;
+  try { a = (await get(ref(db, "blog/articulos/" + id))).val(); } catch(e){ /* no publicado y sin permiso: como si no existiera */ }
+  if (!a){ ver("vistaNada"); return null; }
+  ver("vistaArticulo");
+  document.title = a.titulo + " — Blog ByePass";
+  document.querySelector('meta[name="description"]').content = a.resumen || a.titulo;
+  $("aTit").textContent = a.titulo;
+  const pub = a.publicado || a.creado, editado = a.publicado && a.actualizado - a.publicado > 36e5;
+  $("aMeta").innerHTML = '<time datetime="' + new Date(pub).toISOString() + '">' + esc(dia(pub)) + "</time>" +
+    (editado ? " · actualizado el " + esc(dia(a.actualizado)) : "") + (a.autor ? " · " + esc(a.autor) : "");
+  $("aBorrador").classList.toggle("oculto", a.estado === "publicado");
+  $("aPortada").classList.toggle("oculto", !a.portada);
+  if (a.portada) $("aPortadaImg").src = a.portada.img;
+  $("aCuerpo").innerHTML = limpiarHtml(a.cuerpo);
+  $("aEditar").href = "blog.html?editar=" + encodeURIComponent(id);
+  return a;
+}
+
+/* ▌BLOQUE 4 · Administración */
+let ADMIN = false;
+async function borradores(){
+  try {
+    const todos = (await get(ref(db, "blog/articulos"))).val() || {};
+    const bs = Object.entries(todos).filter(([, a]) => a.estado !== "publicado").sort(([, a], [, b]) => b.actualizado - a.actualizado);
+    $("nBorr").textContent = bs.length ? "(" + bs.length + ")" : "";
+    $("listaBorr").innerHTML = bs.map(([id, a]) => '<li><a href="blog.html?editar=' + esc(id) + '">' + esc(a.titulo || "Sin título") + "</a> <small>" + esc(dia(a.actualizado)) + "</small></li>").join("") ||
+      "<li><small>No hay borradores.</small></li>";
+  } catch(e){ $("listaBorr").innerHTML = "<li><small>No se pudieron leer los borradores.</small></li>"; }
+}
+
+const arranque = new Promise(ok => onAuthStateChanged(auth, async u => {
+  ADMIN = false;
+  $("aMuro").href = u && !u.isAnonymous ? urlMuro() : "cuenta.html";
+  if (u && !u.isAnonymous) try { ADMIN = (await get(ref(db, "admins/" + u.uid))).val() === true; } catch(e){ /* no es admin */ }
+  ok();
+}));
+
+(async () => {
+  if (!EDITAR){
+    if (ID) await pintarArticulo(ID); else await pintarLista();
+  }
+  await arranque;
+  if (EDITAR){
+    if (!ADMIN){ ver("vistaNada"); $("nadaTit").textContent = "Solo la administración escribe en el blog"; $("nadaTxt").textContent = "Entra con tu cuenta de administrador."; return; }
+    ver("vistaEditor");
+    const { abrirEditor } = await import("./blog-editor.js?v=35bec71f5a2e");
+    abrirEditor({ caja: $("vistaEditor"), id: q.has("nuevo") ? "" : ID });
+    return;
+  }
+  if (!ADMIN) return;
+  if (ID){ $("aAdmin").classList.remove("oculto"); if ($("vistaNada").classList.contains("oculto") === false) await pintarArticulo(ID); }
+  else { $("adminBlog").classList.remove("oculto"); borradores(); }
+})();
+</script>
+</body>
+</html>

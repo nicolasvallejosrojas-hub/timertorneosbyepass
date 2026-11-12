@@ -23,18 +23,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=840631c05907"></script>
+<script src="tema.js?v=35bec71f5a2e"></script>
 <title>ByePass — Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=840631c05907">
-<link rel="stylesheet" href="estilo.css?v=840631c05907">
+<link rel="stylesheet" href="tokens.css?v=35bec71f5a2e">
+<link rel="stylesheet" href="estilo.css?v=35bec71f5a2e">
 <!-- ▌BLOQUE 1 · Estilos del muro — Rejilla de tres columnas, perfil, publicaciones, en vivo e insignias. -->
 
-<link rel="stylesheet" href="/paginas/muro.css?v=840631c05907">
-<link rel="stylesheet" href="/sistema.css?v=840631c05907">
-<script src="/sistema.js?v=840631c05907" defer></script>
+<link rel="stylesheet" href="/paginas/muro.css?v=35bec71f5a2e">
+<link rel="stylesheet" href="/sistema.css?v=35bec71f5a2e">
+<script src="/sistema.js?v=35bec71f5a2e" defer></script>
 </head>
 <body data-pagina="muro">
 
@@ -78,6 +78,7 @@
         <li class="oculto" id="liPedir"><a href="cuenta.html#tienda" id="aPedir">Pedir una tienda</a></li>
         <li class="oculto" id="liHerr"><a href="herramientas.html" id="aHerr">Herramientas de administrador</a></li>
         <li><a href="mazos.html" id="aMazos">Mis mazos</a></li>
+        <li><a href="blog.html">Blog</a></li>
         <li class="oculto" id="liRulings"><a href="rulings.html" id="aRulings">Rulings</a></li>
         <li><a href="cuenta.html#ajustes" id="aCuenta">Ajustes</a></li>
         <li><button type="button" id="bTema" aria-pressed="false"></button></li>
@@ -220,24 +221,24 @@
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
-<script src="config.js?v=840631c05907"></script>
-<script src="noticias.js?v=840631c05907"></script>
+<script src="config.js?v=35bec71f5a2e"></script>
+<script src="noticias.js?v=35bec71f5a2e"></script>
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=840631c05907";
+import { avisarError } from "./errores.js?v=35bec71f5a2e";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, serverTimestamp, query, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signOut, onAuthStateChanged, sendEmailVerification }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=840631c05907";
-import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=840631c05907";
-import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=840631c05907";
-import { estoyEnLinea } from "./presencia.js?v=840631c05907";
-import { perfilCompleto } from "./registro.js?v=840631c05907";
-import { leerHistorial } from "./historial.js?v=840631c05907";
-import { vigilar } from "./mantenimiento.js?v=840631c05907";
-import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=840631c05907";
+import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=35bec71f5a2e";
+import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=35bec71f5a2e";
+import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=35bec71f5a2e";
+import { estoyEnLinea } from "./presencia.js?v=35bec71f5a2e";
+import { perfilCompleto } from "./registro.js?v=35bec71f5a2e";
+import { leerHistorial } from "./historial.js?v=35bec71f5a2e";
+import { vigilar } from "./mantenimiento.js?v=35bec71f5a2e";
+import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=35bec71f5a2e";
 
 const $ = id => document.getElementById(id);
 /* El muro es el inicio de cada persona y no depende de una tienda. El ?sala= solo cuenta con #jugador=

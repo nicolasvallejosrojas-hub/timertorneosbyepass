@@ -19,18 +19,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=840631c05907"></script>
+<script src="tema.js?v=35bec71f5a2e"></script>
 <title>Tiendas — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=840631c05907">
-<link rel="stylesheet" href="estilo.css?v=840631c05907">
+<link rel="stylesheet" href="tokens.css?v=35bec71f5a2e">
+<link rel="stylesheet" href="estilo.css?v=35bec71f5a2e">
 <!-- ▌BLOQUE 1 · Estilos — Perfil de la tienda, directorio y edición de fotos. -->
 
-<link rel="stylesheet" href="/paginas/tienda.css?v=840631c05907">
-<link rel="stylesheet" href="/sistema.css?v=840631c05907">
-<script src="/sistema.js?v=840631c05907" defer></script>
+<link rel="stylesheet" href="/paginas/tienda.css?v=35bec71f5a2e">
+<link rel="stylesheet" href="/sistema.css?v=35bec71f5a2e">
+<script src="/sistema.js?v=35bec71f5a2e" defer></script>
 </head>
 <body data-pagina="tienda">
   <header class="sup vidrio">
@@ -163,20 +163,20 @@
     <a href="terminos.html">Términos</a> ·
     <a href="privacidad.html">Privacidad</a> · ByePass © 2026</p></footer>
 
-<script src="config.js?v=840631c05907"></script>
+<script src="config.js?v=35bec71f5a2e"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
 import { aplicarMarca } from "./identidad.js";
 import { ref, onValue, get, set, update, remove, query, orderByChild, equalTo, push, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro, urlPanel } from "./sesion.js?v=840631c05907";
-import { slug, tiendaDe, salaDeTimer, MAX_TIMERS, nombreTienda, iniciales } from "./sala.js?v=840631c05907";
-import { ordenar, estaVigente, fechaLegible, cuantoFalta, urlGoogle, MES_LARGO } from "./agenda.js?v=840631c05907";
-import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, timerDe, deTimer, claveGlobal } from "./clasificacion.js?v=840631c05907";
-import { norm } from "./insignias.js?v=840631c05907";
-import { estoyEnLinea } from "./presencia.js?v=840631c05907";
-import { leerHistorial, historialUnaVez } from "./historial.js?v=840631c05907";
+import { db, auth, enEmulador, urlCuenta, urlMuro, urlPanel } from "./sesion.js?v=35bec71f5a2e";
+import { slug, tiendaDe, salaDeTimer, MAX_TIMERS, nombreTienda, iniciales } from "./sala.js?v=35bec71f5a2e";
+import { ordenar, estaVigente, fechaLegible, cuantoFalta, urlGoogle, MES_LARGO } from "./agenda.js?v=35bec71f5a2e";
+import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, timerDe, deTimer, claveGlobal } from "./clasificacion.js?v=35bec71f5a2e";
+import { norm } from "./insignias.js?v=35bec71f5a2e";
+import { estoyEnLinea } from "./presencia.js?v=35bec71f5a2e";
+import { leerHistorial, historialUnaVez } from "./historial.js?v=35bec71f5a2e";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque ══════════════════════════════════════════════════════════

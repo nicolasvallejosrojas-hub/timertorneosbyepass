@@ -47,7 +47,7 @@ function esc(t){
 // En localhost o en la red local va encendido por defecto; ?emu=0 lo apaga (queda
 // recordado en la pestaña) para mirar la base real a propósito, y ?emu=1 lo enciende.
 //
-// EMULADOR es null (apagado) o { host, auth, db }.
+// EMULADOR es null (apagado) o { host, auth, db, storage }.
 const EMULADOR = (function(){
   var h = location.hostname;
   var local = h === "localhost" || h === "127.0.0.1" || h === "[::1]"
@@ -70,7 +70,7 @@ const EMULADOR = (function(){
 
   // El host es el mismo por el que llegaste: desde el celular, la IP del
   // notebook. Por eso el emulador se levanta escuchando en 0.0.0.0.
-  return { host: h, auth: 9099, db: 9000 };
+  return { host: h, auth: 9099, db: 9000, storage: 9199 };
 })();
 
 // ====== POLÍTICA DE SEGURIDAD (CSP) ======
@@ -91,8 +91,9 @@ if (!EMULADOR){
     "connect-src 'self' https://*.firebaseio.com wss://*.firebaseio.com"
       + " https://identitytoolkit.googleapis.com https://securetoken.googleapis.com"
       + " https://fcmregistrations.googleapis.com https://fcm.googleapis.com https://firebaseinstallations.googleapis.com"   // avisos push
-      + " https://us-central1-timer-y-qrs-pokemon.cloudfunctions.net",   // los minijuegos de la espera (functions/juegos.js)
-    "img-src 'self' data: blob: https://assets.tcgdex.net",   // las fotos de las cartas en el armador de mazos (no se guardan aquí)
+      + " https://us-central1-timer-y-qrs-pokemon.cloudfunctions.net"   // los minijuegos de la espera (functions/juegos.js)
+      + " https://firebasestorage.googleapis.com",   // subir las fotos del blog (blog-editor.js)
+    "img-src 'self' data: blob: https://assets.tcgdex.net https://firebasestorage.googleapis.com",   // fotos de cartas (TCGdex) y del blog (Storage)
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "media-src 'self' data: blob:",
