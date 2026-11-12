@@ -22,10 +22,10 @@ import { getDatabase, connectDatabaseEmulator, ref, get, update, increment }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, updateProfile, sendEmailVerification, deleteUser }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { crearRegistro, perfilCompleto } from "./registro.js?v=c9c150faa1e1";
+import { crearRegistro, perfilCompleto } from "./registro.js?v=b88c3738b9df";
 export { perfilCompleto };
-import { SALA } from "./sala.js?v=c9c150faa1e1";
-import { vigilar } from "./mantenimiento.js?v=c9c150faa1e1";
+import { SALA } from "./sala.js?v=b88c3738b9df";
+import { vigilar } from "./mantenimiento.js?v=b88c3738b9df";
 
 /* ▌BLOQUE 1 · Firebase y enlaces ════════════════════════════════════════════════
    app, db, auth compartidos; params() conserva ?emu y ?sala en los enlaces. */

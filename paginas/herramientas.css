@@ -135,3 +135,4 @@
   [data-pagina="herramientas"] .sup>.bp-theme{order:1}
   [data-pagina="herramientas"] .sup>.btn{order:2}
 }
+  .nfila{grid-template-columns:1fr auto;}

@@ -12,9 +12,9 @@
    Se entrega como PNG: en el celular abre el menú de compartir; en el
    computador se descarga. No sube nada: la imagen queda solo en el aparato.
    ============================================================ */
-import { cabe, entregarImagen } from "./tablafinal.js?v=c9c150faa1e1";
-import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=c9c150faa1e1";
-import { celdasDelMes, porFecha, ordenar, DOWS, MES_LARGO } from "./agenda.js?v=c9c150faa1e1";
+import { cabe, entregarImagen } from "./tablafinal.js?v=b88c3738b9df";
+import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=b88c3738b9df";
+import { celdasDelMes, porFecha, ordenar, DOWS, MES_LARGO } from "./agenda.js?v=b88c3738b9df";
 
 /* ▌BLOQUE 1 · Calendario del mes como imagen ════════════════════════════════════
    Dibuja el mes (rejilla lunes a domingo y lista, un color por juego) sobre el fondo elegido y lo

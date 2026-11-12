@@ -11,19 +11,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=c9c150faa1e1"></script>
+<script src="tema.js?v=b88c3738b9df"></script>
 <meta name="robots" content="noindex">
 <title>Staff de la sala — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=c9c150faa1e1">
-<link rel="stylesheet" href="estilo.css?v=c9c150faa1e1">
+<link rel="stylesheet" href="tokens.css?v=b88c3738b9df">
+<link rel="stylesheet" href="estilo.css?v=b88c3738b9df">
 <!-- ▌BLOQUE 1 · Estilos — Formularios, espera y chat del staff. -->
 
-<link rel="stylesheet" href="/paginas/staff.css?v=c9c150faa1e1">
-<link rel="stylesheet" href="/sistema.css?v=c9c150faa1e1">
-<script src="/sistema.js?v=c9c150faa1e1" defer></script>
+<link rel="stylesheet" href="/paginas/staff.css?v=b88c3738b9df">
+<link rel="stylesheet" href="/sistema.css?v=b88c3738b9df">
+<script src="/sistema.js?v=b88c3738b9df" defer></script>
 </head>
 <body data-pagina="staff">
   <!-- ▌BLOQUE 2 · Marcado — Código, nombre, espera y chat. -->
@@ -116,14 +116,14 @@
     <button type="button" data-v="Chat">Chat<span class="insig" id="badgeChat" hidden></span></button>
   </nav>
 
-<script src="config.js?v=c9c150faa1e1"></script>
+<script src="config.js?v=b88c3738b9df"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y la app «staff» (sesión anónima aparte). -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, push, remove, onValue, query, limitToLast, serverTimestamp, runTransaction }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=c9c150faa1e1";
+import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=b88c3738b9df";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════

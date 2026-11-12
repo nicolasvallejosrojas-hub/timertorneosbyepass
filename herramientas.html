@@ -20,19 +20,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=c9c150faa1e1"></script>
+<script src="tema.js?v=b88c3738b9df"></script>
 <meta name="robots" content="noindex">
 <title>Herramientas de administrador — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=c9c150faa1e1">
-<link rel="stylesheet" href="estilo.css?v=c9c150faa1e1">
+<link rel="stylesheet" href="tokens.css?v=b88c3738b9df">
+<link rel="stylesheet" href="estilo.css?v=b88c3738b9df">
 <!-- ▌BLOQUE 1 · Estilos — Mantenimiento, beta, tiendas, cifras, buzón, cuentas y borrar. -->
 
-<link rel="stylesheet" href="/paginas/herramientas.css?v=c9c150faa1e1">
-<link rel="stylesheet" href="/sistema.css?v=c9c150faa1e1">
-<script src="/sistema.js?v=c9c150faa1e1" defer></script>
+<link rel="stylesheet" href="/paginas/herramientas.css?v=b88c3738b9df">
+<link rel="stylesheet" href="/sistema.css?v=b88c3738b9df">
+<script src="/sistema.js?v=b88c3738b9df" defer></script>
 </head>
 <body data-pagina="herramientas">
   <header class="sup vidrio">
@@ -100,6 +100,9 @@
           <span class="nota" id="limEstado" style="margin:0">Inscripciones de torneos de hace más de 30 días o de eventos que ya no existen. Guardan nombre, correo y fecha de nacimiento: la política de privacidad dice que se borran.</span></div>
         <div id="limLista"></div>
       </div>
+
+      <h2 class="gtit">Noticias del TCG</h2>
+      <div class="grupo" id="ntLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
 
       <h2 class="gtit">Base de cartas</h2>
       <div class="grupo"><div class="mantCaja" id="cartasBase">
@@ -202,16 +205,16 @@
       <button class="btn" id="dbSi" disabled>Descargar respaldo y eliminar</button></div>
   </dialog>
 
-<script src="config.js?v=c9c150faa1e1"></script>
+<script src="config.js?v=b88c3738b9df"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=c9c150faa1e1";
+import { avisarError } from "./errores.js?v=b88c3738b9df";
 import { ref, onValue, get, set, update, remove, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=c9c150faa1e1";
-import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=c9c150faa1e1";
-import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=c9c150faa1e1";
-import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=c9c150faa1e1";
+import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=b88c3738b9df";
+import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=b88c3738b9df";
+import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=b88c3738b9df";
+import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=b88c3738b9df";
 estoyEnLinea(db, "herramientas");
 
 const $ = id => document.getElementById(id);
@@ -242,7 +245,7 @@ onAuthStateChanged(auth, async u => {
   escucharMantenimiento();
   escucharBeta(); escucharRulings();
   escucharSolicitudes();
-  limpiarInvitados(); limpiarOrganiza(); estadoCartas();
+  limpiarInvitados(); limpiarOrganiza(); estadoCartas(); escucharNoticias();
   escucharCifras();
   pintarTiendas();
 });
@@ -324,6 +327,25 @@ async function limpiarInvitados(){
   $("invEstado").textContent = (abiertas === 1 ? "1 sala abierta" : abiertas + " salas abiertas") + " ahora" +
     (borradas ? " · se borraron " + borradas + (borradas === 1 ? " vencida" : " vencidas") : "") +
     ". Duran 24 horas; al vencer se cierran solas y se borran al abrir esta página.";
+}
+
+/* Noticias del TCG (noticias/noticias: las trae la función «noticias» cada hora desde PokéBeach). «Quitar» la saca de la
+   portada y del muro y la anota en noticiasOcultas/<id>, así la función no la vuelve a traer (functions/noticias.mjs). */
+function escucharNoticias(){
+  onValue(ref(db, "noticias/noticias"), s => {
+    const ns = (s.val() || []).filter(Boolean), tit = n => (n.es && n.es.titulo) || n.en.titulo;
+    $("ntLista").innerHTML = ns.map((n, i) => '<div class="tfila nfila"><div><b>' + esc(tit(n)) + "</b><small>" +
+      esc([fechaHora(Date.parse(n.fecha)), n.es ? n.en.titulo : ""].filter(Boolean).join(" · ")) + "</small></div>" +
+      '<div class="acc"><button class="btn chico" data-quitar-nt="' + i + '">Quitar</button></div></div>').join("") ||
+      '<div class="nota" style="padding:var(--e4)">No hay noticias guardadas.</div>';
+    $("ntLista").querySelectorAll("[data-quitar-nt]").forEach(b => b.onclick = async () => {
+      const n = ns[+b.dataset.quitarNt];
+      if (!n || !confirm("¿Quitar «" + tit(n) + "»? Deja de verse en la portada y en el muro, y no vuelve a aparecer.")) return;
+      b.disabled = true;
+      try { await update(ref(db), { ["noticiasOcultas/" + String(n.id).replace(/[.#$\[\]\/]/g, "_")]: Date.now(), "noticias/noticias": ns.filter(x => x !== n) }); }
+      catch(e){ b.disabled = false; avisarError(e); }
+    });
+  }, () => { $("ntLista").innerHTML = '<div class="nota" style="padding:var(--e4)">No se pudieron leer las noticias.</div>'; });
 }
 
 /* Base de cartas (cartas-estandar.json): la rehace GitHub cada lunes (.github/workflows/cartas.yml). Acá, de cuándo es,
@@ -640,7 +662,7 @@ $("dcCierra").onclick = () => $("dlgCorreo").close();
 
 /* El post: la imagen se vuelve a dibujar con cada cambio (la última manda); el texto se rehace solo mientras no lo hayas editado a mano. */
 let POST_N = 0, POST_LOGO = null, POST_EDITADO = false, POST_MOD = null;
-const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=c9c150faa1e1"));
+const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=b88c3738b9df"));
 const datosPost = () => ({ nombre: $("dpNombre").value, comuna: $("dpComuna").value, instagram: $("dpIg").value, logo: POST_LOGO, tema: $("dpTema").value });
 async function pintarPost(){
   const n = ++POST_N, m = await postMod(), d = datosPost();
@@ -763,7 +785,8 @@ function pintarSolicitudes(){
       (e === 1 ? '<button class="btn chico primario" data-avisar="' + esc(uid) + '" title="Le manda por correo el aviso de «tu tienda fue aceptada»">Avisarle</button>' +
         '<button class="btn chico" data-post="' + esc(uid) + '" title="La imagen y el texto de Instagram para anunciar que la tienda se sumó">Post de Instagram</button>' : "") +
       (e !== 1 ? '<button class="btn chico primario" data-aprobar="' + esc(uid) + '">Aprobar</button>' : "") +
-      (e !== 2 ? '<button class="btn chico" data-rechazar="' + esc(uid) + '">Rechazar</button>' : "") + "</div></div>";
+      (e !== 2 ? '<button class="btn chico" data-rechazar="' + esc(uid) + '">Rechazar</button>' : "") +
+      (e === 2 ? '<button class="btn chico" data-borrarsol="' + esc(uid) + '" title="La saca de la lista. Quien la pidió deja de ver el rechazo y puede volver a pedir una tienda.">Borrar</button>' : "") + "</div></div>";
   }).join("") || '<div class="nota" style="padding:var(--e4)">No hay solicitudes.</div>';
   $("solLista").querySelectorAll("[data-aprobar]").forEach(b => b.onclick = async () => {
     b.disabled = true;
@@ -785,6 +808,14 @@ function pintarSolicitudes(){
     const x = SOL[b.dataset.post]; if (!x) return;
     const c = canalDe(x.contacto);
     abrirPost({ nombre: x.nombre, comuna: x.comuna, instagram: c.tipo === "instagram" ? c.destino : "" });
+  });
+  /* Borrar una rechazada: se va la solicitud entera (quien la pidió ya no ve la nota del rechazo y puede pedir otra). */
+  $("solLista").querySelectorAll("[data-borrarsol]").forEach(b => b.onclick = async () => {
+    const x = SOL[b.dataset.borrarsol]; if (!x) return;
+    if (!confirm("¿Borrar la solicitud rechazada de «" + x.nombre + "»? Quien la pidió deja de ver el rechazo y puede volver a pedir una tienda.")) return;
+    b.disabled = true;
+    try { await remove(ref(db, "solicitudes/" + b.dataset.borrarsol)); }
+    catch(e){ b.disabled = false; $("solResumen").textContent = "No se pudo borrar. Revisa la conexión."; }
   });
   $("solLista").querySelectorAll("[data-rechazar]").forEach(b => b.onclick = async () => {
     const nota = prompt("¿Por qué? Lo ve quien la pidió (opcional):", "");
@@ -875,7 +906,7 @@ const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "ti
                  "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "mazos.html", "rulings.html", "404.html"];
 /* El archivo tal como está publicado ahora (sin copias guardadas). */
 const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
-/* Lo que pide un archivo: «./clasificacion.js?v=c9c150faa1e1», «estilo.css?v=c9c150faa1e1»… → [archivo, versión]. */
+/* Lo que pide un archivo: «./clasificacion.js?v=b88c3738b9df», «estilo.css?v=b88c3738b9df»… → [archivo, versión]. */
 const pide = txt => [...String(txt).matchAll(/["'(]\.?\/?([a-z0-9-]+\.(?:js|css))\?v=(\d+)/g)].map(m => [m[1], +m[2]]);
 const versionDe = txt => { const m = /Versión actual: v=(\d+)/.exec(txt || ""); return m ? +m[1] : null; };
 const lineaPub = (tipo, titulo, det) => '<div class="linea ' + tipo + '"><i>' + (tipo === "ok" ? "✓" : tipo === "mal" ? "✗" : "!") + "</i><b>" + esc(titulo) + "</b>" + (det ? "<small>" + esc(det) + "</small>" : "") + "</div>";
