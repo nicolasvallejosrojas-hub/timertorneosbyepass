@@ -65,6 +65,22 @@
   .cuerpo figure.carta{max-width:300px;margin-left:auto;margin-right:auto;}
   .cuerpo figure.carta img{border-radius:4.6%/3.4%;box-shadow:0 8px 28px #14243C26;}
   .cuerpo img{max-width:100%;height:auto;}
+  /* tamaños de imágenes y cartas (los elige el editor) */
+  .cuerpo figure.chica,.cuerpo figure.mediana,.cuerpo figure.grande{margin-left:auto;margin-right:auto;}
+  .cuerpo figure.chica{max-width:200px;}
+  .cuerpo figure.mediana{max-width:320px;}
+  .cuerpo figure.grande{max-width:520px;}
+  .cuerpo figure.completa{max-width:none;}
+  /* cuadrículas: columnas parejas; todo lo de adentro se achica al ancho de su celda */
+  .cuerpo table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:16px;line-height:1.5;}
+  .cuerpo td,.cuerpo th{border:1px solid var(--divider);padding:10px 12px;vertical-align:top;overflow-wrap:anywhere;}
+  .cuerpo th{background:var(--campo);font-weight:650;text-align:left;}
+  .cuerpo td > *,.cuerpo th > *{margin:0;}
+  .cuerpo td > * + *,.cuerpo th > * + *{margin-top:.6em;}
+  .cuerpo td figure,.cuerpo th figure{margin-left:auto;margin-right:auto;}
+  .cuerpo td figure:not(.chica):not(.mediana):not(.grande),.cuerpo th figure:not(.chica):not(.mediana):not(.grande){max-width:100%;}
+  .cuerpo td figcaption{font-size:13px;}
+  @media (max-width:560px){ .cuerpo table{font-size:14px;} .cuerpo td,.cuerpo th{padding:6px;} }
 
   /* el editor */
   #vistaEditor{max-width:none;padding:0 0 var(--e6);}
@@ -91,6 +107,18 @@
   .edCuerpo{min-height:50vh;padding:var(--e3) 2px var(--e5);outline:none;}
   .edCuerpo:focus-visible{outline:none;}
   .edCuerpo figure{position:relative;}
+  .edCuerpo figure img{cursor:pointer;}
+  .edCuerpo figure.sel img{outline:3px solid var(--accion);outline-offset:3px;}
+  .edCuerpo td,.edCuerpo th{height:2.6em;}
+  .edCtx{display:flex;flex-wrap:wrap;align-items:center;gap:4px;width:100%;border-top:1px solid var(--divider);padding-top:6px;margin-top:2px;}
+  .edCtx[hidden]{display:none;}
+  .edCtxT{font-size:12px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;color:var(--apagado);margin-right:6px;}
+  .edHerr .edCtx button[aria-pressed="true"]{background:var(--campo);font-weight:650;}
+  .edTablaCampos{display:flex;gap:var(--e3);}
+  .edTablaCampos label{display:flex;flex-direction:column;gap:6px;font-size:var(--t2);color:var(--apagado);}
+  .edTablaCampos input{width:120px;}
+  .edAyuda{font-size:var(--t2);color:var(--apagado);margin-top:var(--e3);line-height:1.5;}
+  .edDlgAcc{gap:var(--e2);}
   .edPie{display:flex;gap:var(--e2);justify-content:flex-end;border-top:1px solid var(--divider);padding-top:var(--e3);}
   .edDialog{width:min(620px,92vw);max-height:84vh;border:1px solid var(--divider);border-radius:var(--radio);background:var(--sup);color:var(--texto);padding:var(--e4);}
   .edDialog h2{font-size:var(--t4);margin:0 0 var(--e3);}

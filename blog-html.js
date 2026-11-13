@@ -8,7 +8,10 @@
 const PERMITIDAS = {
   P: [], H2: [], H3: [], STRONG: [], B: [], EM: [], I: [], U: [], S: [], UL: [], OL: [], LI: [], BLOCKQUOTE: [],
   A: ["href"], IMG: ["src", "alt", "width", "height"], FIGURE: ["class"], FIGCAPTION: [], BR: [], HR: [],
+  TABLE: [], THEAD: [], TBODY: [], TFOOT: [], TR: [], TD: ["colspan", "rowspan"], TH: ["colspan", "rowspan"],
 };
+/* las clases que puede llevar una figura: carta (una carta de TCGdex) y su tamaño (blog-editor.js) */
+const CLASES_FIGURA = new Set(["carta", "chica", "mediana", "grande", "completa"]);
 const FUERA = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "TEMPLATE", "NOSCRIPT", "SVG", "MATH", "FORM", "INPUT",
   "BUTTON", "TEXTAREA", "SELECT", "LINK", "META", "TITLE", "HEAD", "VIDEO", "AUDIO", "CANVAS"]);
 const A_PARRAFO = new Set(["DIV", "SECTION", "ARTICLE", "HEADER", "FOOTER", "ASIDE", "MAIN"]);
@@ -59,6 +62,10 @@ function limpiar(nodo){
       n.setAttribute("loading", "lazy"); n.setAttribute("decoding", "async");
       if (!n.hasAttribute("alt")) n.setAttribute("alt", "");
     }
-    if (tag === "FIGURE" && n.getAttribute("class") !== "carta") n.removeAttribute("class");
+    if (tag === "FIGURE"){
+      const c = (n.getAttribute("class") || "").split(/\s+/).filter(x => CLASES_FIGURA.has(x));
+      if (c.length) n.setAttribute("class", [...new Set(c)].join(" ")); else n.removeAttribute("class");
+    }
+    if (tag === "TD" || tag === "TH") for (const a of ["colspan", "rowspan"]) if (n.hasAttribute(a) && !/^[1-9]$/.test(n.getAttribute(a))) n.removeAttribute(a);
   }
 }

@@ -9,9 +9,9 @@
    a los pocos segundos; un artículo publicado se cambia con «Guardar cambios» (así no se publica algo a medio escribir). */
 import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getStorage, connectStorageEmulator, ref as sref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { app, db, auth } from "./sesion.js?v=7c67af9e7142";
-import { limpiarHtml } from "./blog-html.js?v=7c67af9e7142";
-import { norm } from "./listamazo.js?v=7c67af9e7142";
+import { app, db, auth } from "./sesion.js?v=a5b75f75abc3";
+import { limpiarHtml } from "./blog-html.js?v=a5b75f75abc3";
+import { norm } from "./listamazo.js?v=a5b75f75abc3";
 
 const st = getStorage(app);
 if (typeof EMULADOR !== "undefined" && EMULADOR) connectStorageEmulator(st, EMULADOR.host, EMULADOR.storage);
@@ -40,11 +40,20 @@ const MARCADO = `
     <button type="button" data-cmd="imagen" title="Imagen (también puedes pegarla o arrastrarla)">Imagen</button>
     <button type="button" data-cmd="carta" title="Una carta, buscándola por su nombre">Carta</button>
     <button type="button" data-cmd="insertHorizontalRule" title="Línea separadora">Línea</button>
+    <button type="button" data-cmd="tabla" title="Una cuadrícula de celdas, como en Excel, para ordenar texto, imágenes y cartas">Cuadrícula</button>
+    <span class="edCtx" id="edTablaAcc" hidden><span class="edCtxT">Cuadrícula</span><button type="button" data-tab="fila">+ Fila</button><button type="button" data-tab="col">+ Columna</button><button type="button" data-tab="-fila">− Fila</button><button type="button" data-tab="-col">− Columna</button><button type="button" data-tab="quitar">Quitar cuadrícula</button></span>
+    <span class="edCtx" id="edTamAcc" hidden><span class="edCtxT">Tamaño</span><button type="button" data-tam="chica">Chica</button><button type="button" data-tam="mediana">Mediana</button><button type="button" data-tam="grande">Grande</button><button type="button" data-tam="completa">Completa</button><button type="button" data-tam="quitar">Quitar</button></span>
   </div>
   <div class="cuerpo edCuerpo" id="edCuerpo" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texto del artículo"></div>
   <div class="edPie"><button type="button" class="btn chico" id="edDespublicar" hidden>Volver a borrador</button><button type="button" class="btn chico peligro" id="edBorrar" hidden>Borrar artículo</button></div>
 </div>
 <input type="file" id="edArchivo" accept="image/*" hidden>
+<dialog id="edTablaDlg" class="edDialog" aria-labelledby="edTablaTit">
+  <h2 id="edTablaTit">Insertar una cuadrícula</h2>
+  <div class="edTablaCampos"><label>Filas <input id="edFilas" type="number" min="1" max="30" value="2"></label><label>Columnas <input id="edCols" type="number" min="1" max="6" value="3"></label></div>
+  <p class="edAyuda">Cada celda es como un pedacito de texto: escribe, o pon una imagen o una carta. Con Tab pasas a la celda siguiente (en la última, Tab agrega una fila).</p>
+  <form method="dialog" class="edDlgAcc"><button class="btn" value="no">Cancelar</button><button class="btn primario" value="si">Insertar</button></form>
+</dialog>
 <dialog id="edCartas" class="edDialog" aria-labelledby="edCartasTit">
   <h2 id="edCartasTit">Insertar una carta</h2>
   <input id="edCartaQ" type="search" autocomplete="off" placeholder="Cualquier carta, en español o inglés: «Charizard ex», «Caramelo raro»" aria-label="Buscar una carta">
@@ -213,7 +222,7 @@ export async function abrirEditor({ caja, id }){
   let rango = null;
   document.addEventListener("selectionchange", () => {
     const s = getSelection();
-    if (s.rangeCount && cuerpo.contains(s.anchorNode)){ rango = s.getRangeAt(0).cloneRange(); marcarBloque(); }
+    if (s.rangeCount && cuerpo.contains(s.anchorNode)){ rango = s.getRangeAt(0).cloneRange(); marcarBloque(); $("edTablaAcc").hidden = !celda(); }
   });
   const reponer = () => { cuerpo.focus(); if (rango){ const s = getSelection(); s.removeAllRanges(); s.addRange(rango); } };
   const insertar = html => { reponer(); document.execCommand("insertHTML", false, html); cambio(); };
@@ -260,12 +269,70 @@ export async function abrirEditor({ caja, id }){
     ponerImagen(img);
   });
 
+  /* --- cuadrículas (tablas): cada celda acepta texto, imágenes y cartas. La barra «Cuadrícula» aparece con el cursor en una celda. */
+  function celda(){
+    const s = getSelection();
+    let n = s.rangeCount && cuerpo.contains(s.anchorNode) ? s.anchorNode : rango && rango.startContainer;
+    while (n && n !== cuerpo && !/^T[DH]$/.test(n.nodeName)) n = n.parentNode;
+    return n && n !== cuerpo && cuerpo.contains(n) ? n : null;
+  }
+  const celdaNueva = () => { const td = document.createElement("td"); td.innerHTML = "<br>"; return td; };
+  const irA = c => { const r = document.createRange(); r.selectNodeContents(c); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r); rango = r.cloneRange(); };
+  function opTabla(v){
+    const c = celda(); if (!c) return;
+    const tr = c.parentNode, t = c.closest("table"), i = c.cellIndex;
+    if (v === "fila"){ const n = document.createElement("tr"); for (let k = 0; k < tr.cells.length; k++) n.append(celdaNueva()); tr.after(n); irA(n.cells[Math.min(i, n.cells.length - 1)]); }
+    if (v === "col"){ if (tr.cells.length >= 6){ estado("Una cuadrícula tiene como máximo 6 columnas."); return; } [...t.rows].forEach(r => r.insertBefore(celdaNueva(), r.cells[i + 1] || null)); }
+    if (v === "-fila"){ if (t.rows.length > 1) tr.remove(); else t.remove(); }
+    if (v === "-col"){ if (tr.cells.length > 1) [...t.rows].forEach(r => r.cells[i] && r.cells[i].remove()); else t.remove(); }
+    if (v === "quitar"){ if (!confirm("¿Quitar la cuadrícula completa, con todo lo que tiene adentro?")) return; t.remove(); }
+    $("edTablaAcc").hidden = !celda(); cambio();
+  }
+  $("edTablaDlg").addEventListener("close", () => {
+    if ($("edTablaDlg").returnValue !== "si") return;
+    const f = Math.min(30, Math.max(1, Math.round(+$("edFilas").value) || 2)), k = Math.min(6, Math.max(1, Math.round(+$("edCols").value) || 3));
+    insertar("<table><tbody>" + ("<tr>" + "<td><br></td>".repeat(k) + "</tr>").repeat(f) + "</tbody></table><p><br></p>");
+  });
+  cuerpo.addEventListener("keydown", e => {
+    if (e.key !== "Tab") return;
+    const c = celda(); if (!c) return;
+    e.preventDefault();
+    const cs = [...c.closest("table").querySelectorAll("td,th")], i = cs.indexOf(c);
+    const sig = cs[i + (e.shiftKey ? -1 : 1)];
+    if (!sig && !e.shiftKey){ opTabla("fila"); return; }
+    if (sig) irA(sig);
+  });
+
+  /* --- tamaño de imágenes y cartas: se toca la imagen y aparece la barra «Tamaño» (va como clase de la figura, que limpiarHtml deja pasar) */
+  const TAMS = ["chica", "mediana", "grande", "completa"];
+  let FIG = null;
+  const tamDe = f => TAMS.find(t => f.classList.contains(t)) || (f.classList.contains("carta") ? "mediana" : "completa");
+  function elegirFig(f){
+    if (FIG) FIG.classList.remove("sel");
+    FIG = f; if (FIG) FIG.classList.add("sel");
+    $("edTamAcc").hidden = !FIG;
+    if (FIG) $("edTamAcc").querySelectorAll("[data-tam]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tam === tamDe(FIG))));
+  }
+  cuerpo.addEventListener("click", e => { const f = e.target.nodeName === "IMG" && e.target.closest("figure"); elegirFig(f && cuerpo.contains(f) ? f : null); });
+  function opTam(v){
+    if (!FIG || !cuerpo.contains(FIG)){ elegirFig(null); return; }
+    if (v === "quitar"){ FIG.remove(); elegirFig(null); cambio(); return; }
+    TAMS.forEach(t => FIG.classList.remove(t));
+    if (v !== (FIG.classList.contains("carta") ? "mediana" : "completa")) FIG.classList.add(v);   // el tamaño de siempre no lleva clase
+    elegirFig(FIG); cambio();
+  }
+
   /* --- la barra */
   const barra = caja.querySelector(".edHerr");
   barra.addEventListener("mousedown", e => { if (e.target.closest("button")) e.preventDefault(); });   // que el botón no le quite la selección al texto
   barra.addEventListener("click", e => {
+    /* el cursor de ahora (no el del último selectionchange, que llega tarde): ahí va lo que se inserte desde un diálogo */
+    const s = getSelection(); if (s.rangeCount && cuerpo.contains(s.anchorNode)) rango = s.getRangeAt(0).cloneRange();
+    const t = e.target.closest("[data-tab],[data-tam]");
+    if (t){ if (t.dataset.tab) opTabla(t.dataset.tab); else opTam(t.dataset.tam); return; }
     const b = e.target.closest("[data-cmd]"); if (!b) return;
     const c = b.dataset.cmd;
+    if (c === "tabla"){ if (celda()){ estado("No se puede poner una cuadrícula dentro de otra."); return; } $("edTablaDlg").showModal(); return; }
     if (c === "imagen"){ paraPortada = false; $("edArchivo").click(); return; }
     if (c === "carta"){ abrirCartas(); return; }
     if (c === "enlace"){
