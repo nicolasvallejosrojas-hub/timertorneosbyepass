@@ -71,6 +71,25 @@
   .cuerpo figure.mediana{max-width:320px;}
   .cuerpo figure.grande{max-width:520px;}
   .cuerpo figure.completa{max-width:none;}
+  /* alineación e interlineado (los elige el editor) */
+  .cuerpo .al-cen{text-align:center;}
+  .cuerpo .al-der{text-align:right;}
+  .cuerpo .al-jus{text-align:justify;hyphens:auto;}
+  .cuerpo .int-compacto{line-height:1.4;}
+  .cuerpo .int-amplio{line-height:2.05;}
+  /* una imagen o carta a un lado: el texto la rodea en el computador; en el celular va centrada */
+  .cuerpo figure.al-izq,.cuerpo figure.al-der{margin-left:auto;margin-right:auto;}
+  @media (min-width:640px){
+    .cuerpo > figure.al-izq{float:left;margin:.35em 1.5em .9em 0;}
+    .cuerpo > figure.al-der{float:right;margin:.35em 0 .9em 1.5em;}
+    .cuerpo > figure.al-izq:not(.chica),.cuerpo > figure.al-der:not(.chica){max-width:45%;}
+    .cuerpo > figure.al-izq + *,.cuerpo > figure.al-der + *{margin-top:0;}
+    .cuerpo h2,.cuerpo h3,.cuerpo hr,.cuerpo table,.cuerpo > figure:not(.al-izq):not(.al-der){clear:both;}
+    .cuerpo::after{content:"";display:table;clear:both;}
+  }
+  /* en una celda solo se corre a un lado */
+  .cuerpo td figure.al-izq,.cuerpo th figure.al-izq{margin-left:0;margin-right:auto;}
+  .cuerpo td figure.al-der,.cuerpo th figure.al-der{margin-left:auto;margin-right:0;}
   /* cuadrículas: columnas parejas; todo lo de adentro se achica al ancho de su celda */
   .cuerpo table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:16px;line-height:1.5;}
   .cuerpo td,.cuerpo th{border:1px solid var(--divider);padding:10px 12px;vertical-align:top;overflow-wrap:anywhere;}
@@ -113,7 +132,11 @@
   .edCtx{display:flex;flex-wrap:wrap;align-items:center;gap:4px;width:100%;border-top:1px solid var(--divider);padding-top:6px;margin-top:2px;}
   .edCtx[hidden]{display:none;}
   .edCtxT{font-size:12px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;color:var(--apagado);margin-right:6px;}
-  .edHerr .edCtx button[aria-pressed="true"]{background:var(--campo);font-weight:650;}
+  .edHerr button[aria-pressed="true"]{background:var(--campo);font-weight:650;}
+  .edHerr button:disabled,.edHerr select:disabled{opacity:.4;cursor:default;}
+  .edAlin{display:inline-flex;gap:2px;}
+  .edAlin button{padding:0 8px;}
+  .edAlin svg{width:18px;height:18px;fill:currentColor;display:block;}
   .edTablaCampos{display:flex;gap:var(--e3);}
   .edTablaCampos label{display:flex;flex-direction:column;gap:6px;font-size:var(--t2);color:var(--apagado);}
   .edTablaCampos input{width:120px;}

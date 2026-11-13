@@ -9,9 +9,9 @@
    a los pocos segundos; un artículo publicado se cambia con «Guardar cambios» (así no se publica algo a medio escribir). */
 import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getStorage, connectStorageEmulator, ref as sref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { app, db, auth } from "./sesion.js?v=a5b75f75abc3";
-import { limpiarHtml } from "./blog-html.js?v=a5b75f75abc3";
-import { norm } from "./listamazo.js?v=a5b75f75abc3";
+import { app, db, auth } from "./sesion.js?v=348d02868898";
+import { limpiarHtml } from "./blog-html.js?v=348d02868898";
+import { norm } from "./listamazo.js?v=348d02868898";
 
 const st = getStorage(app);
 if (typeof EMULADOR !== "undefined" && EMULADOR) connectStorageEmulator(st, EMULADOR.host, EMULADOR.storage);
@@ -32,6 +32,8 @@ const MARCADO = `
   <textarea id="edResumen" class="edResumen" rows="2" maxlength="300" placeholder="Resumen: una o dos frases que se ven en la lista y al compartir el enlace" aria-label="Resumen"></textarea>
   <div class="edHerr" role="toolbar" aria-label="Formato del texto">
     <select id="edBloque" aria-label="Tipo de texto"><option value="p">Texto</option><option value="h2">Título</option><option value="h3">Subtítulo</option><option value="blockquote">Cita</option></select>
+    <span class="edAlin" role="group" aria-label="Alineación"><button type="button" data-al="izq" aria-label="A la izquierda" title="A la izquierda (texto, imagen o carta)"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="4" width="16" height="2" rx="1"/><rect x="2" y="8" width="10" height="2" rx="1"/><rect x="2" y="12" width="16" height="2" rx="1"/><rect x="2" y="16" width="10" height="2" rx="1"/></svg></button><button type="button" data-al="cen" aria-label="Centrado" title="Centrado"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="4" width="16" height="2" rx="1"/><rect x="5" y="8" width="10" height="2" rx="1"/><rect x="2" y="12" width="16" height="2" rx="1"/><rect x="5" y="16" width="10" height="2" rx="1"/></svg></button><button type="button" data-al="der" aria-label="A la derecha" title="A la derecha"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="4" width="16" height="2" rx="1"/><rect x="8" y="8" width="10" height="2" rx="1"/><rect x="2" y="12" width="16" height="2" rx="1"/><rect x="8" y="16" width="10" height="2" rx="1"/></svg></button><button type="button" data-al="jus" aria-label="Justificado" title="Justificado (solo texto)"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="4" width="16" height="2" rx="1"/><rect x="2" y="8" width="16" height="2" rx="1"/><rect x="2" y="12" width="16" height="2" rx="1"/><rect x="2" y="16" width="16" height="2" rx="1"/></svg></button></span>
+    <select id="edInter" aria-label="Interlineado" title="Interlineado: el espacio entre las líneas del párrafo"><option value="compacto">Interlineado compacto</option><option value="">Interlineado normal</option><option value="amplio">Interlineado amplio</option></select>
     <button type="button" data-cmd="bold" aria-label="Negrita" title="Negrita (Ctrl+B)"><b>N</b></button>
     <button type="button" data-cmd="italic" aria-label="Cursiva" title="Cursiva (Ctrl+I)"><i>C</i></button>
     <button type="button" data-cmd="insertUnorderedList" title="Lista">• Lista</button>
@@ -222,7 +224,7 @@ export async function abrirEditor({ caja, id }){
   let rango = null;
   document.addEventListener("selectionchange", () => {
     const s = getSelection();
-    if (s.rangeCount && cuerpo.contains(s.anchorNode)){ rango = s.getRangeAt(0).cloneRange(); marcarBloque(); $("edTablaAcc").hidden = !celda(); }
+    if (s.rangeCount && cuerpo.contains(s.anchorNode)){ rango = s.getRangeAt(0).cloneRange(); marcarBloque(); marcarAlineacion(); $("edTablaAcc").hidden = !celda(); }
   });
   const reponer = () => { cuerpo.focus(); if (rango){ const s = getSelection(); s.removeAllRanges(); s.addRange(rango); } };
   const insertar = html => { reponer(); document.execCommand("insertHTML", false, html); cambio(); };
@@ -270,22 +272,51 @@ export async function abrirEditor({ caja, id }){
   });
 
   /* --- cuadrículas (tablas): cada celda acepta texto, imágenes y cartas. La barra «Cuadrícula» aparece con el cursor en una celda. */
+  /* La celda donde está el cursor. Ojo: con varias celdas o una fila entera seleccionadas, el cursor no queda DENTRO de una celda
+     sino entre ellas (en la fila o la tabla, con un índice): ahí se toma la celda que corresponde. Y una posición guardada que
+     apunta a algo ya borrado (se quitó esa fila o columna) no sirve. */
   function celda(){
     const s = getSelection();
-    let n = s.rangeCount && cuerpo.contains(s.anchorNode) ? s.anchorNode : rango && rango.startContainer;
-    while (n && n !== cuerpo && !/^T[DH]$/.test(n.nodeName)) n = n.parentNode;
-    return n && n !== cuerpo && cuerpo.contains(n) ? n : null;
+    const r = s.rangeCount && cuerpo.contains(s.anchorNode) ? s.getRangeAt(0) : rango && cuerpo.contains(rango.startContainer) ? rango : null;
+    if (!r) return null;
+    let n = r.startContainer;
+    if (n.nodeType === 1 && n.childNodes[r.startOffset]) n = n.childNodes[r.startOffset];
+    while (n && n !== cuerpo){
+      if (/^T[DH]$/.test(n.nodeName)) return n;
+      if (/^(TR|TBODY|THEAD|TFOOT|TABLE)$/.test(n.nodeName)) return n.querySelector("td,th");
+      n = n.parentNode;
+    }
+    return null;
   }
   const celdaNueva = () => { const td = document.createElement("td"); td.innerHTML = "<br>"; return td; };
   const irA = c => { const r = document.createRange(); r.selectNodeContents(c); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r); rango = r.cloneRange(); };
+  /* columnas de la cuadrícula (una celda pegada de Excel puede ocupar dos) */
+  const columnas = t => Math.max(...[...t.rows].map(r => [...r.cells].reduce((a, c) => a + (c.colSpan || 1), 0)));
   function opTabla(v){
-    const c = celda(); if (!c) return;
+    const c = celda();
+    if (!c){ estado("Pon el cursor dentro de una celda de la cuadrícula."); $("edTablaAcc").hidden = true; return; }
     const tr = c.parentNode, t = c.closest("table"), i = c.cellIndex;
-    if (v === "fila"){ const n = document.createElement("tr"); for (let k = 0; k < tr.cells.length; k++) n.append(celdaNueva()); tr.after(n); irA(n.cells[Math.min(i, n.cells.length - 1)]); }
-    if (v === "col"){ if (tr.cells.length >= 6){ estado("Una cuadrícula tiene como máximo 6 columnas."); return; } [...t.rows].forEach(r => r.insertBefore(celdaNueva(), r.cells[i + 1] || null)); }
-    if (v === "-fila"){ if (t.rows.length > 1) tr.remove(); else t.remove(); }
-    if (v === "-col"){ if (tr.cells.length > 1) [...t.rows].forEach(r => r.cells[i] && r.cells[i].remove()); else t.remove(); }
-    if (v === "quitar"){ if (!confirm("¿Quitar la cuadrícula completa, con todo lo que tiene adentro?")) return; t.remove(); }
+    /* después de cada cambio el cursor queda en una celda que existe: si no, el siguiente botón no sabría dónde actuar */
+    if (v === "fila"){ const n = document.createElement("tr"); for (let k = 0; k < columnas(t); k++) n.append(celdaNueva()); tr.after(n); irA(n.cells[Math.min(i, n.cells.length - 1)]); }
+    if (v === "col"){
+      if (columnas(t) >= 6){ estado("Una cuadrícula tiene como máximo 6 columnas."); return; }
+      [...t.rows].forEach(r => r.insertBefore(celdaNueva(), r.cells[Math.min(i + 1, r.cells.length)] || null));
+      irA(tr.cells[i + 1] || c);
+    }
+    if (v === "-fila"){
+      if (t.rows.length < 2) return opTabla("quitar");
+      const otra = tr.nextElementSibling || tr.previousElementSibling; tr.remove();
+      if (otra && otra.cells.length) irA(otra.cells[Math.min(i, otra.cells.length - 1)]);
+    }
+    if (v === "-col"){
+      if (columnas(t) < 2) return opTabla("quitar");
+      [...t.rows].forEach(r => { const x = r.cells[Math.min(i, r.cells.length - 1)]; if (x && r.cells.length > 1) x.remove(); });
+      irA(tr.cells[Math.min(i, tr.cells.length - 1)]);
+    }
+    if (v === "quitar"){
+      if (!confirm("¿Quitar la cuadrícula completa, con todo lo que tiene adentro?")) return;
+      const sig = t.nextElementSibling; t.remove(); if (sig) irA(sig); else rango = null;
+    }
     $("edTablaAcc").hidden = !celda(); cambio();
   }
   $("edTablaDlg").addEventListener("close", () => {
@@ -312,6 +343,7 @@ export async function abrirEditor({ caja, id }){
     FIG = f; if (FIG) FIG.classList.add("sel");
     $("edTamAcc").hidden = !FIG;
     if (FIG) $("edTamAcc").querySelectorAll("[data-tam]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tam === tamDe(FIG))));
+    marcarAlineacion();
   }
   cuerpo.addEventListener("click", e => { const f = e.target.nodeName === "IMG" && e.target.closest("figure"); elegirFig(f && cuerpo.contains(f) ? f : null); });
   function opTam(v){
@@ -322,12 +354,41 @@ export async function abrirEditor({ caja, id }){
     elegirFig(FIG); cambio();
   }
 
+  /* --- alineación e interlineado: van como clases (al-izq, al-cen, al-der, al-jus; int-compacto, int-amplio) en los párrafos
+     de la selección, o en la imagen/carta elegida (izquierda o derecha: el texto la rodea en el computador; en el celular va centrada).
+     Clases y no estilos: limpiarHtml solo deja pasar estas. */
+  const ALS = ["izq", "cen", "der", "jus"], INTS = ["compacto", "amplio"];
+  const BLOQUE = "p,h2,h3,blockquote,li";
+  function bloques(){
+    if (!rango || !cuerpo.contains(rango.commonAncestorContainer)) return [];
+    let n = rango.startContainer; while (n && n !== cuerpo && !(n.nodeType === 1 && n.matches(BLOQUE + ",td,th"))) n = n.parentNode;
+    const sueltos = [...cuerpo.querySelectorAll(BLOQUE)].filter(b => rango.intersectsNode(b) && !b.querySelector(BLOQUE));
+    if (sueltos.length) return sueltos;
+    return n && n !== cuerpo ? [n] : [];
+  }
+  const claseDe = (el, pre, lista) => (lista.find(x => el.classList.contains(pre + x)) || "");
+  function poner(el, pre, lista, v){ lista.forEach(x => el.classList.remove(pre + x)); if (v) el.classList.add(pre + v); if (!el.classList.length) el.removeAttribute("class"); }
+  function marcarAlineacion(){
+    const el = FIG || bloques()[0];
+    const al = el ? claseDe(el, "al-", ALS) || (FIG ? (tamDe(FIG) === "completa" ? "" : "cen") : "izq") : "";
+    caja.querySelectorAll("[data-al]").forEach(b => { b.setAttribute("aria-pressed", String(b.dataset.al === al)); b.disabled = !!FIG && b.dataset.al === "jus"; });
+    $("edInter").value = !FIG && el ? claseDe(el, "int-", INTS) : "";
+    $("edInter").disabled = !!FIG;
+  }
+  function alinear(v){
+    if (FIG && cuerpo.contains(FIG)){ if (v !== "jus") poner(FIG, "al-", ["izq", "cen", "der"], v === "cen" ? "" : v); }
+    else bloques().forEach(b => poner(b, "al-", ALS, v === "izq" ? "" : v));   // a la izquierda es lo de siempre: sin clase
+    marcarAlineacion(); cambio();
+  }
+  $("edInter").onchange = () => { bloques().forEach(b => poner(b, "int-", INTS, $("edInter").value)); reponer(); cambio(); };
+
   /* --- la barra */
   const barra = caja.querySelector(".edHerr");
   barra.addEventListener("mousedown", e => { if (e.target.closest("button")) e.preventDefault(); });   // que el botón no le quite la selección al texto
   barra.addEventListener("click", e => {
     /* el cursor de ahora (no el del último selectionchange, que llega tarde): ahí va lo que se inserte desde un diálogo */
     const s = getSelection(); if (s.rangeCount && cuerpo.contains(s.anchorNode)) rango = s.getRangeAt(0).cloneRange();
+    const al = e.target.closest("[data-al]"); if (al){ alinear(al.dataset.al); return; }
     const t = e.target.closest("[data-tab],[data-tam]");
     if (t){ if (t.dataset.tab) opTabla(t.dataset.tab); else opTam(t.dataset.tam); return; }
     const b = e.target.closest("[data-cmd]"); if (!b) return;

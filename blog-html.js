@@ -6,12 +6,15 @@
    Lo prueba pruebas/probar-blog-ui.mjs. */
 
 const PERMITIDAS = {
-  P: [], H2: [], H3: [], STRONG: [], B: [], EM: [], I: [], U: [], S: [], UL: [], OL: [], LI: [], BLOCKQUOTE: [],
+  P: ["class"], H2: ["class"], H3: ["class"], STRONG: [], B: [], EM: [], I: [], U: [], S: [], UL: ["class"], OL: ["class"], LI: ["class"], BLOCKQUOTE: ["class"],
   A: ["href"], IMG: ["src", "alt", "width", "height"], FIGURE: ["class"], FIGCAPTION: [], BR: [], HR: [],
-  TABLE: [], THEAD: [], TBODY: [], TFOOT: [], TR: [], TD: ["colspan", "rowspan"], TH: ["colspan", "rowspan"],
+  TABLE: [], THEAD: [], TBODY: [], TFOOT: [], TR: [], TD: ["colspan", "rowspan", "class"], TH: ["colspan", "rowspan", "class"],
 };
 /* las clases que puede llevar una figura: carta (una carta de TCGdex) y su tamaño (blog-editor.js) */
-const CLASES_FIGURA = new Set(["carta", "chica", "mediana", "grande", "completa"]);
+const CLASES_FIGURA = new Set(["carta", "chica", "mediana", "grande", "completa", "al-izq", "al-cen", "al-der"]);
+/* y las de los párrafos, títulos, citas, listas y celdas: alineación e interlineado */
+const CLASES_TEXTO = new Set(["al-izq", "al-cen", "al-der", "al-jus", "int-compacto", "int-amplio"]);
+const CON_CLASE = new Set(["P", "H2", "H3", "BLOCKQUOTE", "LI", "UL", "OL", "TD", "TH"]);
 const FUERA = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "TEMPLATE", "NOSCRIPT", "SVG", "MATH", "FORM", "INPUT",
   "BUTTON", "TEXTAREA", "SELECT", "LINK", "META", "TITLE", "HEAD", "VIDEO", "AUDIO", "CANVAS"]);
 const A_PARRAFO = new Set(["DIV", "SECTION", "ARTICLE", "HEADER", "FOOTER", "ASIDE", "MAIN"]);
@@ -62,8 +65,9 @@ function limpiar(nodo){
       n.setAttribute("loading", "lazy"); n.setAttribute("decoding", "async");
       if (!n.hasAttribute("alt")) n.setAttribute("alt", "");
     }
-    if (tag === "FIGURE"){
-      const c = (n.getAttribute("class") || "").split(/\s+/).filter(x => CLASES_FIGURA.has(x));
+    if (tag === "FIGURE" || CON_CLASE.has(tag)){
+      const ok = tag === "FIGURE" ? CLASES_FIGURA : CLASES_TEXTO;
+      const c = (n.getAttribute("class") || "").split(/\s+/).filter(x => ok.has(x));
       if (c.length) n.setAttribute("class", [...new Set(c)].join(" ")); else n.removeAttribute("class");
     }
     if (tag === "TD" || tag === "TH") for (const a of ["colspan", "rowspan"]) if (n.hasAttribute(a) && !/^[1-9]$/.test(n.getAttribute(a))) n.removeAttribute(a);

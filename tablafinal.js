@@ -18,7 +18,7 @@
 
 /* ▌BLOQUE 1 · Tabla como imagen ═════════════════════════════════════════════════
    Dibuja la tabla en un canvas, sobre el fondo elegido (fondoimg.js), y la comparte o descarga. */
-import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=a5b75f75abc3";
+import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=348d02868898";
 const W = 1080, PAD = 72, FILA = 66, CAB = 330, PIE = 170;
 
 /* Corta con «…» lo que no cabe en el ancho dado. */
