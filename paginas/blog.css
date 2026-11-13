@@ -101,6 +101,7 @@
     background:var(--pagina);color:var(--texto);font:inherit;font-size:var(--t2);cursor:pointer;text-align:center;}
   .edCartaRes img{width:100%;aspect-ratio:600/825;object-fit:contain;border-radius:4px;}
   .edCartaRes small{display:block;color:var(--apagado);}
+  .edCartaRes li:not(:has(button)){grid-column:1/-1;color:var(--apagado);font-size:var(--t2);}
   @media (max-width:560px){
     .edAcc{width:100%;} .edAcc .btn{flex:1;}
     .edHerr{top:0;position:relative;}

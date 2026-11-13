@@ -16,21 +16,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=22360888a44c"></script>
+<script src="tema.js?v=7c67af9e7142"></script>
 <meta name="description" content="Rulings de Pokémon TCG con buscador, filtros y traducción de apoyo al español, para jueces y jugadores.">
 <title>Rulings — ByePass</title>
 <link rel="canonical" href="https://byepass.cl/rulings">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=22360888a44c">
-<link rel="stylesheet" href="estilo.css?v=22360888a44c">
+<link rel="stylesheet" href="tokens.css?v=7c67af9e7142">
+<link rel="stylesheet" href="estilo.css?v=7c67af9e7142">
 <!-- ▌BLOQUE 1 · Estilos — Lista y detalle: tres columnas en el computador (filtros, lista, el ruling
      abierto), una en el celular; hojas del editor y de filtros. -->
 
-<link rel="stylesheet" href="/paginas/rulings.css?v=22360888a44c">
-<link rel="stylesheet" href="/sistema.css?v=22360888a44c">
-<script src="/sistema.js?v=22360888a44c" defer></script>
+<link rel="stylesheet" href="/paginas/rulings.css?v=7c67af9e7142">
+<link rel="stylesheet" href="/sistema.css?v=7c67af9e7142">
+<script src="/sistema.js?v=7c67af9e7142" defer></script>
 </head>
 <body data-pagina="rulings">
   <!-- ▌BLOQUE 2 · Marcado — Columna de filtros, lista (buscador, filtros rápidos, cuenta), el ruling abierto
@@ -131,13 +131,13 @@
     </form>
   </dialog>
 
-<script src="config.js?v=22360888a44c"></script>
+<script src="config.js?v=7c67af9e7142"></script>
 <!-- ▌BLOQUE 3 · Módulos — Firebase y sesion. -->
 <script type="module">
 import { ref, get, set, remove, update, push, onValue, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=22360888a44c";
-import { contarVisita } from "./presencia.js?v=22360888a44c";
+import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=7c67af9e7142";
+import { contarVisita } from "./presencia.js?v=7c67af9e7142";
 
 const $ = id => document.getElementById(id);
 contarVisita(db, "rulings");   // las visitas por día, en Estadísticas (solo números, no quién)

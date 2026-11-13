@@ -1,6 +1,6 @@
 /* blog-editor.js — el editor de artículos del blog (solo administración; lo carga blog.html con ?nuevo o ?editar=<id>).
    Se escribe como en un procesador de texto (contenteditable): texto, título, subtítulo, cita, negrita, cursiva, listas,
-   enlaces, línea, imágenes y cartas (con el buscador de la base de cartas). Lo que se pega desde Word o Docs pasa por
+   enlaces, línea, imágenes y cartas (cualquier carta, buscada por nombre en TCGdex). Lo que se pega desde Word o Docs pasa por
    limpiarHtml (blog-html.js), igual que lo que se guarda.
    Imágenes: el navegador las achica antes de subirlas (1600 px de ancho, WebP; JPG si el navegador no sabe WebP; la de
    portada además con una miniatura de 640 px para la lista) y van al Storage en blog/<carpeta del artículo>/. Al guardar se
@@ -9,9 +9,9 @@
    a los pocos segundos; un artículo publicado se cambia con «Guardar cambios» (así no se publica algo a medio escribir). */
 import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getStorage, connectStorageEmulator, ref as sref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { app, db, auth } from "./sesion.js?v=22360888a44c";
-import { limpiarHtml } from "./blog-html.js?v=22360888a44c";
-import { cargarEstandar, imagenCarta, nombreEn, norm } from "./listamazo.js?v=22360888a44c";
+import { app, db, auth } from "./sesion.js?v=7c67af9e7142";
+import { limpiarHtml } from "./blog-html.js?v=7c67af9e7142";
+import { norm } from "./listamazo.js?v=7c67af9e7142";
 
 const st = getStorage(app);
 if (typeof EMULADOR !== "undefined" && EMULADOR) connectStorageEmulator(st, EMULADOR.host, EMULADOR.storage);
@@ -47,7 +47,7 @@ const MARCADO = `
 <input type="file" id="edArchivo" accept="image/*" hidden>
 <dialog id="edCartas" class="edDialog" aria-labelledby="edCartasTit">
   <h2 id="edCartasTit">Insertar una carta</h2>
-  <input id="edCartaQ" type="search" autocomplete="off" placeholder="En español o inglés: «Charizard ex», «Caramelo raro», «PAL 185»" aria-label="Buscar una carta">
+  <input id="edCartaQ" type="search" autocomplete="off" placeholder="Cualquier carta, en español o inglés: «Charizard ex», «Caramelo raro»" aria-label="Buscar una carta">
   <ul id="edCartaRes" class="edCartaRes"></ul>
   <form method="dialog"><button class="btn">Cerrar</button></form>
 </dialog>`;
@@ -280,31 +280,58 @@ export async function abrirEditor({ caja, id }){
   });
   $("edBloque").onchange = () => { reponer(); document.execCommand("formatBlock", false, "<" + $("edBloque").value + ">"); cambio(); };
 
-  /* --- cartas: el buscador de la base de cartas (la misma del armador) */
-  let BASE = null;
+  /* --- cartas: cualquier carta de cualquier época, buscada en TCGdex (api.tcgdex.net) en español y en inglés a la vez.
+     Se muestran las más nuevas primero (el orden de las expansiones de TCGdex es cronológico) con su expansión y número; la
+     imagen va en español si TCGdex la tiene y si no en inglés (no se guarda nada nuestro: el navegador la pide a TCGdex). */
+  const API = "https://api.tcgdex.net/v2/";
+  const pedir = (ruta, senal) => fetch(API + ruta, { signal: senal }).then(r => r.ok ? r.json() : []);
+  let SETS = null, busca = null, pausa = null, RES = [];
+  const cargarSets = () => SETS ??= Promise.all(["es", "en"].map(l => pedir(l + "/sets").catch(() => []))).then(([es, en]) => {
+    const m = new Map();
+    en.forEach((s, i) => m.set(s.id, { orden: i, nombre: s.name }));
+    es.forEach(s => { const x = m.get(s.id); if (x) x.nombre = s.name; else m.set(s.id, { orden: -1, nombre: s.name }); });
+    return m;
+  });
+  const setDe = id => id.slice(0, id.lastIndexOf("-"));
+  /* ¿Existe la foto en español? Se prueba cargándola (la imagen no necesita permisos de otro sitio para eso). */
+  const existe = url => new Promise(ok => { const i = new Image(); i.onload = () => ok(true); i.onerror = () => ok(false); i.src = url; });
   async function abrirCartas(){
     $("edCartas").showModal(); $("edCartaQ").value = ""; $("edCartaRes").innerHTML = ""; $("edCartaQ").focus();
-    BASE = BASE || await cargarEstandar();
-    if (!BASE) $("edCartaRes").innerHTML = "<li>No se pudo cargar la base de cartas.</li>";
+    cargarSets();
+  }
+  async function buscarCartas(q){
+    busca?.abort(); busca = new AbortController();
+    const s = busca.signal, nombre = encodeURIComponent(q);
+    $("edCartaRes").innerHTML = "<li>Buscando…</li>";
+    let es, en, sets;
+    try { [es, en, sets] = await Promise.all([pedir("es/cards?name=" + nombre, s), pedir("en/cards?name=" + nombre, s), cargarSets()]); }
+    catch(e){ if (e.name !== "AbortError") $("edCartaRes").innerHTML = "<li>No se pudo buscar en TCGdex. Revisa la conexión.</li>"; return; }
+    const porId = new Map();
+    for (const c of en) if (c.image) porId.set(c.id, { id: c.id, num: c.localId, nombre: c.name, en: c.image });
+    for (const c of es){ const x = porId.get(c.id) || { id: c.id, num: c.localId, en: null }; x.nombre = c.name; if (c.image) x.es = c.image; if (x.es || x.en) porId.set(c.id, x); }
+    const orden = c => (sets.get(setDe(c.id)) || { orden: -1 }).orden;
+    RES = [...porId.values()].sort((a, b) => orden(b) - orden(a) || String(a.num).localeCompare(String(b.num), "es", { numeric: true }));
+    const total = RES.length; RES = RES.slice(0, 48);
+    $("edCartaRes").innerHTML = RES.map((c, i) => '<li><button type="button" data-i="' + i + '"><img src="' + esc((c.es || c.en) + "/low.webp") + '" alt="" loading="lazy">' +
+      "<span>" + esc(c.nombre) + "<small>" + esc(((sets.get(setDe(c.id)) || {}).nombre || setDe(c.id)) + " · " + c.num) + "</small></span></button></li>").join("") ||
+      "<li>No encontramos esa carta. Prueba con el nombre en inglés, o solo una parte («charizard»).</li>";
+    if (total > RES.length) $("edCartaRes").insertAdjacentHTML("beforeend", '<li class="mas">Hay ' + total + " resultados: escribe más para afinar (por ejemplo «charizard ex»).</li>");
   }
   $("edCartaQ").oninput = () => {
-    const ws = norm($("edCartaQ").value).split(" ").filter(Boolean);
-    if (!BASE || !ws.length){ $("edCartaRes").innerHTML = ""; return; }
-    const res = [];
-    for (const c of BASE.cartas){
-      const k = norm(nombreEn(BASE, c, "es")) + " " + norm(c[2]) + " " + c[0].toLowerCase() + " " + c[1];
-      if (ws.every(w => k.includes(w)) && imagenCarta(BASE, c[0], c[1])) res.push(c);
-      if (res.length >= 24) break;
-    }
-    $("edCartaRes").innerHTML = res.map((c, i) => '<li><button type="button" data-i="' + i + '"><img src="' + esc(imagenCarta(BASE, c[0], c[1])) + '" alt="" loading="lazy">' +
-      "<span>" + esc(nombreEn(BASE, c, "es")) + "<small>" + esc(c[0] + " " + c[1]) + "</small></span></button></li>").join("") || "<li>No encontramos esa carta.</li>";
-    $("edCartaRes").onclick = e => {
-      const b = e.target.closest("[data-i]"); if (!b) return;
-      const c = res[+b.dataset.i], nom = nombreEn(BASE, c, "es");
-      $("edCartas").close();
-      insertar('<figure class="carta"><img src="' + esc(imagenCarta(BASE, c[0], c[1], "high")) + '" alt="' + esc(nom) + '" width="600" height="825"><figcaption>' +
-        esc(nom + " · " + c[0] + " " + c[1]) + "</figcaption></figure><p><br></p>");
-    };
+    clearTimeout(pausa);
+    const q = $("edCartaQ").value.trim();
+    if (q.length < 2){ busca?.abort(); $("edCartaRes").innerHTML = ""; return; }
+    pausa = setTimeout(() => buscarCartas(q), 350);
+  };
+  $("edCartaRes").onclick = async e => {
+    const b = e.target.closest("[data-i]"); if (!b) return;
+    const c = RES[+b.dataset.i], sets = await cargarSets();
+    /* en español si la foto existe (una carta buscada en inglés puede tenerla igual) */
+    const esUrl = (c.es || (c.en || "").replace("/en/", "/es/")) + "/high.webp";
+    const img = (await existe(esUrl)) ? esUrl : (c.en || c.es) + "/high.webp";
+    const cap = c.nombre + " · " + ((sets.get(setDe(c.id)) || {}).nombre || setDe(c.id)) + " " + c.num;
+    $("edCartas").close();
+    insertar('<figure class="carta"><img src="' + esc(img) + '" alt="' + esc(c.nombre) + '" width="600" height="825"><figcaption>' + esc(cap) + "</figcaption></figure><p><br></p>");
   };
 
   pintar();

@@ -13,18 +13,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=22360888a44c"></script>
+<script src="tema.js?v=7c67af9e7142"></script>
 <meta name="description" content="Blog de ByePass: artículos, guías y novedades de Pokémon TCG para la comunidad de jugadores y tiendas.">
 <title>Blog — ByePass</title>
 <link rel="canonical" href="https://byepass.cl/blog">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=22360888a44c">
-<link rel="stylesheet" href="estilo.css?v=22360888a44c">
-<link rel="stylesheet" href="/paginas/blog.css?v=22360888a44c">
-<link rel="stylesheet" href="/sistema.css?v=22360888a44c">
-<script src="/sistema.js?v=22360888a44c" defer></script>
+<link rel="stylesheet" href="tokens.css?v=7c67af9e7142">
+<link rel="stylesheet" href="estilo.css?v=7c67af9e7142">
+<link rel="stylesheet" href="/paginas/blog.css?v=7c67af9e7142">
+<link rel="stylesheet" href="/sistema.css?v=7c67af9e7142">
+<script src="/sistema.js?v=7c67af9e7142" defer></script>
 </head>
 <body data-pagina="blog">
   <!-- ▌BLOQUE 1 · Marcado -->
@@ -61,14 +61,14 @@
       <p class="bajada" id="nadaTxt">Puede que ya no esté publicado.</p><a class="btn" href="blog.html">Ver todos los artículos</a></section>
   </main>
 
-<script src="config.js?v=22360888a44c"></script>
+<script src="config.js?v=7c67af9e7142"></script>
 <!-- ▌BLOQUE 2 · Módulos -->
 <script type="module">
 import { ref, get, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, urlMuro } from "./sesion.js?v=22360888a44c";
-import { contarVisita } from "./presencia.js?v=22360888a44c";
-import { limpiarHtml } from "./blog-html.js?v=22360888a44c";
+import { db, auth, urlMuro } from "./sesion.js?v=7c67af9e7142";
+import { contarVisita } from "./presencia.js?v=7c67af9e7142";
+import { limpiarHtml } from "./blog-html.js?v=7c67af9e7142";
 
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
@@ -142,7 +142,7 @@ const arranque = new Promise(ok => onAuthStateChanged(auth, async u => {
   if (EDITAR){
     if (!ADMIN){ ver("vistaNada"); $("nadaTit").textContent = "Solo la administración escribe en el blog"; $("nadaTxt").textContent = "Entra con tu cuenta de administrador."; return; }
     ver("vistaEditor");
-    const { abrirEditor } = await import("./blog-editor.js?v=22360888a44c");
+    const { abrirEditor } = await import("./blog-editor.js?v=7c67af9e7142");
     abrirEditor({ caja: $("vistaEditor"), id: q.has("nuevo") ? "" : ID });
     return;
   }
