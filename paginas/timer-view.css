@@ -419,3 +419,7 @@
 .minasTablero.campoGanado{box-shadow:0 0 0 3px #f3cf64}
 @keyframes minasBoom{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:none}}
 @media(prefers-reduced-motion:reduce){#espera .minaCasilla .minasSprite{animation:none!important}}
+
+/* botón de sonido de los minijuegos (sonidos.js): junto a «Cerrar» en la cabecera de cada juego */
+.juegoAcc{display:flex;gap:8px;align-items:center;flex:none;}
+#espera .botonSonido{width:46px;min-width:46px;min-height:44px;padding:0;display:inline-grid;place-items:center;line-height:1;}
