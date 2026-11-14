@@ -23,14 +23,14 @@
        A.formato(est)   cambia entre Estándar (true) y Expandido (false)
    `alCambiar` se llama cada vez que la persona cambia algo (no al poner una lista desde el código).
    ============================================================ */
-import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta, nombreEn } from "./listamazo.js?v=6de48208916e";
+import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta, nombreEn } from "./listamazo.js?v=140a6152223f";
 
 /* ▌BLOQUE 1 · Marcado y arranque ════════════════════════════════════════════════
    El HTML del armador (con un lugar #misMazos para la página), las fotos de TCGdex y la carga de
    la base. */
 const $ = id => document.getElementById(id);
 const PISTA = "Busca cada carta por su nombre o código y elige la impresión; con − y + cambias la cantidad. «4 iono» agrega 4 de una.";
-const MARCADO = pista => `
+const MARCADO = pista => `<div class="armarIn">
  <div class="buscar">
   <h2>Lista de mazo</h2>
   <div id="misMazos" class="oculto"></div>
@@ -65,6 +65,7 @@ Trainer: 40
   <section class="seccion sE"><h3>Energías <b id="nE"></b></h3><ul class="cartas" id="filasE"></ul></section>
   <ul class="revision" id="revision"></ul>
  </div>
+</div>
  <dialog id="verCarta" aria-label="Carta"><img alt=""></dialog>`;
 
 export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} } = {}){

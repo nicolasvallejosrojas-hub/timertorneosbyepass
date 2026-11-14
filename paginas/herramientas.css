@@ -124,7 +124,7 @@
 [data-pagina="herramientas"] .grande {font-size:40px;letter-spacing:-1.5px}
 [data-pagina="herramientas"] .bajada {line-height:1.8;margin-top:13px}
 [data-pagina="herramientas"] .gtit {font-size:11px;font-weight:650;letter-spacing:.7px;margin-top:32px;padding-bottom:5px}
-[data-pagina="herramientas"] .grupo {box-shadow:var(--sombra)}
+[data-pagina="herramientas"] .grupo {box-shadow:var(--sombra);border:1px solid var(--divider)}
 [data-pagina="herramientas"] .cifra {border:1px solid var(--divider);background:var(--sup);border-radius:15px;padding:24px}
 [data-pagina="herramientas"] .cifra:nth-child(3n+1) {background:var(--lila)}
 [data-pagina="herramientas"] .cifra:nth-child(3n+2) {background:var(--amarillo-suave)}

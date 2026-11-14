@@ -142,7 +142,7 @@
   .grupo{scroll-margin-top:72px;}
   .grupo h2{font-size:var(--t1);letter-spacing:.1em;text-transform:uppercase;
     color:var(--apagado);font-weight:500;margin:0;}
-  .filas{display:flex;flex-direction:column;border-radius:var(--radio);overflow:hidden;}
+  .filas{display:flex;flex-direction:column;border-radius:var(--radio);overflow:hidden;border:1px solid var(--divider);}
   .filaj{display:flex;align-items:center;gap:var(--e3);padding:13px var(--e4);
     background:var(--sup);min-height:52px;box-sizing:border-box;width:100%;
     border:none;font-family:inherit;color:var(--texto);text-align:left;font-size:var(--t3);}
@@ -159,7 +159,7 @@
   a.filaj:hover{background:var(--sup-alta);}
   /* Va DESPUÉS de .filaj: ese border:none, que limpia el borde de los
      botones, se comía el divisor entre filas. */
-  .filas > * + *{border-top:1px solid var(--divider);}
+  .filas > :not(.oculto) ~ :not(.oculto){border-top:1px solid var(--divider);}   /* una fila oculta al principio no deja línea suelta */
   .edicion{background:var(--sup);padding:var(--e3) var(--e4) var(--e4);
     display:flex;flex-direction:column;gap:var(--e3);}
   .edicion .acciones{display:flex;justify-content:flex-end;gap:var(--e2);}

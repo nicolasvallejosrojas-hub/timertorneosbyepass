@@ -84,7 +84,7 @@
 [data-pagina="estadisticas"] .grande {font-size:40px;letter-spacing:-1.5px}
 [data-pagina="estadisticas"] .bajada {line-height:1.8;margin-top:13px}
 [data-pagina="estadisticas"] .gtit {font-size:11px;font-weight:650;letter-spacing:.7px;margin-top:32px;padding-bottom:5px}
-[data-pagina="estadisticas"] .grupo {box-shadow:var(--sombra)}
+[data-pagina="estadisticas"] .grupo {box-shadow:var(--sombra);border:1px solid var(--divider)}
 [data-pagina="estadisticas"] .cifra {border:1px solid var(--divider);background:var(--sup);border-radius:15px;padding:24px}
 [data-pagina="estadisticas"] .cifra:nth-child(3n+1) {background:var(--lila)}
 [data-pagina="estadisticas"] .cifra:nth-child(3n+2) {background:var(--amarillo-suave)}

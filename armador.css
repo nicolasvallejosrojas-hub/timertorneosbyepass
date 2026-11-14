@@ -2,6 +2,8 @@
  Lo usan inscripcion.html y mazos.html. Versión actual: v=1 (subir el ?v= al tocarlo). */
 /* el registrador de la lista */
 .busca{position:relative;}
+/* el buscador va sobre el contador fijo de la lista (.conteo, nivel 2): si no, sus sugerencias pasaban por debajo. */
+.buscar{position:relative;z-index:3;}
 .busca input{width:100%;padding:13px 14px;font-size:var(--t4);box-sizing:border-box;}
 #sugerencias{position:absolute;left:0;right:0;top:100%;z-index:5;margin:4px 0 0;padding:4px;list-style:none;
   background:var(--sup-alta);border-radius:var(--radio);box-shadow:0 12px 30px -10px rgba(0,0,0,.45);max-height:340px;overflow:auto;}
@@ -47,14 +49,17 @@
 .carta.mal .reg{border-color:var(--negativo);color:var(--negativo);}
 .revision{margin:0;padding-left:1.1em;font-size:var(--t2);line-height:1.55;}
 .revision .mal{color:var(--negativo);} .revision .av{color:var(--apagado);} .revision .ok{color:var(--ok);font-weight:600;}
-.armar,.buscar,.mazo{display:flex;flex-direction:column;gap:var(--e3);}
-@media (min-width:960px){
-  .armar{display:grid;grid-template-columns:360px minmax(0,1fr);gap:var(--e5);align-items:start;}
-  .armar .buscar{position:sticky;top:var(--e4);display:flex;flex-direction:column;gap:var(--e3);}
-  .armar .mazo{border-left:1px solid var(--divider);padding-left:var(--e5);}
+/* Dos columnas según el espacio de la caja (no el de la pantalla): la misma pieza vive en la inscripción y en «Mis mazos»,
+   con anchos distintos. En una columna el buscador NO queda fijo: si no, se montaba sobre las cartas y el contador. */
+.armar{container-type:inline-size;}
+.armarIn,.buscar,.mazo{display:flex;flex-direction:column;gap:var(--e3);}
+@container (min-width:760px){
+  .armarIn{display:grid;grid-template-columns:320px minmax(0,1fr);gap:var(--e5);align-items:start;}
+  .armarIn .buscar{position:sticky;top:var(--e4);}
+  .armarIn .mazo{border-left:1px solid var(--divider);padding-left:var(--e5);}
 }
-@media (min-width:1180px){
-  .armar .mazo{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto;column-gap:var(--e4);
+@container (min-width:1040px){
+  .armarIn .mazo{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto;column-gap:var(--e4);
     grid-template-areas:"c c" "p t" "e t" "r r";}
   .mazo .conteo{grid-area:c;} .mazo .sP{grid-area:p;} .mazo .sT{grid-area:t;} .mazo .sE{grid-area:e;align-self:start;} .mazo .revision{grid-area:r;margin-top:var(--e3);}
 }

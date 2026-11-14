@@ -290,3 +290,10 @@ html {overflow-x:clip}
 .feature-num {color:var(--apagado)}
 /* Objetivos táctiles: los enlaces de texto de la cabecera, el pie y la franja de organizadores miden 44 px de alto. */
 .header-nav a,.footer-nav a,.footer-legal a,.organizer-actions>a:last-child {display:inline-flex;align-items:center;min-height:44px}
+
+/* Arreglos visuales (14-11-2026): en el celular, el aviso «Tu mesa está lista» tapaba el pie «Una muestra de tu próxima ronda»
+   y el sello «Nos vemos en la mesa» tapaba «Vista de ejemplo». El pie va a la derecha del aviso y el sello un poco más arriba. */
+@media (max-width:560px){
+  .tournament-visual figcaption{padding-left:52%;line-height:1.4}
+  .game-sticker{top:-60px}
+}

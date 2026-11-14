@@ -24,7 +24,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="
 :where(button,a,input,select,textarea,summary):focus-visible {outline:3px solid var(--accion);outline-offset:3px}
 input::placeholder,textarea::placeholder {color:var(--rotulo);opacity:1}
 .card {border:1px solid var(--divider);box-shadow:var(--sombra)}
-:where(.caja,.grupo) {border:1px solid var(--divider)}
+:where(.caja) {border:1px solid var(--divider)}
 .aviso {border:1px solid color-mix(in srgb,var(--ok) 15%,transparent);line-height:1.65}
 .aviso.accion {border-color:color-mix(in srgb,var(--podio1) 35%,transparent)}
 .aviso.mal {border-color:color-mix(in srgb,var(--negativo) 20%,transparent);color:var(--negativo)}

@@ -37,6 +37,7 @@
 
 /* mazos: formularios y superficies alineados con el sistema. */
 [data-pagina="mazos"] main {padding-top:42px;max-width:780px}
+@media (min-width:960px){[data-pagina="mazos"] main:has(#vistaEditor:not(.oculto)){max-width:1160px}}
 [data-pagina="mazos"] h1 {font-size:38px;letter-spacing:-1.4px}
 [data-pagina="mazos"] .meta {line-height:1.8;margin-top:12px}
 [data-pagina="mazos"] .caja {padding:26px;border:1px solid var(--divider);box-shadow:var(--sombra);border-radius:16px}
