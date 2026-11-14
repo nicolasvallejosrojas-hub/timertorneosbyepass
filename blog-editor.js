@@ -9,9 +9,9 @@
    a los pocos segundos; un artículo publicado se cambia con «Guardar cambios» (así no se publica algo a medio escribir). */
 import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getStorage, connectStorageEmulator, ref as sref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { app, db, auth } from "./sesion.js?v=fb11bdac3be2";
-import { limpiarHtml } from "./blog-html.js?v=fb11bdac3be2";
-import { norm } from "./listamazo.js?v=fb11bdac3be2";
+import { app, db, auth } from "./sesion.js?v=6de48208916e";
+import { limpiarHtml } from "./blog-html.js?v=6de48208916e";
+import { norm } from "./listamazo.js?v=6de48208916e";
 
 const st = getStorage(app);
 if (typeof EMULADOR !== "undefined" && EMULADOR) connectStorageEmulator(st, EMULADOR.host, EMULADOR.storage);
@@ -184,7 +184,7 @@ export async function abrirEditor({ caja, id }){
   $("edBorrar").onclick = async () => {
     if (!confirm("¿Borrar «" + (A.titulo || "este artículo") + "» y sus imágenes? No se puede deshacer.")) return;
     try {
-      await update(ref(db), { ["blog/articulos/" + ID]: null, ["blog/lista/" + ID]: null });
+      await update(ref(db), { ["blog/articulos/" + ID]: null, ["blog/lista/" + ID]: null, ["blogComentarios/" + ID]: null });
       try { const l = await listAll(sref(st, "blog/" + A.carpeta)); await Promise.all(l.items.map(it => deleteObject(it))); } catch(e){ console.warn("Blog: quedaron fotos sin borrar", e); }
       try { localStorage.removeItem(LOCAL()); } catch(e){ /* sin almacenamiento */ }
       sucio = false; location.href = "blog.html";

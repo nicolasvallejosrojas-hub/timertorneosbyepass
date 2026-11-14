@@ -13,18 +13,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=fb11bdac3be2"></script>
+<script src="tema.js?v=6de48208916e"></script>
 <meta name="description" content="Blog de ByePass: artículos, guías y novedades de Pokémon TCG para la comunidad de jugadores y tiendas.">
 <title>Blog — ByePass</title>
 <link rel="canonical" href="https://byepass.cl/blog">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=fb11bdac3be2">
-<link rel="stylesheet" href="estilo.css?v=fb11bdac3be2">
-<link rel="stylesheet" href="/paginas/blog.css?v=fb11bdac3be2">
-<link rel="stylesheet" href="/sistema.css?v=fb11bdac3be2">
-<script src="/sistema.js?v=fb11bdac3be2" defer></script>
+<link rel="stylesheet" href="tokens.css?v=6de48208916e">
+<link rel="stylesheet" href="estilo.css?v=6de48208916e">
+<link rel="stylesheet" href="/paginas/blog.css?v=6de48208916e">
+<link rel="stylesheet" href="/sistema.css?v=6de48208916e">
+<script src="/sistema.js?v=6de48208916e" defer></script>
 </head>
 <body data-pagina="blog">
   <!-- ▌BLOQUE 1 · Marcado -->
@@ -52,6 +52,18 @@
       <figure class="portada oculto" id="aPortada"><img alt="" id="aPortadaImg"></figure>
       <div class="cuerpo" id="aCuerpo"></div>
       <div class="adminBlog oculto" id="aAdmin"><a class="btn" id="aEditar" href="#">Editar este artículo</a></div>
+      <!-- comentarios: cualquier cuenta registrada (con su nombre de perfil), uno por minuto; cada uno borra los suyos, la administración cualquiera -->
+      <section class="comentarios oculto" id="comentarios" aria-labelledby="tCom">
+        <h2 id="tCom">Comentarios <span id="nCom"></span></h2>
+        <form id="comForm" class="oculto">
+          <label class="sr" for="comTexto">Tu comentario</label>
+          <textarea id="comTexto" rows="3" maxlength="1500" placeholder="Escribe un comentario…" required></textarea>
+          <div class="comAcc"><small id="comComo"></small><button class="btn primario" id="comEnviar">Comentar</button></div>
+          <p class="comMsg" id="comMsg" role="status"></p>
+        </form>
+        <p class="comEntrar oculto" id="comEntrar"></p>
+        <ol class="comLista" id="comLista"></ol>
+      </section>
     </article>
 
     <!-- el editor (blog-editor.js) -->
@@ -61,14 +73,14 @@
       <p class="bajada" id="nadaTxt">Puede que ya no esté publicado.</p><a class="btn" href="blog.html">Ver todos los artículos</a></section>
   </main>
 
-<script src="config.js?v=fb11bdac3be2"></script>
+<script src="config.js?v=6de48208916e"></script>
 <!-- ▌BLOQUE 2 · Módulos -->
 <script type="module">
-import { ref, get, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { ref, get, query, orderByChild, limitToLast, onValue, update, push, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, urlMuro } from "./sesion.js?v=fb11bdac3be2";
-import { contarVisita } from "./presencia.js?v=fb11bdac3be2";
-import { limpiarHtml } from "./blog-html.js?v=fb11bdac3be2";
+import { db, auth, urlMuro } from "./sesion.js?v=6de48208916e";
+import { contarVisita } from "./presencia.js?v=6de48208916e";
+import { limpiarHtml } from "./blog-html.js?v=6de48208916e";
 
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
@@ -112,8 +124,63 @@ async function pintarArticulo(id){
   if (a.portada) $("aPortadaImg").src = a.portada.img;
   $("aCuerpo").innerHTML = limpiarHtml(a.cuerpo);
   $("aEditar").href = "blog.html?editar=" + encodeURIComponent(id);
+  if (a.estado === "publicado") comentarios(id);
   return a;
 }
+
+/* ▌Comentarios: blogComentarios/<nota>/<id> = { uid, nombre, texto, creado }. Las reglas piden una cuenta registrada (no anónima)
+   con nombre en su perfil, uno por minuto (blogComentariosUltimo/<uid> = { t, m } en la misma escritura) y una nota publicada. */
+let USUARIO = null, NOMBRE = "", COM_ID = null, COMS = [];
+const cuando = ms => new Date(ms).toLocaleString("es-CL", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+function comentarios(id){
+  if (COM_ID === id) return;
+  COM_ID = id;
+  $("comentarios").classList.remove("oculto");
+  pintarForm();
+  onValue(ref(db, "blogComentarios/" + id), s => {
+    COMS = []; s.forEach(c => { COMS.push({ id: c.key, ...c.val() }); });
+    COMS.sort((x, y) => (x.creado || 0) - (y.creado || 0));
+    pintarComentarios();
+  }, () => { $("comLista").innerHTML = '<li class="vacio">No se pudieron cargar los comentarios.</li>'; });
+  if (location.hash === "#comentarios") setTimeout(() => $("comentarios").scrollIntoView({ block: "start" }), 300);
+}
+function pintarComentarios(){
+  $("nCom").textContent = COMS.length ? "(" + COMS.length + ")" : "";
+  $("comLista").innerHTML = COMS.map(c => '<li class="com"><span class="comAv" aria-hidden="true">' + esc((c.nombre || "?").trim().charAt(0).toUpperCase()) + "</span><div>" +
+    '<p class="comCab"><b>' + esc(c.nombre) + '</b><time datetime="' + new Date(c.creado || 0).toISOString() + '">' + esc(cuando(c.creado || 0)) + "</time>" +
+    (USUARIO && (c.uid === USUARIO.uid || ADMIN) ? '<button type="button" class="comBorrar" data-borrar="' + esc(c.id) + '">Borrar</button>' : "") + "</p>" +
+    '<p class="comTxt">' + esc(c.texto) + "</p></div></li>").join("") || '<li class="vacio">Todavía no hay comentarios. ¡Cuéntanos qué te pareció!</li>';
+}
+function pintarForm(){
+  const volver = "cuenta.html?volver=" + encodeURIComponent("blog.html?a=" + ID + "#comentarios");
+  const puede = !!USUARIO && !!NOMBRE;
+  $("comForm").classList.toggle("oculto", !puede);
+  $("comEntrar").classList.toggle("oculto", puede);
+  if (puede) $("comComo").innerHTML = "Comentas como <b>" + esc(NOMBRE) + "</b>";
+  else $("comEntrar").innerHTML = USUARIO ? 'Para comentar, completa tu nombre en <a href="cuenta.html#ajustes">tu cuenta</a>.'
+    : '<a href="' + esc(volver + "#ingresar") + '">Entra con tu cuenta</a> o <a href="' + esc(volver + "#crear") + '">créala gratis</a> para comentar.';
+}
+$("comForm").onsubmit = async e => {
+  e.preventDefault();
+  const t = $("comTexto").value.trim();
+  if (!t || !USUARIO || !COM_ID) return;
+  const k = push(ref(db, "blogComentarios/" + COM_ID)).key;
+  $("comEnviar").disabled = true; $("comMsg").textContent = "";
+  try {
+    await update(ref(db), { ["blogComentarios/" + COM_ID + "/" + k]: { uid: USUARIO.uid, nombre: NOMBRE, texto: t.slice(0, 1500), creado: serverTimestamp() },
+      ["blogComentariosUltimo/" + USUARIO.uid]: { t: serverTimestamp(), m: k } });
+    $("comTexto").value = "";
+  } catch(err){
+    $("comMsg").textContent = /permission/i.test(err.code || err.message || "") ? "No se pudo publicar. Si comentaste hace menos de un minuto, espera un poco y vuelve a intentar."
+      : "No se pudo publicar. Revisa la conexión.";
+  } finally { $("comEnviar").disabled = false; }
+};
+$("comLista").addEventListener("click", async e => {
+  const b = e.target.closest("[data-borrar]"); if (!b || !COM_ID) return;
+  if (!confirm("¿Borrar este comentario?")) return;
+  try { await remove(ref(db, "blogComentarios/" + COM_ID + "/" + b.dataset.borrar)); }
+  catch(err){ alert("No se pudo borrar. Revisa la conexión."); }
+});
 
 /* ▌BLOQUE 4 · Administración */
 let ADMIN = false;
@@ -131,6 +198,9 @@ const arranque = new Promise(ok => onAuthStateChanged(auth, async u => {
   ADMIN = false;
   $("aMuro").href = u && !u.isAnonymous ? urlMuro() : "cuenta.html";
   if (u && !u.isAnonymous) try { ADMIN = (await get(ref(db, "admins/" + u.uid))).val() === true; } catch(e){ /* no es admin */ }
+  USUARIO = u && !u.isAnonymous ? u : null; NOMBRE = "";
+  if (USUARIO) try { NOMBRE = (await get(ref(db, "usuarios/" + u.uid + "/nombre"))).val() || ""; } catch(e){ /* sin perfil: no comenta */ }
+  pintarForm(); pintarComentarios();
   ok();
 }));
 
@@ -142,7 +212,7 @@ const arranque = new Promise(ok => onAuthStateChanged(auth, async u => {
   if (EDITAR){
     if (!ADMIN){ ver("vistaNada"); $("nadaTit").textContent = "Solo la administración escribe en el blog"; $("nadaTxt").textContent = "Entra con tu cuenta de administrador."; return; }
     ver("vistaEditor");
-    const { abrirEditor } = await import("./blog-editor.js?v=fb11bdac3be2");
+    const { abrirEditor } = await import("./blog-editor.js?v=6de48208916e");
     abrirEditor({ caja: $("vistaEditor"), id: q.has("nuevo") ? "" : ID });
     return;
   }
