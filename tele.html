@@ -40,7 +40,7 @@
   clasificacion.js (un módulo) y las teles no la corren; se ve en el celular.
 -->
 
-<link rel="stylesheet" href="/paginas/tele.css?v=140a6152223f">
+<link rel="stylesheet" href="/paginas/tele.css?v=713af02f4015">
 </head>
 <body data-pagina="tele">
 <img id="bg" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
@@ -58,7 +58,7 @@
 <div id="nav"><span id="tabT" class="on">Timer</span><span id="tabM">Mesas<i id="dot"></i></span><span id="tabS">Sorteo</span></div>
 <div id="aviso"><h2 id="avisoT">Esta sala no está disponible</h2><p id="avisoP">Revisa el enlace, o crea tu sala en byepass.cl</p></div>
 
-<script src="config.js?v=140a6152223f"></script>
+<script src="config.js?v=713af02f4015"></script>
 <!-- ▌BLOQUE 3 · Script ES5 para Smart TV — Sin módulos ni SDK de Firebase: lee por la API REST con
      EventSource (o cada 3 s). Calibra la hora con la cabecera Date del sitio y con el updatedAt del panel.
      -->
@@ -243,7 +243,12 @@
     var V = TH.desktop || TH, M = (MED && MED.desktop) || {};
     var bgSrc = INVITADO ? "" : (M.bgImage || V.bgImage || "");
     var logo = SIN_TIENDA ? "" : ((MED && MED.logo) || TH.logo || "");
-    if (V.bgType === "image" && bgSrc){ $("bg").src = bgSrc; $("bg").style.display = "block"; document.body.style.background = "#1B2C49"; }
+    if (V.bgType === "image" && bgSrc){
+      $("bg").src = bgSrc; $("bg").style.display = "block"; document.body.style.background = "#1B2C49";
+      /* Brillo y opacidad del fondo (los sliders del panel). Sin «??»: las teles viejas no lo entienden. */
+      var filtro = "opacity(" + (V.bgOpacity != null ? V.bgOpacity : 100) + "%) brightness(" + (V.bgBrightness != null ? V.bgBrightness : 100) + "%)";
+      $("bg").style.webkitFilter = filtro; $("bg").style.filter = filtro;
+    }
     else {
       $("bg").style.display = "none";
       var c1 = V.bgColor1 || "#1B2C49", c2 = V.bgColor2 || "#121E30";
