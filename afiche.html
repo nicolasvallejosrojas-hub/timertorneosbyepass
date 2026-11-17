@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="config.js?v=713af02f4015"></script>
+<script src="config.js?v=8bfe767923f8"></script>
 <title>Afiche del torneo — ByePass</title>
-<link rel="stylesheet" href="/tokens.css?v=713af02f4015">
+<link rel="stylesheet" href="/tokens.css?v=8bfe767923f8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap">
 <!--
   Afiche de torneo: 1080×1350 (4:5, feed de Instagram) o historia 1080×1920 (9:16),
-  según "formato": "post" | "historia". En la historia todo baja para salvar
-  las franjas que tapa Instagram arriba y abajo (--arriba, --abajo).
+  o banner 1920×400 / 600×200, según "formato": "post" | "historia" | "banner" | "chico". En la historia todo
+  baja para salvar las franjas que tapa Instagram arriba y abajo (--arriba, --abajo). Los banners tienen su
+  propia posición para cada caja (c.banner, c.chico) y para título y logo (tituloAncho_banner, …).
   - Se abre desde el calendario del panel («Afiche» en cada torneo), que lo rellena por la dirección:
     ?sala=&dia=&mes=&hora=&evento=&detalle=&direccion=&inscripcion=&qr=&color=
     El resto (imágenes, posiciones, cajas) queda guardado en este navegador, por tienda.
@@ -19,10 +20,10 @@
   - Los campos de un afiche son las claves de DEF (abajo, en el script).
 -->
 
-<link rel="stylesheet" href="/paginas/afiche.css?v=713af02f4015">
-<link rel="stylesheet" href="/sistema.css?v=713af02f4015">
-<script src="/tema.js?v=713af02f4015"></script>
-<script src="/sistema.js?v=713af02f4015" defer></script>
+<link rel="stylesheet" href="/paginas/afiche.css?v=8bfe767923f8">
+<link rel="stylesheet" href="/sistema.css?v=8bfe767923f8">
+<script src="/tema.js?v=8bfe767923f8"></script>
+<script src="/sistema.js?v=8bfe767923f8" defer></script>
 </head>
 <body data-pagina="afiche">
 <aside id="panel">
@@ -35,6 +36,8 @@
     <div class="botones">
       <button class="sec" data-formato="post">Post 1080×1350</button>
       <button class="sec" data-formato="historia">Historia 1080×1920</button>
+      <button class="sec" data-formato="banner">Banner 1920×400</button>
+      <button class="sec" data-formato="chico">Banner 600×200</button>
     </div>
   </fieldset>
 
@@ -174,6 +177,8 @@ const DEF = {
   fondo: "", fondoZoom: 1, fondoX: 0, fondoY: 0, velo: 0.15,
   logo: "", logoAncho: 150,
   titulo: "", tituloAncho: 860, tituloY: 330,
+  tituloAncho_banner: 600, tituloY_banner: 70, logoAncho_banner: 150,
+  tituloAncho_chico: 200, tituloY_chico: 76, logoAncho_chico: 60,
   dia: "16", mes: "MARZO",
   hora: "19.30 HRS", evento: "PRELANZAMIENTO", detalle: "$29.990 HASTA EL 8 DE MARZO",
   inscripcion: "INSCRIPCIONES Y PAGO EN\nWWW.TUTIENDA.CL",
@@ -194,17 +199,51 @@ const DEF = {
   cajas: [],
 };
 const CAJA = { tipo: "azul", texto: "", x: 240, y: 600, w: 600, h: 90, ancla: "abajo", letra: 1, peso: "700", alinear: "center" };
+const TAM = { post: [1080, 1350], historia: [1080, 1920], banner: [1920, 400], chico: [600, 200] };
+/* Formatos con posiciones propias: dónde va cada cuadro la primera vez. Título a la izquierda, cuadros a la derecha. */
+const PROPIA = {
+  banner: {
+    fecha:     { x: 1040, y: 40,  w: 200, h: 196 },
+    info:      { x: 1260, y: 67,  w: 620, h: 142 },
+    inscribe:  { x: 1040, y: 268, w: 400, h: 86 },
+    direccion: { x: 1460, y: 268, w: 420, h: 86 },
+    qr:        { x: 850,  y: 115, w: 170, h: 170 },
+  },
+  chico: {
+    fecha:     { x: 330, y: 16,  w: 80,  h: 82 },
+    info:      { x: 420, y: 24,  w: 166, h: 66 },
+    inscribe:  { x: 330, y: 108, w: 256, h: 40 },
+    direccion: { x: 330, y: 156, w: 256, h: 30 },
+    qr:        { x: 232, y: 58,  w: 86,  h: 86 },
+  },
+};
+const GEO = ["x", "y", "w", "h"];
 const NOMBRES = { info: "Cuadro blanco", fecha: "Fecha", inscribe: "Inscripciones", direccion: "Dirección", qr: "Código QR" };
 const RENDER = new URLSearchParams(location.search).has("render");
 const URLP = new URLSearchParams(location.search), GUARDA = "byepass-afiche:" + (URLP.get("sala") || "");   // un borrador por tienda
 const $ = id => document.getElementById(id);
 const post = $("post");
-const ALTO = () => P.formato === "historia" ? 1920 : 1350, ARRIBA = () => P.formato === "historia" ? 250 : 0;
+const propia = () => PROPIA[P.formato];
+const ANCHO = () => TAM[P.formato][0], ALTO = () => TAM[P.formato][1], ARRIBA = () => P.formato === "historia" ? 250 : 0;
 const corrido = ancla => P.formato !== "historia" ? 0 : ancla === "arriba" ? 250 : 312;
+const clave = k => propia() && /^(tituloAncho|tituloY|logoAncho)$/.test(k) ? k + "_" + P.formato : k;   // título y logo tienen su medida en cada banner
+/* Posición de una caja en el formato que se ve. En los banners va aparte (c.banner, c.chico): la primera vez
+   sale de la plantilla PROPIA o, si es agregada, del mismo lugar relativo que tiene en el post. */
+function geo(c){
+  const f = P.formato;
+  if (!PROPIA[f]) return c;
+  if (!c[f]){
+    const id = Object.keys(P.pos).find(k => P.pos[k] === c), W = ANCHO(), H = ALTO(), w = Math.min(c.w, W - 40), h = Math.min(c.h, H - 40);
+    const lim = (v, max) => Math.round(Math.min(Math.max(v, 0), max));
+    c[f] = id ? { ...PROPIA[f][id] } : { w, h, x: lim((c.x + c.w / 2) * W / 1080 - w / 2, W - w), y: lim((c.y + c.h / 2) * H / 1350 - h / 2, H - h) };
+  }
+  return c[f];
+}
 let P, sel = null;   // sel: la caja elegida en el editor (clave de P.pos o id de P.cajas)
 /* Carga un post completando lo que falte; copia pos y cajas para no tocar DEF. */
 function usar(datos){
   P = { ...DEF, ...datos };
+  if (!TAM[P.formato]) P.formato = "post";   // un JSON viejo o raro
   P.pos = Object.fromEntries(Object.keys(DEF.pos).map(k => [k, { ...DEF.pos[k], ...(datos.pos || {})[k] }]));
   P.cajas = (Array.isArray(datos.cajas) ? datos.cajas : []).map(c => ({ ...CAJA, ...c }));
 }
@@ -231,16 +270,17 @@ const img = (el, src) => { if (el.getAttribute("src") !== src) src ? el.src = sr
 function pintarFondo(){
   const f = $("fondo");
   if (!P.fondo || !f.naturalWidth) return;
-  const base = Math.max(1080 / f.naturalWidth, ALTO() / f.naturalHeight) * P.fondoZoom;
+  const base = Math.max(ANCHO() / f.naturalWidth, ALTO() / f.naturalHeight) * P.fondoZoom;
   const w = f.naturalWidth * base, h = f.naturalHeight * base;
   f.style.width = w + "px"; f.style.height = h + "px";
-  f.style.left = (540 - w / 2 + P.fondoX) + "px"; f.style.top = (ALTO() / 2 - h / 2 + P.fondoY) + "px";
+  f.style.left = (ANCHO() / 2 - w / 2 + P.fondoX) + "px"; f.style.top = (ALTO() / 2 - h / 2 + P.fondoY) + "px";
 }
 $("fondo").onload = pintarFondo;
 
 function colocar(el, c){
-  el.style.left = c.x + "px"; el.style.top = c.y + corrido(c.ancla) + "px";
-  el.style.width = c.w + "px"; el.style.height = c.h + "px";
+  const g = geo(c);
+  el.style.left = g.x + "px"; el.style.top = g.y + corrido(c.ancla) + "px";
+  el.style.width = g.w + "px"; el.style.height = g.h + "px";
 }
 const interior = el => {   // ancho y alto útiles de una caja, sin relleno
   const cs = getComputedStyle(el);
@@ -322,17 +362,17 @@ function marcarSel(){
 }
 
 function pintar(){
-  post.classList.toggle("historia", P.formato === "historia");
+  for (const f of ["historia", "banner", "chico"]) post.classList.toggle(f, P.formato === f);
   escalar();
   document.documentElement.style.setProperty("--azul", P.color);
   img($("fondo"), P.fondo); pintarFondo();
   $("velo").style.opacity = P.velo;
-  img($("logo"), P.logo); $("logo").style.width = P.logoAncho + "px";
-  img($("titulo"), P.titulo); $("titulo").style.width = P.tituloAncho + "px"; $("titulo").style.top = P.tituloY + ARRIBA() + "px";
+  img($("logo"), P.logo); $("logo").style.width = P[clave("logoAncho")] + "px";
+  img($("titulo"), P.titulo); $("titulo").style.width = P[clave("tituloAncho")] + "px"; $("titulo").style.top = P[clave("tituloY")] + ARRIBA() + "px";
   pintarCajas();
   if (!RENDER){
     verEditor();
-    document.querySelectorAll("[data-k]").forEach(el => { if (document.activeElement !== el) el.value = P[el.dataset.k]; });
+    document.querySelectorAll("[data-k]").forEach(el => { if (document.activeElement !== el) el.value = P[clave(el.dataset.k)]; });
     document.querySelectorAll("[data-formato]").forEach(b => b.classList.toggle("sec", b.dataset.formato !== P.formato));
     document.querySelectorAll("[data-ver]").forEach(el => el.textContent = Math.round(P[el.dataset.ver] * 100) + "%");
     try { localStorage.setItem(GUARDA, JSON.stringify(P)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }   // una imagen muy grande puede no caber: no pasa nada
@@ -359,21 +399,22 @@ function mezclar(hex, k){   // el color hacia negro, como color-mix(... k, #000)
 }
 async function aPng(){
   await document.fonts.ready;
-  const H = ALTO(), c = document.createElement("canvas"); c.width = 1080; c.height = H;
-  const g = c.getContext("2d"), r0 = post.getBoundingClientRect(), s = r0.width / 1080;
+  const W = ANCHO(), H = ALTO(), c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"), r0 = post.getBoundingClientRect(), s = r0.width / W;
   const rect = el => { const r = el.getBoundingClientRect(); return { x: (r.left - r0.left) / s, y: (r.top - r0.top) / s, w: r.width / s, h: r.height / s }; };
   const visible = el => el.style.display !== "none" && el.getClientRects().length > 0;
   const redondo = (b, rad) => { g.beginPath(); g.roundRect(b.x, b.y, b.w, b.h, rad); };
+  const k = P.formato === "chico" ? .35 : 1;   // en el banner chico, sombra y esquinas a escala (como en su CSS)
 
   /* fondo por defecto: el mismo degradé radial del CSS */
-  g.save(); g.translate(540, H * .2); g.scale(1, (.9 * H) / (1.2 * 1080));
-  const rg = g.createRadialGradient(0, 0, 0, 0, 0, 1.2 * 1080);
+  g.save(); g.translate(W / 2, H * .2); g.scale(1, (.9 * H) / (1.2 * W));
+  const rg = g.createRadialGradient(0, 0, 0, 0, 0, 1.2 * W);
   rg.addColorStop(0, "#3a1024"); rg.addColorStop(.55, "#12183a"); rg.addColorStop(1, "#070a18");
   g.fillStyle = rg; g.fillRect(-2000, -4000, 4000, 8000); g.restore();
 
   for (const id of ["fondo", "titulo", "logo"]){
     const im = $(id);
-    if (id === "titulo") g.fillStyle = "rgba(0,0,0," + P.velo + ")", g.fillRect(0, 0, 1080, H);   // el velo va entre el fondo y el título
+    if (id === "titulo") g.fillStyle = "rgba(0,0,0," + P.velo + ")", g.fillRect(0, 0, W, H);   // el velo va entre el fondo y el título
     if (visible(im) && im.naturalWidth){ const b = rect(im); g.drawImage(im, b.x, b.y, b.w, b.h); }
   }
 
@@ -383,15 +424,15 @@ async function aPng(){
     const b = rect(el), azul = el.classList.contains("azul"), soloTexto = el.classList.contains("texto");
     if (!soloTexto){
     g.save();
-    g.shadowColor = azul ? "rgba(0,0,0,.45)" : "rgba(0,0,0,.4)"; g.shadowBlur = 34; g.shadowOffsetY = 14;
+    g.shadowColor = azul ? "rgba(0,0,0,.45)" : "rgba(0,0,0,.4)"; g.shadowBlur = 34 * k; g.shadowOffsetY = 14 * k;
     if (azul){ const lg = g.createLinearGradient(0, b.y, 0, b.y + b.h); lg.addColorStop(0, claro); lg.addColorStop(1, oscuro); g.fillStyle = lg; }
     else g.fillStyle = "#fff";
-    redondo(b, 16); g.fill(); g.restore();
+    redondo(b, 16 * k); g.fill(); g.restore();
     if (azul){
-      g.save(); redondo(b, 16); g.clip();
+      g.save(); redondo(b, 16 * k); g.clip();
       g.fillStyle = "rgba(255,255,255,.28)"; g.fillRect(b.x, b.y, b.w, 2); g.restore();
       const borde = getComputedStyle(el).borderTopColor;
-      if (getComputedStyle(el).borderTopWidth !== "0px"){ g.strokeStyle = borde; g.lineWidth = 2; redondo({ x: b.x + 1, y: b.y + 1, w: b.w - 2, h: b.h - 2 }, 15); g.stroke(); }
+      if (getComputedStyle(el).borderTopWidth !== "0px"){ g.strokeStyle = borde; g.lineWidth = 2; redondo({ x: b.x + 1, y: b.y + 1, w: b.w - 2, h: b.h - 2 }, 16 * k - 1); g.stroke(); }
     }
     }
     if (el.id === "qr"){   // el QR es una imagen cuadrada, centrada en su caja
@@ -430,15 +471,16 @@ window.aPng = aPng;
 /* ------------------------------------------------ editor */
 function escalar(){
   if (RENDER) return;
-  const v = $("vista"), s = Math.min((v.clientWidth - 40) / 1080, (v.clientHeight - 40) / ALTO());
+  const v = $("vista"), s = Math.min((v.clientWidth - 40) / ANCHO(), (v.clientHeight - 40) / ALTO());
   post.style.transform = "scale(" + s + ")";
-  $("marco").style.width = 1080 * s + "px"; $("marco").style.height = ALTO() * s + "px";
+  $("marco").style.width = ANCHO() * s + "px"; $("marco").style.height = ALTO() * s + "px";
   post.dataset.s = s; post.style.setProperty("--s", s);
 }
 function elegir(id){ sel = id; pintar(); }
 /* Al soltar una caja, se ancla arriba o abajo según la mitad en que quedó,
    sin que se mueva en el formato que se está viendo. */
 function reanclar(c){
+  if (propia()) return;   // los banners no tienen franjas: el ancla es solo de la historia
   const el = elDe(c.id) || elDe(Object.keys(P.pos).find(k => P.pos[k] === c));
   const top = c.y + corrido(c.ancla), h = el ? el.offsetHeight : c.h;
   c.ancla = top + h / 2 < ALTO() / 2 ? "arriba" : "abajo";
@@ -456,7 +498,7 @@ function verEditor(){
   document.querySelectorAll("[data-c]").forEach(el => {
     const k = el.dataset.c;
     if (document.activeElement === el || !(k in c)) return;
-    el.value = k === "y" ? c.y + corrido(c.ancla) : c[k];
+    el.value = k === "y" ? geo(c).y + corrido(c.ancla) : GEO.includes(k) ? geo(c)[k] : c[k];
   });
   $("cLetraVer").textContent = Math.round(c.letra * 100) + "%";
 }
@@ -464,7 +506,7 @@ if (!RENDER){
   addEventListener("resize", escalar); escalar();
 
   document.querySelectorAll("[data-k]").forEach(el => el.addEventListener("input", () => {
-    P[el.dataset.k] = el.type === "range" ? +el.value : el.value; pintar();
+    P[clave(el.dataset.k)] = el.type === "range" ? +el.value : el.value; pintar();
   }));
   const leer = f => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
   document.querySelectorAll("[data-img]").forEach(el => el.addEventListener("change", async () => {
@@ -483,8 +525,8 @@ if (!RENDER){
   let ini = null;
   post.addEventListener("pointerdown", e => {
     const el = e.target.closest("[data-caja]");
-    if (e.target.closest(".asa") && caja(sel)){ const c = caja(sel); ini = { modo: "tam", x: e.clientX, y: e.clientY, w: c.w, h: c.h }; }
-    else if (el){ elegir(el.dataset.caja); const c = caja(sel); ini = { modo: "mover", x: e.clientX, y: e.clientY, cx: c.x, cy: c.y }; }
+    if (e.target.closest(".asa") && caja(sel)){ const g = geo(caja(sel)); ini = { modo: "tam", x: e.clientX, y: e.clientY, w: g.w, h: g.h }; }
+    else if (el){ elegir(el.dataset.caja); const g = geo(caja(sel)); ini = { modo: "mover", x: e.clientX, y: e.clientY, cx: g.x, cy: g.y }; }
     else { elegir(null); ini = { modo: "fondo", x: e.clientX, y: e.clientY, fx: P.fondoX, fy: P.fondoY }; }
     post.setPointerCapture(e.pointerId); post.classList.add("arrastrando");
   });
@@ -492,15 +534,15 @@ if (!RENDER){
     if (!ini) return;
     const s = +post.dataset.s, dx = (e.clientX - ini.x) / s, dy = (e.clientY - ini.y) / s;
     if (ini.modo === "fondo"){ P.fondoX = ini.fx + dx; P.fondoY = ini.fy + dy; pintarFondo(); return; }
-    const c = caja(sel), el = elDe(sel);
+    const c = caja(sel), g = geo(c), el = elDe(sel), medio = ANCHO() / 2;
     if (ini.modo === "mover"){
-      c.x = Math.round(ini.cx + dx); c.y = Math.round(ini.cy + dy);
-      const centrada = Math.abs(c.x + el.offsetWidth / 2 - 540) < 12;   // se pega al centro
-      if (centrada) c.x = Math.round(540 - el.offsetWidth / 2);
+      g.x = Math.round(ini.cx + dx); g.y = Math.round(ini.cy + dy);
+      const centrada = Math.abs(g.x + el.offsetWidth / 2 - medio) < 12;   // se pega al centro
+      if (centrada) g.x = Math.round(medio - el.offsetWidth / 2);
       $("guia").style.display = centrada ? "block" : "none";
       colocar(el, c); marcarSel();
     } else {
-      c.w = Math.max(40, Math.round(ini.w + dx)); c.h = Math.max(30, Math.round(ini.h + dy));
+      g.w = Math.max(40, Math.round(ini.w + dx)); g.h = Math.max(30, Math.round(ini.h + dy));
       pintarCajas();
     }
     verEditor();
@@ -516,7 +558,7 @@ if (!RENDER){
     const c = caja(sel);
     if (!c || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
     const paso = e.shiftKey ? 10 : 1, mov = { ArrowLeft: [-paso, 0], ArrowRight: [paso, 0], ArrowUp: [0, -paso], ArrowDown: [0, paso] }[e.key];
-    if (mov){ e.preventDefault(); c.x += mov[0]; c.y += mov[1]; pintar(); }
+    if (mov){ e.preventDefault(); const g = geo(c); g.x += mov[0]; g.y += mov[1]; pintar(); }
     else if ((e.key === "Delete" || e.key === "Backspace") && !P.pos[sel]){ e.preventDefault(); borrar(); }
     else if (e.key === "Escape") elegir(null);
   });
@@ -525,7 +567,7 @@ if (!RENDER){
   document.querySelectorAll("[data-c]").forEach(el => el.addEventListener("input", () => {
     const c = caja(sel); if (!c) return;
     const k = el.dataset.c, v = el.type === "number" || el.type === "range" ? +el.value : el.value;
-    if (k === "y") c.y = v - corrido(c.ancla); else c[k] = v;
+    if (GEO.includes(k)) geo(c)[k] = k === "y" ? v - corrido(c.ancla) : v; else c[k] = v;
     pintar();
   }));
   document.querySelectorAll("[data-nueva]").forEach(b => b.onclick = () => {
@@ -533,14 +575,20 @@ if (!RENDER){
     const c = { ...CAJA, id: "c" + Date.now().toString(36), tipo, w, h, x: 540 - w / 2, y: Math.round(ALTO() / 2 - h / 2), ancla: "arriba",
                 texto: tipo === "texto" ? "TEXTO NUEVO" : "NUEVA INFORMACIÓN" };
     c.y -= corrido("arriba");   // que aparezca al medio de lo que se ve
+    if (propia()){ const bw = Math.min(w, ANCHO() - 40), bh = Math.min(h, ALTO() - 40); c[P.formato] = { x: (ANCHO() - bw) / 2, y: (ALTO() - bh) / 2, w: bw, h: bh }; }
     P.cajas.push(c); reanclar(c); elegir(c.id);
     const t = document.querySelector('[data-c="texto"]'); t.focus(); t.select();
   });
   function borrar(){ P.cajas = P.cajas.filter(c => c.id !== sel); elegir(null); }
   $("cBorrar").onclick = borrar;
-  $("cDuplicar").onclick = () => { const c = { ...caja(sel), id: "c" + Date.now().toString(36) }; c.y += 30; P.cajas.push(c); elegir(c.id); };
+  $("cDuplicar").onclick = () => { const c = { ...caja(sel), id: "c" + Date.now().toString(36) }; for (const f in PROPIA) if (c[f]) c[f] = { ...c[f] }; geo(c).y += 30; P.cajas.push(c); elegir(c.id); };
   $("cFrente").onclick = () => { const c = caja(sel); P.cajas = P.cajas.filter(x => x !== c).concat(c); pintar(); };
-  $("cRestablecer").onclick = () => { P.pos[sel] = { ...DEF.pos[sel] }; pintar(); };
+  $("cRestablecer").onclick = () => {   // cada formato vuelve a su propio lugar, sin mover los otros
+    const antes = P.pos[sel];
+    if (propia()) delete antes[P.formato];
+    else { P.pos[sel] = { ...DEF.pos[sel] }; for (const f in PROPIA) if (antes[f]) P.pos[sel][f] = antes[f]; }
+    pintar();
+  };
   $("cListo").onclick = () => elegir(null);
   post.addEventListener("wheel", e => { e.preventDefault(); P.fondoZoom = Math.min(3, Math.max(1, P.fondoZoom * (e.deltaY < 0 ? 1.05 : 1 / 1.05))); pintar(); }, { passive: false });
 
@@ -583,7 +631,7 @@ pintar();
 document.fonts.ready.then(pintar);
 </script>
 <script type="module">
-  import { qrImg } from "./qr.js?v=713af02f4015";
+  import { qrImg } from "./qr.js?v=8bfe767923f8";
   window.qrImg = qrImg; pintar();
 </script>
 </body>
