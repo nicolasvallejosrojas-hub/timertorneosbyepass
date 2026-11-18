@@ -544,3 +544,15 @@
 [data-pagina="admin"] #monTit {padding:12px 16px;margin-bottom:0;border-bottom:1px solid var(--divider);background:var(--pagina);font-size:11px;font-weight:600;letter-spacing:.4px}
 
 #identidadTienda{margin-top:24px} .marcaPreview{padding:24px;border:2px solid var(--franja);border-radius:18px;margin-top:16px;max-width:420px;background:var(--sup);color:var(--texto)} .marcaPreview img{width:88px;height:88px;object-fit:contain;border-radius:12px} .marcaPreview button{background:var(--accion);color:var(--sobre-accion)}
+
+/* Calendario en el celular: el mes va en su propia línea y los botones debajo, sin partirse («Imagen del mes» quedaba en
+   tres renglones); en «Próximos torneos» los botones bajan bajo el texto (en la misma fila lo dejaban en una palabra por línea). */
+#calNav button{white-space:nowrap;}
+@media (max-width:620px){
+  #calNav{flex-wrap:wrap;}
+  #calMes{flex:1 1 100%;}
+  .evRow{flex-wrap:wrap;}
+  .evFecha{min-width:48px;}
+  .evMid{flex:1 1 calc(100% - 60px);}
+  .evAcc{flex:1 1 100%;justify-content:flex-start;padding-left:60px;}
+}
