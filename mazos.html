@@ -10,20 +10,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=f183e75c2c41"></script>
+<script src="tema.js?v=30755b8315af"></script>
 <meta name="description" content="Tus listas de mazo guardadas, para usarlas al inscribirte en un torneo.">
 <title>Mis mazos — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=f183e75c2c41">
-<link rel="stylesheet" href="estilo.css?v=f183e75c2c41">
-<link rel="stylesheet" href="armador.css?v=f183e75c2c41">
+<link rel="stylesheet" href="tokens.css?v=30755b8315af">
+<link rel="stylesheet" href="estilo.css?v=30755b8315af">
+<link rel="stylesheet" href="armador.css?v=30755b8315af">
 <!-- ▌BLOQUE 1 · Estilos — La lista de mazos y el editor (el armador trae los suyos en armador.css). -->
 
-<link rel="stylesheet" href="/paginas/mazos.css?v=f183e75c2c41">
-<link rel="stylesheet" href="/sistema.css?v=f183e75c2c41">
-<script src="/sistema.js?v=f183e75c2c41" defer></script>
+<link rel="stylesheet" href="/paginas/mazos.css?v=30755b8315af">
+<link rel="stylesheet" href="/sistema.css?v=30755b8315af">
+<script src="/sistema.js?v=30755b8315af" defer></script>
 </head>
 <body data-pagina="mazos">
   <!-- ▌BLOQUE 2 · Marcado — La lista de mazos guardados y el editor de uno. -->
@@ -54,20 +54,28 @@
       <div class="caja armar" id="cajaLista" style="margin-top:var(--e4)"></div>
       <div class="acc" id="editorAcc" style="margin-top:var(--e4)">
         <button class="btn primario" type="button" id="guardar">Guardar el mazo</button>
+        <button class="btn" type="button" id="probarEditor">Probar mazo</button>
         <button class="btn" type="button" id="volver">Volver a mis mazos</button>
         <p class="pista" id="editorMsg" role="status" style="flex:1 1 100%"></p>
       </div>
     </section>
+
+    <section class="oculto" id="vistaProbar" aria-labelledby="tProbar">
+      <div class="acc"><button class="btn" type="button" id="probarVolver">← Volver</button></div>
+      <h2 id="tProbar" class="tProbar">Probar mazo</h2>
+      <div id="probarCaja" class="probar"></div>
+    </section>
   </main>
 
-<script src="config.js?v=f183e75c2c41"></script>
+<script src="config.js?v=30755b8315af"></script>
 <!-- ▌BLOQUE 3 · Módulos — Firebase, sesion, listamazo y el armador. -->
 <script type="module">
 import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=f183e75c2c41";
-import { leerLista, cargarEstandar, imagenCarta } from "./listamazo.js?v=f183e75c2c41";
-import { armador } from "./armador.js?v=f183e75c2c41";
+import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=30755b8315af";
+import { leerLista, cargarEstandar, imagenCarta } from "./listamazo.js?v=30755b8315af";
+import { montarProbar } from "./probar.js?v=30755b8315af";
+import { armador } from "./armador.js?v=30755b8315af";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Mis mazos ═════════════════════════════════════════════════════════
@@ -82,7 +90,7 @@ const A = armador({ estandar: true, alCambiar: () => { SUCIO = true; } });
 $("formato").onchange = () => { SUCIO = true; A.formato($("formato").value === "estandar"); };
 addEventListener("beforeunload", e => { if (SUCIO && !$("vistaEditor").classList.contains("oculto")) e.preventDefault(); });
 
-const ver = editor => { $("vistaLista").classList.toggle("oculto", editor); $("vistaEditor").classList.toggle("oculto", !editor); scrollTo(0, 0); };
+const ver = editor => { $("vistaLista").classList.toggle("oculto", editor); $("vistaEditor").classList.toggle("oculto", !editor); $("vistaProbar").classList.add("oculto"); scrollTo(0, 0); };
 const libre = () => Array.from({ length: MAX }, (_, k) => "m" + (k + 1)).find(k => !MAZOS[k]);
 
 async function cargar(){
@@ -99,7 +107,8 @@ async function pintar(){
     const m = MAZOS[id], p = leerLista(m.lista).pokemon[0], tapa = p ? imagenCarta(base, p.set, p.num) : "";
     return '<div class="mazoF">' + (tapa ? '<img class="tapa" loading="lazy" alt="" src="' + esc(tapa) + '">' : '<span class="tapa" aria-hidden="true"></span>') +
       '<div class="dato"><b>' + esc(m.nombre) + "</b><small>" + esc(NOM_FMT[m.formato] + " · " + m.cartas + (m.cartas === 1 ? " carta" : " cartas") + " · editado el " + fecha(m.actualizado)) + "</small></div>" +
-      '<div class="acc"><button class="btn" type="button" data-editar="' + id + '">Editar</button>' +
+      '<div class="acc"><button class="btn" type="button" data-probar="' + id + '">Probar</button>' +
+      '<button class="btn" type="button" data-editar="' + id + '">Editar</button>' +
       '<button class="btn" type="button" data-borrar="' + id + '">Borrar</button></div></div>';
   }).join("") || '<p class="vacio">Todavía no guardas ningún mazo. Crea uno aquí o guárdalo desde una inscripción.</p>';
 }
@@ -107,6 +116,7 @@ $("lista").addEventListener("error", e => { if (e.target.classList && e.target.c
 $("lista").onclick = async e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.editar) abrir(b.dataset.editar);
+  if (b.dataset.probar){ const m = MAZOS[b.dataset.probar]; if (m) probar(m.nombre, m.lista, b.dataset.probar, "lista"); }
   if (b.dataset.borrar){
     const m = MAZOS[b.dataset.borrar];
     if (!m || !confirm("¿Borrar «" + m.nombre + "»? No se puede deshacer. Las inscripciones donde ya lo usaste no cambian.")) return;
@@ -125,6 +135,21 @@ function abrir(id){
   if (!m) $("nombre").focus();
 }
 $("nuevo").onclick = () => abrir(null);
+/* «Probar mazo»: la lista guardada o, desde el editor, la que está armada aunque no esté guardada. */
+let VOLVER_A = "lista";
+async function probar(nombre, lista, clave, desde){
+  VOLVER_A = desde;
+  $("tProbar").textContent = "Probar «" + (nombre || "mazo sin nombre") + "»";
+  ["vistaLista", "vistaEditor"].forEach(v => $(v).classList.add("oculto"));
+  $("vistaProbar").classList.remove("oculto"); scrollTo(0, 0);
+  $("probarCaja").innerHTML = '<p class="vacio">Calculando…</p>';
+  montarProbar($("probarCaja"), { lista, base: await cargarEstandar(), clave });
+}
+$("probarEditor").onclick = () => probar($("nombre").value.trim(), A.lista(), EDITANDO || "nuevo", "editor");
+$("probarVolver").onclick = () => {
+  $("vistaProbar").classList.add("oculto");
+  if (VOLVER_A === "editor"){ $("vistaEditor").classList.remove("oculto"); scrollTo(0, 0); } else ver(false);
+};
 $("volver").onclick = () => { if (SUCIO && !confirm("¿Salir sin guardar los cambios?")) return; SUCIO = false; ver(false); };
 $("guardar").onclick = async () => {
   const nombre = $("nombre").value.trim().replace(/\s+/g, " ").slice(0, 60), r = A.revisar(), lista = A.lista(), msg = t => { $("editorMsg").textContent = t; };
@@ -148,7 +173,7 @@ onAuthStateChanged(auth, u => {
   if (!u || u.isAnonymous){
     $("sinSesion").innerHTML = 'Entra con tu cuenta de ByePass para guardar tus mazos. <a href="' +
       esc(urlCuenta("ingresar").replace("#", (params() ? "&" : "?") + "volver=" + encodeURIComponent("mazos.html" + params()) + "#")) + '">Entrar</a>';
-    $("sinSesion").classList.remove("oculto"); $("vistaLista").classList.add("oculto"); $("vistaEditor").classList.add("oculto");
+    $("sinSesion").classList.remove("oculto"); $("vistaLista").classList.add("oculto"); $("vistaEditor").classList.add("oculto"); $("vistaProbar").classList.add("oculto");
     return;
   }
   $("sinSesion").classList.add("oculto"); ver(false); cargar();
