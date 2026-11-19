@@ -299,6 +299,7 @@ export function aHistorial(t){
   }));
   return {
     standings: tab.map(p => ({ place: p.puesto, name: p.nombre, w: p.w, l: p.l, t: p.e, pts: p.pts })),
+    ids: tab.map(p => p.id),   // el jugador de la base de cada fila: de ahí sale su cuenta (uid) al archivar
     partidas, rondas: rondasDe(t).length,
   };
 }

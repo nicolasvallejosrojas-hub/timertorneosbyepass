@@ -556,3 +556,10 @@
   .evMid{flex:1 1 calc(100% - 60px);}
   .evAcc{flex:1 1 100%;justify-content:flex-start;padding-left:60px;}
 }
+
+/* Torneos archivados: pedidos de enlace de los jugadores y las filas de un torneo para enlazarlas a mano. */
+.pedidosEnl{background:var(--aviso-accion);border-radius:var(--radio-chico);padding:10px 12px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;}
+.pedidosEnl .pedido{align-items:center;gap:8px;flex-wrap:wrap;}
+.filasEnl{padding:4px 0 10px 14px;border-bottom:1px solid var(--divider);display:flex;flex-direction:column;gap:2px;}
+.filaEnl{align-items:center;gap:8px;flex-wrap:wrap;padding:3px 0;}
+.filaEnl select{max-width:100%;min-width:200px;}

@@ -1,5 +1,6 @@
 /* ▌ÍNDICE de jugadores.js (detalle y números de línea en MAPA-CODIGO.md, en la raíz del proyecto)
     1. Claves por ID
+    2. Nombres parecidos
 */
 /* ============================================================
    jugadores.js — un mismo jugador, aunque su nombre cambie
@@ -95,4 +96,36 @@ export function planClaves(hist, idsHist, nueva = claveNueva){
     else if (x.f.claveN !== undefined) cambios[ruta(x, "claveN")] = null;
   });
   return cambios;
+}
+
+/* ▌BLOQUE 2 · Nombres parecidos ═════════════════════════════════════════════════
+   parecido(a, b): ¿puede ser la misma persona escrita distinto? Solo para SUGERIR («¿Eres tú?» en el
+   perfil): nunca enlaza solo, lo confirma la tienda. Idénticos (sin tildes ni mayúsculas) no cuentan:
+   esos ya calzan por nombre. */
+const palabras = s => normNombre(s).replace(/[.,;'’"-]/g, " ").replace(/\s+/g, " ").trim();
+function distancia(a, b){                                 // Levenshtein, con salida temprana sobre 2
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++){
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    if (Math.min(...cur) > 2) return 3;
+    prev = cur;
+  }
+  return prev[b.length];
+}
+export function parecido(a, b){
+  const x = palabras(a), y = palabras(b);
+  if (!x || !y || x === y) return false;
+  const px = x.split(" "), py = y.split(" "), [corta, larga] = px.length <= py.length ? [px, py] : [py, px];
+  /* Cada palabra de la corta está en la larga, entera o como inicial: «Marco» y «Marco Antonio Benítez»,
+     «Marco B.» y «Marco Benítez», «Benítez Marco» y «Marco Benítez». Con al menos una palabra de 3 letras. */
+  const usadas = new Set();
+  let enteras = 0;   // palabras iguales de 3 letras o más: dos iniciales solas («M. B.») no bastan
+  const cubre = corta.every(p => {
+    const i = larga.findIndex((q, k) => !usadas.has(k) && (q === p || (p.length === 1 && q[0] === p) || (q.length === 1 && p[0] === q)));
+    if (i >= 0 && larga[i] === p && p.length >= 3) enteras++;
+    return i >= 0 && usadas.add(i);
+  });
+  if (cubre && enteras) return true;
+  return x.length >= 6 && distancia(x, y) <= 2;          // «Benites» por «Benítez»
 }

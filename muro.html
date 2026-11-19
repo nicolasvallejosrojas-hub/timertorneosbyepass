@@ -23,18 +23,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=35862e592164"></script>
+<script src="tema.js?v=f183e75c2c41"></script>
 <title>ByePass — Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=35862e592164">
-<link rel="stylesheet" href="estilo.css?v=35862e592164">
+<link rel="stylesheet" href="tokens.css?v=f183e75c2c41">
+<link rel="stylesheet" href="estilo.css?v=f183e75c2c41">
 <!-- ▌BLOQUE 1 · Estilos del muro — Rejilla de tres columnas, perfil, publicaciones, en vivo e insignias. -->
 
-<link rel="stylesheet" href="/paginas/muro.css?v=35862e592164">
-<link rel="stylesheet" href="/sistema.css?v=35862e592164">
-<script src="/sistema.js?v=35862e592164" defer></script>
+<link rel="stylesheet" href="/paginas/muro.css?v=f183e75c2c41">
+<link rel="stylesheet" href="/sistema.css?v=f183e75c2c41">
+<script src="/sistema.js?v=f183e75c2c41" defer></script>
 </head>
 <body data-pagina="muro">
 
@@ -143,6 +143,10 @@
         <h2>Mis resultados</h2>
         <div class="cuerpo junto" id="misResultados"></div>
       </div>
+      <div class="bloque oculto" id="bEresTu">
+        <h2>¿Eres tú?</h2>
+        <div class="cuerpo junto" id="eresTu"></div>
+      </div>
       <div class="bloque">
         <h2>Rachas</h2>
         <div class="cuerpo junto" id="misRachas"></div>
@@ -221,24 +225,25 @@
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
-<script src="config.js?v=35862e592164"></script>
-<script src="noticias.js?v=35862e592164"></script>
+<script src="config.js?v=f183e75c2c41"></script>
+<script src="noticias.js?v=f183e75c2c41"></script>
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=35862e592164";
+import { avisarError } from "./errores.js?v=f183e75c2c41";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, serverTimestamp, query, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signOut, onAuthStateChanged, sendEmailVerification }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=35862e592164";
-import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=35862e592164";
-import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=35862e592164";
-import { estoyEnLinea } from "./presencia.js?v=35862e592164";
-import { perfilCompleto } from "./registro.js?v=35862e592164";
-import { leerHistorial } from "./historial.js?v=35862e592164";
-import { vigilar } from "./mantenimiento.js?v=35862e592164";
-import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=35862e592164";
+import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=f183e75c2c41";
+import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=f183e75c2c41";
+import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=f183e75c2c41";
+import { estoyEnLinea } from "./presencia.js?v=f183e75c2c41";
+import { perfilCompleto } from "./registro.js?v=f183e75c2c41";
+import { parecido } from "./jugadores.js?v=f183e75c2c41";
+import { leerHistorial } from "./historial.js?v=f183e75c2c41";
+import { vigilar } from "./mantenimiento.js?v=f183e75c2c41";
+import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=f183e75c2c41";
 
 const $ = id => document.getElementById(id);
 /* El muro es el inicio de cada persona y no depende de una tienda. El ?sala= solo cuenta con #jugador=
@@ -347,10 +352,10 @@ const esMia = p => {
    mismos jugadores salía vacío («Jugador», sin resultados ni rachas). */
 function torneosDeMisTiendas(){
   const out = [];
-  misSalas().forEach(s => {
+  salasPerfil().forEach(s => {
     cargarTienda(s);
     const h = s === MIRA && !(TD[s] && TD[s].hist) ? HIST : TD[s] && TD[s].hist;
-    Object.values(h || {}).forEach(t => out.push({ t, sala: s }));
+    Object.entries(h || {}).forEach(([tid, t]) => out.push({ t, sala: s, tid }));
   });
   return out;
 }
@@ -558,10 +563,47 @@ function pintarPerfil(){
   $("pfFicha").innerHTML = fichaHtml(mios);
   $("misResultados").innerHTML = resultadosHtml(mios,
     '<div class="vacio">Todavía no apareces en ningún torneo archivado.<br>' +
-    "Si la tienda te inscribió con otro nombre, síguela y comparte tu ID: " +
-    "desde ahí tus resultados entran solos.</div>");
+    "Si jugaste con tu nombre escrito de otra forma, mira «¿Eres tú?» o pídele a la tienda que enlace tu resultado. " +
+    "Inscribirte con tu cuenta o compartir tu ID con la tienda hace que entren solos.</div>");
+  pintarEresTu(mios);
   $("misRachas").innerHTML = rachasHtml(rachasDe(esMia), true);
   pintarInsigniasPropias();
+}
+
+/* «¿Eres tú?»: filas sin cuenta de mis tiendas (y de las que jugué) con un nombre parecido al mío
+   (jugadores.js: «Marco» / «Marco B.» / «Benítez Marco» / una letra de diferencia). «Soy yo» le pide a la
+   tienda que la enlace con mi cuenta (reclamos/<tienda>/<uid>/<torneo>~<puesto>); la tienda acepta o
+   rechaza desde su panel. Nunca se enlaza solo: el nombre parecido puede ser otra persona. */
+function pintarEresTu(mios){
+  const yo = perfil && perfil.nombre;
+  if (!yo || HIST === null){ $("bEresTu").classList.add("oculto"); return; }
+  const ya = new Set(mios.map(m => m.torneo));
+  const cand = [];
+  torneosDeMisTiendas().forEach(({ t, sala, tid }) => {
+    if (ya.has(t)) return;   // ya estoy en ese torneo
+    Object.entries(t.standings || {}).forEach(([i, f]) => {
+      if (f && !f.uid && !f.reservado && parecido(f.name, yo)) cand.push({ t, sala, tid, i, f, pedido: !!((TD[sala] || {}).reclamos || {})[tid + "~" + i] });
+    });
+  });
+  $("bEresTu").classList.toggle("oculto", !cand.length);
+  if (!cand.length) return;
+  cand.sort((a, b) => (b.t.fecha || "").localeCompare(a.t.fecha || ""));
+  $("eresTu").innerHTML = '<p class="mtPie">Encontramos resultados con un nombre parecido al tuyo. Si alguno es tuyo, pídele a la tienda que lo pase a tu perfil.</p>' +
+    '<table class="tabla"><tbody>' + cand.slice(0, 8).map((c, n) =>
+      "<tr><td>" + esc(c.f.name) + '<div class="rec">' + esc(c.t.nombre) + " · " + esc(fechaLegible(c.t.fecha)) + " · " + esc(nomTienda(c.sala)) + "</div></td>" +
+      '<td class="pts">' + c.f.place + "º · " + (c.f.w || 0) + "-" + (c.f.l || 0) + "-" + (c.f.t || 0) + "</td>" +
+      '<td class="pts">' + (c.pedido ? '<span class="rec">Pedido a la tienda</span> <button class="btn chico" data-cancelar="' + n + '">Cancelar</button>'
+                                       : '<button class="btn chico" data-soyyo="' + n + '">Soy yo</button>') + "</td></tr>").join("") +
+    "</tbody></table>";
+  const ruta = c => "reclamos/" + c.sala + "/" + usuario.uid + "/" + c.tid + "~" + c.i;
+  $("eresTu").querySelectorAll("[data-soyyo]").forEach(b => b.onclick = () => {
+    const c = cand[+b.dataset.soyyo]; b.disabled = true;
+    set(ref(db, ruta(c)), { nombre: yo.slice(0, 80), fila: String(c.f.name).slice(0, 120), creado: serverTimestamp() })
+      .catch(e => { b.disabled = false; avisarError(e, "No se pudo enviar el pedido. Puedes volver a intentarlo."); });
+  });
+  $("eresTu").querySelectorAll("[data-cancelar]").forEach(b => b.onclick = () => {
+    b.disabled = true; set(ref(db, ruta(cand[+b.dataset.cancelar])), null).catch(e => { b.disabled = false; avisarError(e); });
+  });
 }
 
 function fichaHtml(mios){
@@ -630,10 +672,16 @@ function cargarTienda(sala){
   get(ref(db, "salas/" + sala + "/config")).then(s => listo("cfg", s.val()), () => listo("cfg", null));
   onValue(ref(db, "tiendas/" + sala), s => listo("tienda", s.val() || {}), () => listo("tienda", {}));
   onValue(ref(db, "salas/" + sala + "/agenda"), s => listo("agenda", s.val() || {}), () => listo("agenda", {}));
+  if (usuario) onValue(ref(db, "reclamos/" + sala + "/" + usuario.uid), s => listo("reclamos", s.val() || {}), () => listo("reclamos", {}));
 }
 const cargada = s => !!TD[s] && TD[s].hist !== undefined && TD[s].cfg !== undefined && TD[s].tienda !== undefined;
 let ORGANIZA = {};   // organiza/<uid>: las tiendas que organizo
 const misSalas = () => [...new Set([MIRA, ...Object.keys(TIENDAS || {}), ...Object.keys(ORGANIZA)])].filter(Boolean);
+/* El perfil (resultados, rachas, insignias) lee además las tiendas donde jugué aunque no las siga:
+   jugo/<uid>/<tienda>, que anota la tienda al archivar un torneo con mi cuenta. El muro y En vivo siguen
+   con misSalas: ahí van solo las tiendas elegidas. */
+let JUGO = {};
+const salasPerfil = () => [...new Set([...misSalas(), ...Object.keys(JUGO)])];
 let pintura = 0;
 function repintarInsignias(){
   cancelAnimationFrame(pintura);
@@ -692,7 +740,7 @@ function pintarVitrina(cont, claves, porClave, propia){
 let INS_MIAS = null;
 function pintarInsigniasPropias(){
   if (!usuario) return;
-  const salas = misSalas();
+  const salas = salasPerfil();
   salas.forEach(cargarTienda);
   if (HIST === null || TIENDAS === null || ALTAS === null || !salas.every(cargada)){
     $("insPerm").innerHTML = '<div class="vacio">Cargando…</div>';
@@ -1284,6 +1332,7 @@ onAuthStateChanged(auth, async u => {
   if (!perfilCompleto(perfil)){ location.replace("cuenta.html" + qs + "#ajustes"); return; }
   pintarFicha(); pintarPerfil();
   /* Quien organiza alguna tienda, o administra el sitio, llega a eso desde el menú. */
+  onValue(ref(db, "jugo/" + u.uid), s => { JUGO = s.val() || {}; repintarInsignias(); }, () => {});
   get(ref(db, "organiza/" + u.uid)).then(s => {
     ORGANIZA = s.val() || {};
     $("liPanel").classList.toggle("oculto", !s.exists());

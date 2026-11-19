@@ -38,14 +38,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<script src="tema.js?v=35862e592164"></script>
-<link rel="stylesheet" href="tokens.css?v=35862e592164">
-<link rel="stylesheet" href="estilo.css?v=35862e592164">
+<script src="tema.js?v=f183e75c2c41"></script>
+<link rel="stylesheet" href="tokens.css?v=f183e75c2c41">
+<link rel="stylesheet" href="estilo.css?v=f183e75c2c41">
 <!-- ▌BLOQUE 2 · Estilos de la vista de jugadores — Reloj, pestañas, mesas, clasificación, ruleta y agenda.
      -->
 
-<link rel="stylesheet" href="/paginas/timer-view.css?v=35862e592164">
-<link rel="stylesheet" href="/sistema.css?v=35862e592164">
+<link rel="stylesheet" href="/paginas/timer-view.css?v=f183e75c2c41">
+<link rel="stylesheet" href="/sistema.css?v=f183e75c2c41">
 </head>
 <body data-pagina="timer-view">
 
@@ -162,19 +162,19 @@
 
 </main>
 
-<script src="config.js?v=35862e592164"></script>
+<script src="config.js?v=f183e75c2c41"></script>
 <!-- ▌BLOQUE 4 · Módulos que usa la vista — Imports de Firebase y módulos compartidos. -->
 <script type="module">
 import { montarEspera } from "./espera.js";
 import { aplicarMarca } from "./identidad.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, connectAuthEmulator, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { vigilar } from "./mantenimiento.js?v=35862e592164";
+import { vigilar } from "./mantenimiento.js?v=f183e75c2c41";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=35862e592164";
-import { SALA, BASE, TIENDA, BASE_T, INVITADO, SIN_TIENDA, numTimer } from "./sala.js?v=35862e592164";
-import { estoyEnLinea } from "./presencia.js?v=35862e592164";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha, mesDeInteres } from "./agenda.js?v=f183e75c2c41";
+import { SALA, BASE, TIENDA, BASE_T, INVITADO, SIN_TIENDA, numTimer } from "./sala.js?v=f183e75c2c41";
+import { estoyEnLinea } from "./presencia.js?v=f183e75c2c41";
 
 /* Sin ?sala= no hay qué mostrar (antes abría «principal», que no era de
    nadie): se va al directorio, a elegir la tienda. */
@@ -196,9 +196,9 @@ if (!new URLSearchParams(location.search).get("sala"))
   document.getElementById("aPerfil").href = "tienda.html?" + q;
 }
 import { resolver as palResolver, esOriginal as palEsOriginal, aplicar as palAplicarEn,
-         alDia } from "./paleta.js?v=35862e592164";
-import { vistaDe } from "./vistapub.js?v=35862e592164";
-import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=35862e592164";
+         alDia } from "./paleta.js?v=f183e75c2c41";
+import { vistaDe } from "./vistapub.js?v=f183e75c2c41";
+import { nombreMes, mesDe, mesesDe, clasificarPorCategoria, rankingDelMes, VISTA_RANKING, PUNTOS_DEF, deTimer, porCategoria } from "./clasificacion.js?v=f183e75c2c41";
 
 /* ▌BLOQUE 5 · Arranque ══════════════════════════════════════════════════════════
    Conecta Firebase en modo lectura y calcula la hora del servidor. */

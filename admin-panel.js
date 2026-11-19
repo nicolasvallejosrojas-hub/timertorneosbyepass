@@ -1,35 +1,35 @@
 import { montarIdentidad, aplicarMarca } from './identidad.js';
-import { planPublicacion } from "./admin-publicacion.js?v=35862e592164";
-import { avisarError } from "./errores.js?v=35862e592164";
+import { planPublicacion } from "./admin-publicacion.js?v=f183e75c2c41";
+import { avisarError } from "./errores.js?v=f183e75c2c41";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=35862e592164";
-import { activarPush, renovarPush, pushActivo } from "./push.js?v=35862e592164";
-import { qrImg, qrPng } from "./qr.js?v=35862e592164";
-import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=35862e592164";
-import { vigilar } from "./mantenimiento.js?v=35862e592164";
-import { estoyEnLinea } from "./presencia.js?v=35862e592164";
-import { barras } from "./graficos.js?v=35862e592164";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=35862e592164";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=35862e592164";
-import { planClaves } from "./jugadores.js?v=35862e592164";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=35862e592164";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=f183e75c2c41";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=f183e75c2c41";
+import { qrImg, qrPng } from "./qr.js?v=f183e75c2c41";
+import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=f183e75c2c41";
+import { vigilar } from "./mantenimiento.js?v=f183e75c2c41";
+import { estoyEnLinea } from "./presencia.js?v=f183e75c2c41";
+import { barras } from "./graficos.js?v=f183e75c2c41";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=f183e75c2c41";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=f183e75c2c41";
+import { planClaves } from "./jugadores.js?v=f183e75c2c41";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=f183e75c2c41";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=35862e592164";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=f183e75c2c41";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
-         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=35862e592164";
+         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=f183e75c2c41";
 /* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
-const entregarTabla = datos => import("./tablafinal.js?v=35862e592164").then(m => m.entregarTabla(datos));
-const entregarCalendario = datos => import("./calendarioimg.js?v=35862e592164").then(m => m.entregarCalendario(datos));
-const dibujarCalendario = datos => import("./calendarioimg.js?v=35862e592164").then(m => m.dibujarCalendario(datos));
+const entregarTabla = datos => import("./tablafinal.js?v=f183e75c2c41").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=f183e75c2c41").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=f183e75c2c41").then(m => m.dibujarCalendario(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
-import { celdaCsv } from "./csv.js?v=35862e592164";
-import { vistaDe, publicable } from "./vistapub.js?v=35862e592164";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=35862e592164";
+import { celdaCsv } from "./csv.js?v=f183e75c2c41";
+import { vistaDe, publicable } from "./vistapub.js?v=f183e75c2c41";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar } from "./listamazo.js?v=f183e75c2c41";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
@@ -1156,7 +1156,7 @@ function renderClock(){
 let latidoPagina = null;
 const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250); };
 try {
-  const w = new Worker("reloj-worker.js?v=35862e592164");
+  const w = new Worker("reloj-worker.js?v=f183e75c2c41");
   w.onmessage = () => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
   w.onerror = latidoDePagina;
 } catch(e){ latidoDePagina(); }
@@ -2122,11 +2122,20 @@ const R_HIST = ref(db, BASE_T + "/historial");
    Si las reglas todavia no estan publicadas en la consola, la lectura falla,
    el mapa queda vacio y se archiva igual: sin marcar las filas, que es
    exactamente como funcionaba antes. */
-let ENLACES = {};
+let ENLACES = {}, CUENTAS_ENL = {};   // CUENTAS_ENL: uid → nombre de quien compartió su ID (para enlazar a mano)
+/* «Dónde jugué»: jugo/<uid>/<tienda> = true. El perfil lee también estas tiendas aunque el jugador no las
+   siga; sin esto, quien jugó en una tienda que no sigue no veía sus torneos. Es un índice: si falla (reglas
+   sin publicar), el torneo queda archivado igual. */
+function anotarJugo(uids){
+  const r = {};
+  (uids || []).forEach(u => { if (u) r["jugo/" + u + "/" + TIENDA] = true; });
+  if (Object.keys(r).length) update(ref(db), r).catch(e => console.warn("No se pudo anotar dónde jugó cada jugador", e));
+}
 function escucharEnlaces(){
   onValue(ref(db, "enlaces/" + TIENDA), s => {
     const v = s.val() || {};
-    ENLACES = {};
+    ENLACES = {}; CUENTAS_ENL = {};
+    Object.entries(v).forEach(([uid, e]) => { if (e && e.nombre) CUENTAS_ENL[uid] = e.nombre; });
     const repetidos = new Set();
     Object.entries(v).forEach(([uid, e]) => {
       /* publico ausente = sí sale: es como funcionaba todo antes de que
@@ -2140,9 +2149,37 @@ function escucharEnlaces(){
        esta tienda, no se le asignan los torneos a ninguna (si no, la que se vincula después le quitaba el historial
        a la otra). Queda pendiente hasta que una de las dos lo corrija. */
     repetidos.forEach(id => delete ENLACES[id]);
-    enlazarPasados();
+    enlazarPasados(); pintarHist();
   }, () => { ENLACES = {}; });
   onValue(ref(db, "idsHistorial/" + TIENDA), s => { IDS_HIST = s.val() || {}; enlazarPasados(); }, () => {});
+  /* Jugadores que piden, desde su perfil, que una fila de un torneo archivado quede a su nombre. */
+  onValue(ref(db, "reclamos/" + TIENDA), s => { RECLAMOS = s.val() || {}; pintarHist(); }, () => { RECLAMOS = {}; });
+}
+let RECLAMOS = {};   // reclamos/<tienda>/<uid>/<torneo>~<puesto> = { nombre, fila, creado }
+
+/* Enlazar (o desenlazar, uid vacío) una fila de un torneo archivado con una cuenta: la fila pasa a ser de
+   esa persona en su perfil, se anota en «dónde jugué», la base de jugadores aprende su cuenta (así los
+   próximos torneos de la página la enlazan solos) y se cierran los pedidos de esa fila. */
+async function vincular(tid, i, uid){
+  const f = ((HIST_P[tid] || {}).standings || [])[i];
+  if (!f) return;
+  /* historialVer nuevo: los celulares que guardaron el historial lo bajan de nuevo. */
+  await update(ref(db, BASE_T), { ["historial/" + tid + "/standings/" + i + "/uid"]: uid || null, historialVer: Date.now() });
+  if (!uid) return;
+  anotarJugo([uid]);
+  const extra = {};
+  const j = Object.entries(BASEJ).find(([, x]) => !x.uid && normNombre(x.nombre) === normNombre(f.name));
+  if (j) extra[rutaJ(j[0]) + "/uid"] = uid;
+  Object.entries(RECLAMOS).forEach(([u, rs]) => { if (rs && rs[tid + "~" + i]) extra["reclamos/" + TIENDA + "/" + u + "/" + tid + "~" + i] = null; });
+  if (Object.keys(extra).length) update(ref(db), extra).catch(e => console.warn("Enlace hecho; no se pudo actualizar la base o los pedidos", e));
+}
+/* Las cuentas que la tienda conoce, para enlazar a mano: las que compartieron su ID, las de la base de
+   jugadores (se inscribieron con su cuenta) y las que pidieron un enlace. */
+function cuentasConocidas(){
+  const c = { ...CUENTAS_ENL };
+  Object.values(BASEJ || {}).forEach(j => { if (j.uid && !c[j.uid]) c[j.uid] = j.nombre; });
+  Object.entries(RECLAMOS).forEach(([u, rs]) => { const r = Object.values(rs || {})[0]; if (r && !c[u]) c[u] = r.nombre; });
+  return Object.entries(c).sort((a, b) => a[1].localeCompare(b[1]));
 }
 /* Los ID de cada torneo archivado (idsHistorial/<sala>/<torneo>/<puesto>), en
    un nodo que solo lee la tienda: el historial es público y el ID no viaja.
@@ -2177,7 +2214,8 @@ async function enlazarPasados(){
   if (!Object.keys(rutas).length && !Object.keys(claves).length) return;
   enlazando = true;
   /* historialVer nuevo: los celulares que guardaron el historial lo bajan de nuevo. */
-  if (Object.keys(rutas).length) try { await update(ref(db, BASE_T), { ...rutas, historialVer: Date.now() }); } catch(e){ avisarError(e, "No se pudo actualizar el historial."); }
+  if (Object.keys(rutas).length) try { await update(ref(db, BASE_T), { ...rutas, historialVer: Date.now() }); anotarJugo(Object.entries(rutas).filter(([r]) => r.endsWith("/uid")).map(([, u]) => u)); }
+  catch(e){ avisarError(e, "No se pudo actualizar el historial."); }
   if (Object.keys(claves).length) try { await update(ref(db, BASE_T), { ...claves, historialVer: Date.now() }); } catch(e){ avisarError(e, "No se pudieron guardar los identificadores del historial."); }
   enlazando = false;
 }
@@ -2260,6 +2298,7 @@ async function archivarTorneo(){
     await conTimeout(set(ref(db, BASE_T + "/historial/" + clave), registro), 15000);
     /* Aparte y sin bloquear: si las reglas nuevas no están publicadas, se archiva igual. */
     if (Object.keys(ids).length) set(ref(db, "idsHistorial/" + TIENDA + "/" + clave), ids).catch(e => avisarError(e));
+    anotarJugo(registro.standings.map(f => f.uid));
     $("archMsg").innerHTML = '<span class="ok">Archivado ✓ ' + esc(parsed.name) +
                              ' &middot; ' + fechaLarga(f) +
                              (enlazadas ? ' &middot; ' + enlazadas +
@@ -2408,11 +2447,36 @@ $("recCatArchivos").onchange = async e => {
 onValue(R_HIST, snap => {
   HIST_P = snap.val() || {}; pintarInsPanel(); pintarJuegos(); enlazarPasados(); pintarHist();
 });
+let HIST_ABIERTO = null;   // el torneo archivado cuyos jugadores se están mirando (para enlazarlos)
 function pintarHist(){
   const items = Object.entries(HIST_P || {}).sort((a,b) => (b[1].creado||0) - (a[1].creado||0));
   if (!$("histList")) return;
   if (!items.length){ $("histList").textContent = "Aún no hay torneos archivados."; return; }
   $("histList").innerHTML = "";
+  /* Pedidos de los jugadores («soy yo» desde su perfil): aceptar enlaza la fila con su cuenta. */
+  const pedidos = Object.entries(RECLAMOS).flatMap(([u, rs]) => Object.entries(rs || {}).map(([k, r]) => ({ u, k, r })));
+  if (pedidos.length){
+    const caja = document.createElement("div");
+    caja.className = "pedidosEnl";
+    caja.innerHTML = '<b>Piden enlazar su resultado (' + pedidos.length + ')</b>' + pedidos.map(({ u, k, r }, n) => {
+      const [tid, i] = k.split("~"), t = HIST_P[tid], f = t && (t.standings || [])[i];
+      const libre = f && !f.uid;
+      return '<div class="row pedido"><span style="flex:1"><b>' + esc(r.nombre) + "</b> dice que es «" + esc(r.fila) + "» en " +
+        (t ? esc(t.nombre) + " · " + esc(t.fecha) : "un torneo que ya no está") + (f && f.uid ? " (esa fila ya tiene cuenta)" : "") + "</span>" +
+        (libre ? '<button class="small" data-aceptar="' + n + '">Aceptar</button>' : "") +
+        '<button class="small sec" data-rechazar="' + n + '">' + (libre ? "Rechazar" : "Quitar") + "</button></div>";
+    }).join("");
+    caja.querySelectorAll("[data-aceptar]").forEach(b => b.onclick = async () => {
+      const { u, k } = pedidos[+b.dataset.aceptar], [tid, i] = k.split("~");
+      b.disabled = true;
+      try { await vincular(tid, +i, u); } catch(e){ b.disabled = false; alert(mensajeConexion(e)); }
+    });
+    caja.querySelectorAll("[data-rechazar]").forEach(b => b.onclick = () => {
+      const { u, k } = pedidos[+b.dataset.rechazar];
+      remove(ref(db, "reclamos/" + TIENDA + "/" + u + "/" + k)).catch(e => alert(mensajeConexion(e)));
+    });
+    $("histList").appendChild(caja);
+  }
   items.forEach(([id, t]) => {
     const row = document.createElement("div");
     row.className = "row";
@@ -2446,8 +2510,41 @@ function pintarHist(){
       finally { b.disabled = false; }
     };
     row.appendChild(b);
+    const bj = document.createElement("button");
+    bj.className = "small sec"; bj.textContent = HIST_ABIERTO === id ? "Cerrar" : "Jugadores";
+    bj.title = "Ver cada fila y enlazarla con la cuenta de su jugador";
+    bj.onclick = () => { HIST_ABIERTO = HIST_ABIERTO === id ? null : id; pintarHist(); };
+    row.insertBefore(bj, b);
     $("histList").appendChild(row);
+    if (HIST_ABIERTO === id) $("histList").appendChild(filasEnlace(id, t));
   });
+}
+/* Las filas de un torneo archivado: con cuenta o sin ella, para enlazar a mano las que faltan. Las de
+   «Jugador reservado» no se tocan: sin su cuenta, la fila se queda sin nombre. */
+function filasEnlace(tid, t){
+  const cuentas = cuentasConocidas(), nomDe = Object.fromEntries(cuentas);
+  const opciones = '<option value="">Enlazar con una cuenta…</option>' + cuentas.map(([u, n]) => '<option value="' + esc(u) + '">' + esc(n) + "</option>").join("");
+  const div = document.createElement("div");
+  div.className = "filasEnl";
+  div.innerHTML = (cuentas.length ? "" : '<div class="muted">La tienda todavía no conoce ninguna cuenta. Se conocen cuando un jugador se inscribe con su cuenta, comparte su ID con la tienda o pide el enlace desde su perfil.</div>') +
+    (t.standings || []).map((f, i) => '<div class="row filaEnl"><span style="flex:1">' + f.place + "º " + esc(f.name) + "</span>" +
+      (f.uid ? '<span class="muted">' + (nomDe[f.uid] ? "Cuenta de " + esc(nomDe[f.uid]) : "Con cuenta") + "</span>" +
+               (f.reservado ? "" : '<button class="small sec" data-desenl="' + i + '">Quitar</button>')
+             : cuentas.length ? '<select data-enl="' + i + '" aria-label="Enlazar a ' + esc(f.name) + ' con una cuenta">' + opciones + "</select>" : '<span class="muted">Sin cuenta</span>') +
+      "</div>").join("");
+  div.querySelectorAll("[data-enl]").forEach(s => s.onchange = async () => {
+    if (!s.value) return;
+    const f = t.standings[+s.dataset.enl];
+    if (!confirm("¿Enlazar «" + f.name + "» con la cuenta de " + nomDe[s.value] + "?\n\nEl resultado pasa a su perfil.")) { s.value = ""; return; }
+    s.disabled = true;
+    try { await vincular(tid, +s.dataset.enl, s.value); } catch(e){ s.disabled = false; s.value = ""; alert(mensajeConexion(e)); }
+  });
+  div.querySelectorAll("[data-desenl]").forEach(b => b.onclick = async () => {
+    if (!confirm("¿Quitar la cuenta de esta fila? El resultado sale del perfil de esa persona.")) return;
+    b.disabled = true;
+    try { await vincular(tid, +b.dataset.desenl, null); } catch(e){ b.disabled = false; alert(mensajeConexion(e)); }
+  });
+  return div;
 }
 
 /* ▌BLOQUE 30 · Torneo de la página ══════════════════════════════════════════════
@@ -2494,7 +2591,7 @@ function escucharTorneoPagina(){
     modoLeido = true;
     pintarTorneo(); pintarBaseJ();
   }, () => { $("tnCuerpo").innerHTML = '<div class="muted">No se pudo leer el torneo. ¿Publicaste las reglas nuevas?</div>'; });
-  onValue(ref(db, rutaJ()), s => { BASEJ = s.val() || {}; pintarBaseJ(); },
+  onValue(ref(db, rutaJ()), s => { BASEJ = s.val() || {}; pintarBaseJ(); pintarHist(); },
     () => { $("bjLista").innerHTML = '<div class="muted">No se pudo leer la base. ¿Publicaste las reglas nuevas?</div>'; });
 }
 
@@ -2566,6 +2663,8 @@ function pintarTorneo(){
       ". Búscalos abajo, en los jugadores de la tienda.</div>" +
       (k ? '<div class="chips">' + ids.sort((a, b) => J[a].nombre.localeCompare(J[b].nombre)).map(id =>
         '<span class="chip">' + esc(J[id].nombre) + '<button data-quitar="' + esc(id) + '" aria-label="Quitar a ' + esc(J[id].nombre) + '">×</button></span>').join("") + "</div>" : "") +
+      eventosConInscritos().map(ev => '<div class="row" style="margin-top:8px"><button class="small sec" data-insc="' + esc(ev.id) + '">Agregar los inscritos de «' +
+        esc(ev.titulo) + "»</button><span class=\"muted\" style=\"flex:1\">Entran con su cuenta: su resultado llega a su perfil.</span></div>").join("") +
       '<div class="row" style="margin-top:8px">' + selCorte() + '<span class="muted" style="flex:1">' +
       (TN.corte ? "Después del suizo, los " + TN.corte + " primeros de la tabla juegan eliminación directa." : "Se puede cambiar hasta que termine el suizo.") + "</span></div>" +
       '<div class="row" style="margin-top:12px"><button id="tnEmparejar"' + (k < 2 ? " disabled" : "") + ">Emparejar la ronda 1</button>" +
@@ -2638,6 +2737,37 @@ function pintarTorneo(){
   enlazarTorneo();
 }
 
+/* Los eventos de la agenda con inscripción de la semana del torneo (7 días antes o después). */
+const eventosConInscritos = () => AGENDA.filter(ev => ev.inscripcion && ev.fecha && TN && TN.fecha &&
+  Math.abs(Date.parse(ev.fecha) - Date.parse(TN.fecha)) <= 7 * 864e5);
+/* Los inscritos de un evento entran al torneo con su cuenta: cada uno es un jugador de la base con su uid
+   (el que ya lo tiene; si no, el de su mismo nombre sin cuenta, que la aprende; si no, uno nuevo). Al
+   archivar, cada fila sale con su uid y llega al perfil aunque el nombre esté escrito distinto. */
+async function inscritosAlTorneo(ev, boton){
+  if (!ev || !abierto() || rondasDe(TN).length) return;
+  boton.disabled = true;
+  try {
+    const v = (await get(ref(db, "inscripciones/" + TIENDA + "/" + ev.id))).val() || {};
+    const porUid = {}, porNom = {};
+    Object.entries(BASEJ).forEach(([id, j]) => { if (j.uid) porUid[j.uid] = id; else porNom[normNombre(j.nombre)] ??= id; });
+    const rutas = {}, J = TN.jugadores || {}, nick = (ev.inscripcion || {}).modo === "nick";
+    let nuevos = 0;
+    Object.entries(v).forEach(([uid, ins]) => {
+      const nombre = String(nick && ins.nick ? ins.nick : [ins.nombre, ins.apellido].filter(Boolean).join(" ")).trim().replace(/\s+/g, " ").slice(0, 80);
+      if (nombre.length < 2) return;
+      let id = porUid[uid] || porNom[normNombre(nombre)];
+      if (!id){ id = push(ref(db, rutaJ())).key; rutas[rutaJ(id)] = { nombre, creado: Date.now(), uid }; }
+      else if (!BASEJ[id].uid) rutas[rutaJ(id) + "/uid"] = uid;
+      delete porNom[normNombre(nombre)]; porUid[uid] = id;
+      if (!J[id]){ rutas[rutaT("jugadores/" + id)] = { nombre: (BASEJ[id] || {}).nombre || nombre, desde: 1, drop: 0 }; nuevos++; }
+    });
+    if (Object.keys(rutas).length) await escribirT(rutas, false);
+    $("tnMsg").innerHTML = '<span class="ok">' + (nuevos ? nuevos + (nuevos === 1 ? " inscrito agregado" : " inscritos agregados") + " con su cuenta ✓"
+      : "Los inscritos de este evento ya están en el torneo.") + "</span>";
+  } catch(e){ tnFallo(e); }
+  finally { boton.disabled = false; }
+}
+
 /* Una mesa. El bye no tiene rival: gana solo. */
 function mesaHtml(m, i, antes, editable, corte = false){
   const J = TN.jugadores || {}, nom = id => (J[id] || {}).nombre || "?";
@@ -2657,6 +2787,7 @@ function mesaHtml(m, i, antes, editable, corte = false){
 function enlazarTorneo(){
   const b = $("tnCuerpo"), n = rondasDe(TN).length;
   const btn = (id, f) => { if ($(id)) $(id).onclick = f; };
+  b.querySelectorAll("[data-insc]").forEach(x => x.onclick = () => inscritosAlTorneo(AGENDA.find(ev => ev.id === x.dataset.insc), x));
   /* El resultado de una mesa de la ronda actual. Tocar el mismo lo borra. */
   b.querySelectorAll("[data-mesa]:not([disabled])").forEach(x => x.onclick = () => {
     const i = x.dataset.mesa, r = +x.dataset.r, m = rondasDe(TN)[n - 1].mesas[i];
@@ -2724,6 +2855,10 @@ async function archivarPagina(){
   const f = $("tnArchFecha").value;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(f)) return $("tnMsg").innerHTML = '<span class="err">Elige la fecha del torneo.</span>';
   const h = aHistorial(TN), clave = push(R_HIST).key, ahora = Date.now();
+  /* Cada fila con la cuenta de su jugador, si la base la tiene (se inscribió con su cuenta, o la tienda lo
+     enlazó): su perfil la encuentra aunque el nombre esté escrito distinto. */
+  const uids = [];
+  h.standings.forEach((fila, i) => { const u = (BASEJ[h.ids[i]] || {}).uid; if (u){ fila.uid = u; uids.push(u); } });
   const rutas = {
     [BASE_T + "/historial/" + clave]: { nombre: TN.nombre, fecha: f, mes: f.slice(0, 7), rondas: h.rondas,
       jugadores: h.standings.length, standings: h.standings, partidas: h.partidas, creado: ahora,
@@ -2731,7 +2866,7 @@ async function archivarPagina(){
     [rutaT("archivado")]: ahora };
   Object.keys(TN.jugadores || {}).forEach(id => { if (BASEJ[id]) rutas[rutaJ(id) + "/ultimo"] = ahora; });
   $("tnArchivar").disabled = true;
-  try { await escribirT(rutas, false); }
+  try { await escribirT(rutas, false); anotarJugo(uids); }
   catch(e){ tnFallo(e); $("tnArchivar").disabled = false; }
 }
 
@@ -2774,7 +2909,8 @@ function pintarBaseJ(){
   $("bjCuenta").textContent = todos.length + (todos.length === 1 ? " en la base" : " en la base");
   const inscribible = abierto();
   let h = lista.slice(0, 40).map(j => '<div class="miembro"><div class="txt"><b>' + esc(j.nombre) + "</b><small>" +
-      (j.ultimo ? "Último torneo: " + new Date(j.ultimo).toLocaleDateString("es-CL") : "Sin torneos todavía") + "</small></div>" +
+      (j.ultimo ? "Último torneo: " + new Date(j.ultimo).toLocaleDateString("es-CL") : "Sin torneos todavía") +
+      (j.uid ? " · con cuenta" : "") + "</small></div>" +
       (inscribible ? (J[j.id] ? '<span class="chipIns">Inscrito</span>' : '<button class="small" data-inscribir="' + esc(j.id) + '">Inscribir</button>') : "") +
       '<button class="small sec" data-editar="' + esc(j.id) + '">Editar</button>' +
       '<button class="small sec" data-borrar="' + esc(j.id) + '">Borrar</button></div>').join("");
@@ -4252,7 +4388,7 @@ const fiCambio = () => { fiControles(); clearTimeout(fiDeb); fiDeb = setTimeout(
 
 async function fiAbrir(){
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
-  FONDO_DEF = (await import("./fondoimg.js?v=35862e592164")).FONDO_DEF;
+  FONDO_DEF = (await import("./fondoimg.js?v=f183e75c2c41")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };
