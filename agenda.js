@@ -28,7 +28,7 @@
    un jugador que anda de viaje interpretaría "16:00" en SU zona horaria y
    agendaría el torneo a la hora equivocada.
    ---------------------------------------------------------
-   OJO AL ACTUALIZAR: las dos páginas lo importan como "./agenda.js?v=e94fb7a63908".
+   OJO AL ACTUALIZAR: las dos páginas lo importan como "./agenda.js?v=86ea4524cd17".
    Ese número es a prueba de caché. Si acá se agrega o se renombra algo que las
    páginas usen, hay que SUBIR EL NÚMERO en las dos, o el navegador de un
    jugador que ya visitó el sitio va a mezclar el HTML nuevo con este archivo

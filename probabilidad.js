@@ -37,17 +37,16 @@ export function alMenosUna({ N, t, tb = 0, b, vistas = 7 }){
    resto) y, con lo que queda en el mazo, cuántas buscadas caen en los 6 premios.
    al1: al menos una en premios; todas: todas las copias en premios. */
 export function premios({ N, t, tb = 0, b }){
-  const O = N - t - b + tb, resto = N - 7, v = valida(N, b);
-  let al1 = 0, todas = 0;
+  const O = N - t - b + tb, resto = N - 7, v = valida(N, b), dist = Array(Math.min(t, 6) + 1).fill(0);
   for (let a = 0; a <= Math.min(tb, 7); a++) for (let bb = 0; bb <= Math.min(b - tb, 7 - a); bb++)
     for (let c = 0; c <= Math.min(t - tb, 7 - a - bb); c++){
       const o = 7 - a - bb - c;
       if (o > O || a + bb < 1) continue;
-      const p = C(tb, a) * C(b - tb, bb) * C(t - tb, c) * C(O, o) / C(N, 7), quedan = t - a - c;
-      al1 += p * (1 - C(resto - quedan, 6) / C(resto, 6));
-      if (quedan === t && t <= 6) todas += p * C(resto - t, 6 - t) / C(resto, 6);
+      const p = C(tb, a) * C(b - tb, bb) * C(t - tb, c) * C(O, o) / C(N, 7) / v, quedan = t - a - c;
+      for (let k = 0; k <= Math.min(quedan, 6); k++) dist[k] += p * C(quedan, k) * C(resto - quedan, 6 - k) / C(resto, 6);
     }
-  return { al1: al1 / v, todas: todas / v };
+  /* al1: al menos una en premios; todas: todas las copias en premios; dist[k]: exactamente k en premios */
+  return { al1: 1 - dist[0], todas: t <= 6 ? dist[t] : 0, dist };
 }
 
 /* Cuántos Básicos trae, en promedio, una mano que se juega. */
@@ -70,16 +69,20 @@ export function soloMalos(N, b, m){
   for (let k = 1; k <= Math.min(7, m); k++) s += C(m, k) * C(N - b, 7 - k) / C(N, 7);
   return s / valida(N, b);
 }
-/* Energías (e cartas de Energía, que no son Básicos) en una mano que se juega: sin ninguna, o 3 o más. */
-export function energias(N, b, e){
-  const O = N - b - e, v = valida(N, b);
-  let sin = 0, muchas = 0;
+/* Energías (e cartas de Energía, que no son Básicos) en una mano que se juega: dist[j] = P(exactamente j),
+   j = 0…6 (con al menos un Básico, la mano tiene a lo más 6 Energías). */
+export function energiasDist(N, b, e){
+  const O = N - b - e, v = valida(N, b), dist = Array(7).fill(0);
   for (let k = 1; k <= 7; k++) for (let j = 0; j <= 7 - k; j++){
     if (7 - k - j > O) continue;
-    const p = C(b, k) * C(e, j) * C(O, 7 - k - j) / C(N, 7);
-    if (j === 0) sin += p; else if (j >= 3) muchas += p;
+    dist[j] += C(b, k) * C(e, j) * C(O, 7 - k - j) / C(N, 7) / v;
   }
-  return { sin: sin / v, muchas: muchas / v };
+  return dist;
+}
+/* Sin ninguna Energía, o con 3 o más. */
+export function energias(N, b, e){
+  const d = energiasDist(N, b, e);
+  return { sin: d[0], muchas: d.slice(3).reduce((x, y) => x + y, 0) };
 }
 /* Mulligans por partida, en promedio (cada uno le da una carta extra al rival). */
 export const mulligansPromedio = (N, b) => mulligan(N, b) / valida(N, b);
