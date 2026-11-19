@@ -57,6 +57,33 @@ export function promedioBasicos(N, b){
   return s / valida(N, b);
 }
 
+/* Cuántos Básicos trae una mano que se juega: dist[k] = P(exactamente k), k = 1…7. */
+export function distBasicos(N, b){
+  const v = valida(N, b), dist = [0];
+  for (let k = 1; k <= 7; k++) dist[k] = C(b, k) * C(N - b, 7 - k) / C(N, 7) / v;
+  return dist;
+}
+/* Que todos los Básicos de la mano sean de los «malos para empezar» (m copias entre los b Básicos):
+   el Activo inicial sale sí o sí de ahí. */
+export function soloMalos(N, b, m){
+  let s = 0;
+  for (let k = 1; k <= Math.min(7, m); k++) s += C(m, k) * C(N - b, 7 - k) / C(N, 7);
+  return s / valida(N, b);
+}
+/* Energías (e cartas de Energía, que no son Básicos) en una mano que se juega: sin ninguna, o 3 o más. */
+export function energias(N, b, e){
+  const O = N - b - e, v = valida(N, b);
+  let sin = 0, muchas = 0;
+  for (let k = 1; k <= 7; k++) for (let j = 0; j <= 7 - k; j++){
+    if (7 - k - j > O) continue;
+    const p = C(b, k) * C(e, j) * C(O, 7 - k - j) / C(N, 7);
+    if (j === 0) sin += p; else if (j >= 3) muchas += p;
+  }
+  return { sin: sin / v, muchas: muchas / v };
+}
+/* Mulligans por partida, en promedio (cada uno le da una carta extra al rival). */
+export const mulligansPromedio = (N, b) => mulligan(N, b) / valida(N, b);
+
 /* ▌BLOQUE 2 · Simulación ════════════════════════════════════════════════════════
    Para las metas con varias condiciones juntas («Caramelo Raro y una Fase 2 al turno 2»), donde el
    cálculo exacto se vuelve un enredo. mazo: arreglo con un índice de carta por copia; esBasico[i]: si la
