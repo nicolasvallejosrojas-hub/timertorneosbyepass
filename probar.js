@@ -19,8 +19,8 @@
    Básicos malos («probar-malos:<mazo>») y si la guía está cerrada («probar-guia»). Las líneas de
    evolución se piden a TCGdex (evolveFrom y stage de cada Pokémon). esc() es la global de config.js.
    ============================================================ */
-import { leerLista, imagenCarta, norm } from "./listamazo.js?v=86ea4524cd17";
-import { mulligan, alMenosUna, premios, distBasicos, promedioBasicos, soloMalos, energiasDist, mulligansPromedio, simular, repartir } from "./probabilidad.js?v=86ea4524cd17";
+import { leerLista, imagenCarta, norm, esEnergiaBasica as esBasicaNombre } from "./listamazo.js?v=7efb6792602e";
+import { mulligan, alMenosUna, premios, distBasicos, promedioBasicos, soloMalos, energiasDist, mulligansPromedio, simular, repartir } from "./probabilidad.js?v=7efb6792602e";
 
 const pct = (p, d = 0) => (p * 100).toLocaleString("es-CL", { minimumFractionDigits: d, maximumFractionDigits: d }) + " %";
 const dif = (p, d = 1) => (p >= 0 ? "+" : "−") + Math.abs(p * 100).toLocaleString("es-CL", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -28,7 +28,7 @@ const num = (x, d = 1) => x.toLocaleString("es-CL", { maximumFractionDigits: d }
 const TURNO = t => t === 0 ? "en la mano" : "al turno " + t;
 const leerLS = (k, def) => { try { return JSON.parse(localStorage.getItem(k) || "null") ?? def; } catch(e){ return def; } };
 const guardarLS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ /* sin almacenamiento: no pasa nada */ } };
-const esEnergiaBasica = c => /b[aá]sic/i.test(c.nombre) && c.sec === "Energía";
+const esEnergiaBasica = c => esBasicaNombre(c.nombre);   // sin tope de copias (listamazo.js)
 /* «¿Cómo se lee?»: explicación plegable bajo cada número o gráfico. */
 const ayuda = (html, titulo = "¿Cómo se lee?") => '<details class="ayuda"><summary>' + titulo + "</summary><div>" + html + "</div></details>";
 /* Cartas conocidas (nombre en inglés de la base), para armar ejemplos de metas con la lista del jugador.

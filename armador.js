@@ -23,7 +23,7 @@
        A.formato(est)   cambia entre Estándar (true) y Expandido (false)
    `alCambiar` se llama cada vez que la persona cambia algo (no al poner una lista desde el código).
    ============================================================ */
-import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta, nombreEn } from "./listamazo.js?v=86ea4524cd17";
+import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta, nombreEn, esEnergiaBasica } from "./listamazo.js?v=7efb6792602e";
 
 /* ▌BLOQUE 1 · Marcado y arranque ════════════════════════════════════════════════
    El HTML del armador (con un lugar #misMazos para la página), las fotos de TCGdex y la carga de
@@ -93,7 +93,7 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
     const vacia = !r.total;
     /* Más de 4 por nombre (salvo Energía básica): se marca en cada fila. */
     const porNombre = {};
-    [...r.pokemon, ...r.entrenador, ...r.energia].forEach(c => { if (!/basic|b[aá]sica/i.test(c.nombre)) porNombre[norm(c.nombre)] = (porNombre[norm(c.nombre)] || 0) + c.cant; });
+    [...r.pokemon, ...r.entrenador, ...r.energia].forEach(c => { if (!esEnergiaBasica(c.nombre)) porNombre[norm(c.nombre)] = (porNombre[norm(c.nombre)] || 0) + c.cant; });
     Object.keys(FILAS).forEach(sec => {
       $(FILAS[sec]).innerHTML = r[sec].map((c, i) => {
         const mas4 = porNombre[norm(c.nombre)] > 4, nota = ESTADO[c.estado] || (mas4 ? "Más de 4 copias" : "");
@@ -150,20 +150,28 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
   const ORDEN_REG = { J: 0, I: 1, H: 2, G: 3, F: 4, E: 5, D: 6 };   // las legales primero; las reimpresiones, de la marca más nueva a la más vieja
   const ENERGIA_PREF = ["MEE", "SVE"];
   const prefE = s => { const i = ENERGIA_PREF.indexOf(s); return i < 0 ? 99 : i; };
+  /* Una opción por carta (mismo nombre en inglés) con TODAS sus impresiones, como el armador de Limitless: la
+     búsqueda calza con cualquiera (en inglés, en castellano o por expansión y número) y la opción trae las demás.
+     Primero las impresiones que calzaron (si escribes «ultra ball svi», la de SVI), después las legales de la marca
+     más nueva y las reimpresiones viejas al final. La Energía básica, solo las de MEE y SVE (son todas iguales). */
   function buscar(q){
     const ws = norm(q).split(" ").filter(Boolean);
     if (!BASE || !ws.length) return [];
-    const todo = ws.join(" "), basicas = new Map(), res = [];
+    const todo = ws.join(" "), grupos = new Map();
     for (const c of BASE.cartas){
-      const [s, n, , cat, reg] = c, nn = norm(nom(c)), k = nn + " " + norm(otro(c)) + " " + s.toLowerCase() + " " + n;
+      const [s, n] = c, nn = norm(nom(c)), k = nn + " " + norm(otro(c)) + " " + s.toLowerCase() + " " + n;
       if (!ws.every(w => k.includes(w))) continue;
       const punt = nn.startsWith(todo) ? 0 : nn.split(" ").some(p => p.startsWith(ws[0])) ? 1 : 2;
-      if (cat === "E" && !reg){ const ya = basicas.get(nn); if (!ya || prefE(s) < prefE(ya[1][0])) basicas.set(nn, [punt, c]); continue; }
-      res.push([punt, c]);
+      const g = grupos.get(c[2]) || grupos.set(c[2], { punt, calzan: new Set(), imps: [] }).get(c[2]);
+      g.punt = Math.min(g.punt, punt); g.calzan.add(c);
     }
-    res.push(...basicas.values());
-    return res.sort((a, b) => a[0] - b[0] || nom(a[1]).localeCompare(nom(b[1])) ||
-      (ORDEN_REG[a[1][4]] ?? 7) - (ORDEN_REG[b[1][4]] ?? 7) || a[1][0].localeCompare(b[1][0])).slice(0, 8).map(x => x[1]);
+    for (const c of BASE.cartas){ const g = grupos.get(c[2]); if (g) g.imps.push(c); }
+    const orden = g => (a, b) => (g.calzan.has(b) - g.calzan.has(a)) || (ORDEN_REG[a[4]] ?? 7) - (ORDEN_REG[b[4]] ?? 7) || prefE(a[0]) - prefE(b[0]) || a[0].localeCompare(b[0]) || (parseInt(a[1], 10) || 0) - (parseInt(b[1], 10) || 0);
+    return [...grupos.values()].map(g => {
+      let imps = g.imps.sort(orden(g));
+      if (esEnergiaBasica(imps[0][2])){ const pref = imps.filter(c => prefE(c[0]) < 99); if (pref.length) imps = pref.sort((a, b) => prefE(a[0]) - prefE(b[0]) || (parseInt(a[1], 10) || 0) - (parseInt(b[1], 10) || 0)); }
+      return { punt: g.punt, imps };
+    }).sort((a, b) => a.punt - b.punt || nom(a.imps[0]).localeCompare(nom(b.imps[0]))).slice(0, 12).map(g => g.imps);
   }
   let OPCIONES = [], ACTIVA = -1, CANT = 1;
   const DETALLE = c => [otro(c) !== nom(c) ? otro(c) : "", c[0] + " " + c[1], c[4], c[5] === "A" ? "ACE SPEC" : c[5] === "R" ? "reimpresión" : ""].filter(Boolean).join(" · ");
@@ -172,14 +180,16 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
     /* «4 iono»: el número de adelante es cuántas agregar. */
     const m = /^(\d{1,2})\s+(.+)$/.exec(q);
     CANT = m ? Math.max(+m[1], 1) : 1;
-    OPCIONES = buscar(m ? m[2] : q).map(c => ({ carta: c }));
+    OPCIONES = buscar(m ? m[2] : q).map(imps => ({ carta: imps[0], imps }));
     /* «2 Carta Nueva ABC 12»: una carta que la base no tiene (o Expandido) se agrega tal cual, eligiendo la sección. */
     if (/^\d{1,2}\s+\S/.test(q) && !OPCIONES.length)
       OPCIONES = ["pokemon", "entrenador", "energia"].map(sec => ({ linea: q, sec }));
     ACTIVA = OPCIONES.length ? 0 : -1;
     const NOM_SEC = { pokemon: "Pokémon", entrenador: "Entrenadores", energia: "Energías" };
     $("sugerencias").innerHTML = OPCIONES.map((o, i) => '<li role="option" id="op' + i + '" data-op="' + i + '"' + (i === ACTIVA ? ' aria-selected="true"' : "") + ">" +
-      (o.carta ? foto(o.carta[0], o.carta[1], "") + '<span class="sn"><b>' + (CANT > 1 ? CANT + " × " : "") + esc(nom(o.carta)) + "</b></span><small>" + esc(DETALLE(o.carta)) + "</small>"
+      (o.carta ? foto(o.carta[0], o.carta[1], "") + '<span class="sn"><b>' + (CANT > 1 ? CANT + " × " : "") + esc(nom(o.carta)) + "</b></span><small>" + esc(DETALLE(o.carta)) + "</small>" +
+        (o.imps.length > 1 ? '<span class="imps" aria-label="Impresiones">' + o.imps.map((c, k) => '<button type="button" tabindex="-1" class="imp' + (k ? "" : " on") + '" data-imp="' + k + '" title="' +
+          esc([c[0] + " " + c[1], c[4] ? "marca " + c[4] : "", c[5] === "R" ? "reimpresión" : ""].filter(Boolean).join(" · ")) + '">' + esc(c[0] + " " + c[1]) + "</button>").join("") + "</span>" : "")
                : "Agregar «" + esc(o.linea) + "» a <b>" + NOM_SEC[o.sec] + "</b>") + "</li>").join("") ||
       (q.length > 1 ? '<li class="nada">' + (BASE ? "No encontramos esa carta. Si es nueva, escribe la línea completa: «2 Nombre ABC 12»."
                                                     : "Cargando las cartas…") + "</li>" : "");
@@ -189,11 +199,12 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
     $("buscaCarta").setAttribute("aria-activedescendant", ACTIVA >= 0 ? "op" + ACTIVA : "");
   }
   $("sugerencias").addEventListener("error", e => { if (e.target.classList && e.target.classList.contains("foto")) e.target.remove(); }, true);
-  function elegir(i){
+  function elegir(i, imp = 0){
     const o = OPCIONES[i];
     if (!o) return;
     if (o.carta){
-      const [set, num, , cat] = o.carta, nombre = nom(o.carta), sec = SEC_DE_CAT[cat] || "pokemon";
+      const carta = (o.imps && o.imps[imp]) || o.carta;
+      const [set, num, , cat] = carta, nombre = nom(carta), sec = SEC_DE_CAT[cat] || "pokemon";
       const ya = LISTA[sec].find(c => c.set === set && c.num === num);
       if (ya) ya.cant = Math.min(ya.cant + CANT, 60); else LISTA[sec].push({ cant: CANT, nombre, set, num });
     } else {
@@ -214,7 +225,15 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
     else if (e.key === "Escape"){ $("buscaCarta").value = ""; pintarSugerencias(); }
   };
   /* mousedown y no click: con click, el campo pierde el foco antes y la lista se cierra. */
-  $("sugerencias").onmousedown = e => { const li = e.target.closest("[data-op]"); if (li){ e.preventDefault(); elegir(+li.dataset.op); } };
+  $("sugerencias").onmousedown = e => { const li = e.target.closest("[data-op]"), imp = e.target.closest("[data-imp]"); if (li){ e.preventDefault(); elegir(+li.dataset.op, imp ? +imp.dataset.imp : 0); } };
+  /* Pasar por una impresión muestra su foto en la opción. */
+  $("sugerencias").addEventListener("mouseover", e => {
+    const b = e.target.closest("[data-imp]"), li = b && b.closest("[data-op]"), o = li && OPCIONES[+li.dataset.op];
+    if (!o) return;
+    const c = o.imps[+b.dataset.imp], u = imagenCarta(BASE, c[0], c[1]), img = li.querySelector(".foto");
+    li.querySelectorAll(".imp").forEach(x => x.classList.toggle("on", x === b));
+    if (img && u) img.src = u;
+  });
   $("buscaCarta").onblur = () => setTimeout(() => { $("sugerencias").classList.add("oculto"); $("buscaCarta").setAttribute("aria-expanded", "false"); }, 150);
   $("buscaCarta").onfocus = pintarSugerencias;
 

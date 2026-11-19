@@ -68,7 +68,11 @@ const COLA  = /^(.*\S)\s+((?=[A-Z0-9]*[A-Z])[A-Z0-9]{2,5}(?:-[A-Z0-9]{1,4})?)\s+
 const sinCeros = n => String(n || "").replace(/^0+(?=\d)/, "");
 const normNom = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
   .replace(/[’`´]/g, "'").replace(/\s+/g, " ").trim();
-const BASICA = /\bbasic\b.*energy|energ[ií]a .*b[aá]sica/i;
+/* Energía básica: no tiene tope de copias. En la base (Limitless) se llaman «Psychic Energy», sin «Basic»; en la
+   lista exportada del juego, «Basic {P} Energy»; en castellano, «Energía Psíquica» (con o sin «Básica»). Las
+   especiales («Telepathic Psychic Energy», «Energía Prisma») no calzan: el nombre tiene que ser solo el tipo. */
+const BASICA = /^(?:basic\s+)?(?:\{[grwlpfdmy]\}|grass|fire|water|lightning|psychic|fighting|darkness|metal|fairy)\s+energy$|^energ[ií]a\s+(?:b[aá]sica\s+)?(?:\{[grwlpfdmy]\}|planta|fuego|agua|rayo|ps[ií]quica|lucha|oscura|met[aá]lica|hada)(?:\s+b[aá]sica)?$/i;
+export const esEnergiaBasica = nombre => BASICA.test(String(nombre || "").replace(/\s+/g, " ").trim());
 export const norm = normNom;
 /* porCodigo: «TWM 130» → { reg, x } (x: B = Pokémon Básico, A = ACE SPEC,
    R = impresión vieja de un Entrenador que tiene reimpresión legal).
@@ -82,15 +86,21 @@ export function indexar(d){
   const porCodigo = new Map(), nombres = new Map(), es = d.es || {};
   const anotar = (nom, x) => { const k = normNom(nom); nombres.set(k, (nombres.get(k) || "") + x); };
   d = { ...d, cartas: d.cartas.concat((d.reimp || []).map(c => [...c, "R"])) };
+  /* El castellano de una carta vale para todas sus impresiones (mismo nombre en inglés): TCGdex no traduce todas,
+     y sin esto «Fábrica del Team Rocket» encontraba la de ASC y no la de DRI. */
+  const esN = new Map();
+  d.cartas.forEach(([s, n, nom]) => { const t = es[s + " " + sinCeros(n)]; if (t && !esN.has(nom)) esN.set(nom, t); });
   d.cartas.forEach(([s, n, nom, , reg, x = ""]) => {
     porCodigo.set(s + " " + sinCeros(n), { reg, x });
     anotar(nom, x);
-    if (es[s + " " + sinCeros(n)]) anotar(es[s + " " + sinCeros(n)], x);
+    const t = es[s + " " + sinCeros(n)] || esN.get(nom);
+    if (t) anotar(t, x);
   });
-  return { porCodigo, nombres, cartas: d.cartas, actualizado: d.actualizado, imagenes: d.imagenes || {}, es };
+  return { porCodigo, nombres, cartas: d.cartas, actualizado: d.actualizado, imagenes: d.imagenes || {}, es, esN };
 }
-/* El nombre de una carta de la base en el idioma elegido ("es" o "en"); sin traducción, el de Limitless (inglés). */
-export const nombreEn = (base, c, idioma) => (idioma === "es" && base && base.es[c[0] + " " + sinCeros(c[1])]) || c[2];
+/* El nombre de una carta de la base en el idioma elegido ("es" o "en"); sin traducción, el de otra impresión de la
+   misma carta y, si ninguna tiene, el de Limitless (inglés). */
+export const nombreEn = (base, c, idioma) => (idioma === "es" && base && (base.es[c[0] + " " + sinCeros(c[1])] || (base.esN && base.esN.get(c[2])))) || c[2];
 /* La foto de una carta: no se guarda en ningún lado nuestro, el navegador la pide a TCGdex. «imagenes» (lo arma
    cartas-estandar.py --imagenes) dice, por expansión, su ruta allá y con cuántas cifras van los números («sv/sv01|3»:
    SVI 5 → …/sv/sv01/005). Sin ruta, con un número raro (TG01) o sin base: "" (la fila se ve sin foto). */
@@ -125,7 +135,7 @@ function revisarLegal(r, base){
     if (c.x === "A") ace += c.cant;
     if (c.x === "B" && r.pokemon.includes(c)) basicos += c.cant;
     if (hit){ c.reg = hit.reg; c.estado = "ok"; return; }
-    if (BASICA.test(c.nombre)){ c.estado = "ok"; return; }
+    if (esEnergiaBasica(c.nombre)){ c.estado = "ok"; return; }
     const quien = c.nombre + (c.set ? " " + c.set + " " + c.num : "");
     if (porNombre === undefined){ c.estado = "fuera"; fuera.push(quien); }
     else if (r.pokemon.includes(c) && c.set){ c.estado = "reimp"; reimp.push(quien); }
@@ -175,7 +185,7 @@ export function leerLista(texto, base = null){
   /* Tope de 4 por nombre, salvo Energía básica. Es aviso y no error: las
      excepciones (ACE SPEC, cartas con regla propia) no las sabe esta página. */
   const n = {};
-  [...r.pokemon, ...r.entrenador, ...r.energia.filter(c => !/b[aá]sic/i.test(c.nombre))]
+  [...r.pokemon, ...r.entrenador, ...r.energia.filter(c => !esEnergiaBasica(c.nombre))]
     .forEach(c => n[c.nombre.toLowerCase()] = (n[c.nombre.toLowerCase()] || 0) + c.cant);
   const pasadas = Object.keys(n).filter(k => n[k] > 4);
   if (pasadas.length) r.avisos.push("Más de 4 copias de: " + pasadas.join(", ") + ".");
