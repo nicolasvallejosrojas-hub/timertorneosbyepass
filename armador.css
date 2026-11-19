@@ -104,3 +104,7 @@
 #sugerencias li[aria-selected] .imp{background:color-mix(in srgb,var(--sobre-accion) 18%,transparent);border-color:color-mix(in srgb,var(--sobre-accion) 45%,transparent);color:inherit;}
 #sugerencias li[aria-selected] .imp.on{border-color:var(--sobre-accion);}
 @media (pointer:coarse){ #sugerencias .imp{min-height:34px;padding:5px 10px;} }
+/* mientras baja la foto nueva: el lugar de la carta, sin la anterior (cambiarFoto en armador.js) */
+#verCarta img.cargando{aspect-ratio:63/88;background:var(--sup-alta);}
+#sugerencias .foto.cargando{background:var(--sup-alta);}
+#sugerencias .foto.vacia{display:block;width:30px;height:42px;border-radius:3px;background:var(--sup-alta);}

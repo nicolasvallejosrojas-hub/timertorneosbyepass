@@ -19,8 +19,8 @@
    Básicos malos («probar-malos:<mazo>») y si la guía está cerrada («probar-guia»). Las líneas de
    evolución se piden a TCGdex (evolveFrom y stage de cada Pokémon). esc() es la global de config.js.
    ============================================================ */
-import { leerLista, imagenCarta, norm, esEnergiaBasica as esBasicaNombre } from "./listamazo.js?v=7efb6792602e";
-import { mulligan, alMenosUna, premios, distBasicos, promedioBasicos, soloMalos, energiasDist, mulligansPromedio, simular, repartir } from "./probabilidad.js?v=7efb6792602e";
+import { leerLista, imagenCarta, norm, esEnergiaBasica as esBasicaNombre } from "./listamazo.js?v=c1c101fdb91e";
+import { mulligan, alMenosUna, premios, distBasicos, promedioBasicos, soloMalos, energiasDist, mulligansPromedio, simular, repartir } from "./probabilidad.js?v=c1c101fdb91e";
 
 const pct = (p, d = 0) => (p * 100).toLocaleString("es-CL", { minimumFractionDigits: d, maximumFractionDigits: d }) + " %";
 const dif = (p, d = 1) => (p >= 0 ? "+" : "−") + Math.abs(p * 100).toLocaleString("es-CL", { minimumFractionDigits: d, maximumFractionDigits: d });

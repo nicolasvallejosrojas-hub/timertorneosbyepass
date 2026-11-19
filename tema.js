@@ -26,3 +26,17 @@
     return noche;
   };
 })();
+
+/* Formularios: uno sin «action» nunca recarga la página por su cuenta; a todos los maneja el código de su página. Va
+   acá y no en config.js porque este archivo se carga en la cabecera, antes de que exista el formulario: el de
+   ingreso se ve a los ~100 ms y, si se enviaba antes de que cargara el código (internet lento, o Enter al tiro), el
+   navegador lo mandaba «a la antigua» a la misma dirección y se perdían ?volver=, ?emu=1 y ?sala=. Los
+   method="dialog" (cierran su diálogo) quedan como siempre. */
+document.addEventListener("submit", function(e){
+  var f = e.target;
+  if (!f || !f.getAttribute || f.getAttribute("method") === "dialog" || f.hasAttribute("action")) return;
+  e.preventDefault();
+  /* Sin manejador todavía (el código de la página no cargó): se anota, y la página lo vuelve a enviar al cargar
+     (cuenta.html). Así el clic no se pierde. */
+  if (!f.onsubmit) window.envioPendiente = f;
+}, true);

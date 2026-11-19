@@ -73,16 +73,6 @@ const EMULADOR = (function(){
   return { host: h, auth: 9099, db: 9000, storage: 9199 };
 })();
 
-// ====== FORMULARIOS ======
-// Un formulario sin «action» nunca recarga la página por su cuenta: a todos los maneja el código de su página. Si se
-// enviaba antes de que ese código cargara (internet lento, o Enter apenas abre la página), el navegador lo mandaba
-// «a la antigua» a la misma dirección y se perdían ?volver=, ?emu=1 y ?sala= (pasaba al entrar desde Mis mazos).
-// Los method="dialog" (cierran su diálogo) quedan como siempre. ES5: también lo carga la vista de TV.
-document.addEventListener("submit", function(e){
-  var f = e.target;
-  if (f && f.getAttribute && f.getAttribute("method") !== "dialog" && !f.hasAttribute("action")) e.preventDefault();
-}, true);
-
 // ====== POLÍTICA DE SEGURIDAD (CSP) ======
 // Dice de dónde pueden salir los scripts y con qué servidores puede hablar la
 // página. Si algún día se colara código en una página, no podría cargar

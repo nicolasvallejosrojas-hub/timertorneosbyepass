@@ -23,7 +23,7 @@
        A.formato(est)   cambia entre Estándar (true) y Expandido (false)
    `alCambiar` se llama cada vez que la persona cambia algo (no al poner una lista desde el código).
    ============================================================ */
-import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta, nombreEn, esEnergiaBasica } from "./listamazo.js?v=7efb6792602e";
+import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta, nombreEn, esEnergiaBasica } from "./listamazo.js?v=c1c101fdb91e";
 
 /* ▌BLOQUE 1 · Marcado y arranque ════════════════════════════════════════════════
    El HTML del armador (con un lugar #misMazos para la página), las fotos de TCGdex y la carga de
@@ -73,6 +73,17 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
   let LISTA = { pokemon: [], entrenador: [], energia: [] };
   $("cajaLista").innerHTML = MARCADO(pista);
   const cambio = () => { revisarLista(); alCambiar(); };
+  /* Cambiar la foto de un <img> que ya se ve: si solo se cambia «src», el navegador deja la carta anterior hasta que
+     baja la nueva (y si la nueva falla, la anterior se queda). Se pone un <img> nuevo, con fondo de carga mientras llega. */
+  const cambiarFoto = (img, url, alt) => {
+    const n = img.cloneNode(false);
+    n.removeAttribute("src"); n.classList.add("cargando");
+    if (alt != null) n.alt = alt;
+    n.addEventListener("load", () => n.classList.remove("cargando"), { once: true });
+    n.src = url;
+    img.replaceWith(n);
+    return n;
+  };
   const foto = (set, num, alt) => { const u = imagenCarta(BASE, set, num); return u ? '<img class="foto" loading="lazy" alt="' + esc(alt) + '" src="' + esc(u) + '">' : ""; };
   /* una foto que no carga (TCGdex caído, carta sin foto) se saca: el error no sube, por eso se escucha en la captura */
   $("cajaLista").addEventListener("error", e => { if (e.target.classList && e.target.classList.contains("foto")) e.target.remove(); }, true);
@@ -121,7 +132,7 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
   }
   $("cajaLista").addEventListener("click", e => {
     const img = e.target.closest(".carta .foto");
-    if (img){ const v = $("verCarta"); v.querySelector("img").src = img.src.replace(/\/low\.webp$/, "/high.webp"); v.querySelector("img").alt = img.alt; v.showModal(); return; }
+    if (img){ const v = $("verCarta"); cambiarFoto(v.querySelector("img"), img.src.replace(/\/low\.webp$/, "/high.webp"), img.alt); v.showModal(); return; }
     const b = e.target.closest("[data-pos],[data-quitar]");
     if (!b) return;
     const [sec, i] = (b.dataset.pos || b.dataset.quitar).split(":"), c = LISTA[sec][+i];
@@ -187,7 +198,7 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
     ACTIVA = OPCIONES.length ? 0 : -1;
     const NOM_SEC = { pokemon: "Pokémon", entrenador: "Entrenadores", energia: "Energías" };
     $("sugerencias").innerHTML = OPCIONES.map((o, i) => '<li role="option" id="op' + i + '" data-op="' + i + '"' + (i === ACTIVA ? ' aria-selected="true"' : "") + ">" +
-      (o.carta ? foto(o.carta[0], o.carta[1], "") + '<span class="sn"><b>' + (CANT > 1 ? CANT + " × " : "") + esc(nom(o.carta)) + "</b></span><small>" + esc(DETALLE(o.carta)) + "</small>" +
+      (o.carta ? (foto(o.carta[0], o.carta[1], "") || '<span class="foto vacia"></span>') + '<span class="sn"><b>' + (CANT > 1 ? CANT + " × " : "") + esc(nom(o.carta)) + "</b></span><small>" + esc(DETALLE(o.carta)) + "</small>" +
         (o.imps.length > 1 ? '<span class="imps" aria-label="Impresiones">' + o.imps.map((c, k) => '<button type="button" tabindex="-1" class="imp' + (k ? "" : " on") + '" data-imp="' + k + '" title="' +
           esc([c[0] + " " + c[1], c[4] ? "marca " + c[4] : "", c[5] === "R" ? "reimpresión" : ""].filter(Boolean).join(" · ")) + '">' + esc(c[0] + " " + c[1]) + "</button>").join("") + "</span>" : "")
                : "Agregar «" + esc(o.linea) + "» a <b>" + NOM_SEC[o.sec] + "</b>") + "</li>").join("") ||
@@ -232,7 +243,14 @@ export function armador({ estandar = true, pista = PISTA, alCambiar = () => {} }
     if (!o) return;
     const c = o.imps[+b.dataset.imp], u = imagenCarta(BASE, c[0], c[1]), img = li.querySelector(".foto");
     li.querySelectorAll(".imp").forEach(x => x.classList.toggle("on", x === b));
-    if (img && u) img.src = u;
+    if (img && img.getAttribute("src") === u) return;
+    /* Siempre se reemplaza: una impresión sin foto (TCGdex no la tiene) deja el espacio vacío, no la carta anterior. */
+    if (u && img && img.tagName === "IMG") cambiarFoto(img, u);
+    else {
+      const n = u ? Object.assign(document.createElement("img"), { className: "foto cargando", alt: "" }) : Object.assign(document.createElement("span"), { className: "foto vacia" });
+      if (u){ n.addEventListener("load", () => n.classList.remove("cargando"), { once: true }); n.src = u; }
+      if (img) img.replaceWith(n); else li.prepend(n);
+    }
   });
   $("buscaCarta").onblur = () => setTimeout(() => { $("sugerencias").classList.add("oculto"); $("buscaCarta").setAttribute("aria-expanded", "false"); }, 150);
   $("buscaCarta").onfocus = pintarSugerencias;

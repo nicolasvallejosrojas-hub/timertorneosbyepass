@@ -117,6 +117,7 @@ if "--imagenes" in sys.argv:
         time.sleep(0.25)
         d = tcgdex("sets/" + s["id"])
         cod = ((d or {}).get("abbreviation") or {}).get("official")
+        cod = {"B2": "BS2", "COL": "CL", "EX": "E1"}.get(cod, cod)   # TCGdex y Limitless escriben distinto estas siglas
         if not d or cod not in codigos or cod in imagenes or not d.get("cards"): continue
         if not any(c.get("image") for c in d["cards"]): continue          # expansión sin fotos en TCGdex
         largos = {len(c["localId"]) for c in d["cards"] if str(c.get("localId", "")).isdigit()}
