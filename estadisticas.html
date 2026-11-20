@@ -13,19 +13,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=f52f3d121cc0"></script>
+<script src="tema.js?v=68a18df88563"></script>
 <meta name="robots" content="noindex">
 <title>Estadísticas — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=f52f3d121cc0">
-<link rel="stylesheet" href="estilo.css?v=f52f3d121cc0">
+<link rel="stylesheet" href="tokens.css?v=68a18df88563">
+<link rel="stylesheet" href="estilo.css?v=68a18df88563">
 <!-- ▌BLOQUE 1 · Estilos — Controles, cifras, gráficos y tablas. -->
 
-<link rel="stylesheet" href="/paginas/estadisticas.css?v=f52f3d121cc0">
-<link rel="stylesheet" href="/sistema.css?v=f52f3d121cc0">
-<script src="/sistema.js?v=f52f3d121cc0" defer></script>
+<link rel="stylesheet" href="/paginas/estadisticas.css?v=68a18df88563">
+<link rel="stylesheet" href="/sistema.css?v=68a18df88563">
+<script src="/sistema.js?v=68a18df88563" defer></script>
 </head>
 <body data-pagina="estadisticas">
   <header class="sup vidrio">
@@ -90,22 +90,49 @@
       <h2 class="gtit">Tiendas <span id="tTiendas"></span></h2>
       <div class="grupo desliza" id="lTiendas"></div>
 
+      <h2 class="gtit">Barajas <span id="tBarajas"></span></h2>
+      <div class="grupo">
+        <div class="controles">
+          <label>Región <select id="bReg"></select></label>
+          <label>Formato <select id="bFmt"><option value="">Todos</option><option value="estandar">Estándar</option><option value="expandido">Expandido</option></select></label>
+          <span class="hueco"></span>
+          <span id="bLeido"></span>
+          <button class="btn" id="bSync">Actualizar registro</button>
+          <button class="btn" id="bCsv">CSV de barajas</button>
+        </div>
+        <div id="bRank"></div>
+      </div>
+      <div class="dos">
+        <div>
+          <h2 class="gtit">Por región</h2>
+          <div class="grupo desliza" id="bRegiones"></div>
+        </div>
+        <div>
+          <h2 class="gtit">Pokémon insignia</h2>
+          <div class="grupo desliza" id="bInsignia"></div>
+        </div>
+      </div>
+      <details class="grupo" id="bEditor"><summary>Región de cada tienda</summary><div id="bTiendas"></div></details>
+      <p class="nota" id="bNota"></p>
+
       <p class="nota" id="notas"></p>
     </div>
   </main>
 
-<script src="config.js?v=f52f3d121cc0"></script>
+<script src="config.js?v=68a18df88563"></script>
 <!-- ▌BLOQUE 2 · Módulos — Imports. -->
 <script type="module">
-import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta } from "./sesion.js?v=f52f3d121cc0";
-import { nombreTienda } from "./sala.js?v=f52f3d121cc0";
-import { contarEnLinea } from "./presencia.js?v=f52f3d121cc0";
-import { historialUnaVez } from "./historial.js?v=f52f3d121cc0";
-import { barras } from "./graficos.js?v=f52f3d121cc0";
-import { norm } from "./insignias.js?v=f52f3d121cc0";
-import { claveGlobal } from "./clasificacion.js?v=f52f3d121cc0";
+import { db, auth, enEmulador, urlCuenta } from "./sesion.js?v=68a18df88563";
+import { nombreTienda } from "./sala.js?v=68a18df88563";
+import { contarEnLinea } from "./presencia.js?v=68a18df88563";
+import { historialUnaVez } from "./historial.js?v=68a18df88563";
+import { barras } from "./graficos.js?v=68a18df88563";
+import { norm } from "./insignias.js?v=68a18df88563";
+import { claveGlobal } from "./clasificacion.js?v=68a18df88563";
+import { cargarEstandar } from "./listamazo.js?v=68a18df88563";
+import { REGIONES, pokemonDe, clasificar, hash } from "./arquetipos.js?v=68a18df88563";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 3 · Arranque ══════════════════════════════════════════════════════════
@@ -159,14 +186,92 @@ let D = null, DIAS = 30;
 async function cargar(){
   $("leido").textContent = "Leyendo…";
   const leer = r => get(ref(db, r)).then(s => s.val() || {}, () => null);
-  const [usuarios, altas, tiendas, solicitudes, stats] = await Promise.all(["usuarios", "altas", "tiendas", "solicitudes", "stats"].map(leer));
+  const [usuarios, altas, tiendas, solicitudes, stats, statsMazos] = await Promise.all(["usuarios", "altas", "tiendas", "solicitudes", "stats", "statsMazos"].map(leer));
+  BZ = statsMazos || {};
   const hist = {};
   await Promise.all(Object.keys(tiendas || {}).map(id => historialUnaVez(db, id).then(h => hist[id] = h || {})));
   D = { usuarios: usuarios || {}, altas: altas || {}, tiendas: tiendas || {}, solicitudes: solicitudes || {}, stats: stats || {}, hist,
-        sinLeer: [["usuarios", usuarios], ["solicitudes", solicitudes], ["stats", stats]].filter(([, v]) => v === null).map(([k]) => k) };
+        sinLeer: [["usuarios", usuarios], ["solicitudes", solicitudes], ["stats", stats], ["statsMazos", statsMazos]].filter(([, v]) => v === null).map(([k]) => k) };
   $("leido").textContent = "Al " + new Date().toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
   pintar();
+  if (statsMazos !== null) sincronizar();
 }
+
+/* ▌BLOQUE 5b · Barajas ══════════════════════════════════════════════════════════
+   Las listas de las inscripciones se guardan sin quién las inscribió en statsMazos/<tienda~evento~hash> (solo admins lo leen):
+   las inscripciones se borran a los 30 días y esto queda. La baraja de cada lista se calcula al mirar (arquetipos.js), y la
+   región sale de la tienda. «Mis mazos» no entra: es privado de cada jugador. */
+let BZ = {};
+const canon = r => JSON.stringify([r.t, r.e, r.f, r.fm || "", (r.pk || []).map(p => [p.n, p.c, p.b ? 1 : 0])]);
+async function sincronizar(){
+  $("bLeido").textContent = "Registrando…";
+  try {
+    const [ins, base] = await Promise.all([get(ref(db, "inscripciones")).then(s => s.val() || {}), cargarEstandar()]);
+    const nuevos = {};
+    for (const [t, evs] of Object.entries(ins)){
+      const agenda = await get(ref(db, "salas/" + t + "/agenda")).then(s => s.val() || {}, () => ({}));
+      for (const [e, personas] of Object.entries(evs)) for (const [uid, p] of Object.entries(personas || {})){
+        if (!p || typeof p.lista !== "string" || !p.lista.trim()) continue;
+        const pk = pokemonDe(p.lista, base); if (!pk.length) continue;
+        const ev = agenda[e] || {}, id = t + "~" + e + "~" + hash(uid + e);
+        const r = { t, e, f: diaDe(ev.inicioMs || p.actualizado || Date.now()), fm: (ev.inscripcion && ev.inscripcion.formato) || "", pk };
+        if (!BZ[id] || canon(BZ[id]) !== canon(r)) nuevos[id] = r;
+      }
+    }
+    const ids = Object.keys(nuevos);
+    for (let i = 0; i < ids.length; i += 100){
+      const trozo = Object.fromEntries(ids.slice(i, i + 100).map(k => [k, nuevos[k]]));
+      await update(ref(db, "statsMazos"), trozo); Object.assign(BZ, trozo);
+    }
+    $("bLeido").textContent = ids.length ? "+" + ids.length + " listas nuevas" : "Al día";
+  } catch(e){ console.warn("No se pudo registrar las barajas", e); $("bLeido").textContent = "No se pudo registrar (¿publicaste las reglas nuevas?)"; }
+  pintarBarajas();
+}
+const regionDe = t => (D.tiendas[t] && D.tiendas[t].perfil && D.tiendas[t].perfil.region) || "Sin región";
+function pintarBarajas(){
+  if (!D) return;
+  const sel = $("bReg"), antes = sel.value;
+  if (!sel.options.length) sel.innerHTML = '<option value="">Todo Chile</option>' + [...REGIONES, "Sin región"].map(r => "<option>" + esc(r) + "</option>").join("");
+  sel.value = antes;
+  const { desde, hasta } = rango(), fm = $("bFmt").value, reg = sel.value;
+  const todas = Object.values(BZ).filter(r => r.f >= desde && r.f <= hasta && (!fm || r.fm === fm)).map(r => ({ ...r, reg: regionDe(r.t), ...clasificar(r.pk) }));
+  const L = reg ? todas.filter(r => r.reg === reg) : todas;
+  $("tBarajas").textContent = fmtN(L.length) + (L.length === 1 ? " lista" : " listas") + (reg ? " · " + reg : "");
+  const cuenta = (xs, clave) => { const m = new Map(); xs.forEach(x => [].concat(clave(x)).forEach(k => m.set(k, (m.get(k) || 0) + 1))); return [...m].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)); };
+  const rank = cuenta(L, r => r.arquetipo);
+  $("bRank").innerHTML = rank.length ? rank.slice(0, 30).map(([k, c], i) => fila((i + 1) + ". " + k, c, rank[0][1], c + " · " + pct(c, L.length))).join("")
+    : '<div class="vacio">Todavía no hay listas en este período. Se registran las de los torneos con inscripción en ByePass.</div>';
+  const porReg = [...new Set(todas.map(r => r.reg))].map(g => { const xs = todas.filter(r => r.reg === g), top = cuenta(xs, r => r.arquetipo)[0];
+    return { g, n: xs.length, tiendas: new Set(xs.map(r => r.t)).size, top: top[0], tc: top[1] }; }).sort((a, b) => b.n - a.n);
+  $("bRegiones").innerHTML = porReg.length ? '<table class="t"><tr><th>Región</th><th class="n">Listas</th><th class="n">Tiendas</th><th>Baraja más jugada</th></tr>' +
+    porReg.map(f => "<tr><td>" + esc(f.g) + '</td><td class="n">' + fmtN(f.n) + '</td><td class="n">' + f.tiendas + "</td><td>" + esc(f.top) + "<small>" + pct(f.tc, f.n) + "</small></td></tr>").join("") + "</table>"
+    : '<div class="vacio">Sin listas.</div>';
+  const ins = cuenta(L, r => r.insignia);
+  $("bInsignia").innerHTML = ins.length ? '<table class="t"><tr><th>Pokémon</th><th class="n">Listas</th><th class="n">%</th></tr>' +
+    ins.slice(0, 30).map(([k, c]) => "<tr><td>" + esc(k) + '</td><td class="n">' + c + '</td><td class="n">' + pct(c, L.length) + "</td></tr>").join("") + "</table>" : '<div class="vacio">Sin listas.</div>';
+  $("bTiendas").innerHTML = '<table class="t"><tr><th>Tienda</th><th>Región</th></tr>' + Object.keys(D.tiendas).map(id => { const p = D.tiendas[id].perfil || {};
+    return "<tr><td>" + esc(nombreTienda(p, id)) + "<small>" + esc(p.comuna || "") + '</small></td><td><select data-t="' + esc(id) + '"><option value="">Sin región</option>' +
+      REGIONES.map(r => "<option" + (p.region === r ? " selected" : "") + ">" + esc(r) + "</option>").join("") + "</select></td></tr>"; }).join("") + "</table>";
+  const sin = new Set(todas.filter(r => r.reg === "Sin región").map(r => r.t)).size;
+  $("bNota").innerHTML = "Cada lista cuenta una vez. La baraja se deduce de las cartas: el Pokémon (o los dos) con más peso, contando más las ex, las Mega y las evoluciones; no es un registro oficial de mazos." +
+    (sin ? " <b>" + sin + (sin === 1 ? " tienda no tiene" : " tiendas no tienen") + " región:</b> asígnala en «Región de cada tienda»." : "");
+  CSVB = { filas: cuenta(L, r => r.reg + "|" + r.arquetipo) };
+}
+let CSVB = null;
+$("bReg").onchange = $("bFmt").onchange = pintarBarajas;
+$("bSync").onclick = sincronizar;
+$("bTiendas").onchange = async e => {
+  const t = e.target.dataset && e.target.dataset.t; if (!t) return;
+  try { await set(ref(db, "tiendas/" + t + "/perfil/region"), e.target.value || null); D.tiendas[t].perfil = { ...D.tiendas[t].perfil, region: e.target.value || undefined }; pintarBarajas(); }
+  catch(x){ console.warn(x); alert("No se pudo guardar la región (¿publicaste las reglas nuevas?)."); }
+};
+$("bCsv").onclick = () => {
+  if (!CSVB) return;
+  const filas = [["region", "baraja", "listas"], ...CSVB.filas.map(([k, c]) => [...k.split("|"), c])];
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["﻿" + filas.map(f => f.join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" }));
+  a.download = "byepass-barajas.csv"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
 
 /* Todos los torneos de todas las tiendas, con lo que hace falta contar. */
 function torneos(){
@@ -278,6 +383,7 @@ function pintar(){
     "No se guarda quién visita. Las visitas se cuentan desde que se publicó este contador." +
     (D.sinLeer.length ? ' <b>No se pudo leer: ' + D.sinLeer.join(", ") + ". ¿Publicaste las reglas nuevas?</b>" : "");
   CSV = { dias, vis, cu, T };
+  pintarBarajas();
 }
 
 function fila(k, c, total, txt){

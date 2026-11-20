@@ -71,6 +71,15 @@
   .fila b{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
   .dos{display:grid;grid-template-columns:1fr 1fr;gap:0 var(--e3);}
 
+  /* ---------------------------------------------------------- barajas */
+  .grupo > .controles{margin:0;padding:var(--e3) var(--e4);border-bottom:1px solid var(--divider);}
+  .controles label{display:inline-flex;align-items:center;gap:8px;font-size:var(--t2);color:var(--apagado);}
+  .controles select{min-height:40px;font-size:var(--t2);}
+  #bLeido{font-size:var(--t2);color:var(--rotulo);}
+  #bEditor{margin-top:var(--e3);}
+  #bEditor summary{padding:14px var(--e4);cursor:pointer;font-size:var(--t2);color:var(--apagado);}
+  #bEditor select{min-height:36px;font-size:var(--t2);max-width:100%;}
+
   @media (max-width:760px){
     .cifras{grid-template-columns:repeat(2,1fr);}
     .dos{grid-template-columns:1fr;}
