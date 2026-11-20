@@ -2,69 +2,43 @@
     1. Montar: las cartas de la lista, la guía, la meta principal y las pestañas
     2. Números
     3. Metas (ejemplos con tu lista y «Probar un cambio»)
-    3b. Riesgos
+    3b. Riesgos (Básicos malos, premios, líneas de evolución, rotación) y el texto de las cartas (TCGdex)
     4. Por turno
     5. Mesa
+   (Motores y Atacantes viven en motores.js y atacantes.js; Comparar dos listas, en comparar.js)
 */
 /* ============================================================
    probar.js — «Probar mazo» en Mis mazos (mazos.html, vista #vistaProbar)
    ------------------------------------------------------------
-   Vistas sobre la misma lista: Números (exacto: resumen, gráficos y una fila por carta), Metas (simulación
-   de 100.000 partidas, con semáforo, ejemplos armados con la lista, la meta principal y «Probar un cambio»),
-   Riesgos (abrir con un Básico malo, premios del mazo entero y líneas de evolución cortadas), Por turno
-   (curva de una carta, con una copia más o menos) y Mesa (una mano de prueba).
-   Ayuda: la guía «¿Qué quieres saber de tu mazo?» lleva a la vista que responde cada pregunta, con un
-   ejemplo calculado con la lista; cada número y gráfico tiene su «¿Cómo se lee?» (details nativo).
-   La matemática está en probabilidad.js. En este navegador: las metas («probar-metas:<mazo>»), los
-   Básicos malos («probar-malos:<mazo>») y si la guía está cerrada («probar-guia»). Las líneas de
-   evolución se piden a TCGdex (evolveFrom y stage de cada Pokémon). esc() es la global de config.js.
+   Vistas sobre la misma lista: Números (exacto: resumen, gráficos y una fila por carta), Motores (robo, búsqueda y Energía leídos
+   del texto de cada carta), Atacantes (ranking con orden e importancia del jugador), Metas (simulación de 100.000 partidas, con
+   semáforo, ejemplos armados con la lista, la meta principal y «Probar un cambio»), Riesgos (abrir con un Básico malo, premios,
+   líneas de evolución y rotación), Por turno (curva de una carta, con una copia más o menos) y Mesa (una mano de prueba).
+   Ayuda: la guía «¿Qué quieres saber de tu mazo?» lleva a la vista que responde cada pregunta, con un ejemplo calculado con la
+   lista; cada número y gráfico tiene su «¿Cómo se lee?» (details nativo).
+   La matemática está en probabilidad.js y la lectura del texto de las cartas en efectos.js. El texto sale de TCGdex (tcgdex.js, con
+   caché). En este navegador, por mazo: las metas («probar-metas:<mazo>»), los Básicos malos («probar-malos:<mazo>»), los roles
+   corregidos a mano («probar-roles:<mazo>») y los atacantes («probar-atacantes:<mazo>»); y si la guía está cerrada («probar-guia»).
+   esc() es la global de config.js.
    ============================================================ */
-import { leerLista, imagenCarta, norm, esEnergiaBasica as esBasicaNombre } from "./listamazo.js?v=c1c101fdb91e";
-import { mulligan, alMenosUna, premios, distBasicos, promedioBasicos, soloMalos, energiasDist, mulligansPromedio, simular, repartir } from "./probabilidad.js?v=c1c101fdb91e";
+import { norm, esEnergiaBasica as esBasicaNombre } from "./listamazo.js?v=f52f3d121cc0";
+import { mulligan, alMenosUna, premios, distBasicos, promedioBasicos, soloMalos, energiasDist, mulligansPromedio, simular, repartir } from "./probabilidad.js?v=f52f3d121cc0";
+import { armarCartas, motivoNoSePuede } from "./analisis.js?v=f52f3d121cc0";
+import { idTcgdex, datoCarta } from "./tcgdex.js?v=f52f3d121cc0";
+import { pct, dif, num, TURNO, leerLS, guardarLS, ayuda, barras, columnas } from "./probar-ui.js?v=f52f3d121cc0";
+import { montarMotores, calcularGrupos } from "./motores.js?v=f52f3d121cc0";
+import { montarAtacantes } from "./atacantes.js?v=f52f3d121cc0";
 
-const pct = (p, d = 0) => (p * 100).toLocaleString("es-CL", { minimumFractionDigits: d, maximumFractionDigits: d }) + " %";
-const dif = (p, d = 1) => (p >= 0 ? "+" : "−") + Math.abs(p * 100).toLocaleString("es-CL", { minimumFractionDigits: d, maximumFractionDigits: d });
-const num = (x, d = 1) => x.toLocaleString("es-CL", { maximumFractionDigits: d });
-const TURNO = t => t === 0 ? "en la mano" : "al turno " + t;
-const leerLS = (k, def) => { try { return JSON.parse(localStorage.getItem(k) || "null") ?? def; } catch(e){ return def; } };
-const guardarLS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ /* sin almacenamiento: no pasa nada */ } };
 const esEnergiaBasica = c => esBasicaNombre(c.nombre);   // sin tope de copias (listamazo.js)
-/* «¿Cómo se lee?»: explicación plegable bajo cada número o gráfico. */
-const ayuda = (html, titulo = "¿Cómo se lee?") => '<details class="ayuda"><summary>' + titulo + "</summary><div>" + html + "</div></details>";
-/* Cartas conocidas (nombre en inglés de la base), para armar ejemplos de metas con la lista del jugador.
-   ponytail: lista corta a mano; cuando la base tenga el subtipo de cada Entrenador, se saca de ahí. */
+/* Cartas conocidas (nombre en inglés de la base): los ejemplos de metas las usan mientras no llega el texto de TCGdex. */
 const BUSCAN_BASICOS = ["Buddy-Buddy Poffin", "Nest Ball", "Ultra Ball", "Level Ball", "Quick Ball", "Hisuian Heavy Ball", "Poké Ball", "Great Ball"];
 const PARTIDARIOS_ROBO = ["Professor's Research", "Iono", "Arven", "Lillie's Determination", "Dawn", "Hilda", "Crispin", "Carmine", "Judge", "Cyrano",
   "Penny", "Brock's Scouting", "Colress's Tenacity", "Team Rocket's Petrel", "Ciphermaniac's Codebreaking", "Professor Turo's Scenario", "Professor Sada's Vitality"];
-/* Lo que TCGdex dice de cada carta (nombre en inglés, fase, de qué evoluciona), por su id. */
-const TCGDEX = new Map();
-const datoTcgdex = id => {
-  if (!TCGDEX.has(id)) TCGDEX.set(id, fetch("https://api.tcgdex.net/v2/en/cards/" + encodeURIComponent(id)).then(r => r.ok ? r.json() : null).catch(() => null));
-  return TCGDEX.get(id);
-};
-/* Barras horizontales (etiqueta, barra, valor) y columnas (para comparar varias cantidades). */
-const barras = (filas, fuerte = -1) => '<div class="dist" role="list">' + filas.map(([t, p], k) =>
-  '<div class="fd' + (k === fuerte ? " fuerte" : "") + '" role="listitem"><span>' + t + '</span><span class="bar"><i style="width:' + (p * 100).toFixed(1) + '%"></i></span><span class="val">' + pct(p, 1) + "</span></div>").join("") + "</div>";
-const columnas = (cols, marcada, etiqueta) => '<div class="cols" role="list" aria-label="' + etiqueta + '">' + cols.map(([t, p]) =>
-  '<div class="col' + (t === marcada ? " marcada" : "") + '" role="listitem"><span class="cv">' + pct(p, 0) + '</span><span class="cb"><i style="height:' + Math.max(2, p * 100).toFixed(1) + '%"></i></span><span class="ct">' + t + "</span></div>").join("") + "</div>";
 
 /* ▌BLOQUE 1 · Montar ════════════════════════════════════════════════════════════ */
-export function montarProbar(caja, { lista, base, clave = "sin-guardar" }){
-  const r = leerLista(lista, base);
-  const CARTAS = [...r.pokemon.map(c => ({ ...c, sec: "Pokémon" })), ...r.entrenador.map(c => ({ ...c, sec: "Entrenador" })), ...r.energia.map(c => ({ ...c, sec: "Energía" }))]
-    .map((c, i) => ({ ...c, i, foto: c.set ? imagenCarta(base, c.set, c.num) : "", basico: c.x === "B" && c.sec === "Pokémon" }));
-  const N = CARTAS.reduce((s, c) => s + c.cant, 0), B = CARTAS.filter(c => c.basico).reduce((s, c) => s + c.cant, 0);
-  if (N < 13 || !B){
-    caja.innerHTML = '<p class="vacio">' + (N < 13 ? "La lista tiene " + N + " cartas: para probarla hacen falta al menos 13 (la mano y los premios)."
-      : "No encontramos ningún Pokémon Básico en la lista, así que toda mano sería mulligan. Revisa que los Pokémon tengan su expansión y número.") + "</p>";
-    return;
-  }
-  const E = CARTAS.filter(c => c.sec === "Energía").reduce((s, c) => s + c.cant, 0);
-  const MAZO = CARTAS.flatMap(c => Array(c.cant).fill(c.i)), ES_B = CARTAS.map(c => c.basico);
-  /* El nombre en inglés de cada carta (la base lo tiene por expansión y número): para reconocer cartas conocidas
-     aunque la lista esté en castellano. */
-  const INGLES = new Map((base && base.cartas || []).map(c => [c[0] + " " + String(c[1]).replace(/^0+(?=\d)/, ""), c[2]]));
-  CARTAS.forEach(c => { c.en = INGLES.get(c.set + " " + String(c.num).replace(/^0+(?=\d)/, "")) || c.nombre; });
+export function montarProbar(caja, { lista, base, clave = "sin-guardar", alComparar = null }){
+  const a = armarCartas(lista, base), { CARTAS, N, B, E, MAZO, ES_B } = a, sinProbar = motivoNoSePuede(a);
+  if (sinProbar){ caja.innerHTML = '<p class="vacio">' + sinProbar + "</p>"; return; }
   /* La probabilidad de una carta (o con «extra» copias más: esas reemplazan cartas de las otras). */
   const prob = (c, extra = 0, vistas = 7) => alMenosUna({ N, t: c.cant + extra, tb: c.basico ? c.cant + extra : 0, b: B + (c.basico ? extra : 0), vistas });
   const foto = c => c.foto ? '<img src="' + esc(c.foto) + '" alt="" loading="lazy">' : '<span class="sinF"></span>';
@@ -92,9 +66,17 @@ export function montarProbar(caja, { lista, base, clave = "sin-guardar" }){
     { q: "¿Qué puedo perder en premios?", v: "riesgos", foco: "g-premios",
       a: premUnas ? "Tienes " + unas.length + (unas.length === 1 ? " carta" : " cartas") + " de 1 copia: en " + pct(premUnas.al1, 0) + " de las partidas al menos una queda en premios. " +
          "En <b>Riesgos</b> también ves si se puede cortar una línea de evolución." : "En <b>Riesgos</b> ves qué cartas y líneas de evolución puedes perder en premios." },
+    { q: "¿Cuántos motores de robo y búsqueda tengo?", v: "motores", foco: "g-motores",
+      a: () => { const g = calcularGrupos(a, TEXTOS, ctx.over || {}), robo = g.find(x => x.id === "robo"), busca = g.find(x => x.id === "buscaPokemon");
+        return ESTADO_TEXTOS !== "listo" ? "En <b>Motores</b> ves cuántas cartas roban, buscan Pokémon o mueven Energía, y qué tan seguido llega al menos una a tu mano. Está leyendo el texto de las cartas: en unos segundos aparece completo."
+          : "En tu lista hay <b>" + robo.t + (robo.t === 1 ? " carta" : " cartas") + " de robo directo</b> (al menos una en el " + pct(robo.p7, 0) + " de las manos) y <b>" + busca.t + " que buscan Pokémon</b> (" + pct(busca.p7, 0) + "). " +
+            "En <b>Motores</b> está el detalle, cuándo conviene cada robo y cómo leí cada carta, por si quieres corregirla."; } },
+    { q: "¿Quiénes son mis mejores atacantes?", v: "atacantes", foco: "g-atacantes",
+      a: "En <b>Atacantes</b> eliges quiénes atacan en tu mazo y salen ordenados por daño por Energía y qué tan seguido llegan a atacar, con su línea de evolución. Puedes fijar tú el orden con las flechas y la importancia con las estrellas." },
+    alComparar && { q: "¿En qué se diferencia de otra lista?", accion: alComparar },
     { q: "Quiero ver cómo sale una mano", v: "mesa", foco: "",
       a: "En <b>Mesa</b> se reparte una mano de verdad (con los mulligans que toquen) y los 6 premios boca abajo. Roba, mira los premios y reparte otra cuantas veces quieras." },
-  ];
+  ].filter(Boolean);
 
   caja.innerHTML =
     '<p class="meta pr-res">' + N + " cartas · " + B + " Pokémon Básicos · " + E + " Energías" + (N !== 60 ? " · <b>no son 60</b>: los números son para esta lista tal como está" : "") + "</p>" +
@@ -104,14 +86,14 @@ export function montarProbar(caja, { lista, base, clave = "sin-guardar" }){
       '<div class="respuesta oculto" data-resp role="status"></div></section>' +
     '<div class="principal oculto" data-principal></div>' +
     '<div class="seg vistas" role="tablist" aria-label="Vistas de la prueba">' +
-      [["numeros", "Números"], ["metas", "Metas"], ["riesgos", "Riesgos"], ["turnos", "Por turno"], ["mesa", "Mesa"]].map(([v, t], k) =>
+      [["numeros", "Números"], ["motores", "Motores"], ["atacantes", "Atacantes"], ["metas", "Metas"], ["riesgos", "Riesgos"], ["turnos", "Por turno"], ["mesa", "Mesa"]].map(([v, t], k) =>
         '<button type="button" role="tab" data-v="' + v + '" aria-selected="' + (k === 0) + '">' + t + "</button>").join("") + "</div>" +
-    ["numeros", "metas", "riesgos", "turnos", "mesa"].map((v, k) => '<section class="caja' + (k ? " oculto" : "") + '" data-p="' + v + '"></section>').join("");
+    ["numeros", "motores", "atacantes", "metas", "riesgos", "turnos", "mesa"].map((v, k) => '<section class="caja' + (k ? " oculto" : "") + '" data-p="' + v + '"></section>').join("");
   const P = v => caja.querySelector('[data-p="' + v + '"]');
   const ver = v => {
     caja.querySelectorAll("[data-v]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.v === v)));
     caja.querySelectorAll("[data-p]").forEach(s => s.classList.toggle("oculto", s.dataset.p !== v));
-    ({ metas: pintarMetas, riesgos: pintarRiesgos, turnos: curva, mesa: () => { if (!mesa) otraMano(); } })[v]?.();
+    if (v === "mesa"){ if (!mesa) otraMano(); } else PINTAR[v]?.();
   };
   caja.querySelectorAll("[data-v]").forEach(b => b.onclick = () => ver(b.dataset.v));
   caja.addEventListener("error", e => { if (e.target.tagName === "IMG") e.target.replaceWith(Object.assign(document.createElement("span"), { className: "sinF" })); }, true);
@@ -127,8 +109,9 @@ export function montarProbar(caja, { lista, base, clave = "sin-guardar" }){
   guia.querySelector(".guiaQs").onclick = e => {
     const b = e.target.closest("[data-g]"); if (!b) return;
     const g = GUIA[+b.dataset.g];
+    if (g.accion){ g.accion(); return; }
     guia.querySelectorAll("[data-g]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-    resp.innerHTML = "<p>" + g.a + '</p><button type="button" class="btn chico" data-resp-cerrar>Entendido</button>';
+    resp.innerHTML = "<p>" + (typeof g.a === "function" ? g.a() : g.a) + '</p><button type="button" class="btn chico" data-resp-cerrar>Entendido</button>';
     resp.classList.remove("oculto");
     ver(g.v);
     const foco = g.foco && caja.querySelector("#" + g.foco);
@@ -311,11 +294,50 @@ export function montarProbar(caja, { lista, base, clave = "sin-guardar" }){
   pintarPrincipal();
 
   /* ▌BLOQUE 3b · Riesgos ══════════════════════════════════════════════════════════
-     Abrir con un Básico malo (los marca el jugador), premios del mazo entero (las cartas de 1 copia) y
-     líneas de evolución cortadas (todas las copias de su Básico en premios; la línea sale de TCGdex). */
+     Abrir con un Básico malo (los marca el jugador), premios del mazo entero (las cartas de 1 copia), líneas de
+     evolución (si cuadran y si se pueden cortar) y rotación. Las líneas salen del texto de TCGdex. */
   const LSM = "probar-malos:" + clave, BASICOS = CARTAS.filter(c => c.basico);
   const MALOS = new Set(leerLS(LSM, []).filter(n => BASICOS.some(c => c.nombre === n)));
   let LINEAS = null;   // null: sin pedir todavía; "error"; o [{ basico, miembros }]
+
+  /* El texto de cada carta (TCGdex), por nombre en la lista: lo usan Motores, Atacantes y las líneas de evolución. Las Energías
+     básicas no se piden: se leen por su nombre. */
+  const TEXTOS = new Map();
+  let ESTADO_TEXTOS = "pendiente", enIngles = new Map();
+  /* De qué evoluciona una carta, de la raíz a ella: [Dreepy, Drakloak, Dragapult ex]. Sin datos, solo ella. */
+  function cadena(c){
+    const out = [c]; let x = c;
+    for (let paso = 0; paso < 3 && !x.basico; paso++){
+      const d = TEXTOS.get(x.nombre), prev = d && d.evolveFrom && enIngles.get(norm(d.evolveFrom));
+      if (!prev || out.includes(prev)) break;
+      out.unshift(prev); x = prev;
+    }
+    return out;
+  }
+  function armarLineas(){
+    const poke = CARTAS.filter(c => c.sec === "Pokémon");
+    if (poke.some(c => !c.basico && idTcgdex(c.foto) && !TEXTOS.get(c.nombre))){ LINEAS = "error"; return; }
+    poke.forEach(c => { const d = TEXTOS.get(c.nombre); c.fase = (d && d.stage) || ""; });
+    /* el nombre en inglés de cada Pokémon de la lista (la lista puede estar en castellano) */
+    enIngles = new Map(poke.map(c => [norm((TEXTOS.get(c.nombre) || {}).name || c.en), c]));
+    const por = new Map();
+    poke.filter(c => !c.basico).forEach(c => { const raiz = cadena(c)[0]; if (raiz.basico && raiz !== c){ if (!por.has(raiz)) por.set(raiz, []); por.get(raiz).push(c); } });
+    LINEAS = [...por].map(([basico, miembros]) => ({ basico, miembros }));
+  }
+  const PINTAR = { motores: () => motores.pintar(), atacantes: () => atacantes.pintar(), metas: () => pintarMetas(), riesgos: () => pintarRiesgos(), turnos: () => curva() };
+  async function cargarTextos(){
+    if (ESTADO_TEXTOS !== "pendiente") return;
+    ESTADO_TEXTOS = "cargando";
+    await Promise.all(CARTAS.filter(c => !esEnergiaBasica(c)).map(async c => { TEXTOS.set(c.nombre, await datoCarta(idTcgdex(c.foto))); }));
+    ESTADO_TEXTOS = "listo"; armarLineas();
+    for (const v of ["motores", "atacantes", "riesgos", "metas"]) if (!P(v).classList.contains("oculto")) PINTAR[v]();   // se rehacen con el texto ya leído
+  }
+  const ctx = { a, textos: TEXTOS, listo: () => ESTADO_TEXTOS === "listo", clave, cadena, over: null };
+  const motores = montarMotores(P("motores"), ctx);
+  ctx.over = motores.over;
+  const atacantes = montarAtacantes(P("atacantes"), ctx);
+  cargarTextos();   // de entrada: los ejemplos de Metas, Motores y Atacantes usan este texto
+
   function pintarRiesgos(){
     const m = BASICOS.filter(c => MALOS.has(c.nombre)).reduce((s, c) => s + c.cant, 0);
     P("riesgos").innerHTML =
@@ -333,54 +355,52 @@ export function montarProbar(caja, { lista, base, clave = "sin-guardar" }){
           ayuda("Cada barra es el porcentaje de partidas en que esa cantidad de tus cartas de 1 copia queda en premios. Cada una por separado está ~10 %, pero juntas suman: con " + unas.length +
             " cartas de 1 copia, lo normal es perder alguna. Esa carta vuelve recién cuando tomas ese premio. <b>Lo baja:</b> jugar 2 copias de las importantes o cartas que recuperen de la pila de descartes.")
           : '<p class="pista">No tienes cartas de 1 copia.</p>') + "</div>" +
-      '<div class="bloqueR"><h3>Líneas de evolución cortadas</h3><div data-lineas>' + htmlLineas() + "</div>" +
-        ayuda("Una línea es un Básico con lo que evoluciona de él (por ejemplo Dreepy → Drakloak → Dragapult ex). Si todas las copias del Básico quedan en premios, " +
-          "esa línea no se puede jugar hasta tomar esos premios. «Alguna» es que al menos una copia del Básico quede en premios (la línea sigue, pero más lenta). " +
-          "De qué evoluciona cada carta lo dice TCGdex.") + "</div>";
-    if (LINEAS === null) buscarLineas();
+      '<div class="bloqueR" id="g-lineas"><h3>Líneas de evolución</h3><div data-lineas>' + htmlLineas() + "</div>" +
+        ayuda("Una línea es un Básico con lo que evoluciona de él (por ejemplo Dreepy → Drakloak → Dragapult ex). <b>Las proporciones</b> se escriben Básicos-Fase 1-Fase 2 (4-3-3): lo normal es que bajen de a poco. " +
+          "Avisa si hay más Fase 1 que Básicos, si sobran Básicos sin Fase 1 que los evolucione, si hay más Fase 2 que Fase 1 (sin Rare Candy que las salte) o una Fase 2 sin cómo llegar a ella. " +
+          "<b>Premios:</b> si todas las copias del Básico quedan en premios, la línea no se puede jugar hasta tomar esos premios; «alguna» es que al menos una copia quede ahí (la línea sigue, pero más lenta). " +
+          "De qué evoluciona cada carta lo dice TCGdex.") + "</div>" +
+      '<div class="bloqueR" id="g-rotacion"><h3>Rotación</h3>' + htmlRotacion() + "</div>";
+  }
+  /* Las líneas: proporción, avisos y qué tan seguido se corta por los premios. */
+  function proporcion({ basico, miembros }){
+    const suma = f => miembros.filter(c => c.fase === f).reduce((s, c) => s + c.cant, 0);
+    const b = CARTAS.filter(c => c.nombre === basico.nombre).reduce((s, c) => s + c.cant, 0), s1 = suma("Stage1"), s2 = suma("Stage2");
+    const candy = CARTAS.filter(c => c.en === "Rare Candy").reduce((s, c) => s + c.cant, 0), av = [];
+    if (s1 > b) av.push("Llevas más Fase 1 (" + s1 + ") que Básicos (" + b + "): algunas no tendrán a quién evolucionar.");
+    if (s1 && b - s1 >= 3) av.push("Hay " + b + " " + basico.nombre + " pero solo " + s1 + " de Fase 1: los Básicos de sobra se quedarán sin evolucionar.");
+    if (s2 && s1 && s2 > s1 + candy) av.push("Hay más Fase 2 (" + s2 + ") que Fase 1 (" + s1 + ")" + (candy ? " aun contando tus " + candy + " Rare Candy" : " y no llevas Rare Candy que las salte") + ".");
+    if (s2 && s1 && s1 - s2 >= 3) av.push("Hay " + s1 + " de Fase 1 y solo " + s2 + " de Fase 2: la línea se queda sin su final.");
+    if (s2 && !s1 && !candy) av.push("Tienes Fase 2 pero ninguna Fase 1 ni Rare Candy: no hay cómo llegar a ella.");
+    return { b, s1, s2, av, ratio: [b, s1, ...(s2 || miembros.some(c => c.fase === "Stage2") ? [s2] : [])].join("-") };
   }
   function htmlLineas(){
     if (LINEAS === null) return '<p class="pista">Buscando de qué evoluciona cada Pokémon…</p>';
     if (LINEAS === "error") return '<p class="pista">No pudimos saber las líneas de evolución (TCGdex no respondió). Prueba más tarde.</p>';
     if (!LINEAS.length) return '<p class="pista">No hay Pokémon que evolucionen de un Básico de tu lista.</p>';
-    return LINEAS.map(({ basico, miembros }) => {
-      const p = premios({ N, t: basico.cant, tb: basico.cant, b: B });
-      return '<div class="r"><span><b>' + esc(basico.nombre) + " ×" + basico.cant + "</b> → " + miembros.map(c => esc(c.nombre)).join(", ") + "</span><span>" +
-        "todas en premios <b>" + pct(p.todas, 2) + "</b> · alguna " + pct(p.al1, 0) + "</span></div>";
+    return LINEAS.map(l => {
+      const { basico, miembros } = l, pr = proporcion(l), p = premios({ N, t: pr.b, tb: pr.b, b: B });
+      return '<div class="linea1"><div class="r"><span><b>' + esc(basico.nombre) + " ×" + pr.b + "</b> → " + miembros.map(c => esc(c.nombre) + " ×" + c.cant).join(" → ") + '</span><span class="proporcion ' + (pr.av.length ? "mal" : "bien") + '">' + pr.ratio + (pr.av.length ? " · revisar" : " · cuadra") + "</span></div>" +
+        pr.av.map(t => '<p class="aviso-linea">' + esc(t) + "</p>").join("") +
+        '<div class="r mini"><span>Si todas las copias de ' + esc(basico.nombre) + " quedan en premios</span><span>todas <b>" + pct(p.todas, 2) + "</b> · alguna " + pct(p.al1, 0) + "</span></div></div>";
     }).join("");
   }
-  let buscando = false;
-  async function buscarLineas(){
-    if (buscando) return;
-    buscando = true;
-    const poke = CARTAS.filter(c => c.sec === "Pokémon");
-    const id = c => { const m = /\/en\/[^/]+\/([^/]+)\/([^/]+)\/low\.webp$/.exec(c.foto || ""); return m ? m[1] + "-" + m[2] : ""; };
-    const datos = await Promise.all(poke.map(c => id(c) ? datoTcgdex(id(c)) : null));
-    if (poke.some((c, k) => id(c) && !c.basico && !datos[k])) LINEAS = "error";
-    else {
-      poke.forEach((c, k) => { c.fase = (datos[k] && datos[k].stage) || ""; });
-      /* el nombre en inglés de cada Pokémon de la lista (la lista puede estar en castellano) */
-      const enIngles = new Map(poke.map((c, k) => [norm((datos[k] && datos[k].name) || c.en), c]));
-      const raiz = c => {
-        let x = c;
-        for (let paso = 0; paso < 4; paso++){
-          if (x.basico) return x;
-          const d = datos[poke.indexOf(x)], prev = d && d.evolveFrom && enIngles.get(norm(d.evolveFrom));
-          if (!prev) return null;
-          x = prev;
-        }
-        return null;
-      };
-      const por = new Map();
-      poke.filter(c => !c.basico).forEach(c => { const b = raiz(c); if (b){ if (!por.has(b)) por.set(b, []); por.get(b).push(c); } });
-      LINEAS = [...por].map(([basico, miembros]) => ({ basico, miembros }));
-    }
-    buscando = false;
-    const d = P("riesgos").querySelector("[data-lineas]");
-    if (d) d.innerHTML = htmlLineas();
-    if (!P("metas").classList.contains("oculto")) pintarMetas();   // aparece el ejemplo con Rare Candy
+  /* Rotación: cuántas cartas hay de cada marca de regulación. Las Energías básicas no rotan, no se cuentan. */
+  function htmlRotacion(){
+    const por = new Map(), cuentan = CARTAS.filter(c => !esEnergiaBasica(c));
+    for (const c of cuentan) if (c.reg){ const m = por.get(c.reg) || { n: 0, cartas: [] }; m.n += c.cant; m.cartas.push(c); por.set(c.reg, m); }
+    const sin = cuentan.filter(c => !c.reg).reduce((s, c) => s + c.cant, 0), marcas = [...por.keys()].sort();
+    if (!marcas.length) return '<p class="pista">No encontramos la marca de regulación de tus cartas (revisa que tengan expansión y número).</p>';
+    const vieja = por.get(marcas[0]);
+    return '<p class="pista">Cuántas cartas de tu lista son de cada marca de regulación (la letra de la esquina inferior izquierda de la carta).</p>' +
+      barras(marcas.map(k => ["Marca " + k, por.get(k).n / N])) +
+      '<p class="nota">La marca más vieja de tu lista es la <b>' + marcas[0] + "</b>: " + vieja.n + (vieja.n === 1 ? " carta" : " cartas") + " (" + pct(vieja.n / N, 0) + " del mazo): " +
+        vieja.cartas.map(c => esc(c.nombre) + " ×" + c.cant).join(", ") + ". Cuando una marca sale de Estándar, esas cartas dejan de ser legales." +
+        (sin ? " Otras " + sin + " cartas no tienen marca en nuestra base (reimpresiones o cartas nuevas)." : "") + "</p>" +
+      ayuda("La marca de regulación decide hasta cuándo se puede jugar una carta en Estándar: cuando la organización anuncia una rotación, las marcas más viejas se van. " +
+        "Aquí ves cuánto de tu lista depende de ellas, para saber qué vas a tener que reemplazar. La fecha la anuncia la organización (no la sabemos desde aquí). " +
+        "Las Energías básicas no se cuentan porque no rotan. <b>Ejemplo:</b> si la marca más vieja es la H y tienes 14 cartas de ella, casi un cuarto del mazo cambia con la rotación.", "¿Qué es la rotación?");
   }
-  buscarLineas();   // de entrada: los ejemplos de Metas usan la Fase 2 de cada línea
   P("riesgos").addEventListener("click", e => {
     const b = e.target.closest("[data-malo]");
     if (!b) return;

@@ -48,7 +48,7 @@
 
 /* «Probar mazo» (probar.js): Números, Metas, Por turno y Mesa. Mis mazos se ensancha mientras se prueba. */
 @media (min-width:960px){[data-pagina="mazos"] main:has(#vistaProbar:not(.oculto)){max-width:920px}}
-#vistaProbar{display:flex;flex-direction:column;gap:var(--e4);}
+#vistaProbar,#vistaComparar{display:flex;flex-direction:column;gap:var(--e4);}
 .tProbar{font-size:var(--t5);font-weight:700;margin:0;overflow-wrap:anywhere;}
 .probar{display:flex;flex-direction:column;gap:var(--e4);}
 .probar .pr-res{margin:0;}
@@ -191,3 +191,85 @@
   .probar .premios{grid-template-columns:repeat(6,minmax(0,1fr));}
   .probar .meta-c .t{padding-right:72px;}
 }
+
+/* Probar mazo: Motores, Atacantes, líneas, rotación y Comparar dos listas */
+.probar .mas{color:var(--ok);} .probar .menos{color:var(--negativo);} .probar .igual{color:var(--apagado);}
+.probar .mini{font-size:var(--t1);color:var(--apagado);font-weight:400;}
+.probar .nota{font-size:var(--t2);color:var(--apagado);line-height:1.5;margin:6px 0 0;}
+.probar .nota b{color:var(--texto);font-weight:600;}
+/* efectos de una carta (chips de colores) */
+.probar .e{display:inline-block;font-size:var(--t1);line-height:1.3;padding:3px 9px;border-radius:999px;border:1px solid var(--divider);background:var(--campo);color:var(--texto);margin:2px 4px 2px 0;}
+.probar .e.rojo{background:var(--coral-suave);border-color:color-mix(in srgb,var(--accion) 55%,transparent);}
+.probar .e.azul{background:var(--lila);border-color:color-mix(in srgb,var(--franja) 35%,transparent);}
+.probar .e.verde{background:var(--menta);border-color:color-mix(in srgb,var(--ok) 45%,transparent);}
+.probar .e.amar{background:var(--amarillo-suave);border-color:color-mix(in srgb,var(--amarillo) 70%,transparent);}
+.probar .chipsF{display:flex;flex-wrap:wrap;margin-top:4px;}
+/* la lista por tipo: una barra con un color por tipo */
+.probar .apilada{display:flex;height:22px;border-radius:6px;overflow:hidden;gap:2px;margin:8px 0 6px;}
+.probar .seg{display:inline-block;} .probar .apilada .seg{min-width:4px;}
+.probar .seg.s0{background:var(--accion);} .probar .seg.s1{background:color-mix(in srgb,var(--accion) 60%,var(--sup));}
+.probar .seg.s2{background:var(--franja);} .probar .seg.s3{background:color-mix(in srgb,var(--franja) 70%,var(--sup));}
+.probar .seg.s4{background:color-mix(in srgb,var(--franja) 45%,var(--sup));} .probar .seg.s5{background:color-mix(in srgb,var(--franja) 28%,var(--sup));}
+.probar .seg.s6{background:var(--rotulo);} .probar .seg.s7{background:var(--apagado);}
+.probar .seg.s8{background:var(--ok);} .probar .seg.s9{background:color-mix(in srgb,var(--ok) 55%,var(--sup));}
+.probar .leyendaT{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--t2);color:var(--apagado);}
+.probar .leyendaT .seg{width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;}
+.probar .leyendaT b{color:var(--texto);font-weight:600;}
+/* motores */
+.probar .mot{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 62px 62px;gap:10px;align-items:center;font-size:var(--t3);padding:9px 0;border-top:1px solid var(--divider);font-variant-numeric:tabular-nums;}
+.probar .mot.cab{border-top:0;font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--rotulo);font-weight:600;padding-bottom:4px;}
+.probar .mot .n{text-align:right;} .probar .mot.sin{opacity:.6;}
+.probar .mot .pbar{height:8px;}
+.probar .tabla.cuando td{text-align:center;} .probar .tabla.cuando th{text-align:center;} .probar .tabla.cuando td:first-child,.probar .tabla.cuando th:first-child{text-align:left;}
+.probar .tabla.cuando .d{display:block;font-size:var(--t1);}
+.probar .revisar{display:flex;flex-direction:column;gap:2px;}
+.probar .rev{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--divider);align-items:start;}
+.probar .roles{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:var(--t2);}
+.probar .roles label{display:inline-flex;align-items:center;gap:5px;min-height:28px;cursor:pointer;}
+.probar .roles input{width:16px;height:16px;accent-color:var(--accion);}
+.probar .textoC{font-size:var(--t1);color:var(--apagado);margin-top:4px;} .probar .textoC summary{cursor:pointer;color:var(--accion-texto);} .probar .textoC p{margin:4px 0 0;line-height:1.45;}
+/* atacantes */
+.probar .turnos{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;}
+.probar .turnos [aria-pressed="true"]{border-color:var(--accion);background:var(--coral-suave);font-weight:600;}
+.probar .atks{display:flex;flex-direction:column;gap:var(--e3);margin-top:8px;}
+.probar .atk{border:1px solid var(--divider);border-radius:var(--radio-chico);padding:12px 14px;}
+.probar .atkCab{display:flex;align-items:center;gap:10px;font-size:var(--t4);}
+.probar .pos{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accion);color:var(--sobre-accion);font-size:var(--t2);font-weight:700;flex:none;}
+.probar .mover{margin-left:auto;display:inline-flex;gap:4px;}
+.probar .mover button{width:36px;height:36px;border:1px solid var(--divider);border-radius:8px;background:var(--sup);color:var(--texto);cursor:pointer;font:inherit;}
+.probar .mover button:disabled{opacity:.35;cursor:default;}
+.probar .atkCuerpo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px;margin-top:10px;align-items:start;}
+.probar .atkCuerpo .campo select{padding:9px 10px;font-size:var(--t3);}
+.probar .atkDato{font-size:var(--t2);color:var(--apagado);align-self:center;} .probar .atkDato b{color:var(--texto);font-size:var(--t4);}
+.probar .atkP{grid-column:1 / -1;display:flex;align-items:baseline;gap:10px;border-radius:var(--radio-chico);padding:8px 12px;background:var(--campo);}
+.probar .atkP span{font-size:var(--t2);color:var(--apagado);} .probar .atkP b{font-size:var(--d3);font-weight:700;font-variant-numeric:tabular-nums;} .probar .atkP small{font-size:var(--t2);color:var(--apagado);}
+.probar .atkP.alto{background:var(--aviso);} .probar .atkP.medio{background:var(--aviso-accion);} .probar .atkP.bajo{background:var(--alerta);}
+.probar .linea{grid-column:1 / -1;font-size:var(--t2);color:var(--apagado);line-height:1.6;} .probar .linea b{color:var(--texto);}
+.probar .estrellas{grid-column:1 / -1;display:flex;align-items:center;gap:2px;}
+.probar .estrellas button{border:0;background:transparent;color:var(--accion);font-size:22px;line-height:1;width:34px;height:34px;cursor:pointer;border-radius:6px;}
+.probar .estrellas .mini{margin-right:8px;}
+/* líneas de evolución y rotación */
+.probar .linea1{border-top:1px solid var(--divider);padding:8px 0;}
+.probar .proporcion{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;} .probar .proporcion.bien{color:var(--ok);} .probar .proporcion.mal{color:var(--negativo);}
+.probar .aviso-linea{margin:4px 0;padding:6px 10px;border-left:3px solid var(--amarillo);background:var(--amarillo-suave);font-size:var(--t2);}
+/* comparar */
+.elegirCmp{display:grid;grid-template-columns:1fr 1fr;gap:var(--e3);}
+.probar .comp-cab{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;}
+.probar .comp-cab .pill{background:var(--sup);border:1px solid var(--divider);border-radius:var(--radio-chico);padding:8px 12px;min-width:0;}
+.probar .comp-cab .pill small{display:block;color:var(--apagado);font-size:var(--t1);} .probar .comp-cab .pill b{overflow-wrap:anywhere;}
+.probar .frase{border-left:3px solid var(--accion);padding:10px 14px;background:var(--campo);margin:0;font-size:var(--t3);line-height:1.5;}
+.probar .cambios{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;font-size:var(--t2);}
+.probar .cambios > div > b{display:block;font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--rotulo);margin-bottom:4px;}
+.probar .cambios > div > div{padding:3px 0;border-top:1px solid var(--divider);}
+.probar .tabla.cmp td.n{text-align:right;font-variant-numeric:tabular-nums;} .probar .tabla.cmp th:not(:first-child){text-align:right;}
+.probar .tabla.cmp td.d{text-align:right;font-weight:600;white-space:nowrap;} .probar .tabla.cmp td.d.igual{font-weight:400;}
+@media (max-width:620px){
+  .probar .mot{grid-template-columns:minmax(0,1fr) 66px 66px;} .probar .mot .pbar,.probar .mot .relleno{display:none;}
+  .probar .rev{grid-template-columns:1fr;}
+  .probar .atkCuerpo{grid-template-columns:1fr;}
+  .elegirCmp{grid-template-columns:1fr;}
+  .probar .comp-cab{grid-template-columns:1fr auto 1fr;gap:6px;}
+  .probar .tabla.cmp{font-size:var(--t2);} .probar .tabla.cmp td.d{white-space:normal;}
+}
+.probar .mot .n,.probar .tabla.cmp td.n,.probar .atkP b{white-space:nowrap;}
+.probar .atkP{flex-wrap:wrap;}

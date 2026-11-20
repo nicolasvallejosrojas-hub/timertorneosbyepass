@@ -93,7 +93,8 @@ export const mulligansPromedio = (N, b) => mulligan(N, b) / valida(N, b);
    carta i es Pokémon Básico; reqs: [[índices]…], cada requisito se cumple con al menos una de sus cartas,
    y la meta pide todos. Devuelve la probabilidad y su margen al 95 % (±1,96 errores estándar). */
 export function simular({ mazo, esBasico, reqs, turno = 0, veces = 100000, azar = Math.random }){
-  const m = mazo.slice(), n = m.length, hasta = Math.min(n, 13 + turno), sets = reqs.map(r => new Set(r));
+  /* Cada requisito es un arreglo de cartas (basta con ver una) o { cartas, min }: ver al menos «min» cartas de ese grupo. */
+  const m = mazo.slice(), n = m.length, hasta = Math.min(n, 13 + turno), sets = reqs.map(r => Array.isArray(r) ? { s: new Set(r), min: 1 } : { s: new Set(r.cartas), min: r.min || 1 });
   if (n < 13 || !mazo.some(i => esBasico[i])) return { p: 0, mas: 0 };
   let ok = 0;
   for (let v = 0; v < veces; v++){
@@ -103,10 +104,10 @@ export function simular({ mazo, esBasico, reqs, turno = 0, veces = 100000, azar 
       conB = false; for (let k = 0; k < 7 && !conB; k++) conB = esBasico[m[k]];
     } while (!conB);
     let cumple = true;
-    for (const s of sets){
-      let hay = false;
-      for (let k = 0; k < hasta && !hay; k++) if ((k < 7 || k >= 13) && s.has(m[k])) hay = true;   // 7..12: premios
-      if (!hay){ cumple = false; break; }
+    for (const { s, min } of sets){
+      let hay = 0;
+      for (let k = 0; k < hasta && hay < min; k++) if ((k < 7 || k >= 13) && s.has(m[k])) hay++;   // 7..12: premios
+      if (hay < min){ cumple = false; break; }
     }
     if (cumple) ok++;
   }
