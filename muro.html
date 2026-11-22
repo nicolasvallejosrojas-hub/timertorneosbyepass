@@ -23,18 +23,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=68a18df88563"></script>
+<script src="tema.js?v=7aff7e675b0a"></script>
 <title>ByePass — Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=68a18df88563">
-<link rel="stylesheet" href="estilo.css?v=68a18df88563">
+<link rel="stylesheet" href="tokens.css?v=7aff7e675b0a">
+<link rel="stylesheet" href="estilo.css?v=7aff7e675b0a">
 <!-- ▌BLOQUE 1 · Estilos del muro — Rejilla de tres columnas, perfil, publicaciones, en vivo e insignias. -->
 
-<link rel="stylesheet" href="/paginas/muro.css?v=68a18df88563">
-<link rel="stylesheet" href="/sistema.css?v=68a18df88563">
-<script src="/sistema.js?v=68a18df88563" defer></script>
+<link rel="stylesheet" href="/paginas/muro.css?v=7aff7e675b0a">
+<link rel="stylesheet" href="/sistema.css?v=7aff7e675b0a">
+<script src="/sistema.js?v=7aff7e675b0a" defer></script>
 </head>
 <body data-pagina="muro">
 
@@ -225,25 +225,25 @@
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
-<script src="config.js?v=68a18df88563"></script>
-<script src="noticias.js?v=68a18df88563"></script>
+<script src="config.js?v=7aff7e675b0a"></script>
+<script src="noticias.js?v=7aff7e675b0a"></script>
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=68a18df88563";
+import { avisarError } from "./errores.js?v=7aff7e675b0a";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, serverTimestamp, query, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signOut, onAuthStateChanged, sendEmailVerification }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=68a18df88563";
-import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=68a18df88563";
-import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=68a18df88563";
-import { estoyEnLinea } from "./presencia.js?v=68a18df88563";
-import { perfilCompleto } from "./registro.js?v=68a18df88563";
-import { parecido } from "./jugadores.js?v=68a18df88563";
-import { leerHistorial } from "./historial.js?v=68a18df88563";
-import { vigilar } from "./mantenimiento.js?v=68a18df88563";
-import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=68a18df88563";
+import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=7aff7e675b0a";
+import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=7aff7e675b0a";
+import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=7aff7e675b0a";
+import { estoyEnLinea } from "./presencia.js?v=7aff7e675b0a";
+import { perfilCompleto } from "./registro.js?v=7aff7e675b0a";
+import { parecido } from "./jugadores.js?v=7aff7e675b0a";
+import { leerHistorial } from "./historial.js?v=7aff7e675b0a";
+import { vigilar } from "./mantenimiento.js?v=7aff7e675b0a";
+import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=7aff7e675b0a";
 
 const $ = id => document.getElementById(id);
 /* El muro es el inicio de cada persona y no depende de una tienda. El ?sala= solo cuenta con #jugador=

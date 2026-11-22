@@ -12,12 +12,12 @@
    Las diferencias van en verde si B queda mejor y en rojo si queda peor (en mulligan y en cosas «malas», bajar es mejor).
    esc() es la global de config.js.
    ============================================================ */
-import { armarCartas, motivoNoSePuede, simularMetaEn, metaAEn } from "./analisis.js?v=68a18df88563";
-import { mulligan, alMenosUna, premios, distBasicos, energiasDist, mulligansPromedio } from "./probabilidad.js?v=68a18df88563";
-import { idTcgdex, datoCarta } from "./tcgdex.js?v=68a18df88563";
-import { calcularGrupos } from "./motores.js?v=68a18df88563";
-import { pct, dif, num, TURNO, leerLS, ayuda } from "./probar-ui.js?v=68a18df88563";
-import { esEnergiaBasica } from "./listamazo.js?v=68a18df88563";
+import { armarCartas, motivoNoSePuede, simularMetaEn, metaAEn } from "./analisis.js?v=7aff7e675b0a";
+import { mulligan, alMenosUna, premios, distBasicos, energiasDist, mulligansPromedio } from "./probabilidad.js?v=7aff7e675b0a";
+import { idTcgdex, datoCarta } from "./tcgdex.js?v=7aff7e675b0a";
+import { calcularGrupos } from "./motores.js?v=7aff7e675b0a";
+import { pct, dif, num, TURNO, leerLS, ayuda } from "./probar-ui.js?v=7aff7e675b0a";
+import { esEnergiaBasica } from "./listamazo.js?v=7aff7e675b0a";
 
 /* ▌BLOQUE 1 · Qué cambió ═════════════════════════════════════════════════════════ */
 const SECS = ["Pokémon", "Entrenador", "Energía"];

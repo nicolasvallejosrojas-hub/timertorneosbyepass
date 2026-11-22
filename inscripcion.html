@@ -15,21 +15,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=68a18df88563"></script>
+<script src="tema.js?v=7aff7e675b0a"></script>
 <meta name="description" content="Inscripción a un torneo o evento de una tienda.">
 <title>Inscripción — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=68a18df88563">
-<link rel="stylesheet" href="estilo.css?v=68a18df88563">
-<link rel="stylesheet" href="armador.css?v=68a18df88563">
+<link rel="stylesheet" href="tokens.css?v=7aff7e675b0a">
+<link rel="stylesheet" href="estilo.css?v=7aff7e675b0a">
+<link rel="stylesheet" href="armador.css?v=7aff7e675b0a">
 <!-- ▌BLOQUE 1 · Estilos — Formulario, categorías y acuerdo (el armador de la lista trae los suyos en
      armador.css). -->
 
-<link rel="stylesheet" href="/paginas/inscripcion.css?v=68a18df88563">
-<link rel="stylesheet" href="/sistema.css?v=68a18df88563">
-<script src="/sistema.js?v=68a18df88563" defer></script>
+<link rel="stylesheet" href="/paginas/inscripcion.css?v=7aff7e675b0a">
+<link rel="stylesheet" href="/sistema.css?v=7aff7e675b0a">
+<script src="/sistema.js?v=7aff7e675b0a" defer></script>
 </head>
 <body data-pagina="inscripcion">
   <!-- ▌BLOQUE 2 · Marcado — Datos del jugador, categoría, lista de mazo, acuerdo y botones. -->
@@ -94,18 +94,18 @@
     </form>
   </main>
 
-<script src="config.js?v=68a18df88563"></script>
+<script src="config.js?v=7aff7e675b0a"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sesion, sala, agenda, listamazo y armador. -->
 <script type="module">
-import { guardarInscripcion } from "./inscripcion-datos.js?v=68a18df88563";
+import { guardarInscripcion } from "./inscripcion-datos.js?v=7aff7e675b0a";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=68a18df88563";
-import { slug, nombreTienda } from "./sala.js?v=68a18df88563";
-import { fechaLegible, urlGoogle } from "./agenda.js?v=68a18df88563";
-import { leerLista, division, hoja, imprimir, TEMPORADA } from "./listamazo.js?v=68a18df88563";
-import { armador } from "./armador.js?v=68a18df88563";
+import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=7aff7e675b0a";
+import { slug, nombreTienda } from "./sala.js?v=7aff7e675b0a";
+import { fechaLegible, urlGoogle } from "./agenda.js?v=7aff7e675b0a";
+import { leerLista, division, hoja, imprimir, TEMPORADA, RANGOS, usarTemporadaDe } from "./listamazo.js?v=7aff7e675b0a";
+import { armador } from "./armador.js?v=7aff7e675b0a";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
@@ -212,7 +212,7 @@ async function pintarMisMazos(){
    dejan que dos personas tomen la misma ni que alguien se inscriba sin la suya,
    así que el límite se cumple aunque se salten esta página. */
 const DIVS = ["junior", "senior", "masters"], NOM_DIV = { junior: "Junior", senior: "Senior", masters: "Masters", general: "General" };
-const RANGO = { junior: () => TEMPORADA - 12 + " o después", senior: () => TEMPORADA - 16 + "–" + (TEMPORADA - 13), masters: () => TEMPORADA - 17 + " o antes", general: () => "Todas las categorías" };
+const RANGO = { junior: () => RANGOS().Junior, senior: () => RANGOS().Senior, masters: () => RANGOS().Masters, general: () => "Todas las categorías" };
 let PLAZAS = {};   // categoría → { n: "" | uid }
 const limite = d => ((EV && EV.inscripcion && EV.inscripcion.cupos) || {})[d] || 0;
 const libres = d => Object.values(PLAZAS[d] || {}).filter(v => v === "").length;
@@ -369,6 +369,7 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
   try {
     const [ev, perfil] = await Promise.all([get(ref(db, "salas/" + T + "/agenda/" + E)), get(ref(db, "tiendas/" + T + "/perfil"))]);
     EV = ev.val(); TIENDA = nombreTienda(perfil.val(), T);
+    usarTemporadaDe(EV && EV.inicioMs);   // la categoría va por la temporada del torneo
   } catch(e){ return noHay("No se pudo cargar el torneo. Revisa la conexión y recarga."); }
   if (!EV || !EV.inscripcion) return noHay("Este torneo no existe o ya no recibe inscripciones por acá.");
 

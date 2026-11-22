@@ -33,15 +33,19 @@
 
 /* ▌BLOQUE 1 · Temporada y división ══════════════════════════════════════════════
    Junior / Senior / Masters por año de nacimiento. */
-/* La temporada de la hoja oficial. Las divisiones se definen por AÑO de
-   nacimiento y se corren un año con cada temporada: al salir la hoja nueva,
-   cambiar este número y listo. */
-export const TEMPORADA = 2026;
+/* Reglas de Play! Pokémon (5.1.3): la temporada empieza el 1 de septiembre a las 00:00 UTC y la categoría va por AÑO de
+   nacimiento. Se nombra por el año en que empieza: desde el 1-09-2026 rige la «2026» con Júnior 2015 o después, Sénior
+   2011–2014 y Máster 2010 o antes. Se calcula con la fecha (la del torneo cuando se conoce: usarTemporadaDe), así se
+   corre sola cada septiembre. */
+export const temporada = (ms = Date.now()) => { const d = new Date(ms); return d.getUTCFullYear() - (d.getUTCMonth() < 8 ? 1 : 0); };
+export let TEMPORADA = temporada();
+export const usarTemporadaDe = ms => { if (ms) TEMPORADA = temporada(ms); return TEMPORADA; };
+export const RANGOS = (t = TEMPORADA) => ({ Junior: t - 11 + " o después", Senior: t - 15 + "–" + (t - 12), Masters: t - 16 + " o antes" });
 
-export function division(nacimiento){
+export function division(nacimiento, t = TEMPORADA){
   const a = +String(nacimiento || "").slice(0, 4);
   if (!a) return "";
-  return a >= TEMPORADA - 12 ? "Junior" : a >= TEMPORADA - 16 ? "Senior" : "Masters";
+  return a >= t - 11 ? "Junior" : a >= t - 15 ? "Senior" : "Masters";
 }
 
 /* ▌BLOQUE 2 · Formato de la lista ═══════════════════════════════════════════════
@@ -204,7 +208,7 @@ export const ddmmaaaa = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || "") ? iso.split
    columnas que la hoja oficial. La columna Reg. sale de la base de Estándar
    (el juego en línea no la exporta); sin base, o si la carta no está, en blanco. */
 export function hoja(ins, ev, base = null){
-  const r = leerLista(ins.lista, ev.formato === "expandido" ? null : base), div = division(ins.nacimiento);
+  const r = leerLista(ins.lista, ev.formato === "expandido" ? null : base), t = ev.inicioMs ? temporada(ev.inicioMs) : TEMPORADA, div = division(ins.nacimiento, t), R = RANGOS(t);
   const filas = (sec, n, conSet) => {
     const cs = r[sec].map(c => "<tr><td>" + c.cant + "</td><td>" + esc(c.nombre) + "</td>" +
       (conSet ? "<td>" + esc(c.set) + "</td><td>" + esc(c.num) + "</td><td>" + esc(c.reg || "") + "</td>" : "") + "</tr>");
@@ -221,16 +225,16 @@ export function hoja(ins, ev, base = null){
      ponytail: sobre ~45 líneas igual se parte; ahí habría que ir a 2 columnas. */
   const denso = Math.max(r.pokemon.length, 12) + Math.max(r.entrenador.length, 20) > 32;
   return '<section class="hojaLista' + (denso ? " denso" : "") + '">' +
-    '<header><div><b>Lista de mazo · Temporada ' + TEMPORADA + "</b><br>" + esc(ev.titulo) + " · " + esc(ddmmaaaa(ev.fecha)) +
+    '<header><div><b>Lista de mazo · Temporada ' + t + "</b><br>" + esc(ev.titulo) + " · " + esc(ddmmaaaa(ev.fecha)) +
       (ev.tienda ? " · " + esc(ev.tienda) : "") + "</div><div>Formato: " + caja("Estándar", ev.formato !== "expandido") +
       " " + caja("Expandido", ev.formato === "expandido") + "</div></header>" +
     '<div class="datos"><div><small>Nombre del jugador</small>' + esc(ins.nombre + " " + ins.apellido) + "</div>" +
       "<div><small>ID de jugador</small>" + esc(ins.playerId) + "</div>" +
       "<div><small>Fecha de nacimiento (DD/MM/AAAA)</small>" + esc(ddmmaaaa(ins.nacimiento)) + "</div>" +
       "<div><small>Nick</small>" + esc(ins.nick) + "</div></div>" +
-    '<div class="div">División: ' + caja("Junior (" + (TEMPORADA - 12) + " o después)", div === "Junior") + " " +
-      caja("Senior (" + (TEMPORADA - 16) + "–" + (TEMPORADA - 13) + ")", div === "Senior") + " " +
-      caja("Masters (" + (TEMPORADA - 17) + " o antes)", div === "Masters") + "</div>" +
+    '<div class="div">División: ' + caja("Junior (" + R.Junior + ")", div === "Junior") + " " +
+      caja("Senior (" + R.Senior + ")", div === "Senior") + " " +
+      caja("Masters (" + R.Masters + ")", div === "Masters") + "</div>" +
     tabla("pokemon", 12, true) + '<div class="dos">' + tabla("entrenador", 20, false) + "<div>" + tabla("energia", 6, false) +
       '<table class="adm"><thead><tr class="t"><th>Uso administrativo</th></tr></thead><tbody><tr><td>&nbsp;</td></tr><tr><td>&nbsp;</td></tr></tbody></table></div></div>' +
     "<footer>Total: " + r.total + " cartas · Inscripción " + new Date(ins.actualizado || Date.now()).toLocaleString("es-CL") + "</footer></section>";
