@@ -1,35 +1,35 @@
 import { montarIdentidad, aplicarMarca } from './identidad.js';
-import { planPublicacion } from "./admin-publicacion.js?v=7aff7e675b0a";
-import { avisarError } from "./errores.js?v=7aff7e675b0a";
+import { planPublicacion } from "./admin-publicacion.js?v=ba15536c6994";
+import { avisarError } from "./errores.js?v=ba15536c6994";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=7aff7e675b0a";
-import { activarPush, renovarPush, pushActivo } from "./push.js?v=7aff7e675b0a";
-import { qrImg, qrPng } from "./qr.js?v=7aff7e675b0a";
-import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=7aff7e675b0a";
-import { vigilar } from "./mantenimiento.js?v=7aff7e675b0a";
-import { estoyEnLinea } from "./presencia.js?v=7aff7e675b0a";
-import { barras } from "./graficos.js?v=7aff7e675b0a";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=7aff7e675b0a";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=7aff7e675b0a";
-import { planClaves } from "./jugadores.js?v=7aff7e675b0a";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=7aff7e675b0a";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=ba15536c6994";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=ba15536c6994";
+import { qrImg, qrPng } from "./qr.js?v=ba15536c6994";
+import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=ba15536c6994";
+import { vigilar } from "./mantenimiento.js?v=ba15536c6994";
+import { estoyEnLinea } from "./presencia.js?v=ba15536c6994";
+import { barras } from "./graficos.js?v=ba15536c6994";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=ba15536c6994";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=ba15536c6994";
+import { planClaves } from "./jugadores.js?v=ba15536c6994";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=ba15536c6994";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=7aff7e675b0a";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=ba15536c6994";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
-         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=7aff7e675b0a";
+         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=ba15536c6994";
 /* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
-const entregarTabla = datos => import("./tablafinal.js?v=7aff7e675b0a").then(m => m.entregarTabla(datos));
-const entregarCalendario = datos => import("./calendarioimg.js?v=7aff7e675b0a").then(m => m.entregarCalendario(datos));
-const dibujarCalendario = datos => import("./calendarioimg.js?v=7aff7e675b0a").then(m => m.dibujarCalendario(datos));
+const entregarTabla = datos => import("./tablafinal.js?v=ba15536c6994").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=ba15536c6994").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=ba15536c6994").then(m => m.dibujarCalendario(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
-import { celdaCsv } from "./csv.js?v=7aff7e675b0a";
-import { vistaDe, publicable } from "./vistapub.js?v=7aff7e675b0a";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=7aff7e675b0a";
+import { celdaCsv } from "./csv.js?v=ba15536c6994";
+import { vistaDe, publicable } from "./vistapub.js?v=ba15536c6994";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=ba15536c6994";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
@@ -1156,7 +1156,7 @@ function renderClock(){
 let latidoPagina = null;
 const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250); };
 try {
-  const w = new Worker("reloj-worker.js?v=7aff7e675b0a");
+  const w = new Worker("reloj-worker.js?v=ba15536c6994");
   w.onmessage = () => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
   w.onerror = latidoDePagina;
 } catch(e){ latidoDePagina(); }
@@ -3467,6 +3467,8 @@ function pintarInscritos(){
   const cupos = ev.inscripcion.cupos || {}, porCat = { junior: 0, senior: 0, masters: 0 };
   filas.forEach(f => { const c = (f.division !== "general" && f.division) || catDe(f.nacimiento); if (c) porCat[c]++; });
   /* plazas tomadas por alguien que no llegó a inscribirse (se cortó la conexión): se pueden liberar */
+  const ids = filas.map(f => f.playerId).filter(Boolean), rep = new Set(ids.filter((x, i) => ids.indexOf(x) !== i));
+  const repetido = f => rep.has(f.playerId) ? ' <span class="err" title="Este ID está inscrito más de una vez: quizá se inscribió de nuevo desde otro navegador. Quita la que sobra.">· repetido</span>' : "";
   const sueltas = Object.entries(PLZ || {}).filter(([d]) => CUPOS.includes(d)).flatMap(([d, m]) => Object.entries(m).filter(([, v]) => v && !INSC[v]).map(([n]) => d + "/" + n));
   c.innerHTML =
     '<div class="row" style="align-items:center;gap:8px">' +
@@ -3490,13 +3492,13 @@ function pintarInscritos(){
       '</span><button class="small sec" data-i="liberar">Liberar</button></div>' : "") +
     (filas.length && !conLista ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th>' + (conNick ? "<th>Nick</th><th>Nombre</th>" : "<th>Nombre</th><th>ID</th>") +
       (Object.keys(cupos).length ? "<th>Categoría</th>" : "") + "<th></th></tr></thead><tbody>" +
-      filas.map((f, i) => "<tr><td>" + (i + 1) + "</td>" + (conNick ? "<td>" + esc(f.nick) + "</td>" : "") + "<td>" + esc(f.nombre + " " + f.apellido) + '<br><span class="muted">' + esc(f.correo) + "</span></td>" + (conNick ? "" : "<td>" + esc(f.playerId) + "</td>") +
+      filas.map((f, i) => "<tr><td>" + (i + 1) + "</td>" + (conNick ? "<td>" + esc(f.nick) + "</td>" : "") + "<td>" + esc(f.nombre + " " + f.apellido) + '<br><span class="muted">' + esc(f.correo) + "</span></td>" + (conNick ? "" : "<td>" + esc(f.playerId) + repetido(f) + "</td>") +
         (Object.keys(cupos).length ? "<td>" + esc(catF(f)) + "</td>" : "") + '<td><button class="small sec" data-quitar="' + esc(f.uid) + '">Quitar</button></td></tr>').join("") + "</tbody></table></div>" : "") +
     (filas.length && conLista ? '<div style="overflow-x:auto"><table class="inscTabla"><thead><tr><th>#</th><th>Nick</th><th>Nombre</th><th>ID</th>' +
       "<th>Nacimiento</th><th>Categoría</th><th>Lista</th><th></th></tr></thead><tbody>" +
       filas.map((f, i) => { const r = leerLista(f.lista, estandar ? BASE_E : null), av = r.avisos.filter(a => /Estándar|ACE SPEC|Pokémon Básico/.test(a));
         return "<tr><td>" + (i + 1) + "</td><td>" + esc(f.nick) + "</td><td>" + esc(f.nombre + " " + f.apellido) +
-          '<br><span class="muted">' + esc(f.correo) + "</span></td><td>" + esc(f.playerId) + "</td><td>" + esc(ddmmaaaa(f.nacimiento)) +
+          '<br><span class="muted">' + esc(f.correo) + "</span></td><td>" + esc(f.playerId) + repetido(f) + "</td><td>" + esc(ddmmaaaa(f.nacimiento)) +
           "</td><td>" + esc(catF(f)) + (f.division && f.division !== "general" && f.division !== catDe(f.nacimiento) ? ' <span class="err" title="La categoría que marcó no coincide con su fecha de nacimiento">· revisar</span>' : "") + "</td><td>" + (r.errores.length ? '<span class="err">' + r.total + " cartas</span>" : "60 ✓") +
           (av.length ? ' <span class="err" title="' + esc(av.join(" ")) + '">· revisar</span>' : "") +
           '</td><td><button class="small sec" data-imp="' + esc(f.uid) + '">Imprimir</button> <button class="small sec" data-quitar="' + esc(f.uid) + '">Quitar</button></td></tr>';
@@ -4389,7 +4391,7 @@ const fiCambio = () => { fiControles(); clearTimeout(fiDeb); fiDeb = setTimeout(
 
 async function fiAbrir(){
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
-  FONDO_DEF = (await import("./fondoimg.js?v=7aff7e675b0a")).FONDO_DEF;
+  FONDO_DEF = (await import("./fondoimg.js?v=ba15536c6994")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };

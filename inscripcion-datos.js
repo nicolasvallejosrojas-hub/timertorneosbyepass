@@ -3,8 +3,11 @@ export async function guardarInscripcion({ tienda, evento, uid, dato, limitada, 
   if (!limitada){ await escribir({ [ruta]: dato }); return dato; }
   const plazas = await cargar();
   const propia = plazas.quien?.[uid];
-  const candidatos = propia ? [propia.split("/")[1]] : Object.entries(plazas[dato.division] || {}).filter(([,v]) => v === "").map(([k]) => k).sort((a,b) => +a - +b);
   if (propia && !propia.startsWith(dato.division + "/")) throw new Error("Anula tu inscripción antes de cambiar de categoría.");
+  /* Ya tiene su plaza: se corrige solo la inscripción. Volver a escribir la plaza (con el mismo uid) lo rechazan las reglas, que
+     solo dejan tomar una libre o soltar la propia: con eso nadie con cupo podía guardar cambios. */
+  if (propia){ const perfil = { ...dato, cupo: propia.split("/")[1] }; await escribir({ [ruta]: perfil }); return perfil; }
+  const candidatos = Object.entries(plazas[dato.division] || {}).filter(([,v]) => v === "").map(([k]) => k).sort((a,b) => +a - +b);
   for (const n of candidatos){
     const perfil = { ...dato, cupo:n };
     try {

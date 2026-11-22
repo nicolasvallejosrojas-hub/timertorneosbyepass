@@ -62,3 +62,9 @@
 [data-pagina="inscripcion"] .campo>span:not(.pista) {text-transform:none;letter-spacing:0;font-size:12px;font-weight:550;color:var(--texto)}
 [data-pagina="inscripcion"] .estado {font-size:var(--t1);letter-spacing:1px;margin-bottom:12px;color:var(--accion-texto)}
 @media(max-width:600px) {[data-pagina="inscripcion"] main{padding-top:30px}[data-pagina="inscripcion"] h1{font-size:32px}[data-pagina="inscripcion"] .caja{padding:22px}}
+
+/* recuperar una inscripción hecha en otro navegador */
+.recuperar{margin-top:var(--e4);}
+.recuperar summary{cursor:pointer;font-weight:600;min-height:44px;display:list-item;}
+.recFila{display:flex;flex-wrap:wrap;gap:8px;margin-top:var(--e2);}
+.recFila input{flex:1 1 200px;min-width:0;}

@@ -15,21 +15,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=7aff7e675b0a"></script>
+<script src="tema.js?v=ba15536c6994"></script>
 <meta name="description" content="Inscripción a un torneo o evento de una tienda.">
 <title>Inscripción — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=7aff7e675b0a">
-<link rel="stylesheet" href="estilo.css?v=7aff7e675b0a">
-<link rel="stylesheet" href="armador.css?v=7aff7e675b0a">
+<link rel="stylesheet" href="tokens.css?v=ba15536c6994">
+<link rel="stylesheet" href="estilo.css?v=ba15536c6994">
+<link rel="stylesheet" href="armador.css?v=ba15536c6994">
 <!-- ▌BLOQUE 1 · Estilos — Formulario, categorías y acuerdo (el armador de la lista trae los suyos en
      armador.css). -->
 
-<link rel="stylesheet" href="/paginas/inscripcion.css?v=7aff7e675b0a">
-<link rel="stylesheet" href="/sistema.css?v=7aff7e675b0a">
-<script src="/sistema.js?v=7aff7e675b0a" defer></script>
+<link rel="stylesheet" href="/paginas/inscripcion.css?v=ba15536c6994">
+<link rel="stylesheet" href="/sistema.css?v=ba15536c6994">
+<script src="/sistema.js?v=ba15536c6994" defer></script>
 </head>
 <body data-pagina="inscripcion">
   <!-- ▌BLOQUE 2 · Marcado — Datos del jugador, categoría, lista de mazo, acuerdo y botones. -->
@@ -42,6 +42,18 @@
     </div>
 
     <div class="aviso mal oculto" id="noHay" role="alert"></div>
+    <div class="aviso oculto" id="recAviso" role="status"></div>
+
+    <details class="caja recuperar oculto" id="recuperar">
+      <summary>¿Ya te inscribiste desde otro navegador o celular?</summary>
+      <p class="pista">No te inscribas de nuevo: abre el enlace que te llegó al correo cuando te inscribiste. ¿No lo encuentras?
+        Escribe el correo que usaste y te lo mandamos otra vez.</p>
+      <div class="recFila">
+        <input id="recCorreo" type="email" autocomplete="email" maxlength="120" placeholder="tu@correo.cl" aria-label="Correo de tu inscripción">
+        <button class="btn" type="button" id="recPedir">Mandarme el enlace</button>
+      </div>
+      <p class="pista" id="recMsg" role="status"></p>
+    </details>
 
     <form id="form" class="oculto" novalidate>
       <div class="caja">
@@ -94,18 +106,18 @@
     </form>
   </main>
 
-<script src="config.js?v=7aff7e675b0a"></script>
+<script src="config.js?v=ba15536c6994"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sesion, sala, agenda, listamazo y armador. -->
 <script type="module">
-import { guardarInscripcion } from "./inscripcion-datos.js?v=7aff7e675b0a";
+import { guardarInscripcion } from "./inscripcion-datos.js?v=ba15536c6994";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=7aff7e675b0a";
-import { slug, nombreTienda } from "./sala.js?v=7aff7e675b0a";
-import { fechaLegible, urlGoogle } from "./agenda.js?v=7aff7e675b0a";
-import { leerLista, division, hoja, imprimir, TEMPORADA, RANGOS, usarTemporadaDe } from "./listamazo.js?v=7aff7e675b0a";
-import { armador } from "./armador.js?v=7aff7e675b0a";
+import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=ba15536c6994";
+import { slug, nombreTienda } from "./sala.js?v=ba15536c6994";
+import { fechaLegible, urlGoogle } from "./agenda.js?v=ba15536c6994";
+import { leerLista, division, hoja, imprimir, TEMPORADA, RANGOS, usarTemporadaDe } from "./listamazo.js?v=ba15536c6994";
+import { armador } from "./armador.js?v=ba15536c6994";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════
@@ -316,10 +328,12 @@ function pintarMia(){
   $("imprimir").classList.toggle("oculto", !hay || sinLista());
   $("anular").classList.toggle("oculto", !hay || !abierta());
   $("yaInscrito").classList.toggle("oculto", !hay);
+  $("recuperar").classList.toggle("oculto", hay || !abierta() || !!(YO && YO.cuenta));
   pintarCategorias();
   if (hay) $("yaInscrito").innerHTML = "<b>Estás inscrito</b>" + (MIA.nacimiento ? " · División " + esc(division(MIA.nacimiento)) : "") + ". " +
     (sinLista() ? "La tienda te avisa a " + esc(MIA.correo) + " si hay novedades del torneo. " + (abierta() ? "Puedes corregir tus datos hasta que empiece." : "Las inscripciones ya cerraron.")
-      : abierta() ? "Puedes corregir tus datos y tu lista hasta que empiece el torneo." : "Las inscripciones ya cerraron: tu lista quedó así.");
+      : abierta() ? "Puedes corregir tus datos y tu lista hasta que empiece el torneo." : "Las inscripciones ya cerraron: tu lista quedó así.") +
+    (abierta() && YO && !YO.cuenta ? " Te mandamos a " + esc(MIA.correo) + " un enlace para abrirla desde cualquier navegador o celular (revisa también Spam)." : "");
 }
 
 $("form").onsubmit = async e => {
@@ -360,6 +374,40 @@ $("anular").onclick = async () => {
 };
 $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.inscripcion.formato, tienda: TIENDA }, A && A.baseE())]);
 
+/* ▌BLOQUE 8b · Recuperar desde otro navegador ═══════════════════════════════════════
+   Sin cuenta, la inscripción vive en la sesión anónima de UN navegador. Se pide un enlace al correo de la inscripción y, al
+   abrirlo (?clave=), la función recuperarInscripcion (functions/recuperar.js) la pasa a la sesión de este navegador. */
+const CLAVE = (q.get("clave") || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 60);
+async function pedido(dato){
+  const u = authInv.currentUser || (await signInAnonymously(authInv)).user;
+  const base = "recuperarInsc/" + T + "/" + E + "/" + u.uid, r = push(ref(dbInv, base));
+  await set(r, { ...dato, creado: serverTimestamp() });
+  return new Promise(ok => {
+    let off = () => {};
+    const t = setTimeout(() => { off(); ok("tarde"); }, 40000);
+    off = onValue(ref(dbInv, base + "/" + r.key + "/estado"), s => { if (s.val()){ clearTimeout(t); off(); ok(s.val()); } }, () => { clearTimeout(t); ok("tarde"); });
+  });
+}
+const REC = {
+  ok: "Abrimos tu inscripción: puedes corregirla aquí. El enlace del correo sigue sirviendo hasta que empiece el torneo.",
+  vencida: "Este enlace ya no sirve: el torneo ya empezó o la inscripción se anuló.",
+  otra: "En este navegador ya hay otra inscripción a este torneo. Para quedarte con la anterior, anula esta y vuelve a abrir el enlace del correo.",
+  noesta: "Esa inscripción ya no existe: puede que la tienda la haya quitado.",
+  tarde: "No hubo respuesta. Revisa la conexión y vuelve a abrir el enlace del correo.",
+};
+const recAviso = (t, mal) => { $("recAviso").textContent = t; $("recAviso").className = "aviso" + (mal ? " mal" : ""); };
+$("recPedir").onclick = async () => {
+  const c = $("recCorreo").value.trim(), b = $("recPedir");
+  if (!CORREO_OK(c)){ $("recMsg").textContent = "Revisa el correo: no tiene un formato válido."; return; }
+  b.disabled = true; $("recMsg").textContent = "Enviando…";
+  let r = "error";
+  try { r = await pedido({ correo: c }); } catch(e){ console.warn("Recuperar:", e); }
+  b.disabled = false;
+  $("recMsg").textContent = r === "enviado"
+    ? "Listo. Si hay una inscripción a este torneo con " + c + ", te llega un correo con el enlace (revisa también Spam). Ábrelo en este navegador."
+    : "No se pudo pedir el enlace. Revisa la conexión e inténtalo otra vez.";
+};
+
 /* ▌BLOQUE 9 · Arranque ══════════════════════════════════════════════════════════
    Carga el evento y la tienda, decide si está abierta, quién se inscribe (cuenta o anónimo) y su
    inscripción previa. */
@@ -393,6 +441,16 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
   /* ¿Quién se inscribe? Primero una cuenta de ByePass; si no, la sesión
      anónima que haya quedado de una inscripción anterior en este navegador. */
   const u = await primera(auth);
+  if (CLAVE){
+    const sin = new URLSearchParams(location.search); sin.delete("clave");
+    history.replaceState(null, "", location.pathname + "?" + sin + location.hash);   // que no quede en el historial ni se comparta
+    if (u) recAviso("Este enlace es para una inscripción hecha sin cuenta: ábrelo en una ventana privada o cierra tu sesión de ByePass.", true);
+    else {
+      $("quien").textContent = "Recuperando tu inscripción…"; $("form").classList.remove("oculto");
+      let r = "error"; try { r = await pedido({ clave: CLAVE }); } catch(e){ console.warn("Recuperar:", e); }
+      recAviso(REC[r] || "No se pudo recuperar la inscripción. Vuelve a abrir el enlace del correo.", r !== "ok");
+    }
+  }
   if (u){
     YO = { db, uid: u.uid, cuenta: true };
     $("quien").innerHTML = "Te inscribes con tu cuenta de ByePass (" + esc(u.email || "") + "). Rellenamos lo que ya tenías guardado; revísalo antes de enviar.";
@@ -400,7 +458,7 @@ $("imprimir").onclick = () => MIA && imprimir([hoja(MIA, { ...EV, formato: EV.in
     const a = await primera(authInv);
     if (a) YO = { db: dbInv, uid: a.uid, cuenta: false };
     $("quien").innerHTML = "No necesitas cuenta para inscribirte. <b>Si no tienes una, tus datos se usan solo para esta inscripción y no crean una cuenta en ByePass.</b> " +
-      "Para corregir tu " + (sinLista() ? "inscripción" : "lista") + " después, vuelve a este enlace desde este mismo navegador. " +
+      "Al inscribirte te llega al correo un enlace para corregir tu " + (sinLista() ? "inscripción" : "inscripción y tu lista") + " desde cualquier navegador o celular, hasta que empiece el torneo. " +
       '¿Tienes cuenta? <a href="cuenta.html' + (params() ? params() + "&" : "?") + "volver=" + encodeURIComponent("inscripcion.html" + location.search) + '#ingresar">Entra</a> y tus datos se rellenan solos.';
   }
   try { if (YO) MIA = (await get(ref(YO.db, ruta(YO.uid)))).val(); } catch(e){ return noHay("No se pudo comprobar tu inscripción. Recarga antes de volver a enviar tus datos."); }
