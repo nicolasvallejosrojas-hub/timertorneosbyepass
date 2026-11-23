@@ -42,8 +42,8 @@
    Se prueba con node (pruebas/probar-importar.mjs); la parte XML usa el
    DOMParser del navegador: esa prueba se corre abriendo el mismo archivo ahí.
    ========================================================= */
-import { aPairings, aHistorial, clasificacion, EMPATE, DOBLE } from "./torneo.js?v=c4c8e9d911c1";
-import { normNombre } from "./jugadores.js?v=c4c8e9d911c1";
+import { aPairings, aHistorial, clasificacion, EMPATE, DOBLE } from "./torneo.js?v=3831e84e22ae";
+import { normNombre } from "./jugadores.js?v=3831e84e22ae";
 
 /* ▌BLOQUE 1 · Columnas y metadatos ══════════════════════════════════════════════
    Alias de las cabeceras (español o inglés) y de las líneas # (torneo, fecha, tiempo, suizas,
@@ -189,7 +189,8 @@ const derrotaSola = c => Number.isFinite(c) && ![0, 1, 5].includes(c);
 /* La fecha en estos archivos viene mes/día/año. */
 const fechaMDA = s => { const m = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/.exec(s); return m ? m[3] + "-" + m[1].padStart(2, "0") + "-" + m[2].padStart(2, "0") : s; };
 
-function datosDeXml(texto){
+/* cual: el índice del grupo de jugadores (categoría) que se lee; sin él, el último, como siempre. meta.grupos dice cuántos hay. */
+function datosDeXml(texto, cual = null){
   const leer = x => { const d = new DOMParser().parseFromString(x, "text/xml"); return d.getElementsByTagName("parsererror").length ? null : d; };
   /* Un trozo sin la etiqueta de afuera también sirve: se le pone una. */
   const doc = leer(texto) || leer("<raiz>" + texto.replace(/^\s*<\?xml[^>]*>/, "") + "</raiz>");
@@ -226,12 +227,13 @@ function datosDeXml(texto){
   /* Si los jugadores de un grupo ya estaban todos en los anteriores, es su top cut y se
      suma; si no, es otra categoría y reemplaza a lo anterior. fuera: quienes quedaron en
      una categoría que no se muestra (no se cuentan como inscritos). */
-  let usar = [fases[0]];
+  const grupos = [[fases[0]]];
   for (const f of fases.slice(1)){
-    const antes = quienes(usar.flat());
-    if ([...quienes(f)].every(id => antes.has(id))) usar.push(f);
-    else { usar = [f]; avisos.push("El archivo trae varias categorías: se muestra la última."); }
+    const ult = grupos[grupos.length - 1], antes = quienes(ult.flat());
+    if ([...quienes(f)].every(id => antes.has(id))) ult.push(f); else grupos.push([f]);
   }
+  const usar = grupos[cual == null ? grupos.length - 1 : cual];
+  if (grupos.length > 1 && cual == null) avisos.push("El archivo trae varias categorías: se muestra la última.");
   const fuera = quienes(fases.filter(f => !usar.includes(f)).flat());
 
   const partidas = [];
@@ -268,7 +270,7 @@ function datosDeXml(texto){
   const datos = hijo(raiz, "datos") || raiz;
   return { partidas, meta: {
     torneo: txt(datos, "nombre"), fecha: fechaMDA(txt(datos, "fecha")), tiempo: txt(datos, "tiempo"),
-    suizas: suizas ? String(suizas) : "", puestos, cats, avisos, tal: true,
+    suizas: suizas ? String(suizas) : "", puestos, cats, avisos, tal: true, grupos: grupos.length,
     inscritos: Object.entries(nombre).filter(([id]) => !fuera.has(id)).map(([id, n]) => ({ donde: "lista de jugadores", nombre: n, id })) } };
 }
 
@@ -482,6 +484,15 @@ export function importarTexto(texto){
   return construirTorneo(partidasDeFilas(filas), meta);
 }
 export const importarArchivo = buf => importarTexto(textoDeBytes(buf));
+/* Cada categoría que el archivo juega en su propio grupo (un XML de TOM con Junior, Senior y Masters por separado), como
+   un torneo aparte: [torneo, …]. La usa la herramienta local del meta (meta-torneo/), que necesita todas, no solo la última.
+   Una tabla, o un XML de un solo grupo, da un solo torneo. */
+export function importarCategorias(buf){
+  const texto = textoDeBytes(buf).replace(/^\uFEFF/, "");
+  if (!/^\s*</.test(texto)) return [importarTexto(texto)];
+  const n = datosDeXml(texto).meta.grupos;
+  return Array.from({ length: n }, (_, i) => { const { partidas, meta } = datosDeXml(texto, i); return construirTorneo(partidas, meta); });
+}
 
 /* Plantilla descargable, con datos inventados. */
 export const PLANTILLA = [

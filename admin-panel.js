@@ -1,35 +1,35 @@
-import { montarIdentidad, aplicarMarca } from './identidad.js?v=c4c8e9d911c1';
-import { planPublicacion } from "./admin-publicacion.js?v=c4c8e9d911c1";
-import { avisarError } from "./errores.js?v=c4c8e9d911c1";
+import { montarIdentidad, aplicarMarca } from './identidad.js?v=3831e84e22ae';
+import { planPublicacion } from "./admin-publicacion.js?v=3831e84e22ae";
+import { avisarError } from "./errores.js?v=3831e84e22ae";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=c4c8e9d911c1";
-import { activarPush, renovarPush, pushActivo } from "./push.js?v=c4c8e9d911c1";
-import { qrImg, qrPng } from "./qr.js?v=c4c8e9d911c1";
-import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=c4c8e9d911c1";
-import { vigilar } from "./mantenimiento.js?v=c4c8e9d911c1";
-import { estoyEnLinea } from "./presencia.js?v=c4c8e9d911c1";
-import { barras } from "./graficos.js?v=c4c8e9d911c1";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=c4c8e9d911c1";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=c4c8e9d911c1";
-import { planClaves } from "./jugadores.js?v=c4c8e9d911c1";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=c4c8e9d911c1";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=3831e84e22ae";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=3831e84e22ae";
+import { qrImg, qrPng } from "./qr.js?v=3831e84e22ae";
+import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=3831e84e22ae";
+import { vigilar } from "./mantenimiento.js?v=3831e84e22ae";
+import { estoyEnLinea } from "./presencia.js?v=3831e84e22ae";
+import { barras } from "./graficos.js?v=3831e84e22ae";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=3831e84e22ae";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=3831e84e22ae";
+import { planClaves } from "./jugadores.js?v=3831e84e22ae";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=3831e84e22ae";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=c4c8e9d911c1";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=3831e84e22ae";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
-         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=c4c8e9d911c1";
+         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=3831e84e22ae";
 /* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
-const entregarTabla = datos => import("./tablafinal.js?v=c4c8e9d911c1").then(m => m.entregarTabla(datos));
-const entregarCalendario = datos => import("./calendarioimg.js?v=c4c8e9d911c1").then(m => m.entregarCalendario(datos));
-const dibujarCalendario = datos => import("./calendarioimg.js?v=c4c8e9d911c1").then(m => m.dibujarCalendario(datos));
+const entregarTabla = datos => import("./tablafinal.js?v=3831e84e22ae").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=3831e84e22ae").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=3831e84e22ae").then(m => m.dibujarCalendario(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
-import { celdaCsv } from "./csv.js?v=c4c8e9d911c1";
-import { vistaDe, publicable } from "./vistapub.js?v=c4c8e9d911c1";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=c4c8e9d911c1";
+import { celdaCsv } from "./csv.js?v=3831e84e22ae";
+import { vistaDe, publicable } from "./vistapub.js?v=3831e84e22ae";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=3831e84e22ae";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
@@ -1156,7 +1156,7 @@ function renderClock(){
 let latidoPagina = null;
 const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250); };
 try {
-  const w = new Worker("reloj-worker.js?v=c4c8e9d911c1");
+  const w = new Worker("reloj-worker.js?v=3831e84e22ae");
   w.onmessage = () => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
   w.onerror = latidoDePagina;
 } catch(e){ latidoDePagina(); }
@@ -4391,7 +4391,7 @@ const fiCambio = () => { fiControles(); clearTimeout(fiDeb); fiDeb = setTimeout(
 
 async function fiAbrir(){
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
-  FONDO_DEF = (await import("./fondoimg.js?v=c4c8e9d911c1")).FONDO_DEF;
+  FONDO_DEF = (await import("./fondoimg.js?v=3831e84e22ae")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };

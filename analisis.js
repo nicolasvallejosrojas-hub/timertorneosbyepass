@@ -5,8 +5,8 @@
    de la base: así una lista en castellano y otra en inglés se pueden comparar), cant, sec, basico, foto, set, num, x, reg.
    También el mazo como arreglo de índices (MAZO) para simular, y los totales N (cartas), B (Pokémon Básicos), E (Energías).
    ============================================================ */
-import { leerLista, imagenCarta } from "./listamazo.js?v=c4c8e9d911c1";
-import { simular } from "./probabilidad.js?v=c4c8e9d911c1";
+import { leerLista, imagenCarta } from "./listamazo.js?v=3831e84e22ae";
+import { simular } from "./probabilidad.js?v=3831e84e22ae";
 
 const sinCeros = n => String(n || "").replace(/^0+(?=\d)/, "");
 
