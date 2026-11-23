@@ -1,6 +1,6 @@
 /* arquetipos.js — qué baraja es una lista y de qué región viene (puro, sin Firebase ni DOM; lo usa estadisticas.html).
    La lista se lee con armarCartas (nombres pasados a inglés, así «Dragapult ex» cuenta igual escrita en castellano). */
-import { armarCartas } from "./analisis.js";
+import { armarCartas } from "./analisis.js?v=9e0179cbb43d";
 
 export const REGIONES = ["Arica y Parinacota", "Tarapacá", "Antofagasta", "Atacama", "Coquimbo", "Valparaíso", "Metropolitana de Santiago",
   "O'Higgins", "Maule", "Ñuble", "Biobío", "La Araucanía", "Los Ríos", "Los Lagos", "Aysén", "Magallanes"];

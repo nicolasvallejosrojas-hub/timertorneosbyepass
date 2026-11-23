@@ -10,10 +10,10 @@
    fija un orden, ese orden manda. Se recuerda por mazo en localStorage «probar-atacantes:<mazo>».
    esc() es la global de config.js.
    ============================================================ */
-import { traePokemon, proveeEnergia, costoDe, danoDe } from "./efectos.js?v=ba15536c6994";
-import { alMenosUna, simular } from "./probabilidad.js?v=ba15536c6994";
-import { perfilDe } from "./motores.js?v=ba15536c6994";
-import { pct, num, leerLS, guardarLS, ayuda } from "./probar-ui.js?v=ba15536c6994";
+import { traePokemon, proveeEnergia, costoDe, danoDe } from "./efectos.js?v=9e0179cbb43d";
+import { alMenosUna, simular } from "./probabilidad.js?v=9e0179cbb43d";
+import { perfilDe } from "./motores.js?v=9e0179cbb43d";
+import { pct, num, leerLS, guardarLS, ayuda } from "./probar-ui.js?v=9e0179cbb43d";
 
 const TIPO_ES = { Fire: "Fuego", Psychic: "Psíquica", Water: "Agua", Grass: "Planta", Lightning: "Rayo", Fighting: "Lucha", Darkness: "Oscura", Metal: "Metálica", Fairy: "Hada", Dragon: "Dragón", Colorless: "Incolora" };
 const textoCosto = c => Object.entries(c.porTipo).map(([t, n]) => (n > 1 ? n + " " : "") + (TIPO_ES[t] || t)).join(" + ") || "gratis";
