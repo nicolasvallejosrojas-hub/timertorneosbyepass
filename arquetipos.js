@@ -1,6 +1,6 @@
 /* arquetipos.js — qué baraja es una lista y de qué región viene (puro, sin Firebase ni DOM; lo usa estadisticas.html).
    La lista se lee con armarCartas (nombres pasados a inglés, así «Dragapult ex» cuenta igual escrita en castellano). */
-import { armarCartas } from "./analisis.js?v=9e0179cbb43d";
+import { armarCartas } from "./analisis.js?v=c4c8e9d911c1";
 
 export const REGIONES = ["Arica y Parinacota", "Tarapacá", "Antofagasta", "Atacama", "Coquimbo", "Valparaíso", "Metropolitana de Santiago",
   "O'Higgins", "Maule", "Ñuble", "Biobío", "La Araucanía", "Los Ríos", "Los Lagos", "Aysén", "Magallanes"];
@@ -17,13 +17,15 @@ export const pokemonDe = (lista, base) => {
 
 const FUERTE = /(?:^Mega |\b(?:ex|V|VSTAR|VMAX|GX)$)/;
 /* La insignia de una baraja: el Pokémon (o los dos) que más pesa. Peso = copias + 3 si es ex/Mega… + 1 si no es Básico (una
-   línea evolutiva pesa en su última etapa). Solo cuentan los de 2 copias o más; entran los que pesan al menos 60 % del primero.
+   línea evolutiva pesa en su última etapa). Solo cuentan los de 2 copias o más. El segundo entra solo si pesa al menos 75 % del
+   primero, lleva 3 copias o más y no es un Básico común (ese suele ser la pre-evolución: Pawniard en Kingambit, Electrike en Manectric).
    ponytail: heurística, no conoce el meta; un compañero de apoyo con muchas copias puede colarse. Se afina con las cifras reales. */
 export function clasificar(pk){
-  const cand = (pk || []).filter(p => p.c >= 2).map(p => ({ n: p.n, peso: p.c + (FUERTE.test(p.n) ? 3 : 0) + (p.b ? 0 : 1) }))
+  const cand = (pk || []).filter(p => p.c >= 2).map(p => ({ n: p.n, c: p.c, b: p.b, peso: p.c + (FUERTE.test(p.n) ? 3 : 0) + (p.b ? 0 : 1) }))
     .sort((a, b) => b.peso - a.peso || (a.n < b.n ? -1 : 1));
   if (!cand.length) return { insignia: [], arquetipo: "Sin clasificar" };
-  const insignia = cand.filter(p => p.peso >= cand[0].peso * 0.6).slice(0, 2).map(p => p.n);
+  const segundo = cand.slice(1).find(p => p.peso >= cand[0].peso * 0.75 && p.c >= 3 && (FUERTE.test(p.n) || !p.b));
+  const insignia = [cand[0].n, ...(segundo ? [segundo.n] : [])];
   return { insignia, arquetipo: insignia.join(" + ") };
 }
 
