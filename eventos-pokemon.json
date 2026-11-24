@@ -1,0 +1,255 @@
+{
+ "actualizado": "2026-11-24",
+ "eventos": [
+  {
+   "nombre": "Campeonato Regional Pokémon de Stuttgart 2027",
+   "inicio": "2026-11-28",
+   "fin": "2026-11-29",
+   "rango": "28 y 29 de noviembre",
+   "tipo": "Regional",
+   "region": "europe",
+   "lugar": "Stuttgart, Germany",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/stuttgart"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Las Vegas 2027",
+   "inicio": "2026-12-04",
+   "fin": "2026-12-06",
+   "rango": "Del 4 al 6 de diciembre",
+   "tipo": "Regional",
+   "region": "northamerica",
+   "lugar": "Las Vegas, NV",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/las-vegas"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Atlanta 2027",
+   "inicio": "2027-01-15",
+   "fin": "2027-01-17",
+   "rango": "Del 15 al 17 de enero",
+   "tipo": "Regional",
+   "region": "northamerica",
+   "lugar": "Atlanta, GA",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/atlanta"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Sídney 2027",
+   "inicio": "2027-01-16",
+   "fin": "2027-01-17",
+   "rango": "16 y 17 de enero",
+   "tipo": "Regional",
+   "region": "oceania",
+   "lugar": "Sydney, Australia",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/sydney"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Mérida 2027",
+   "inicio": "2027-01-23",
+   "fin": "2027-01-24",
+   "rango": "23 y 24 de enero",
+   "tipo": "Regional",
+   "region": "latinamerica",
+   "lugar": "Mérida, Mexico",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/merida"
+  },
+  {
+   "nombre": "Campeonato Especial Pokémon de Auckland 2027",
+   "inicio": "2027-01-30",
+   "fin": "2027-01-31",
+   "rango": "30 y 31 de enero",
+   "tipo": "Especial",
+   "region": "oceania",
+   "lugar": "Auckland, New Zealand",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/auckland"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Birmingham 2027",
+   "inicio": "2027-01-30",
+   "fin": "2027-01-31",
+   "rango": "30 y 31 de enero",
+   "tipo": "Regional",
+   "region": "europe",
+   "lugar": "Birmingham, UK",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/birmingham"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Seattle 2027",
+   "inicio": "2027-02-05",
+   "fin": "2027-02-07",
+   "rango": "Del 5 al 7 de febrero",
+   "tipo": "Regional",
+   "region": "northamerica",
+   "lugar": "",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/seattle/"
+  },
+  {
+   "nombre": "Campeonato Internacional Pokémon de Europa 2027",
+   "inicio": "2027-02-19",
+   "fin": "2027-02-21",
+   "rango": "Del 19 al 21 de febrero",
+   "tipo": "Internacional",
+   "region": "europe",
+   "lugar": "London, UK",
+   "url": "https://championships.pokemon.com/es-la/events/internationals/2027/london"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de San Antonio 2027",
+   "inicio": "2027-02-26",
+   "fin": "2027-02-28",
+   "rango": "Del 26 al 28 de febrero",
+   "tipo": "Regional",
+   "region": "northamerica",
+   "lugar": "San Antonio, TX",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/san-antonio/"
+  },
+  {
+   "nombre": "Campeonato Especial Pokémon de Johannesburgo 2027",
+   "inicio": "2027-02-27",
+   "fin": "2027-02-28",
+   "rango": "27 y 28 de febrero",
+   "tipo": "Especial",
+   "region": "middleeast",
+   "lugar": "Johannesburg, Sudáfrica",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/johannesburg"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Santiago 2027",
+   "inicio": "2027-02-27",
+   "fin": "2027-02-28",
+   "rango": "27 y 28 de febrero",
+   "tipo": "Regional",
+   "region": "latinamerica",
+   "lugar": "Santiago, Chile",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/santiago"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Río de Janeiro 2027",
+   "inicio": "2027-03-06",
+   "fin": "2027-03-07",
+   "rango": "6 y 7 de marzo",
+   "tipo": "Regional",
+   "region": "latinamerica",
+   "lugar": "Rio de Janeiro, Brazil",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/rio-de-janeiro"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Toronto 2027",
+   "inicio": "2027-04-02",
+   "fin": "2027-04-04",
+   "rango": "Del 2 al 4 de abril",
+   "tipo": "Regional",
+   "region": "northamerica",
+   "lugar": "Toronto, ON",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/toronto"
+  },
+  {
+   "nombre": "Campeonato Especial Pokémon de Lisboa 2027",
+   "inicio": "2027-04-10",
+   "fin": "2027-04-11",
+   "rango": "10 y 11 de abril",
+   "tipo": "Especial",
+   "region": "europe",
+   "lugar": "Lisbon, Portugal",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/lisbon"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Monterrey 2027",
+   "inicio": "2027-04-10",
+   "fin": "2027-04-11",
+   "rango": "10 y 11 de abril",
+   "tipo": "Regional",
+   "region": "latinamerica",
+   "lugar": "Monterrey, Mexico",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/monterrey"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Milwaukee 2027",
+   "inicio": "2027-04-16",
+   "fin": "2027-04-18",
+   "rango": "Del 16 al 18 de abril",
+   "tipo": "Regional",
+   "region": "northamerica",
+   "lugar": "Milwaukee, WI",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/milwaukee"
+  },
+  {
+   "nombre": "Campeonato Especial Pokémon de Lima 2027",
+   "inicio": "2027-04-24",
+   "fin": "2027-04-25",
+   "rango": "24 y 25 de abril",
+   "tipo": "Especial",
+   "region": "latinamerica",
+   "lugar": "Lima, Peru",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/lima"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Porto Alegre 2027",
+   "inicio": "2027-05-08",
+   "fin": "2027-05-09",
+   "rango": "8 y 9 de mayo",
+   "tipo": "Regional",
+   "region": "latinamerica",
+   "lugar": "Porto Alegre, Brazil",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/porto-alegre"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Praga 2027",
+   "inicio": "2027-05-08",
+   "fin": "2027-05-09",
+   "rango": "8 y 9 de mayo",
+   "tipo": "Regional",
+   "region": "europe",
+   "lugar": "Prague, Czechia",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/prague"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Utrecht 2027",
+   "inicio": "2027-05-22",
+   "fin": "2027-05-23",
+   "rango": "22 y 23 de mayo",
+   "tipo": "Regional",
+   "region": "europe",
+   "lugar": "Utrecht, Netherlands",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/utrecht"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de San Diego 2027",
+   "inicio": "2027-05-28",
+   "fin": "2027-05-30",
+   "rango": "Del 28 al 30 de mayo",
+   "tipo": "Regional",
+   "region": "northamerica",
+   "lugar": "San Diego, CA",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/san-diego"
+  },
+  {
+   "nombre": "Campeonato Regional Pokémon de Melbourne 2027",
+   "inicio": "2027-05-29",
+   "fin": "2027-05-30",
+   "rango": "29 y 30 de mayo",
+   "tipo": "Regional",
+   "region": "oceania",
+   "lugar": "Melbourne, Australia",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/melbourne"
+  },
+  {
+   "nombre": "Campeonato Especial Pokémon de Bolonia 2027",
+   "inicio": "2027-06-05",
+   "fin": "2027-06-06",
+   "rango": "5 y 6 de junio",
+   "tipo": "Especial",
+   "region": "europe",
+   "lugar": "Bologna, Italy",
+   "url": "https://championships.pokemon.com/es-la/events/regionals/2027/bologna"
+  },
+  {
+   "nombre": "Campeonato Internacional Pokémon de Norteamérica 2027",
+   "inicio": "2027-06-18",
+   "fin": "2027-06-20",
+   "rango": "Del 18 al 20 de junio",
+   "tipo": "Internacional",
+   "region": "northamerica",
+   "lugar": "Chicago, Illinois",
+   "url": "https://championships.pokemon.com/es-la/events/internationals/2027/chicago"
+  }
+ ]
+}

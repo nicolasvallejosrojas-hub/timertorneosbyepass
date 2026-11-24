@@ -52,16 +52,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&family=Barlow+Condensed:ital,wght@0,700;1,800&display=swap">
-<link rel="stylesheet" href="tokens.css?v=12d9042d2617">
-<link rel="stylesheet" href="estilo.css?v=12d9042d2617">
+<link rel="stylesheet" href="tokens.css?v=7a49f001bd30">
+<link rel="stylesheet" href="estilo.css?v=7a49f001bd30">
 <!-- ▌BLOQUE 1 · Estilos del panel — Acomodo propio del panel: lienzo del timer, rail de apariencia,
      emparejamientos (desde archivo y torneo de la página), ruleta, calendario y QR. Colores, tipografía y
      componentes comunes vienen de estilo.css. -->
 
-<link rel="stylesheet" href="/paginas/admin.css?v=12d9042d2617">
-<link rel="stylesheet" href="/sistema.css?v=12d9042d2617">
-<script src="/tema.js?v=12d9042d2617"></script>
-<script src="/sistema.js?v=12d9042d2617" defer></script>
+<link rel="stylesheet" href="/paginas/admin.css?v=7a49f001bd30">
+<link rel="stylesheet" href="/sistema.css?v=7a49f001bd30">
+<script src="/tema.js?v=7a49f001bd30"></script>
+<script src="/sistema.js?v=7a49f001bd30" defer></script>
 </head>
 <body data-pagina="admin">
 <header class="bp-app-header"><a class="bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-3.85 -0.01 41.15 41.15" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a><p>Tu comunidad. Tu torneo.</p></header>
@@ -681,6 +681,7 @@
     <div id="calMes">&nbsp;</div>
     <button id="calImg" class="small sec" title="Una imagen del mes para compartir (WhatsApp, Instagram…)">Imagen del mes</button>
     <button id="calFechas" class="small sec" title="Las fechas del mes una bajo otra, con la descripción de cada una">Fechas del mes</button>
+    <button id="calOficiales" class="small sec" title="Regionales, Especiales, Internacionales y Mundial de Play! Pokémon, para agregarlos a tu calendario" aria-expanded="false" aria-controls="ofCard">Eventos oficiales</button>
     <button id="calHoy" class="small sec">Hoy</button>
     <button id="calAnt" class="small sec" title="Mes anterior">&lsaquo;</button>
     <button id="calSig" class="small sec" title="Mes siguiente">&rsaquo;</button>
@@ -688,6 +689,21 @@
   <div class="calGrid" id="calDows"></div>
   <div class="calGrid" id="calGrid"></div>
   <div class="calHint">Haz clic en un d&iacute;a para agendar algo ah&iacute;, o en un evento para editarlo.</div>
+</div>
+
+<!-- Eventos oficiales de Play! Pokémon (eventos-pokemon.json, de championships.pokemon.com): se marcan y se agregan a la agenda. -->
+<div class="card" id="ofCard" hidden>
+  <div class="row" style="align-items:center;gap:10px;margin-bottom:6px">
+    <h2 class="h2p" style="flex:1;margin:0">Eventos oficiales de Play! Pokémon</h2>
+    <label style="margin:0">Mostrar <select id="ofRegion">
+      <option value="latinamerica">Latinoamérica</option><option value="grandes">Internacionales y Mundial</option><option value="">Todas las regiones</option></select></label>
+  </div>
+  <div class="muted" id="ofInfo" style="margin-bottom:10px"></div>
+  <div id="ofLista"></div>
+  <div class="row" style="margin-top:12px;align-items:center;gap:10px">
+    <button id="ofAgregar" class="small" disabled>Agregar al calendario</button>
+    <span id="ofMsg" class="muted"></span>
+  </div>
 </div>
 
 <div class="card">
@@ -1047,30 +1063,30 @@
 <div id="menu"></div>
 <input type="file" accept="image/*" id="fBox" style="display:none">
 
-<script src="config.js?v=12d9042d2617"></script>
+<script src="config.js?v=7a49f001bd30"></script>
 <!-- Todo lo que el panel carga al arrancar se pide a la vez (si no, cada módulo descubre los suyos recién al llegar). Mismas direcciones y versiones que los import. -->
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
-<link rel="modulepreload" href="./agenda.js?v=12d9042d2617">
-<link rel="modulepreload" href="./push.js?v=12d9042d2617">
-<link rel="modulepreload" href="./qr.js?v=12d9042d2617">
-<link rel="modulepreload" href="./sala.js?v=12d9042d2617">
-<link rel="modulepreload" href="./mantenimiento.js?v=12d9042d2617">
-<link rel="modulepreload" href="./presencia.js?v=12d9042d2617">
-<link rel="modulepreload" href="./graficos.js?v=12d9042d2617">
-<link rel="modulepreload" href="./insignias.js?v=12d9042d2617">
-<link rel="modulepreload" href="./clasificacion.js?v=12d9042d2617">
-<link rel="modulepreload" href="./jugadores.js?v=12d9042d2617">
-<link rel="modulepreload" href="./importar.js?v=12d9042d2617">
-<link rel="modulepreload" href="./torneo.js?v=12d9042d2617">
-<link rel="modulepreload" href="./paleta.js?v=12d9042d2617">
-<link rel="modulepreload" href="./csv.js?v=12d9042d2617">
-<link rel="modulepreload" href="./vistapub.js?v=12d9042d2617">
-<link rel="modulepreload" href="./listamazo.js?v=12d9042d2617">
+<link rel="modulepreload" href="./agenda.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./push.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./qr.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./sala.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./mantenimiento.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./presencia.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./graficos.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./insignias.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./clasificacion.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./jugadores.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./importar.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./torneo.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./paleta.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./csv.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./vistapub.js?v=7a49f001bd30">
+<link rel="modulepreload" href="./listamazo.js?v=7a49f001bd30">
 <!-- ▌BLOQUE 10 · Módulos que usa el panel — Imports de Firebase y de los módulos compartidos (sala, agenda,
      insignias, torneo, paleta, listamazo, etc.). Cada uno lleva su ?v= para que el navegador no mezcle
      versiones. -->
-<script type="module" src="./admin-panel.js?v=12d9042d2617"></script>
+<script type="module" src="./admin-panel.js?v=7a49f001bd30"></script>
 </body>
 </html>

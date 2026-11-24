@@ -577,3 +577,11 @@
 .fiVista{flex:0 1 340px;max-width:100%}
 #fiPrev canvas{cursor:grab;touch-action:none}
 #fiPrev.arrastrando canvas{cursor:grabbing}
+
+/* Eventos oficiales de Play! Pokémon (Calendario) */
+.ofFila{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:10px 4px;border-top:1px solid var(--divider);cursor:pointer}
+.ofFila:first-child{border-top:0}
+.ofFila input{width:20px;height:20px;accent-color:var(--accion)}
+.ofFila b{font-size:var(--t3)} .ofFila small{display:block;color:var(--apagado)}
+.ofFila .ofTipo{font-size:var(--t1);text-transform:uppercase;letter-spacing:.04em;color:var(--apagado);text-align:right}
+.ofFila.ya{opacity:.6;cursor:default}

@@ -153,12 +153,12 @@
   </div>
 </main>
 
-<script>if (/[?&]sala=/.test(location.search)) document.write('<script src="config.js?v=12d9042d2617"><\/script>');</script>
+<script>if (/[?&]sala=/.test(location.search)) document.write('<script src="config.js?v=7a49f001bd30"><\/script>');</script>
 <script type="module">
 globalThis.esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-import { importarCategorias } from "./importar.js?v=12d9042d2617";
-import { indexar } from "./listamazo.js?v=12d9042d2617";
-import { listasDeCSV, cruzar, estadisticas, especieDe, nombreCorto, CATEGORIAS } from "./meta.js?v=12d9042d2617";
+import { importarCategorias } from "./importar.js?v=7a49f001bd30";
+import { indexar } from "./listamazo.js?v=7a49f001bd30";
+import { listasDeCSV, cruzar, estadisticas, especieDe, nombreCorto, CATEGORIAS } from "./meta.js?v=7a49f001bd30";
 
 const $ = id => document.getElementById(id);
 const pct = x => x == null ? "—" : Math.round(x * 100) + "%";
@@ -206,7 +206,7 @@ function aviso(html){ $("avisos").innerHTML = html; }
 const URLP = new URLSearchParams(location.search), SALA = URLP.get("sala") || "", EVENTO = URLP.get("evento") || "";
 /* Desde el panel: las listas salen de las inscripciones del torneo (inscripciones/<tienda>/<evento>), con la sesión de quien organiza. */
 async function listasDelPanel(){
-  const { db, auth, urlCuenta } = await import("./sesion.js?v=12d9042d2617");
+  const { db, auth, urlCuenta } = await import("./sesion.js?v=7a49f001bd30");
   const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
   const { onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
   const u = await new Promise(ok => { const off = onAuthStateChanged(auth, x => { off(); ok(x); }); });

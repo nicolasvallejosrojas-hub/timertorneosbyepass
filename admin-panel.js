@@ -1,37 +1,37 @@
-import { montarIdentidad, aplicarMarca } from './identidad.js?v=12d9042d2617';
-import { planPublicacion } from "./admin-publicacion.js?v=12d9042d2617";
-import { avisarError } from "./errores.js?v=12d9042d2617";
+import { montarIdentidad, aplicarMarca } from './identidad.js?v=7a49f001bd30';
+import { planPublicacion } from "./admin-publicacion.js?v=7a49f001bd30";
+import { avisarError } from "./errores.js?v=7a49f001bd30";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=12d9042d2617";
-import { activarPush, renovarPush, pushActivo } from "./push.js?v=12d9042d2617";
-import { qrImg, qrPng } from "./qr.js?v=12d9042d2617";
-import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=12d9042d2617";
-import { vigilar } from "./mantenimiento.js?v=12d9042d2617";
-import { estoyEnLinea } from "./presencia.js?v=12d9042d2617";
-import { barras } from "./graficos.js?v=12d9042d2617";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=12d9042d2617";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=12d9042d2617";
-import { planClaves } from "./jugadores.js?v=12d9042d2617";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=12d9042d2617";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=7a49f001bd30";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=7a49f001bd30";
+import { qrImg, qrPng } from "./qr.js?v=7a49f001bd30";
+import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=7a49f001bd30";
+import { vigilar } from "./mantenimiento.js?v=7a49f001bd30";
+import { estoyEnLinea } from "./presencia.js?v=7a49f001bd30";
+import { barras } from "./graficos.js?v=7a49f001bd30";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=7a49f001bd30";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=7a49f001bd30";
+import { planClaves } from "./jugadores.js?v=7a49f001bd30";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=7a49f001bd30";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=12d9042d2617";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=7a49f001bd30";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
-         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=12d9042d2617";
+         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=7a49f001bd30";
 /* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
-const entregarTabla = datos => import("./tablafinal.js?v=12d9042d2617").then(m => m.entregarTabla(datos));
-const entregarCalendario = datos => import("./calendarioimg.js?v=12d9042d2617").then(m => m.entregarCalendario(datos));
-const dibujarCalendario = datos => import("./calendarioimg.js?v=12d9042d2617").then(m => m.dibujarCalendario(datos));
-const entregarFechas = datos => import("./calendarioimg.js?v=12d9042d2617").then(m => m.entregarFechas(datos));
-const dibujarFechas = datos => import("./calendarioimg.js?v=12d9042d2617").then(m => m.dibujarFechas(datos));
+const entregarTabla = datos => import("./tablafinal.js?v=7a49f001bd30").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=7a49f001bd30").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=7a49f001bd30").then(m => m.dibujarCalendario(datos));
+const entregarFechas = datos => import("./calendarioimg.js?v=7a49f001bd30").then(m => m.entregarFechas(datos));
+const dibujarFechas = datos => import("./calendarioimg.js?v=7a49f001bd30").then(m => m.dibujarFechas(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
-import { celdaCsv } from "./csv.js?v=12d9042d2617";
-import { vistaDe, publicable } from "./vistapub.js?v=12d9042d2617";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=12d9042d2617";
+import { celdaCsv } from "./csv.js?v=7a49f001bd30";
+import { vistaDe, publicable } from "./vistapub.js?v=7a49f001bd30";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=7a49f001bd30";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
@@ -1158,7 +1158,7 @@ function renderClock(){
 let latidoPagina = null;
 const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250); };
 try {
-  const w = new Worker("reloj-worker.js?v=12d9042d2617");
+  const w = new Worker("reloj-worker.js?v=7a49f001bd30");
   w.onmessage = () => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
   w.onerror = latidoDePagina;
 } catch(e){ latidoDePagina(); }
@@ -3588,6 +3588,55 @@ async function imagenDeCalendario(boton, entregar){
 }
 $("calImg").onclick = () => imagenDeCalendario("calImg", entregarCalendario);
 $("calFechas").onclick = () => imagenDeCalendario("calFechas", entregarFechas);
+/* ── Eventos oficiales de Play! Pokémon (eventos-pokemon.json, lo arma .github/eventos-pokemon.py desde championships.pokemon.com).
+   Se marcan los que se quieren y quedan en la agenda de la tienda como una fecha más (todo el día, el primer día del evento;
+   el rango y el enlace oficial van en la descripción). Los que ya están (mismo título y fecha) salen marcados y no se repiten. */
+let OFICIALES = null;
+const ofYa = e => AGENDA.some(a => a.fecha === e.inicio && a.titulo === e.nombre);
+const ofJuego = () => { const j = AGENDA.map(a => a.juego || "").filter(x => /pok[eé]mon/i.test(x)); return j.length ? j.sort((a, b) => j.filter(x => x === b).length - j.filter(x => x === a).length)[0] : "Pokémon TCG"; };
+function ofPintar(){
+  const reg = $("ofRegion").value, hoy = new Date().toISOString().slice(0, 10);
+  const evs = (OFICIALES.eventos || []).filter(e => e.fin >= hoy && (reg === "grandes" ? e.tipo === "Internacional" || e.tipo === "Mundial" : !reg || e.region === reg));
+  $("ofInfo").innerHTML = "De <a href=\"https://championships.pokemon.com/es-la/events?status=upcoming&pillar=tcg\" target=\"_blank\" rel=\"noopener\">championships.pokemon.com</a>" +
+    (OFICIALES.actualizado ? " · lista al " + esc(OFICIALES.actualizado.split("-").reverse().join("/")) : "") + ". Marca los que quieras: quedan en tu calendario y en la agenda de los jugadores.";
+  $("ofLista").innerHTML = evs.length ? evs.map((e, i) => { const ya = ofYa(e);
+    return '<label class="ofFila' + (ya ? " ya" : "") + '"><input type="checkbox" data-of="' + (OFICIALES.eventos.indexOf(e)) + '"' + (ya ? " checked disabled" : "") + ">" +
+      "<span><b>" + esc(e.nombre) + "</b><small>" + esc(e.rango) + (e.lugar ? " · " + esc(e.lugar) : "") + (ya ? " · ya está en tu calendario" : "") + "</small></span>" +
+      '<span class="ofTipo">' + esc(e.tipo) + "</span></label>"; }).join("")
+    : '<div class="muted">No hay eventos próximos en esta región.</div>';
+  ofContar();
+}
+function ofContar(){
+  const n = $("ofLista").querySelectorAll("input[data-of]:checked:not(:disabled)").length;
+  $("ofAgregar").disabled = !n; $("ofAgregar").textContent = n ? "Agregar " + n + (n === 1 ? " evento" : " eventos") + " al calendario" : "Agregar al calendario";
+}
+$("calOficiales").onclick = async () => {
+  const c = $("ofCard"), abrir = c.hidden;
+  c.hidden = !abrir; $("calOficiales").setAttribute("aria-expanded", String(abrir));
+  if (!abrir) return;
+  if (!OFICIALES){
+    $("ofLista").innerHTML = '<div class="muted">Cargando…</div>';
+    try { const r = await fetch("eventos-pokemon.json", { cache: "no-cache" }); if (!r.ok) throw new Error(r.status); OFICIALES = await r.json(); }
+    catch(e){ $("ofLista").innerHTML = '<span class="err">No se pudo cargar la lista de eventos oficiales. Revisa la conexión.</span>'; return; }
+  }
+  ofPintar(); c.scrollIntoView({ block: "nearest", behavior: "smooth" });
+};
+$("ofRegion").onchange = () => OFICIALES && ofPintar();
+$("ofLista").addEventListener("change", ofContar);
+$("ofAgregar").onclick = async () => {
+  const elegidos = [...$("ofLista").querySelectorAll("input[data-of]:checked:not(:disabled)")].map(x => OFICIALES.eventos[+x.dataset.of]).filter(e => e && !ofYa(e));
+  if (!elegidos.length) return;
+  const juego = ofJuego(), ahora = Date.now(), rutas = {};
+  for (const e of elegidos){
+    const det = (e.rango + " · Evento oficial de Play! Pokémon · " + e.url).slice(0, 1000);
+    rutas[BASE_T + "/agenda/" + push(R_AGENDA).key] = { titulo: e.nombre.slice(0, 120), fecha: e.inicio, hora: "", duracion: 0, lugar: (e.lugar || "").slice(0, 200),
+      detalle: det, juego: juego.slice(0, 40), tipo: e.tipo.slice(0, 30), inicioMs: aEpoch(e.inicio, ""), creado: ahora, updatedAt: ahora };
+  }
+  $("ofMsg").textContent = "Agregando…"; $("ofAgregar").disabled = true;
+  try { await conTimeout(update(ref(db), rutas), 15000); $("ofMsg").innerHTML = '<span class="ok">Listo: ' + elegidos.length + (elegidos.length === 1 ? " evento agregado" : " eventos agregados") + " ✓</span>"; }
+  catch(err){ $("ofMsg").innerHTML = '<span class="err">' + mensajeConexion(err) + "</span>"; }
+  setTimeout(ofPintar, 600);   // la agenda se actualiza sola: se marcan como ya agregados
+};
 $("calHoy").onclick = () => { const h = new Date(); mesVista = { a:h.getFullYear(), m:h.getMonth() }; renderMes(); };
 
 function renderMes(){
@@ -4417,7 +4466,7 @@ async function fiAbrir(){
   const h = new Date(), a = mesVista ? mesVista.a : h.getFullYear(), m = mesVista ? mesVista.m : h.getMonth();
   if (!fiMes || fiMes.ym !== ymDe(a, m) && !fiMes.cambio){ const d = await imagenDelMes(a, m); fiMes = { ym: ymDe(a, m), a, m, datos: d ? { ...d } : null, cambio: false }; if (fiBorrador) fiControles(); }
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
-  FONDO_DEF = (await import("./fondoimg.js?v=12d9042d2617")).FONDO_DEF;
+  FONDO_DEF = (await import("./fondoimg.js?v=7a49f001bd30")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };
@@ -4456,7 +4505,7 @@ $("fiCentrar").onclick = () => { const x = fiEncuadrable(); if (!x) return; Obje
   const prev = $("fiPrev");
   prev.addEventListener("pointerdown", async e => {
     const x = fiEncuadrable(), cv = prev.querySelector("canvas"); if (!x || !cv) return;
-    const { cargarImagen, encuadre } = await import("./fondoimg.js?v=12d9042d2617"), img = await cargarImagen(x.fondo); if (!img) return;
+    const { cargarImagen, encuadre } = await import("./fondoimg.js?v=7a49f001bd30"), img = await cargarImagen(x.fondo); if (!img) return;
     const p = encuadre(cv.width, cv.height, img, x);
     ini = { x: e.clientX, y: e.clientY, fx: x.focoX || 0, fy: x.focoY || 0, k: cv.width / cv.getBoundingClientRect().width, sobraX: p.w - cv.width, sobraY: p.h - cv.height, obj: x };
     prev.setPointerCapture(e.pointerId); prev.classList.add("arrastrando");

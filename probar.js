@@ -21,13 +21,13 @@
    corregidos a mano («probar-roles:<mazo>») y los atacantes («probar-atacantes:<mazo>»); y si la guía está cerrada («probar-guia»).
    esc() es la global de config.js.
    ============================================================ */
-import { norm, esEnergiaBasica as esBasicaNombre } from "./listamazo.js?v=12d9042d2617";
-import { mulligan, alMenosUna, premios, distBasicos, promedioBasicos, soloMalos, energiasDist, mulligansPromedio, simular, repartir } from "./probabilidad.js?v=12d9042d2617";
-import { armarCartas, motivoNoSePuede } from "./analisis.js?v=12d9042d2617";
-import { idTcgdex, datoCarta } from "./tcgdex.js?v=12d9042d2617";
-import { pct, dif, num, TURNO, leerLS, guardarLS, ayuda, barras, columnas } from "./probar-ui.js?v=12d9042d2617";
-import { montarMotores, calcularGrupos } from "./motores.js?v=12d9042d2617";
-import { montarAtacantes } from "./atacantes.js?v=12d9042d2617";
+import { norm, esEnergiaBasica as esBasicaNombre } from "./listamazo.js?v=7a49f001bd30";
+import { mulligan, alMenosUna, premios, distBasicos, promedioBasicos, soloMalos, energiasDist, mulligansPromedio, simular, repartir } from "./probabilidad.js?v=7a49f001bd30";
+import { armarCartas, motivoNoSePuede } from "./analisis.js?v=7a49f001bd30";
+import { idTcgdex, datoCarta } from "./tcgdex.js?v=7a49f001bd30";
+import { pct, dif, num, TURNO, leerLS, guardarLS, ayuda, barras, columnas } from "./probar-ui.js?v=7a49f001bd30";
+import { montarMotores, calcularGrupos } from "./motores.js?v=7a49f001bd30";
+import { montarAtacantes } from "./atacantes.js?v=7a49f001bd30";
 
 const esEnergiaBasica = c => esBasicaNombre(c.nombre);   // sin tope de copias (listamazo.js)
 /* Cartas conocidas (nombre en inglés de la base): los ejemplos de metas las usan mientras no llega el texto de TCGdex. */

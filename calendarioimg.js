@@ -16,9 +16,9 @@
    mesImg (opcional): la imagen propia de ese mes (salas/<tienda>/imagenesMes/<AAAA-MM>), que manda sobre el fondo de la tienda.
    Se entrega como PNG: en el celular abre el menú de compartir; en el computador se descarga. No sube nada.
    ============================================================ */
-import { cabe, entregarImagen } from "./tablafinal.js?v=12d9042d2617";
-import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=12d9042d2617";
-import { celdasDelMes, porFecha, ordenar, DOWS, MES_LARGO } from "./agenda.js?v=12d9042d2617";
+import { cabe, entregarImagen } from "./tablafinal.js?v=7a49f001bd30";
+import { paletaDe, pintarFondo, cargarImagen } from "./fondoimg.js?v=7a49f001bd30";
+import { celdasDelMes, porFecha, ordenar, DOWS, MES_LARGO } from "./agenda.js?v=7a49f001bd30";
 
 /* ▌BLOQUE 1 · Calendario del mes como imagen ════════════════════════════════════
    El tema (colores, letras, cabecera y pie de cada plantilla) y la rejilla del mes. */
