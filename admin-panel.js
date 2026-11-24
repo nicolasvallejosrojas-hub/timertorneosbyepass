@@ -1,35 +1,37 @@
-import { montarIdentidad, aplicarMarca } from './identidad.js?v=3831e84e22ae';
-import { planPublicacion } from "./admin-publicacion.js?v=3831e84e22ae";
-import { avisarError } from "./errores.js?v=3831e84e22ae";
+import { montarIdentidad, aplicarMarca } from './identidad.js?v=12d9042d2617';
+import { planPublicacion } from "./admin-publicacion.js?v=12d9042d2617";
+import { avisarError } from "./errores.js?v=12d9042d2617";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=3831e84e22ae";
-import { activarPush, renovarPush, pushActivo } from "./push.js?v=3831e84e22ae";
-import { qrImg, qrPng } from "./qr.js?v=3831e84e22ae";
-import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=3831e84e22ae";
-import { vigilar } from "./mantenimiento.js?v=3831e84e22ae";
-import { estoyEnLinea } from "./presencia.js?v=3831e84e22ae";
-import { barras } from "./graficos.js?v=3831e84e22ae";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=3831e84e22ae";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=3831e84e22ae";
-import { planClaves } from "./jugadores.js?v=3831e84e22ae";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=3831e84e22ae";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=12d9042d2617";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=12d9042d2617";
+import { qrImg, qrPng } from "./qr.js?v=12d9042d2617";
+import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=12d9042d2617";
+import { vigilar } from "./mantenimiento.js?v=12d9042d2617";
+import { estoyEnLinea } from "./presencia.js?v=12d9042d2617";
+import { barras } from "./graficos.js?v=12d9042d2617";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=12d9042d2617";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=12d9042d2617";
+import { planClaves } from "./jugadores.js?v=12d9042d2617";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=12d9042d2617";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=3831e84e22ae";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=12d9042d2617";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
-         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=3831e84e22ae";
+         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=12d9042d2617";
 /* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
-const entregarTabla = datos => import("./tablafinal.js?v=3831e84e22ae").then(m => m.entregarTabla(datos));
-const entregarCalendario = datos => import("./calendarioimg.js?v=3831e84e22ae").then(m => m.entregarCalendario(datos));
-const dibujarCalendario = datos => import("./calendarioimg.js?v=3831e84e22ae").then(m => m.dibujarCalendario(datos));
+const entregarTabla = datos => import("./tablafinal.js?v=12d9042d2617").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=12d9042d2617").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=12d9042d2617").then(m => m.dibujarCalendario(datos));
+const entregarFechas = datos => import("./calendarioimg.js?v=12d9042d2617").then(m => m.entregarFechas(datos));
+const dibujarFechas = datos => import("./calendarioimg.js?v=12d9042d2617").then(m => m.dibujarFechas(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
-import { celdaCsv } from "./csv.js?v=3831e84e22ae";
-import { vistaDe, publicable } from "./vistapub.js?v=3831e84e22ae";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=3831e84e22ae";
+import { celdaCsv } from "./csv.js?v=12d9042d2617";
+import { vistaDe, publicable } from "./vistapub.js?v=12d9042d2617";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=12d9042d2617";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
@@ -1156,7 +1158,7 @@ function renderClock(){
 let latidoPagina = null;
 const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250); };
 try {
-  const w = new Worker("reloj-worker.js?v=3831e84e22ae");
+  const w = new Worker("reloj-worker.js?v=12d9042d2617");
   w.onmessage = () => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
   w.onerror = latidoDePagina;
 } catch(e){ latidoDePagina(); }
@@ -3505,6 +3507,7 @@ function pintarInscritos(){
       }).join("") + "</tbody></table></div>" : "") +
     '<div class="row" style="margin-top:10px;gap:8px">' +
       (conLista ? '<button class="small" data-i="todas"' + (filas.length ? "" : " disabled") + ">Imprimir todas las listas</button>" : "") +
+      (conLista ? '<button class="small sec" data-i="meta"' + (filas.length ? "" : " disabled") + ' title="Qué barajas se jugaron y cuánto ganaron: cruza estas listas con el archivo de TOM. Las inscripciones se borran a los 30 días.">Meta del torneo</button>' : "") +
       '<button class="small sec" data-i="correos"' + (filas.length ? "" : " disabled") + ' title="Todos los correos separados por coma, para pegarlos en «CCO» y avisarles a todos">Copiar los correos</button>' +
       '<button class="small sec" data-i="csv"' + (filas.length ? "" : " disabled") + ">Descargar CSV</button></div>";
 
@@ -3530,6 +3533,7 @@ function pintarInscritos(){
     }
     if (d.imp && INSC[d.imp]) imprimir([hoja(INSC[d.imp], paraHoja(ev), BASE_E)]);
     if (d.i === "todas") imprimir(filas.map(f => hoja(f, paraHoja(ev), BASE_E)));
+    if (d.i === "meta") window.open("meta.html?sala=" + encodeURIComponent(TIENDA) + "&evento=" + encodeURIComponent(ev.id) + conEmu(), "_blank", "noopener");
     if (d.i === "csv") bajarCsvInscritos(ev, filas, conLista);
     if (d.i === "correos"){ const t = b.textContent; await navigator.clipboard?.writeText([...new Set(filas.map(f => f.correo))].join(", ")).catch(e => avisarError(e)); b.textContent = "Copiados ✓"; setTimeout(() => b.textContent = t, 1800); }
     if (d.i === "liberar"){
@@ -3575,12 +3579,15 @@ function irMes(delta){
 }
 $("calAnt").onclick = () => irMes(-1);
 $("calSig").onclick = () => irMes(1);
-$("calImg").onclick = async () => {
-  const b = $("calImg"), txt = b.textContent; b.disabled = true; b.textContent = "Generando…";
-  try { await entregarCalendario({ tienda: nombreDeLaTienda(), a: mesVista.a, m: mesVista.m, eventos: AGENDA, estilo: estiloImagenes() }); }
-  catch(e){ alert("No se pudo generar la imagen del calendario."); }
+/* Las dos imágenes del mes (calendarioimg.js), con la plantilla y el fondo de la tienda y la imagen propia del mes, si tiene. */
+async function imagenDeCalendario(boton, entregar){
+  const b = $(boton), txt = b.textContent; b.disabled = true; b.textContent = "Generando…";
+  try { await entregar({ tienda: nombreDeLaTienda(), a: mesVista.a, m: mesVista.m, eventos: AGENDA, estilo: estiloImagenes(), mesImg: imagenDelMes(mesVista.a, mesVista.m) }); }
+  catch(e){ console.warn(e); alert("No se pudo generar la imagen del calendario."); }
   b.disabled = false; b.textContent = txt;
-};
+}
+$("calImg").onclick = () => imagenDeCalendario("calImg", entregarCalendario);
+$("calFechas").onclick = () => imagenDeCalendario("calFechas", entregarFechas);
 $("calHoy").onclick = () => { const h = new Date(); mesVista = { a:h.getFullYear(), m:h.getMonth() }; renderMes(); };
 
 function renderMes(){
@@ -4373,25 +4380,44 @@ const R_IMG = ref(db, BASE_T + "/imagenes");
 const FI_MAX = 580000;   // caracteres de la imagen en base64: las reglas aceptan hasta 600000
 let ESTILO_IMG = null, fiBorrador = null, fiSeq = 0, fiDeb = 0;
 const estiloImagenes = () => ESTILO_IMG ? Promise.resolve(ESTILO_IMG) : get(R_IMG).then(sn => (ESTILO_IMG = sn.val() || {}), () => (ESTILO_IMG = {}));
+/* La imagen propia de un mes: salas/<tienda>/imagenesMes/<AAAA-MM> = { fondo, zoom, focoX, focoY, oscuro }. Se lee solo la del mes
+   que se dibuja (cada una pesa hasta ~600 KB), y queda en memoria. */
+const ymDe = (a, m) => a + "-" + String(m + 1).padStart(2, "0");
+const MES_IMG = {};
+const imagenDelMes = (a, m) => { const k = ymDe(a, m); return k in MES_IMG ? Promise.resolve(MES_IMG[k]) : get(ref(db, BASE_T + "/imagenesMes/" + k)).then(s => (MES_IMG[k] = s.val()), () => (MES_IMG[k] = null)); };
+let fiMes = null;   // { ym, a, m, datos (borrador o null), cambio }
 
 function fiControles(){
   const e = fiBorrador;
   $("fiTipo").value = e.tipo; $("fiC1").value = e.color1; $("fiC2").value = e.color2; $("fiDir").value = e.dir; $("fiOscuro").value = e.oscuro; $("fiLetras").value = e.letras;
   $("fiColores").hidden = e.tipo === "imagen"; $("fiC2").hidden = $("fiDir").hidden = e.tipo !== "degradado"; $("fiImgBox").hidden = e.tipo !== "imagen";
   $("fiImgEst").textContent = e.fondo ? "Imagen cargada ✓ (" + Math.round(e.fondo.length / 1024) + " KB)" : "Sin imagen: se usa el color";
+  document.querySelectorAll(".fiPlant").forEach(b => b.setAttribute("aria-pressed", String((e.plantilla || "byepass") === b.dataset.plantilla)));
+  if (fiMes){
+    $("fiMesNom").textContent = MES_LARGO[fiMes.m] + " " + fiMes.a;
+    $("fiMesEst").textContent = fiMes.datos ? "Imagen de este mes ✓ (" + Math.round(fiMes.datos.fondo.length / 1024) + " KB)" + (fiMes.cambio ? " · sin guardar" : "") : "Sin imagen propia: usa el fondo de arriba";
+    $("fiMesQuitar").hidden = !fiMes.datos;
+  }
+  const enc = fiEncuadrable(); $("fiEncuadre").hidden = !enc;
+  if (enc) $("fiZoom").value = enc.zoom || 1;
 }
+/* Lo que se encuadra: la imagen del mes si hay; si no, la del fondo (si el fondo es imagen). */
+const fiEncuadrable = () => fiMes && fiMes.datos ? fiMes.datos : fiBorrador && fiBorrador.tipo === "imagen" && fiBorrador.fondo ? fiBorrador : null;
 async function fiVista(){
   const mi = ++fiSeq, h = new Date();
-  const cv = await dibujarCalendario({ tienda: nombreDeLaTienda(), a: mesVista ? mesVista.a : h.getFullYear(), m: mesVista ? mesVista.m : h.getMonth(), eventos: AGENDA, estilo: fiBorrador });
+  const datos = { tienda: nombreDeLaTienda(), a: mesVista ? mesVista.a : h.getFullYear(), m: mesVista ? mesVista.m : h.getMonth(), eventos: AGENDA, estilo: fiBorrador, mesImg: fiMes && fiMes.datos };
+  const cv = await ($("fiVer").value === "fechas" ? dibujarFechas(datos) : dibujarCalendario(datos));
   if (mi !== fiSeq) return;   // llegó otra vista más nueva
-  cv.style.cssText = "width:100%;height:auto;border-radius:8px;display:block"; cv.setAttribute("aria-label", "Vista previa del calendario con este fondo");
+  cv.style.cssText = "width:100%;height:auto;border-radius:8px;display:block"; cv.setAttribute("aria-label", "Vista previa de la imagen con este fondo; arrastra para encuadrar la imagen");
   $("fiPrev").replaceChildren(cv);
 }
 const fiCambio = () => { fiControles(); clearTimeout(fiDeb); fiDeb = setTimeout(fiVista, 150); $("fiMsg").textContent = ""; };
 
 async function fiAbrir(){
+  const h = new Date(), a = mesVista ? mesVista.a : h.getFullYear(), m = mesVista ? mesVista.m : h.getMonth();
+  if (!fiMes || fiMes.ym !== ymDe(a, m) && !fiMes.cambio){ const d = await imagenDelMes(a, m); fiMes = { ym: ymDe(a, m), a, m, datos: d ? { ...d } : null, cambio: false }; if (fiBorrador) fiControles(); }
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
-  FONDO_DEF = (await import("./fondoimg.js?v=3831e84e22ae")).FONDO_DEF;
+  FONDO_DEF = (await import("./fondoimg.js?v=12d9042d2617")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };
@@ -4409,10 +4435,57 @@ function fiSubir(f, ancho, calidad){
   }, true);
 }
 $("fiFile").onchange = e => { const f = e.target.files && e.target.files[0]; if (f) fiSubir(f, 1400, .75); e.target.value = ""; };
+/* plantilla */
+document.querySelectorAll(".fiPlant").forEach(b => b.onclick = () => { fiBorrador.plantilla = b.dataset.plantilla; fiCambio(); });
+$("fiVer").onchange = () => fiVista();
+/* imagen propia del mes que se ve en el calendario */
+function fiSubirMes(f, ancho, calidad){
+  compressImage(f, ancho, calidad, d => {
+    if (d.length > FI_MAX && ancho > 600) return fiSubirMes(f, Math.round(ancho * .75), calidad - .1);
+    if (d.length > FI_MAX) { $("fiMsg").textContent = "Esa imagen pesa demasiado. Prueba con otra."; return; }
+    fiMes.datos = { fondo: d, zoom: 1, focoX: 0, focoY: 0, oscuro: fiBorrador.oscuro }; fiMes.cambio = true; fiCambio();
+  }, true);
+}
+$("fiMesFile").onchange = e => { const f = e.target.files && e.target.files[0]; if (f && fiMes) fiSubirMes(f, 1400, .75); e.target.value = ""; };
+$("fiMesQuitar").onclick = () => { if (!fiMes) return; fiMes.datos = null; fiMes.cambio = true; fiCambio(); };
+/* encuadre: acercar con la barra y mover arrastrando la vista previa */
+$("fiZoom").oninput = e => { const x = fiEncuadrable(); if (!x) return; x.zoom = +e.target.value; if (x !== fiBorrador) fiMes.cambio = true; clearTimeout(fiDeb); fiDeb = setTimeout(fiVista, 60); $("fiMsg").textContent = ""; };
+$("fiCentrar").onclick = () => { const x = fiEncuadrable(); if (!x) return; Object.assign(x, { zoom: 1, focoX: 0, focoY: 0 }); if (x !== fiBorrador) fiMes.cambio = true; fiCambio(); };
+{
+  let ini = null, pend = false;
+  const prev = $("fiPrev");
+  prev.addEventListener("pointerdown", async e => {
+    const x = fiEncuadrable(), cv = prev.querySelector("canvas"); if (!x || !cv) return;
+    const { cargarImagen, encuadre } = await import("./fondoimg.js?v=12d9042d2617"), img = await cargarImagen(x.fondo); if (!img) return;
+    const p = encuadre(cv.width, cv.height, img, x);
+    ini = { x: e.clientX, y: e.clientY, fx: x.focoX || 0, fy: x.focoY || 0, k: cv.width / cv.getBoundingClientRect().width, sobraX: p.w - cv.width, sobraY: p.h - cv.height, obj: x };
+    prev.setPointerCapture(e.pointerId); prev.classList.add("arrastrando");
+  });
+  prev.addEventListener("pointermove", e => {
+    if (!ini) return;
+    const lim = v => Math.max(-1, Math.min(1, v));
+    if (ini.sobraX > 1) ini.obj.focoX = lim(ini.fx + 2 * (e.clientX - ini.x) * ini.k / ini.sobraX);
+    if (ini.sobraY > 1) ini.obj.focoY = lim(ini.fy + 2 * (e.clientY - ini.y) * ini.k / ini.sobraY);
+    if (ini.obj !== fiBorrador) fiMes.cambio = true;
+    if (!pend){ pend = true; requestAnimationFrame(() => { pend = false; fiVista(); }); }
+  });
+  const soltar = () => { if (!ini) return; ini = null; prev.classList.remove("arrastrando"); $("fiMsg").textContent = ""; fiControles(); };
+  prev.addEventListener("pointerup", soltar); prev.addEventListener("pointercancel", soltar);
+}
 $("fiQuitar").onclick = () => { fiBorrador.fondo = ""; fiBorrador.tipo = "color"; fiCambio(); };
 $("fiGuardar").onclick = async () => {
-  const e = fiBorrador, datos = { tipo: e.tipo, color1: e.color1, color2: e.color2, dir: e.dir, oscuro: e.oscuro, letras: e.letras, ...(e.fondo ? { fondo: e.fondo } : {}) };
-  try { await set(R_IMG, datos); ESTILO_IMG = datos; $("fiMsg").textContent = "Guardado ✓ Las imágenes nuevas salen con este fondo."; }
+  const e = fiBorrador, num = (v, d) => Number.isFinite(+v) ? Math.round(+v * 1000) / 1000 : d;
+  const datos = { tipo: e.tipo, color1: e.color1, color2: e.color2, dir: e.dir, oscuro: e.oscuro, letras: e.letras, plantilla: e.plantilla === "play" ? "play" : "byepass",
+                  zoom: num(e.zoom, 1), focoX: num(e.focoX, 0), focoY: num(e.focoY, 0), ...(e.fondo ? { fondo: e.fondo } : {}) };
+  try {
+    await set(R_IMG, datos); ESTILO_IMG = datos;
+    if (fiMes && fiMes.cambio){
+      const d = fiMes.datos, r = ref(db, BASE_T + "/imagenesMes/" + fiMes.ym);
+      if (d) await set(r, { fondo: d.fondo, zoom: num(d.zoom, 1), focoX: num(d.focoX, 0), focoY: num(d.focoY, 0), oscuro: num(d.oscuro, 40) }); else await remove(r);
+      MES_IMG[fiMes.ym] = d ? { ...d } : null; fiMes.cambio = false; fiControles();
+    }
+    $("fiMsg").textContent = "Guardado ✓ Las imágenes nuevas salen así.";
+  }
   catch(err){ $("fiMsg").textContent = mensajeConexion(err); }
 };
 $("fiReset").onclick = async () => {

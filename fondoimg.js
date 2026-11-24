@@ -16,7 +16,10 @@
 /* ▌BLOQUE 1 · Fondo de las imágenes ═════════════════════════════════════════════
    El fondo por defecto, la paleta según el fondo (letras claras u oscuras, o a mano) y el dibujo
    del fondo en un canvas. */
-export const FONDO_DEF = { tipo: "color", color1: "#1B2C49", color2: "#121E30", dir: "to bottom", fondo: "", oscuro: 40, letras: "auto" };
+/* plantilla: el diseño del calendario («byepass» o «play»: negro y rojo con el corte en diagonal). zoom, focoX, focoY: el encuadre
+   de la imagen (encuadre(), abajo). */
+export const FONDO_DEF = { tipo: "color", color1: "#1B2C49", color2: "#121E30", dir: "to bottom", fondo: "", oscuro: 40, letras: "auto",
+                           plantilla: "byepass", zoom: 1, focoX: 0, focoY: 0 };
 export const DIRECCIONES = { "to bottom": [0, 0, 0, 1], "to right": [0, 0, 1, 0], "to bottom right": [0, 0, 1, 1], "to top right": [0, 1, 1, 0] };
 
 const OSCURA = { texto: "#F8F7F2", suave: "#C2CEE0", coral: "#F45B45", ambar: "#FFB020", fila: "rgba(243,255,251,.055)",
@@ -32,6 +35,14 @@ export const esClaro = estilo => { const e = valido(estilo); return e.tipo === "
    claro no tiene una elección automática buena para las dos puntas). */
 export const paletaDe = estilo => { const l = valido(estilo).letras; return l === "claras" ? OSCURA : l === "oscuras" ? CLARA : esClaro(estilo) ? CLARA : OSCURA; };
 
+/* Dónde va una imagen de fondo: cubre el lienzo (como «cover»), acercada con zoom (1 a 4) y corrida con foco: focoX y focoY
+   van de -1 a 1 (0 = centrada; 1 = se ve el borde izquierdo / de arriba). Es el encuadre que se arrastra en el panel. */
+export function encuadre(W, H, img, e){
+  const z = Math.min(4, Math.max(1, +e.zoom || 1)), k = Math.max(W / img.width, H / img.height) * z, w = img.width * k, h = img.height * k;
+  const fx = Math.min(1, Math.max(-1, +e.focoX || 0)), fy = Math.min(1, Math.max(-1, +e.focoY || 0));
+  return { x: (W - w) / 2 + fx * (w - W) / 2, y: (H - h) / 2 + fy * (h - H) / 2, w, h };
+}
+
 export const cargarImagen = src => new Promise(ok => {
   if (!src) return ok(null);
   const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src;
@@ -41,8 +52,8 @@ export const cargarImagen = src => new Promise(ok => {
 export function pintarFondo(g, W, H, estilo, img){
   const e = valido(estilo);
   if (e.tipo === "imagen" && img){
-    const k = Math.max(W / img.width, H / img.height), w = img.width * k, h = img.height * k;   // cubre todo el lienzo, centrada
-    g.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+    const p = encuadre(W, H, img, e);
+    g.drawImage(img, p.x, p.y, p.w, p.h);
     g.fillStyle = "rgba(0,0,0," + Math.min(.8, Math.max(0, e.oscuro / 100)) + ")"; g.fillRect(0, 0, W, H);
     return;
   }

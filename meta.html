@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<!-- Meta del torneo: el archivo del torneo + las listas de mazo → barajas, winrate, ranking e imágenes para redes.
+     · Desde el panel de la tienda (?sala=<tienda>&evento=<evento>): entra con la sesión y lee las listas de las inscripciones de
+       ese torneo (las puede leer quien organiza la tienda). Solo hay que subir el archivo de TOM. Las inscripciones se borran a
+       los 30 días: después, el CSV que se haya bajado.
+     · Sin sala (la herramienta local, files/meta-torneo/): se suben los dos archivos; nada se conecta a Firebase.
+     Estilo: rojo de competencia, negro y blanco, con el corte diagonal rojo/negro (inspirado en la paleta de Play! Pokémon; sin
+     su logo, su tipografía ni la Poké Ball: PRODUCT.md prohíbe usar el arte de la marca). -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meta del torneo — ByePass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --rojo:#E3000F; --rojo-texto:#C4000D; --rojo-hover:#C8000D; --rojo-tinte:#FDE7E8;
+    --negro:#111111; --tinta:#161616; --gris:#5A5A5A; --linea:#E3E3E3; --panel:#F5F5F5; --blanco:#FFFFFF;
+    --cond:"Barlow Condensed", "Arial Narrow", sans-serif; --texto:Inter, system-ui, sans-serif;
+    --corte:polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  }
+  *{box-sizing:border-box;}
+  html{color-scheme:light;}
+  body{margin:0;background:var(--blanco);color:var(--tinta);font:15px/1.5 var(--texto);}
+  ::selection{background:var(--rojo);color:#fff;}
+  :focus-visible{outline:3px solid var(--rojo);outline-offset:2px;}
+  .desliza{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--negro) var(--panel);}
+
+  /* portada: el corte diagonal negro / rojo, con el filo blanco */
+  .portada{background:linear-gradient(104deg, var(--negro) 0 61%, #fff 61% 61.6%, var(--rojo) 61.6% 100%);color:#fff;}
+  .portada div{max-width:1180px;margin:0 auto;padding:44px 16px 40px;}
+  h1{font:italic 800 clamp(52px, 8vw, 96px)/.9 var(--cond);text-transform:uppercase;letter-spacing:-.01em;margin:0;}
+  .bajada{margin:14px 0 0;max-width:min(58ch, 50vw);color:#E9E9E9;}
+
+  main{max-width:1180px;margin:0 auto;padding:28px 16px 72px;}
+  h2{font:italic 800 30px/1 var(--cond);text-transform:uppercase;margin:44px 0 14px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  h2::before{content:"";width:16px;height:24px;background:var(--rojo);transform:skewX(-14deg);align-self:center;}
+  h2 .tag{font:500 14px/1.4 var(--texto);text-transform:none;color:var(--gris);}
+  .caja{background:var(--blanco);border:1px solid var(--linea);border-radius:4px;padding:16px 18px;}
+  .fila{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;}
+  .fila label{display:inline-flex;gap:8px;align-items:center;font-weight:500;}
+
+  /* los dos archivos */
+  .cargas{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .carga{display:grid;grid-template-columns:auto 1fr;column-gap:16px;align-items:start;border:2px dashed #9A9A9A;border-radius:4px;padding:18px 20px;cursor:pointer;background:var(--panel);transition:background .2s, border-color .2s, color .2s;}
+  .carga:hover{border-color:var(--negro);}
+  .carga .num{grid-row:span 3;font:italic 800 64px/.8 var(--cond);color:var(--rojo);}
+  .carga b{font:700 22px/1.1 var(--cond);text-transform:uppercase;}
+  .carga small{color:var(--gris);margin:4px 0 10px;}
+  .carga.lista{background:var(--negro);border:2px solid var(--negro);color:#fff;}
+  .carga.lista small{color:#D6D6D6;}
+  input[type=file]{font:inherit;font-size:13px;color:inherit;max-width:100%;}
+  input[type=file]::file-selector-button{font:700 15px var(--cond);text-transform:uppercase;letter-spacing:.03em;border:0;padding:8px 16px;margin-right:10px;background:var(--negro);color:#fff;cursor:pointer;clip-path:var(--corte);}
+  .carga.lista input[type=file]::file-selector-button{background:var(--rojo);}
+
+  .avisos{margin-top:14px;color:var(--gris);font-size:14px;line-height:1.6;} .avisos b{color:var(--rojo-texto);}
+  .avisos:empty{display:none;}
+
+  select,input[type=text],input[type=number]{font:inherit;color:var(--tinta);background:var(--blanco);border:1.5px solid #BDBDBD;border-radius:3px;padding:7px 9px;}
+  select:focus,input[type=text]:focus,input[type=number]:focus{border-color:var(--negro);outline:none;box-shadow:0 0 0 3px var(--rojo-tinte);}
+  input[type=checkbox]{accent-color:var(--rojo);width:18px;height:18px;}
+
+  /* botones: el corte en diagonal */
+  button{font:800 18px/1 var(--cond);text-transform:uppercase;letter-spacing:.03em;border:0;padding:12px 26px;background:var(--rojo);color:#fff;cursor:pointer;clip-path:var(--corte);transition:background .15s;}
+  button:hover{background:var(--rojo-hover);}
+  button:disabled{background:#9A9A9A;cursor:progress;}
+  button:focus-visible{outline:none;box-shadow:inset 0 0 0 3px var(--negro);}
+  button.sec{background:var(--negro);font-size:16px;padding:9px 20px;}
+  button.sec:hover{background:#333;}
+
+  /* tablas */
+  table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;}
+  th{text-align:left;font:700 15px/1.2 var(--cond);text-transform:uppercase;letter-spacing:.04em;color:var(--negro);padding:8px 10px;border-bottom:2px solid var(--negro);white-space:nowrap;}
+  td{padding:7px 10px;border-bottom:1px solid var(--linea);vertical-align:middle;}
+  td.n,th.n{text-align:right;} tr:last-child td{border-bottom:0;}
+  tbody tr:hover td,table tr:hover td{background:#FAFAFA;}
+  td.pos{font:italic 800 24px/1 var(--cond);color:var(--rojo);width:1%;white-space:nowrap;}
+  .spr{display:inline-flex;gap:2px;align-items:flex-end;min-width:52px;vertical-align:middle;margin-right:10px;}
+  .spr img{height:32px;image-rendering:pixelated;}
+  .deck{display:flex;align-items:center;font-weight:600;}
+  .barra{height:8px;background:#ECECEC;min-width:90px;} .barra i{display:block;height:100%;background:var(--rojo);}
+  .wr{font-weight:700;}
+  .wr-alta{display:inline-block;background:var(--rojo);color:#fff;padding:1px 7px;font-weight:700;}
+  .wr-baja{color:var(--gris);font-weight:500;}
+  td input[type=text]{width:100%;min-width:180px;}
+  .tag{font-size:12px;color:var(--gris);}
+  .mat td{text-align:center;min-width:58px;} .mat th{text-align:center;} .mat td.lado{text-align:left;font-weight:600;white-space:nowrap;}
+  .mat td.gana{background:var(--rojo-tinte);color:var(--rojo-texto);font-weight:700;}
+  .mat td.pierde{color:var(--gris);}
+
+  /* imágenes */
+  .imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;}
+  .imgs figure{margin:0;display:flex;flex-direction:column;gap:10px;}
+  .imgs canvas{width:100%;height:auto;background:var(--negro);box-shadow:0 10px 28px rgba(0,0,0,.18);}
+  .imgs figcaption{display:flex;justify-content:space-between;align-items:center;font:italic 800 22px var(--cond);text-transform:uppercase;}
+  .oculto{display:none !important;}
+  @media (max-width:760px){
+    .cargas,.imgs{grid-template-columns:1fr;}
+    .portada{background:linear-gradient(104deg, var(--negro) 0 84%, #fff 84% 85.5%, var(--rojo) 85.5% 100%);}
+    .portada div{padding-right:22%;}
+    .bajada{max-width:none;}
+  }
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<header class="portada"><div>
+  <h1>Meta del torneo</h1>
+  <p class="bajada">Junta el archivo del torneo con las listas de mazo de las inscripciones: qué barajas se jugaron, cuánto ganaron y cómo
+    les fue, con imágenes listas para redes. Todo se calcula en este computador; los archivos no se suben a ningún lado.</p>
+</div></header>
+<main>
+  <div class="cargas">
+    <label class="carga" id="cT"><span class="num">1</span><b>Archivo del torneo</b><small>El de TOM (.tdf) o una tabla de partidas (la misma que importa el panel).</small>
+      <input type="file" id="fT"></label>
+    <label class="carga" id="cL"><span class="num">2</span><b>Listas de mazo</b><small>El CSV de inscritos que baja el panel («Descargar CSV» en la inscripción del torneo).</small>
+      <input type="file" id="fL" accept=".csv,.txt,text/csv"></label>
+  </div>
+  <div class="avisos" id="avisos" role="status"></div>
+
+  <div id="res" class="oculto">
+    <h2>Opciones</h2>
+    <div class="caja fila">
+      <label>Título <input type="text" id="oTit" size="28"></label>
+      <label>Tienda <input type="text" id="oTienda" size="18"></label>
+      <label id="oCatW">Categoría <select id="oCat"></select></label>
+      <label><input type="checkbox" id="oEsp"> Contar espejos en el winrate</label>
+      <label>Winrate desde <input type="number" id="oMin" value="2" min="1" max="20" style="width:60px"> jugadores</label>
+    </div>
+
+    <h2>Barajas <span class="tag" id="tB"></span></h2>
+    <div class="caja desliza"><table id="tablaB"></table></div>
+
+    <h2>Matchups <span class="tag">fila contra columna · partidas ganadas-perdidas-empatadas</span></h2>
+    <div class="caja desliza"><table class="mat" id="tablaM"></table></div>
+
+    <h2>Jugadores <span class="tag">corrige la baraja si la lista no la dice bien: «Dragapult ex / Dusknoir»</span></h2>
+    <div class="caja desliza"><table id="tablaJ"></table></div>
+    <datalist id="decks"></datalist>
+
+    <h2>Imágenes para redes</h2>
+    <div class="caja fila">
+      <label>Formato <select id="iFmt"><option value="post">Post 1080×1350</option><option value="historia">Historia 1080×1920</option></select></label>
+      <label>Nombres en el top <select id="iNombres">
+        <option value="ocultos">Privados (solo puesto y baraja)</option>
+        <option value="inicial" selected>Nombre e inicial («Ana R.»)</option>
+        <option value="completos">Completos</option></select></label>
+      <button id="iGen">Generar imágenes</button>
+    </div>
+    <div class="imgs" id="imgs"></div>
+  </div>
+</main>
+
+<script>if (/[?&]sala=/.test(location.search)) document.write('<script src="config.js?v=12d9042d2617"><\/script>');</script>
+<script type="module">
+globalThis.esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+import { importarCategorias } from "./importar.js?v=12d9042d2617";
+import { indexar } from "./listamazo.js?v=12d9042d2617";
+import { listasDeCSV, cruzar, estadisticas, especieDe, nombreCorto, CATEGORIAS } from "./meta.js?v=12d9042d2617";
+
+const $ = id => document.getElementById(id);
+const pct = x => x == null ? "—" : Math.round(x * 100) + "%";
+const rec = s => s.w + "-" + s.l + "-" + s.t;
+let TORNEOS = null, TORNEO = null, LISTAS = null, BASE = null, X = null, MANUAL = {};
+const BASE_P = fetch("cartas-estandar.json").then(r => r.json()).then(indexar).catch(() => null);
+
+/* ── sprites: los iconos de Limitless (los de Training Court) copiados al sitio en sprites/ (meta-torneo/bajar-sprites.mjs); en la
+   herramienta local, los que no estén los trae servidor.mjs en /sprite/; si no hay, pokesprite (gen 8) y el pixel art de PokeAPI
+   (gen 9); sin ninguno, la fila va sin sprite ── */
+const PS = "https://cdn.jsdelivr.net/gh/msikma/pokesprite@master/pokemon-gen8/regular/";
+const PA = "https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/";
+let DEX = null;
+const dex = () => DEX ??= fetch("https://cdn.jsdelivr.net/gh/PokeAPI/pokeapi@master/data/v2/csv/pokemon.csv").then(r => r.text())
+  .then(t => new Map(t.split("\n").slice(1).map(l => l.split(",")).filter(c => c[1]).map(c => [c[1], c[0]]))).catch(() => new Map());
+const traer = url => new Promise(ok => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => ok(i); i.onerror = () => ok(null); i.src = url; });
+/* sin el borde transparente: así todos ocupan su caja igual */
+function recortar(img){
+  const c = document.createElement("canvas"); c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const x = c.getContext("2d"); x.drawImage(img, 0, 0);
+  const d = x.getImageData(0, 0, c.width, c.height).data; let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+  for (let y = 0; y < c.height; y++) for (let k = 0; k < c.width; k++) if (d[(y * c.width + k) * 4 + 3] > 8){ x0 = Math.min(x0, k); x1 = Math.max(x1, k); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  if (x1 < 0) return null;
+  const o = document.createElement("canvas"); o.width = x1 - x0 + 1; o.height = y1 - y0 + 1;
+  o.getContext("2d").drawImage(c, x0, y0, o.width, o.height, 0, 0, o.width, o.height); o.url = o.toDataURL(); return o;
+}
+const SPR = new Map();
+function sprite(nombre){
+  if (!SPR.has(nombre)) SPR.set(nombre, (async () => {
+    const { slug, base } = especieDe(nombre);
+    for (const s of new Set([slug.replace(/-mask$/, ""), base])){ const i = await traer("sprites/" + s + ".png"); if (i) return recortar(i); }   // Limitless: ogerpon-wellspring, sin -mask
+    if (!SALA) for (const s of new Set([slug.replace(/-mask$/, ""), base])){ const i = await traer("../sprite/" + s + ".png"); if (i) return recortar(i); }
+    for (const s of new Set([slug, base])){ const i = await traer(PS + s + ".png"); if (i) return recortar(i); }
+    const d = await dex();
+    for (const s of new Set([slug, base])) if (d.get(s)){ const i = await traer(PA + d.get(s) + ".png"); if (i) return recortar(i); }
+    return null;
+  })());
+  return SPR.get(nombre);
+}
+const sprites = async ins => (await Promise.all(ins.slice(0, 2).map(sprite))).filter(Boolean);
+const sprHTML = async ins => '<span class="spr">' + (await sprites(ins)).map(s => '<img alt="" src="' + s.url + '">').join("") + "</span>";
+
+/* ── carga ── */
+function aviso(html){ $("avisos").innerHTML = html; }
+const URLP = new URLSearchParams(location.search), SALA = URLP.get("sala") || "", EVENTO = URLP.get("evento") || "";
+/* Desde el panel: las listas salen de las inscripciones del torneo (inscripciones/<tienda>/<evento>), con la sesión de quien organiza. */
+async function listasDelPanel(){
+  const { db, auth, urlCuenta } = await import("./sesion.js?v=12d9042d2617");
+  const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+  const { onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+  const u = await new Promise(ok => { const off = onAuthStateChanged(auth, x => { off(); ok(x); }); });
+  if (!u || u.isAnonymous) return aviso('<b>Entra con tu cuenta de la tienda</b> para leer las listas de las inscripciones. <a href="' + urlCuenta("ingresar") + '">Entrar</a>');
+  let ev = null, ins = null;
+  try { [ev, ins] = await Promise.all([get(ref(db, "salas/" + SALA + "/agenda/" + EVENTO)), get(ref(db, "inscripciones/" + SALA + "/" + EVENTO))]).then(r => r.map(x => x.val())); }
+  catch(x){ return aviso("<b>No se pudieron leer las inscripciones de este torneo.</b> Solo las ve quien organiza la tienda; si ya pasaron 30 días, se borraron: sube el CSV que hayas bajado."); }
+  const titulo = (ev && ev.titulo) || "este torneo";
+  LISTAS = Object.values(ins || {}).filter(x => x && x.lista).map(x => ({ id: String(x.playerId || "").replace(/\D/g, ""), nombre: [x.nombre, x.apellido].filter(Boolean).join(" "),
+    nick: x.nick || "", cat: x.division || "", nac: x.nacimiento || "", lista: x.lista }));
+  if (!$("oTit").value) $("oTit").value = (ev && ev.titulo) || "";
+  if (!LISTAS.length) return aviso("<b>«" + esc(titulo) + "» no tiene listas de mazo en sus inscripciones</b> (o ya se borraron). Puedes subir el CSV de inscritos.");
+  $("cL").classList.add("lista"); $("cL").querySelector("b").textContent = "Listas de mazo";
+  $("cL").querySelector("small").textContent = LISTAS.length + " listas desde las inscripciones de «" + titulo + "». También puedes subir un CSV.";
+  armar();
+}
+if (SALA && EVENTO) listasDelPanel().catch(x => { console.warn(x); aviso("<b>No se pudieron leer las inscripciones.</b> Revisa la conexión y recarga."); });
+$("fT").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { TORNEOS = importarCategorias(await f.arrayBuffer()); TORNEO = TORNEOS[0]; $("cT").classList.add("lista");
+    const n = TORNEOS.reduce((a, t) => a + t.parsed.standings.length, 0);
+    $("cT").querySelector("small").textContent = (TORNEO.torneo.nombre || f.name) + " · " + n + " jugadores" + (TORNEOS.length > 1 ? " en " + TORNEOS.length + " grupos" : "");
+  } catch(x){ TORNEOS = TORNEO = null; $("cT").classList.remove("lista"); aviso("<b>No pude leer el archivo del torneo:</b> " + esc(x.message)); return; }
+  armar();
+};
+$("fL").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = listasDeCSV(await f.text());
+  if (r.error){ LISTAS = null; $("cL").classList.remove("lista"); aviso("<b>" + esc(r.error) + "</b>"); return; }
+  LISTAS = r.listas; $("cL").classList.add("lista");
+  $("cL").querySelector("small").textContent = f.name + " · " + LISTAS.filter(l => l.lista).length + " listas";
+  armar();
+};
+const claveLS = () => "meta-torneo:" + (TORNEO.torneo.nombre || "") + "|" + (TORNEO.torneo.fecha || "");
+
+async function armar(){
+  if (!TORNEO || !LISTAS) return;
+  BASE = await BASE_P;
+  try { MANUAL = JSON.parse(localStorage.getItem(claveLS()) || "{}"); } catch(x){ MANUAL = {}; }
+  X = cruzar(TORNEOS, LISTAS, BASE, MANUAL);
+  const sin = X.jugadores.filter(j => !j.conLista && !j.manual);
+  const porEdad = X.jugadores.filter(j => j.catDe === "edad"), mal = X.jugadores.filter(j => j.marcada != null && j.cat != null && j.marcada !== j.cat);
+  aviso([...new Set(TORNEOS.flatMap(t => t.avisos || []))].map(a => esc(a) + "<br>").join("") +
+    (porEdad.length ? porEdad.length + " jugadores sin categoría en el archivo: se les puso la de su fecha de nacimiento.<br>" : "") +
+    (mal.length ? "<b>Al inscribirse marcaron otra categoría</b> (vale la del torneo o, si el archivo no la trae, la de su fecha de nacimiento): " + mal.map(j => esc(j.nombre) + ": marcó " + CATEGORIAS[j.marcada] + ", juega " + CATEGORIAS[j.cat]).join(", ") + "<br>" : "") +
+    (sin.length ? "<b>" + sin.length + " jugadores sin lista</b> (quedan como «Sin lista»; puedes ponerles la baraja a mano): " + sin.map(j => esc(j.nombre)).join(", ") + "<br>" : "") +
+    (X.sobran.length ? "<b>" + X.sobran.length + " listas sin jugador en el torneo</b> (no se inscribieron con el mismo ID o no jugaron): " + X.sobran.map(l => esc(l.nombre || l.nick || l.id)).join(", ") : ""));
+  if (!$("oTit").value) $("oTit").value = TORNEO.torneo.nombre || "";
+  const cats = [...new Set(X.jugadores.map(j => j.cat).filter(c => c != null))];
+  $("oCat").innerHTML = '<option value="">Todas</option>' + cats.sort((a, b) => b - a).map(c => '<option value="' + c + '">' + esc(CATEGORIAS[c]) + "</option>").join("");
+  $("oCatW").classList.toggle("oculto", cats.length < 2);
+  $("res").classList.remove("oculto");
+  pintar();
+}
+
+/* ── tablas ── */
+let DECKS = [];
+const claseWR = (wr, n, min) => wr == null || n < min ? "tag" : wr >= 0.55 ? "wr-alta" : wr < 0.45 ? "wr-baja" : "wr";
+async function pintar(){
+  const cat = $("oCat").value === "" ? null : $("oCat").value;
+  DECKS = estadisticas(X, { cat, espejos: $("oEsp").checked });
+  const J = X.jugadores.filter(j => cat == null || j.cat == cat), min = +$("oMin").value || 1;
+  $("tB").textContent = DECKS.length + " barajas · " + J.length + " jugadores";
+  const filasB = await Promise.all(DECKS.map(async (d, i) => '<tr><td class="pos">' + (i + 1) + '</td><td><div class="deck">' + await sprHTML(d.insignia) + esc(d.deck) + "</div></td>" +
+    '<td class="n">' + d.n + '</td><td><div class="barra"><i style="width:' + Math.round(d.cuota * 100) + '%"></i></div></td><td class="n">' + pct(d.cuota) + "</td>" +
+    '<td class="n">' + rec(d) + '</td><td class="n"><span class="' + claseWR(d.wr, d.n, min) + '">' + pct(d.wr) + "</span></td>" +
+    '<td class="n">' + d.mejor + "°</td>" + (X.hayCorte ? '<td class="n">' + d.corte + "</td>" : "") + "</tr>"));
+  $("tablaB").innerHTML = "<tr><th>#</th><th>Baraja</th><th class=n>Jugadores</th><th>Meta</th><th class=n>%</th><th class=n>V-D-E</th><th class=n>Winrate</th><th class=n>Mejor</th>" +
+    (X.hayCorte ? "<th class=n>Top cut</th>" : "") + "</tr>" + filasB.join("");
+  /* matchups: las 8 más jugadas (sin «Sin lista») */
+  const M = DECKS.filter(d => d.deck !== "Sin lista").slice(0, 8);
+  $("tablaM").innerHTML = "<tr><th></th>" + (await Promise.all(M.map(async d => '<th title="' + esc(d.deck) + '">' + await sprHTML(d.insignia) + "</th>"))).join("") + "</tr>" +
+    (await Promise.all(M.map(async a => '<tr><td class="lado">' + await sprHTML(a.insignia) + esc(a.deck) + "</td>" + M.map(b => {
+      if (a === b) return '<td class="tag">—</td>';
+      const v = a.vs[b.deck]; if (!v) return "<td></td>";
+      const n = v.w + v.l + v.t, wr = n ? v.w / n : 0;
+      return '<td class="' + (wr > 0.5 ? "gana" : wr < 0.5 ? "pierde" : "") + '">' + v.w + "-" + v.l + "-" + v.t + "</td>";
+    }).join("") + "</tr>"))).join("");
+  $("decks").innerHTML = DECKS.map(d => '<option value="' + esc(d.deck) + '">').join("");
+  const filasJ = await Promise.all(J.map(async j => '<tr><td class="pos">' + j.puesto + "°</td><td>" + esc(j.nombre) + '<br><span class="tag">' + esc(j.id || "sin ID") + (j.cat != null ? " · " + CATEGORIAS[j.cat] + (j.catDe === "edad" ? " (por edad)" : j.catDe === "inscripción" ? " (la que marcó)" : "") : "") + (j.corte ? " · top cut" : "") + "</span></td>" +
+    '<td class="n">' + j.w + "-" + j.l + "-" + j.t + "</td><td>" + await sprHTML(j.insignia) + "</td>" +
+    '<td><input type="text" list="decks" data-k="' + esc(j.clave) + '" value="' + esc(j.manual ? j.deck : "") + '" placeholder="' + esc(j.auto === "Sin clasificar" && !j.conLista ? "Sin lista" : j.auto) + '" aria-label="Baraja de ' + esc(j.nombre) + '"></td></tr>'));
+  $("tablaJ").innerHTML = "<tr><th>Puesto</th><th>Jugador</th><th class=n>V-D-E</th><th></th><th>Baraja</th></tr>" + filasJ.join("");
+}
+$("tablaJ").addEventListener("change", e => {
+  const k = e.target.dataset.k; if (!k) return;
+  const v = e.target.value.trim(); if (v) MANUAL[k] = v; else delete MANUAL[k];
+  try { localStorage.setItem(claveLS(), JSON.stringify(MANUAL)); } catch(x){}
+  X = cruzar(TORNEOS, LISTAS, BASE, MANUAL); pintar();
+});
+["oCat", "oEsp", "oMin"].forEach(id => $(id).onchange = pintar);
+
+/* ── imágenes: negro, rojo y blanco, con el corte diagonal arriba ── */
+const jugadoresCat = (cat = $("oCat").value) => X.jugadores.filter(j => cat === "" || j.cat == cat);
+const catsPresentes = () => [...new Set(X.jugadores.map(j => j.cat).filter(c => c != null))].sort((a, b) => b - a);
+const C = { fondo: "#0D0D0D", fila: "#1B1B1B", pista: "#2E2E2E", texto: "#FFFFFF", apagado: "#B9B9B9", rojo: "#E3000F", gris: "#7A7A7A" };
+const COND = '"Barlow Condensed"', INTER = "Inter";
+const TAM = { post: [1080, 1350], historia: [1080, 1920] };
+const TAN = Math.tan(14 * Math.PI / 180);   // la inclinación del corte (la misma de la página)
+function lienzo(fmt){ const [w, h] = TAM[fmt], c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d"); x.fillStyle = C.fondo; x.fillRect(0, 0, w, h); return [c, x, w, h]; }
+function texto(x, t, X0, Y, { size = 32, peso = 600, color = C.texto, max = 0, align = "left", espacio = 0, fam = INTER, ital = false } = {}){
+  const f = k => (ital ? "italic " : "") + peso + " " + k + "px " + fam;
+  x.font = f(size); x.fillStyle = color; x.textAlign = align; x.letterSpacing = espacio + "px";
+  let s = String(t);
+  if (max) for (let k = size; k > size * 0.75 && x.measureText(s).width > max; k -= 2) x.font = f(k);
+  if (max) while (s.length > 1 && x.measureText(s).width > max) s = s.slice(0, -2) + "…";
+  x.fillText(s, X0, Y); x.letterSpacing = "0px";
+}
+/* un paralelogramo con la inclinación del corte */
+function corte(x, X0, Y, w, h, color){ const d = h * TAN; x.fillStyle = color; x.beginPath(); x.moveTo(X0 + d, Y); x.lineTo(X0 + w, Y); x.lineTo(X0 + w - d, Y + h); x.lineTo(X0, Y + h); x.closePath(); x.fill(); }
+/* los sprites, pixelados, dentro de una caja de alto h (dos lado a lado) */
+async function dibujarSprites(x, ins, X0, Y, h, ancho){
+  const ss = await sprites(ins); if (!ss.length) return;
+  x.imageSmoothingEnabled = false;
+  const w = ancho / ss.length;
+  ss.forEach((s, i) => { const k = Math.min(h / s.height, w / s.width), dw = s.width * k, dh = s.height * k;
+    x.drawImage(s, X0 + i * w + (w - dw) / 2, Y + h - dh, dw, dh); });
+}
+/* arriba: el título grande y, pegado a su derecha, el bloque rojo en diagonal con su filo blanco (nunca cruza las letras);
+   debajo, a todo el ancho, de qué torneo es */
+function cabecera(x, w, titulo, fmt, cat = $("oCat").value){
+  if (cat !== "") titulo += " " + CATEGORIAS[cat];
+  const top = fmt === "historia" ? 170 : 96, base = top + 34, alto = top + 62;
+  let size = 112; const fuente = k => "italic 800 " + k + 'px "Barlow Condensed"';
+  x.font = fuente(size); while (size > 64 && x.measureText(titulo.toUpperCase()).width > w * 0.66) x.font = fuente(size -= 4);
+  const ancho = x.measureText(titulo.toUpperCase()).width, x0 = 64 + ancho + 56;   // el borde de abajo del bloque, después del título
+  const bloque = (d, color) => { x.fillStyle = color; x.beginPath(); x.moveTo(x0 + d + alto * TAN, 0); x.lineTo(w, 0); x.lineTo(w, alto); x.lineTo(x0 + d, alto); x.closePath(); x.fill(); };
+  bloque(-10, "#FFFFFF"); bloque(0, C.rojo);
+  texto(x, titulo.toUpperCase(), 64, base, { size, peso: 800, fam: COND, ital: true });
+  const fecha = TORNEO.torneo.fecha ? TORNEO.torneo.fecha.split("-").reverse().join("/") : "";
+  texto(x, [$("oTit").value || "Torneo", fecha, $("oTienda").value, jugadoresCat(cat).length + " jugadores"].filter(Boolean).join("  ·  "), 66, top + 104,
+    { size: 30, peso: 600, color: "#FFFFFF", max: w - 128 });
+  x.fillStyle = C.rojo; x.fillRect(64, top + 128, 120, 6);   // una raya roja cierra la cabecera
+  return top + 176;
+}
+function pie(x, w, h, nota){
+  if (nota) texto(x, nota, 64, h - 108, { size: 22, peso: 500, color: C.apagado, max: w - 128 });
+  corte(x, 64, h - 76, 26, 34, C.rojo);
+  texto(x, "byepass.cl", 104, h - 49, { size: 30, peso: 700, fam: COND, ital: true, espacio: 1 });
+}
+const fila = (x, X0, Y, w, h, color = C.fila) => { x.fillStyle = color; x.beginPath(); x.roundRect(X0, Y, w, h, 6); x.fill(); };
+const barra = (x, X0, Y, w, frac, color) => { x.fillStyle = C.pista; x.fillRect(X0, Y, w, 12); x.fillStyle = color; x.fillRect(X0, Y, Math.max(12, w * frac), 12); };
+
+async function imgMeta(fmt){
+  const [c, x, w, h] = lienzo(fmt); let y = cabecera(x, w, "Meta del torneo", fmt);
+  const D = DECKS.slice(0, fmt === "historia" ? 10 : 8), alto = Math.min(fmt === "historia" ? 205 : 150, (h - y - 150) / D.length), max = Math.max(...D.map(d => d.cuota));
+  for (const [i, d] of D.entries()){
+    const Y = y + i * alto, a = alto - 14; fila(x, 56, Y, w - 112, a);
+    texto(x, i + 1, 104, Y + a / 2 + 20, { size: 60, peso: 800, fam: COND, ital: true, color: C.rojo, align: "center" });
+    await dibujarSprites(x, d.insignia, 150, Y + 12, a - 24, 170);
+    texto(x, nombreCorto(d.deck), 340, Y + a / 2 - 2, { size: 46, peso: 700, fam: COND, max: 470 });
+    barra(x, 340, Y + a - 36, 470, d.cuota / max, C.rojo);
+    texto(x, pct(d.cuota), w - 88, Y + a / 2 + 6, { size: 64, peso: 800, fam: COND, ital: true, align: "right" });
+    texto(x, d.n + (d.n === 1 ? " jugador" : " jugadores"), w - 88, Y + a / 2 + 38, { size: 22, peso: 500, color: C.apagado, align: "right" });
+  }
+  pie(x, w, h); return c;
+}
+async function imgTop(fmt, cat = $("oCat").value){
+  const [c, x, w, h] = lienzo(fmt);
+  const corteN = jugadoresCat(cat).filter(j => j.corte).length, n = corteN || Math.min(8, jugadoresCat(cat).length);
+  let y = cabecera(x, w, corteN ? "Top " + n : "Clasificación", fmt, cat);
+  const J = jugadoresCat(cat).sort((a, b) => a.puesto - b.puesto).slice(0, Math.min(n, fmt === "historia" ? 12 : 8));
+  const alto = Math.min(fmt === "historia" ? 205 : 150, (h - y - 150) / J.length), modo = $("iNombres").value;
+  const nombre = j => modo === "completos" ? j.nombre : j.nombre.split(" ")[0] + (j.nombre.split(" ")[1] ? " " + j.nombre.split(" ")[1][0] + "." : "");
+  for (const [i, j] of J.entries()){
+    const Y = y + i * alto, a = alto - 14, campeon = i === 0;
+    fila(x, 56, Y, w - 112, a, campeon ? C.rojo : C.fila);   // el 1.º, en rojo
+    texto(x, j.puesto + "°", 112, Y + a / 2 + 20, { size: 60, peso: 800, fam: COND, ital: true, color: campeon ? "#FFFFFF" : C.rojo, align: "center" });
+    await dibujarSprites(x, j.insignia, 170, Y + 12, a - 24, 170);
+    if (modo === "ocultos") texto(x, nombreCorto(j.deck), 366, Y + a / 2 + 16, { size: 48, peso: 700, fam: COND, max: 440 });   // sin nombre: la baraja en su lugar
+    else {
+      texto(x, nombre(j), 366, Y + a / 2 + 2, { size: 48, peso: 700, fam: COND, max: 440 });
+      texto(x, nombreCorto(j.deck), 366, Y + a / 2 + 36, { size: 24, peso: 500, color: campeon ? "#FFE3E5" : C.apagado, max: 440 });
+    }
+    texto(x, j.w + "-" + j.l + "-" + j.t, w - 88, Y + a / 2 + 18, { size: 50, peso: 800, fam: COND, ital: true, align: "right" });
+  }
+  pie(x, w, h); return c;
+}
+async function imgWinrate(fmt){
+  const [c, x, w, h] = lienzo(fmt); let y = cabecera(x, w, "Winrate", fmt);
+  const min = +$("oMin").value || 1;
+  const D = DECKS.filter(d => d.deck !== "Sin lista" && d.n >= min && d.partidas).sort((a, b) => b.wr - a.wr).slice(0, fmt === "historia" ? 10 : 8);
+  const alto = Math.min(fmt === "historia" ? 205 : 150, (h - y - 190) / Math.max(1, D.length)), bx = 340, bw = 470;
+  for (const [i, d] of D.entries()){
+    const Y = y + i * alto, a = alto - 14, arriba = d.wr >= 0.5; fila(x, 56, Y, w - 112, a);
+    await dibujarSprites(x, d.insignia, 88, Y + 12, a - 24, 210);
+    texto(x, nombreCorto(d.deck), bx, Y + a / 2 - 2, { size: 46, peso: 700, fam: COND, max: bw });
+    barra(x, bx, Y + a - 36, bw, d.wr, arriba ? C.rojo : C.gris);
+    x.fillStyle = "#FFFFFF"; x.fillRect(bx + bw / 2 - 1.5, Y + a - 44, 3, 28);   // el 50 %
+    texto(x, pct(d.wr), w - 88, Y + a / 2 + 6, { size: 64, peso: 800, fam: COND, ital: true, align: "right", color: arriba ? "#FFFFFF" : C.apagado });
+    texto(x, rec(d) + " · " + d.n + " jug.", w - 88, Y + a / 2 + 38, { size: 22, peso: 500, color: C.apagado, align: "right" });
+  }
+  pie(x, w, h, "Partidas contra otras barajas" + ($("oEsp").checked ? "" : ", sin espejos") + ". Barajas con " + min + " o más jugadores. La línea blanca marca el 50 %.");
+  return c;
+}
+$("iGen").onclick = async () => {
+  const b = $("iGen"); b.disabled = true; b.textContent = "Generando…";
+  await Promise.all(['italic 800 112px "Barlow Condensed"', '700 46px "Barlow Condensed"', "600 28px Inter", "500 22px Inter"].map(f => document.fonts.load(f)));
+  const fmt = $("iFmt").value, slug = ($("oTit").value || "torneo").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  /* con «Todas» y varias categorías, un top por categoría (cada una tiene su 1.º) */
+  const tops = $("oCat").value === "" && catsPresentes().length > 1
+    ? await Promise.all(catsPresentes().map(async c => ["Top " + CATEGORIAS[c], await imgTop(fmt, String(c))]))
+    : [["Top", await imgTop(fmt)]];
+  const piezas = [["Meta", await imgMeta(fmt)], ...tops, ["Winrate", await imgWinrate(fmt)]];
+  $("imgs").replaceChildren(...piezas.map(([nom, c]) => {
+    const f = document.createElement("figure"), cap = document.createElement("figcaption"), a = document.createElement("button");
+    cap.textContent = nom; a.textContent = "Descargar PNG"; a.className = "sec";
+    a.onclick = () => c.toBlob(bl => { const l = document.createElement("a"); l.href = URL.createObjectURL(bl); l.download = slug + "-" + nom.toLowerCase().replace(/\s+/g, "-") + ($("oCat").value !== "" ? "-" + CATEGORIAS[$("oCat").value].toLowerCase() : "") + "-" + fmt + ".png"; l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 2000); });
+    cap.append(a); f.append(c, cap); return f; }));
+  b.disabled = false; b.textContent = "Generar imágenes";
+};
+</script>
+</body>
+</html>

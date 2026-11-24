@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="config.js?v=3831e84e22ae"></script>
+<script src="config.js?v=12d9042d2617"></script>
 <title>Afiche del torneo — ByePass</title>
-<link rel="stylesheet" href="/tokens.css?v=3831e84e22ae">
+<link rel="stylesheet" href="/tokens.css?v=12d9042d2617">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap">
 <!--
@@ -20,10 +20,10 @@
   - Los campos de un afiche son las claves de DEF (abajo, en el script).
 -->
 
-<link rel="stylesheet" href="/paginas/afiche.css?v=3831e84e22ae">
-<link rel="stylesheet" href="/sistema.css?v=3831e84e22ae">
-<script src="/tema.js?v=3831e84e22ae"></script>
-<script src="/sistema.js?v=3831e84e22ae" defer></script>
+<link rel="stylesheet" href="/paginas/afiche.css?v=12d9042d2617">
+<link rel="stylesheet" href="/sistema.css?v=12d9042d2617">
+<script src="/tema.js?v=12d9042d2617"></script>
+<script src="/sistema.js?v=12d9042d2617" defer></script>
 </head>
 <body data-pagina="afiche">
 <aside id="panel">
@@ -95,12 +95,19 @@
       <label class="boton">Título<input type="file" accept="image/*" data-img="titulo"></label>
       <button class="sec" data-quitar="titulo">Quitar</button>
     </div>
+    <p class="nota">El logo y el título se arrastran sobre el afiche; aquí también se ajustan.</p>
     <label for="af-k-logoAncho">Ancho del logo</label>
-    <input id="af-k-logoAncho" type="range" data-k="logoAncho" min="60" max="400" step="1">
+    <input id="af-k-logoAncho" type="range" data-k="logoAncho" min="40" max="600" step="1">
     <div class="fila">
-      <div><label for="af-k-tituloAncho">Ancho del título</label><input id="af-k-tituloAncho" type="range" data-k="tituloAncho" min="200" max="1080" step="1"></div>
-      <div><label for="af-k-tituloY">Altura del título</label><input id="af-k-tituloY" type="range" data-k="tituloY" min="0" max="900" step="1"></div>
+      <div><label for="af-k-logoX">Logo: de lado a lado</label><input id="af-k-logoX" type="range" data-k="logoX" data-lim="ancho" min="0" max="1080" step="1"></div>
+      <div><label for="af-k-logoY">Logo: de arriba a abajo</label><input id="af-k-logoY" type="range" data-k="logoY" data-lim="alto" min="0" max="1350" step="1"></div>
     </div>
+    <div class="fila">
+      <div><label for="af-k-tituloAncho">Ancho del título</label><input id="af-k-tituloAncho" type="range" data-k="tituloAncho" min="100" max="1920" step="1"></div>
+      <div><label for="af-k-tituloY">Altura del título</label><input id="af-k-tituloY" type="range" data-k="tituloY" data-lim="alto" min="0" max="1350" step="1"></div>
+    </div>
+    <label for="af-k-tituloX">Título: de lado a lado (su centro)</label>
+    <input id="af-k-tituloX" type="range" data-k="tituloX" data-lim="ancho" min="0" max="1080" step="1">
   </fieldset>
 
   <fieldset><legend>Fecha</legend>
@@ -179,6 +186,9 @@ const DEF = {
   titulo: "", tituloAncho: 860, tituloY: 330,
   tituloAncho_banner: 600, tituloY_banner: 70, logoAncho_banner: 150,
   tituloAncho_chico: 200, tituloY_chico: 76, logoAncho_chico: 60,
+  /* dónde va el logo (esquina de arriba a la izquierda) y el centro del título, en cada formato; se arrastran */
+  logoX: 40, logoY: 34, logoX_banner: 40, logoY_banner: 34, logoX_chico: 14, logoY_chico: 12,
+  tituloX: 540, tituloX_banner: 500, tituloX_chico: 115,
   dia: "16", mes: "MARZO",
   hora: "19.30 HRS", evento: "PRELANZAMIENTO", detalle: "$29.990 HASTA EL 8 DE MARZO",
   inscripcion: "INSCRIPCIONES Y PAGO EN\nWWW.TUTIENDA.CL",
@@ -226,7 +236,7 @@ const post = $("post");
 const propia = () => PROPIA[P.formato];
 const ANCHO = () => TAM[P.formato][0], ALTO = () => TAM[P.formato][1], ARRIBA = () => P.formato === "historia" ? 250 : 0;
 const corrido = ancla => P.formato !== "historia" ? 0 : ancla === "arriba" ? 250 : 312;
-const clave = k => propia() && /^(tituloAncho|tituloY|logoAncho)$/.test(k) ? k + "_" + P.formato : k;   // título y logo tienen su medida en cada banner
+const clave = k => propia() && /^(tituloAncho|tituloY|tituloX|logoAncho|logoX|logoY)$/.test(k) ? k + "_" + P.formato : k;   // título y logo tienen su medida en cada banner
 /* Posición de una caja en el formato que se ve. En los banners va aparte (c.banner, c.chico): la primera vez
    sale de la plantilla PROPIA o, si es agregada, del mismo lugar relativo que tiene en el post. */
 function geo(c){
@@ -368,10 +378,13 @@ function pintar(){
   img($("fondo"), P.fondo); pintarFondo();
   $("velo").style.opacity = P.velo;
   img($("logo"), P.logo); $("logo").style.width = P[clave("logoAncho")] + "px";
+  $("logo").style.left = P[clave("logoX")] + "px"; $("logo").style.top = P[clave("logoY")] + ARRIBA() + "px";
   img($("titulo"), P.titulo); $("titulo").style.width = P[clave("tituloAncho")] + "px"; $("titulo").style.top = P[clave("tituloY")] + ARRIBA() + "px";
+  $("titulo").style.left = P[clave("tituloX")] + "px";
   pintarCajas();
   if (!RENDER){
     verEditor();
+    document.querySelectorAll("[data-lim]").forEach(el => el.max = el.dataset.lim === "ancho" ? ANCHO() : ALTO());
     document.querySelectorAll("[data-k]").forEach(el => { if (document.activeElement !== el) el.value = P[clave(el.dataset.k)]; });
     document.querySelectorAll("[data-formato]").forEach(b => b.classList.toggle("sec", b.dataset.formato !== P.formato));
     document.querySelectorAll("[data-ver]").forEach(el => el.textContent = Math.round(P[el.dataset.ver] * 100) + "%");
@@ -527,6 +540,10 @@ if (!RENDER){
     const el = e.target.closest("[data-caja]");
     if (e.target.closest(".asa") && caja(sel)){ const g = geo(caja(sel)); ini = { modo: "tam", x: e.clientX, y: e.clientY, w: g.w, h: g.h }; }
     else if (el){ elegir(el.dataset.caja); const g = geo(caja(sel)); ini = { modo: "mover", x: e.clientX, y: e.clientY, cx: g.x, cy: g.y }; }
+    else if (e.target.id === "logo" || e.target.id === "titulo"){   // el logo o el título: se mueven solos (su tamaño, con «Ancho»)
+      elegir(null); const id = e.target.id;
+      ini = { modo: id, x: e.clientX, y: e.clientY, ix: P[clave(id + "X")], iy: P[clave(id === "logo" ? "logoY" : "tituloY")] };
+    }
     else { elegir(null); ini = { modo: "fondo", x: e.clientX, y: e.clientY, fx: P.fondoX, fy: P.fondoY }; }
     post.setPointerCapture(e.pointerId); post.classList.add("arrastrando");
   });
@@ -534,6 +551,17 @@ if (!RENDER){
     if (!ini) return;
     const s = +post.dataset.s, dx = (e.clientX - ini.x) / s, dy = (e.clientY - ini.y) / s;
     if (ini.modo === "fondo"){ P.fondoX = ini.fx + dx; P.fondoY = ini.fy + dy; pintarFondo(); return; }
+    if (ini.modo === "logo" || ini.modo === "titulo"){
+      const id = ini.modo, el = $(id), medio = ANCHO() / 2;
+      let x = Math.round(ini.ix + dx);
+      /* se pega al centro: el título por su centro, el logo por el suyo */
+      const centro = id === "titulo" ? x : x + el.offsetWidth / 2, pegado = Math.abs(centro - medio) < 12;
+      if (pegado) x = id === "titulo" ? Math.round(medio) : Math.round(medio - el.offsetWidth / 2);
+      $("guia").style.display = pegado ? "block" : "none";
+      P[clave(id + "X")] = x; P[clave(id === "logo" ? "logoY" : "tituloY")] = Math.round(ini.iy + dy);
+      el.style.left = x + "px"; el.style.top = P[clave(id === "logo" ? "logoY" : "tituloY")] + ARRIBA() + "px";
+      return;
+    }
     const c = caja(sel), g = geo(c), el = elDe(sel), medio = ANCHO() / 2;
     if (ini.modo === "mover"){
       g.x = Math.round(ini.cx + dx); g.y = Math.round(ini.cy + dy);
@@ -631,7 +659,7 @@ pintar();
 document.fonts.ready.then(pintar);
 </script>
 <script type="module">
-  import { qrImg } from "./qr.js?v=3831e84e22ae";
+  import { qrImg } from "./qr.js?v=12d9042d2617";
   window.qrImg = qrImg; pintar();
 </script>
 </body>

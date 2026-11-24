@@ -51,17 +51,17 @@
 <title>Panel del organizador</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=3831e84e22ae">
-<link rel="stylesheet" href="estilo.css?v=3831e84e22ae">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&family=Barlow+Condensed:ital,wght@0,700;1,800&display=swap">
+<link rel="stylesheet" href="tokens.css?v=12d9042d2617">
+<link rel="stylesheet" href="estilo.css?v=12d9042d2617">
 <!-- ▌BLOQUE 1 · Estilos del panel — Acomodo propio del panel: lienzo del timer, rail de apariencia,
      emparejamientos (desde archivo y torneo de la página), ruleta, calendario y QR. Colores, tipografía y
      componentes comunes vienen de estilo.css. -->
 
-<link rel="stylesheet" href="/paginas/admin.css?v=3831e84e22ae">
-<link rel="stylesheet" href="/sistema.css?v=3831e84e22ae">
-<script src="/tema.js?v=3831e84e22ae"></script>
-<script src="/sistema.js?v=3831e84e22ae" defer></script>
+<link rel="stylesheet" href="/paginas/admin.css?v=12d9042d2617">
+<link rel="stylesheet" href="/sistema.css?v=12d9042d2617">
+<script src="/tema.js?v=12d9042d2617"></script>
+<script src="/sistema.js?v=12d9042d2617" defer></script>
 </head>
 <body data-pagina="admin">
 <header class="bp-app-header"><a class="bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-3.85 -0.01 41.15 41.15" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a><p>Tu comunidad. Tu torneo.</p></header>
@@ -680,6 +680,7 @@
   <div id="calNav">
     <div id="calMes">&nbsp;</div>
     <button id="calImg" class="small sec" title="Una imagen del mes para compartir (WhatsApp, Instagram…)">Imagen del mes</button>
+    <button id="calFechas" class="small sec" title="Las fechas del mes una bajo otra, con la descripción de cada una">Fechas del mes</button>
     <button id="calHoy" class="small sec">Hoy</button>
     <button id="calAnt" class="small sec" title="Mes anterior">&lsaquo;</button>
     <button id="calSig" class="small sec" title="Mes siguiente">&rsaquo;</button>
@@ -902,9 +903,13 @@
   </div>
 
   <div class="card" id="fiCard">
-    <h2 class="h2p">Fondo de las imágenes para compartir</h2>
-    <div class="muted" style="margin-bottom:10px">Cambia el fondo de la tabla final y del calendario del mes: un color, un degradado o una imagen tuya.
-      Con un fondo claro, las letras pasan a oscuras solas. El QR va siempre con fondo blanco para que lo lea el celular.</div>
+    <h2 class="h2p">Imágenes para compartir</h2>
+    <div class="muted" style="margin-bottom:10px">La plantilla y el fondo del calendario del mes (y de la tabla final): un color, un degradado o una imagen tuya,
+      y si quieres, una imagen distinta para cada mes. Arrastra la vista previa para encuadrar la imagen. El QR va siempre con fondo blanco.</div>
+    <div class="fiPlantillas" role="group" aria-label="Plantilla del calendario">
+      <button type="button" class="fiPlant" data-plantilla="byepass" aria-pressed="true"><span class="fiMuestra fiByepass"></span><b>ByePass</b><small>Sobre el fondo que elijas</small></button>
+      <button type="button" class="fiPlant" data-plantilla="play" aria-pressed="false"><span class="fiMuestra fiPlay"></span><b>Rojo y negro</b><small>Estilo Play!: negro, o tu imagen</small></button>
+    </div>
     <div class="row" style="align-items:flex-start;gap:16px;flex-wrap:wrap">
       <div style="flex:1;min-width:240px">
         <label>Tipo de fondo <select id="fiTipo"><option value="color">Color</option><option value="degradado">Degradado</option><option value="imagen">Imagen</option></select></label>
@@ -923,10 +928,24 @@
           <div class="row" style="align-items:center;margin-top:6px"><span id="fiImgEst" class="muted" style="flex:1"></span><button id="fiQuitar" class="small sec">Quitar imagen</button></div>
           <label style="margin-top:8px">Oscurecer la imagen para que se lea el texto <input type="range" id="fiOscuro" min="0" max="80" step="5" style="width:100%"></label>
         </div>
+        <div class="fiMes">
+          <b>Imagen solo para <span id="fiMesNom">este mes</span></b>
+          <div class="muted">Si la subes, el calendario de ese mes la usa en vez del fondo de arriba. Cambia de mes en el Calendario.</div>
+          <input type="file" accept="image/*" id="fiMesFile" style="display:block;font-size:var(--t2);margin-top:6px">
+          <div class="row" style="align-items:center;margin-top:6px"><span id="fiMesEst" class="muted" style="flex:1"></span><button id="fiMesQuitar" class="small sec">Quitar la del mes</button></div>
+        </div>
+        <div id="fiEncuadre" class="fiEncuadre">
+          <b>Encuadre de la imagen</b>
+          <label>Acercar <input type="range" id="fiZoom" min="1" max="3" step="0.01" style="width:100%"></label>
+          <div class="row" style="align-items:center"><span class="muted" style="flex:1">Arrastra la vista previa para mover la imagen.</span><button id="fiCentrar" class="small sec">Centrar</button></div>
+        </div>
         <div class="row" style="margin-top:12px;align-items:center"><button id="fiGuardar" class="small">Guardar fondo</button>
           <button id="fiReset" class="small sec">Volver al original</button><span id="fiMsg" class="muted"></span></div>
       </div>
-      <div style="flex:0 0 230px;max-width:100%"><div class="muted" style="margin-bottom:4px">Vista previa (el calendario de este mes)</div><div id="fiPrev"></div></div>
+      <div class="fiVista">
+        <div class="row" style="align-items:center;margin-bottom:6px"><span class="muted" style="flex:1">Vista previa</span>
+          <select id="fiVer" aria-label="Qué imagen ver"><option value="cal">Calendario del mes</option><option value="fechas">Fechas del mes</option></select></div>
+        <div id="fiPrev"></div></div>
     </div>
   </div>
 </div>
@@ -1028,30 +1047,30 @@
 <div id="menu"></div>
 <input type="file" accept="image/*" id="fBox" style="display:none">
 
-<script src="config.js?v=3831e84e22ae"></script>
+<script src="config.js?v=12d9042d2617"></script>
 <!-- Todo lo que el panel carga al arrancar se pide a la vez (si no, cada módulo descubre los suyos recién al llegar). Mismas direcciones y versiones que los import. -->
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
-<link rel="modulepreload" href="./agenda.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./push.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./qr.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./sala.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./mantenimiento.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./presencia.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./graficos.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./insignias.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./clasificacion.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./jugadores.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./importar.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./torneo.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./paleta.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./csv.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./vistapub.js?v=3831e84e22ae">
-<link rel="modulepreload" href="./listamazo.js?v=3831e84e22ae">
+<link rel="modulepreload" href="./agenda.js?v=12d9042d2617">
+<link rel="modulepreload" href="./push.js?v=12d9042d2617">
+<link rel="modulepreload" href="./qr.js?v=12d9042d2617">
+<link rel="modulepreload" href="./sala.js?v=12d9042d2617">
+<link rel="modulepreload" href="./mantenimiento.js?v=12d9042d2617">
+<link rel="modulepreload" href="./presencia.js?v=12d9042d2617">
+<link rel="modulepreload" href="./graficos.js?v=12d9042d2617">
+<link rel="modulepreload" href="./insignias.js?v=12d9042d2617">
+<link rel="modulepreload" href="./clasificacion.js?v=12d9042d2617">
+<link rel="modulepreload" href="./jugadores.js?v=12d9042d2617">
+<link rel="modulepreload" href="./importar.js?v=12d9042d2617">
+<link rel="modulepreload" href="./torneo.js?v=12d9042d2617">
+<link rel="modulepreload" href="./paleta.js?v=12d9042d2617">
+<link rel="modulepreload" href="./csv.js?v=12d9042d2617">
+<link rel="modulepreload" href="./vistapub.js?v=12d9042d2617">
+<link rel="modulepreload" href="./listamazo.js?v=12d9042d2617">
 <!-- ▌BLOQUE 10 · Módulos que usa el panel — Imports de Firebase y de los módulos compartidos (sala, agenda,
      insignias, torneo, paleta, listamazo, etc.). Cada uno lleva su ?v= para que el navegador no mezcle
      versiones. -->
-<script type="module" src="./admin-panel.js?v=3831e84e22ae"></script>
+<script type="module" src="./admin-panel.js?v=12d9042d2617"></script>
 </body>
 </html>

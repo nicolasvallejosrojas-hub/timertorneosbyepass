@@ -37,11 +37,8 @@
   #post.arrastrando{cursor:grabbing}
   #post.historia{height:1920px;--arriba:250px;--abajo:312px}
   #post.banner{width:1920px;height:400px}
-  #post.banner #titulo{left:500px}   /* el título a la izquierda; los cuadros van a la derecha */
   #post.banner #guia{left:959px}
   #post.chico{width:600px;height:200px}
-  #post.chico #titulo{left:115px}
-  #post.chico #logo{left:14px;top:12px}
   #post.chico #guia{left:299px}
   /* a 600×200 el relleno, las esquinas y la sombra del post se comen la caja: a escala (k = .35 en aPng) */
   #post.chico :is(.azul,.blanca,#info){border-radius:5.6px;box-shadow:0 5px 12px rgba(0,0,0,.42)}
@@ -56,9 +53,10 @@
   #post > *{position:absolute}
   #fondo{max-width:none;pointer-events:none}
   #velo{inset:0;background:#000;pointer-events:none}
-  #logo,#titulo{pointer-events:none}
-  #logo{left:40px;top:calc(34px + var(--arriba))}
-  #titulo{left:50%;transform:translateX(-50%)}
+  #logo,#titulo{cursor:grab;touch-action:none;user-select:none;-webkit-user-drag:none}   /* se arrastran (afiche.html) */
+  #post.arrastrando :is(#logo,#titulo){cursor:grabbing}
+  body.render :is(#logo,#titulo){cursor:default}
+  #titulo{transform:translateX(-50%)}
 
   .azul{background:linear-gradient(180deg, var(--azul) 0%, var(--azul-osc) 100%);color:#fff;border-radius:16px;
         box-shadow:inset 0 2px 0 rgba(255,255,255,.28), 0 14px 34px rgba(0,0,0,.45)}

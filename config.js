@@ -93,8 +93,9 @@ if (!EMULADOR){
       + " https://fcmregistrations.googleapis.com https://fcm.googleapis.com https://firebaseinstallations.googleapis.com"   // avisos push
       + " https://us-central1-timer-y-qrs-pokemon.cloudfunctions.net"   // los minijuegos de la espera (functions/juegos.js)
       + " https://firebasestorage.googleapis.com"   // subir las fotos del blog (blog-editor.js)
-      + " https://api.tcgdex.net",   // buscar cartas para el blog (blog-editor.js)
-    "img-src 'self' data: blob: https://assets.tcgdex.net https://firebasestorage.googleapis.com",   // fotos de cartas (TCGdex) y del blog (Storage)
+      + " https://api.tcgdex.net"   // buscar cartas para el blog (blog-editor.js)
+      + " https://cdn.jsdelivr.net",   // la tabla de Pokémon de PokeAPI para los sprites de respaldo (meta.html)
+    "img-src 'self' data: blob: https://assets.tcgdex.net https://firebasestorage.googleapis.com https://cdn.jsdelivr.net",   // + sprites de respaldo (meta.html)   // fotos de cartas (TCGdex) y del blog (Storage)
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "media-src 'self' data: blob:",

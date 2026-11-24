@@ -563,3 +563,17 @@
 .filasEnl{padding:4px 0 10px 14px;border-bottom:1px solid var(--divider);display:flex;flex-direction:column;gap:2px;}
 .filaEnl{align-items:center;gap:8px;flex-wrap:wrap;padding:3px 0;}
 .filaEnl select{max-width:100%;min-width:200px;}
+
+/* Imágenes para compartir: plantillas, imagen del mes y encuadre (BLOQUE 43 de admin-panel.js) */
+.fiPlantillas{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.fiPlant{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;text-align:left;
+  padding:8px 12px 8px 8px;border:2px solid var(--divider);border-radius:var(--radio);background:var(--sup);color:var(--texto);cursor:pointer;min-width:200px}
+.fiPlant[aria-pressed="true"]{border-color:var(--accion)}
+.fiPlant b{font-size:var(--t3)} .fiPlant small{grid-column:2;color:var(--apagado);font-size:var(--t1)}
+.fiMuestra{grid-row:span 2;width:54px;height:40px;border-radius:6px}
+.fiByepass{background:linear-gradient(#1B2C49,#121E30);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.fiPlay{background:linear-gradient(104deg,#111 0 56%,#fff 56% 60%,#E3000F 60%)}
+.fiMes,.fiEncuadre{margin-top:14px;padding-top:12px;border-top:1px solid var(--divider);display:flex;flex-direction:column;gap:4px}
+.fiVista{flex:0 1 340px;max-width:100%}
+#fiPrev canvas{cursor:grab;touch-action:none}
+#fiPrev.arrastrando canvas{cursor:grabbing}
