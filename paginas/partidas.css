@@ -7,7 +7,9 @@
 .spr img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated;margin-right:-10px;}
 .spr img:last-child{margin-right:0;}
 .mazoF .spr{min-width:56px;}
-.nomB{display:flex;align-items:center;gap:10px;min-width:0;} .nomB b{font-weight:550;overflow-wrap:anywhere;}
+.nomB{display:flex;align-items:center;gap:10px;min-width:0;} .nomB b{font-weight:550;overflow-wrap:break-word;}
+.pt-tabla td:first-child{width:100%;}
+@media (max-width:560px){ .nomB{flex-direction:column;align-items:flex-start;gap:2px;} .pt-tabla{font-size:var(--t2);} .pt-tabla th,.pt-tabla td{padding-left:4px;padding-right:4px;} }
 
 .pt-tabla{width:100%;border-collapse:collapse;font-size:var(--t3);font-variant-numeric:tabular-nums;}
 .pt-tabla th{font-size:var(--t1);letter-spacing:.06em;text-transform:uppercase;color:var(--rotulo);font-weight:600;text-align:left;padding:0 6px 8px;}
