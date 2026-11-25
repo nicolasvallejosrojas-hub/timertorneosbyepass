@@ -18,18 +18,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=7a49f001bd30"></script>
+<script src="tema.js?v=d9aaebb11ce9"></script>
 <title>ByePass — Cuenta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=7a49f001bd30">
-<link rel="stylesheet" href="estilo.css?v=7a49f001bd30">
+<link rel="stylesheet" href="tokens.css?v=d9aaebb11ce9">
+<link rel="stylesheet" href="estilo.css?v=d9aaebb11ce9">
 <!-- ▌BLOQUE 1 · Estilos de la cuenta — Barra, pasos, campos, medidor de contraseña, vitrina y ajustes. -->
 
-<link rel="stylesheet" href="/paginas/cuenta.css?v=7a49f001bd30">
-<link rel="stylesheet" href="/sistema.css?v=7a49f001bd30">
-<script src="/sistema.js?v=7a49f001bd30" defer></script>
+<link rel="stylesheet" href="/paginas/cuenta.css?v=d9aaebb11ce9">
+<link rel="stylesheet" href="/sistema.css?v=d9aaebb11ce9">
+<script src="/sistema.js?v=d9aaebb11ce9" defer></script>
 </head>
 <body data-pagina="cuenta">
 
@@ -379,7 +379,7 @@
 
     <div class="grupo" id="grMazos">
       <h2>Mis mazos</h2>
-      <div class="filas"><a class="filaj" id="aMazos" href="mazos.html"><span class="k">Mis mazos<small>Tus listas guardadas, para elegirlas al inscribirte en un torneo</small></span></a></div>
+      <div class="filas"><a class="filaj" id="aMazos" href="mazos.html"><span class="k">Mis mazos<small>Tus listas guardadas, para elegirlas al inscribirte en un torneo</small></span></a><a class="filaj" id="aPartidas" href="partidas.html"><span class="k">Mis partidas<small>Con qué baraja jugaste, contra qué y cómo te fue: tu winrate y tus enfrentamientos</small></span></a></div>
     </div>
 
     <div class="grupo" id="grTienda">
@@ -444,21 +444,21 @@
 </div>
 </main>
 
-<script src="config.js?v=7a49f001bd30"></script>
+<script src="config.js?v=d9aaebb11ce9"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y de sesion.js. -->
 <script type="module">
 import { ref, get, set, remove, update, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail,
          verifyPasswordResetCode, confirmPasswordReset, applyActionCode, checkActionCode, verifyBeforeUpdateEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=7a49f001bd30";
-import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=7a49f001bd30";   // BASE: el timer; BASE_T: su tienda
+import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=d9aaebb11ce9";
+import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=d9aaebb11ce9";   // BASE: el timer; BASE_T: su tienda
 /* La conexión, los enlaces con ?emu y ?sala, los errores en castellano, la
    contraseña y el registro viven en sesion.js: la portada registra igual. */
 import { db, auth, urlPanel, urlMuro, urlCuenta, decir, ID_OK, CORREO_OK, revisarClave, claveOk,
          textoFalta, errorNacimiento, registrar, params, codigoInvitacion, betaActiva, revisarCodigo,
-         normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto, reanudarRegistro, registroPendiente } from "./sesion.js?v=7a49f001bd30";
-import { estoyEnLinea } from "./presencia.js?v=7a49f001bd30";
+         normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto, reanudarRegistro, registroPendiente } from "./sesion.js?v=d9aaebb11ce9";
+import { estoyEnLinea } from "./presencia.js?v=d9aaebb11ce9";
 estoyEnLinea(db, "cuenta");
 
 const $ = id => document.getElementById(id);
@@ -494,7 +494,7 @@ const DESDE = (() => { try { const r = new URL(document.referrer);
    mandar a nadie a otro sitio. */
 const VOLVER = (v => /^(timer-view\.html\?[A-Za-z0-9=&_%-]{1,200}#mesas|inscripcion\.html\?[A-Za-z0-9=&_%-]{1,200}|(mazos|rulings)\.html(\?[A-Za-z0-9=&_%-]{1,60})?|blog\.html\?a=[a-z0-9-]{1,80}(#comentarios)?)$/.test(v) ? v : "")(new URLSearchParams(location.search).get("volver") || "");
 const alSalir = h => VOLVER || urlMuro(h);
-$("aMazos").href = "mazos.html" + params();
+$("aMazos").href = "mazos.html" + params(); $("aPartidas").href = "partidas.html" + params();
 let usuario = null, perfil = null, vista = "ingresar", paso = 1, perfilSinConfirmar = false;
 /* Mientras se crea una cuenta, onAuthStateChanged dispara ANTES de que los
    datos terminen de guardarse. Si en ese momento redirigiera al muro, la
@@ -1296,7 +1296,7 @@ $("btnEliminar").onclick = async () => {
     ". Antes de borrar tu cuenta, escríbenos para dejar la tienda en otras manos o eliminarla.");
   if (!confirm("¿Eliminar tu cuenta para siempre? No se puede deshacer.")) return listo();
   const uid = usuario.uid, rutas = {};
-  ["usuarios", "perfilPublico", "altas", "organiza", "solicitudes", "beta/testers", "mazos"].forEach(n => rutas[n + "/" + uid] = null);
+  ["usuarios", "perfilPublico", "altas", "organiza", "solicitudes", "beta/testers", "mazos", "partidas"].forEach(n => rutas[n + "/" + uid] = null);
   /* Su timer personal (mi-xxxxxx) y la base de jugadores de ese timer. */
   const miSala = perfil && perfil.sala;
   if (/^mi-[a-z0-9]{6}$/.test(miSala || "")) { rutas["salas/" + miSala] = null; rutas["jugadores/" + miSala] = null; }

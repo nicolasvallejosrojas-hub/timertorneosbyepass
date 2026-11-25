@@ -13,19 +13,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=7a49f001bd30"></script>
+<script src="tema.js?v=d9aaebb11ce9"></script>
 <meta name="robots" content="noindex">
 <title>Estadísticas — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=7a49f001bd30">
-<link rel="stylesheet" href="estilo.css?v=7a49f001bd30">
+<link rel="stylesheet" href="tokens.css?v=d9aaebb11ce9">
+<link rel="stylesheet" href="estilo.css?v=d9aaebb11ce9">
 <!-- ▌BLOQUE 1 · Estilos — Controles, cifras, gráficos y tablas. -->
 
-<link rel="stylesheet" href="/paginas/estadisticas.css?v=7a49f001bd30">
-<link rel="stylesheet" href="/sistema.css?v=7a49f001bd30">
-<script src="/sistema.js?v=7a49f001bd30" defer></script>
+<link rel="stylesheet" href="/paginas/estadisticas.css?v=d9aaebb11ce9">
+<link rel="stylesheet" href="/sistema.css?v=d9aaebb11ce9">
+<script src="/sistema.js?v=d9aaebb11ce9" defer></script>
 </head>
 <body data-pagina="estadisticas">
   <header class="sup vidrio">
@@ -115,24 +115,36 @@
       <details class="grupo" id="bEditor"><summary>Región de cada tienda</summary><div id="bTiendas"></div></details>
       <p class="nota" id="bNota"></p>
 
+      <h2 class="gtit">Partidas anotadas <span id="tPartidas"></span></h2>
+      <div class="grupo">
+        <div class="controles"><label><input type="checkbox" id="pPrincipal"> Agrupar por el Pokémon principal</label></div>
+        <div id="pRank"></div>
+      </div>
+      <div class="grupo">
+        <div class="controles"><label>Enfrentamientos de <select id="pVs"></select></label></div>
+        <div id="pMatch"></div>
+      </div>
+      <p class="nota" id="pNota"></p>
+
       <p class="nota" id="notas"></p>
     </div>
   </main>
 
-<script src="config.js?v=7a49f001bd30"></script>
+<script src="config.js?v=d9aaebb11ce9"></script>
 <!-- ▌BLOQUE 2 · Módulos — Imports. -->
 <script type="module">
 import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta } from "./sesion.js?v=7a49f001bd30";
-import { nombreTienda } from "./sala.js?v=7a49f001bd30";
-import { contarEnLinea } from "./presencia.js?v=7a49f001bd30";
-import { historialUnaVez } from "./historial.js?v=7a49f001bd30";
-import { barras } from "./graficos.js?v=7a49f001bd30";
-import { norm } from "./insignias.js?v=7a49f001bd30";
-import { claveGlobal } from "./clasificacion.js?v=7a49f001bd30";
-import { cargarEstandar } from "./listamazo.js?v=7a49f001bd30";
-import { REGIONES, pokemonDe, clasificar, hash } from "./arquetipos.js?v=7a49f001bd30";
+import { db, auth, enEmulador, urlCuenta } from "./sesion.js?v=d9aaebb11ce9";
+import { nombreTienda } from "./sala.js?v=d9aaebb11ce9";
+import { contarEnLinea } from "./presencia.js?v=d9aaebb11ce9";
+import { historialUnaVez } from "./historial.js?v=d9aaebb11ce9";
+import { resumen, pctTxt, recTxt } from "./partidas.js?v=d9aaebb11ce9";
+import { barras } from "./graficos.js?v=d9aaebb11ce9";
+import { norm } from "./insignias.js?v=d9aaebb11ce9";
+import { claveGlobal } from "./clasificacion.js?v=d9aaebb11ce9";
+import { cargarEstandar } from "./listamazo.js?v=d9aaebb11ce9";
+import { REGIONES, pokemonDe, clasificar, hash } from "./arquetipos.js?v=d9aaebb11ce9";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 3 · Arranque ══════════════════════════════════════════════════════════
@@ -186,12 +198,13 @@ let D = null, DIAS = 30;
 async function cargar(){
   $("leido").textContent = "Leyendo…";
   const leer = r => get(ref(db, r)).then(s => s.val() || {}, () => null);
-  const [usuarios, altas, tiendas, solicitudes, stats, statsMazos] = await Promise.all(["usuarios", "altas", "tiendas", "solicitudes", "stats", "statsMazos"].map(leer));
+  const [usuarios, altas, tiendas, solicitudes, stats, statsMazos, partidas] = await Promise.all(["usuarios", "altas", "tiendas", "solicitudes", "stats", "statsMazos", "partidas"].map(leer));
   BZ = statsMazos || {};
+  PT = Object.entries(partidas || {}).flatMap(([u, gs]) => Object.values(gs || {}).map(g => ({ ...g, u })));
   const hist = {};
   await Promise.all(Object.keys(tiendas || {}).map(id => historialUnaVez(db, id).then(h => hist[id] = h || {})));
   D = { usuarios: usuarios || {}, altas: altas || {}, tiendas: tiendas || {}, solicitudes: solicitudes || {}, stats: stats || {}, hist,
-        sinLeer: [["usuarios", usuarios], ["solicitudes", solicitudes], ["stats", stats], ["statsMazos", statsMazos]].filter(([, v]) => v === null).map(([k]) => k) };
+        sinLeer: [["usuarios", usuarios], ["solicitudes", solicitudes], ["stats", stats], ["statsMazos", statsMazos], ["partidas", partidas]].filter(([, v]) => v === null).map(([k]) => k) };
   $("leido").textContent = "Al " + new Date().toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
   pintar();
   if (statsMazos !== null) sincronizar();
@@ -256,8 +269,38 @@ function pintarBarajas(){
   $("bNota").innerHTML = "Cada lista cuenta una vez. La baraja se deduce de las cartas: el Pokémon (o los dos) con más peso, contando más las ex, las Mega y las evoluciones; no es un registro oficial de mazos." +
     (sin ? " <b>" + sin + (sin === 1 ? " tienda no tiene" : " tiendas no tienen") + " región:</b> asígnala en «Región de cada tienda»." : "");
   CSVB = { filas: cuenta(L, r => r.reg + "|" + r.arquetipo) };
+  pintarPartidas();
 }
 let CSVB = null;
+
+/* ▌BLOQUE 5c · Partidas anotadas ════════════════════════════════════════════════
+   Lo que anotan los jugadores en «Mis partidas» (partidas/<uid>/<id>, partidas.js): su baraja, la del rival y el resultado de
+   cada ronda. Mismo período, región (la que marcó el jugador) y formato que Barajas. El winrate no cuenta espejos ni byes.
+   ponytail: cada torneo anotado cuenta igual, sin verificar; si alguien infla los números se ve en «Jugadores» (personas
+   distintas) y se puede filtrar por cuenta cuando haga falta. */
+let PT = [];
+function pintarPartidas(){
+  const { desde, hasta } = rango(), fm = $("bFmt").value, reg = $("bReg").value;
+  const pri = $("pPrincipal").checked ? b => String(b || "").split(" + ")[0] : b => b;   // «Raging Bolt ex + Ogerpon» → «Raging Bolt ex»
+  const L = PT.filter(g => g.f >= desde && g.f <= hasta && (!fm || g.fm === fm) && (!reg || (g.reg || "Sin región") === reg))
+    .map(g => ({ ...g, mia: pri(g.mia), r: (g.r || []).map(x => x && x.op ? { ...x, op: pri(x.op) } : x) }));
+  const R = resumen(L, { espejos: false }), jug = new Set(L.map(g => g.u)).size, rondas = R.reduce((a, d) => a + d.G + d.P + d.E, 0);
+  $("tPartidas").textContent = fmtN(L.length) + (L.length === 1 ? " torneo" : " torneos") + " · " + jug + (jug === 1 ? " jugador" : " jugadores") + (reg ? " · " + reg : "");
+  $("pRank").innerHTML = R.length ? '<table class="t"><tr><th>Baraja</th><th class="n">Jugadores</th><th class="n">Torneos</th><th class="n">%</th><th class="n">Como rival</th><th class="n">Récord</th><th class="n">Winrate</th></tr>' +
+    R.slice(0, 40).map((d, i) => "<tr><td>" + (i + 1) + ". " + esc(d.baraja) + '</td><td class="n">' + (d.torneos ? d.jugadores + '</td><td class="n">' + d.torneos + '</td><td class="n">' + pct(d.torneos, L.length) : '—</td><td class="n">—</td><td class="n">—') +
+      '</td><td class="n">' + d.enfrentada + '</td><td class="n">' + (d.torneos ? recTxt(d) : "—") + '</td><td class="n"><b>' + pctTxt(d.wr) + "</b></td></tr>").join("") + "</table>"
+    : '<div class="vacio">Todavía nadie anota partidas en este período. Los jugadores lo hacen en «Mis partidas» (desde su muro o su cuenta).</div>';
+  const sel = $("pVs"), antes = sel.value, con = R.filter(d => d.torneos);
+  sel.innerHTML = con.map(d => "<option>" + esc(d.baraja) + "</option>").join("") || "<option value=\"\">—</option>";
+  if (con.some(d => d.baraja === antes)) sel.value = antes;
+  const d = con.find(x => x.baraja === sel.value);
+  $("pMatch").innerHTML = d && d.vs.length ? '<table class="t"><tr><th>Contra</th><th class="n">Partidas</th><th class="n">Récord</th><th class="n">Winrate</th></tr>' +
+    d.vs.map(v => "<tr><td>" + esc(v.op) + (v.op === d.baraja ? " <small>espejo</small>" : "") + '</td><td class="n">' + v.n + '</td><td class="n">' + recTxt(v) + '</td><td class="n">' + pctTxt(v.wr) + "</td></tr>").join("") + "</table>"
+    : '<div class="vacio">Sin enfrentamientos anotados.</div>';
+  $("pNota").textContent = fmtN(rondas) + " partidas entre barajas distintas. «Como rival»: cuántas veces otros la anotaron enfrente (cuenta aunque nadie la anote como suya). " +
+    "Los empates cuentan como partidas no ganadas. Lo anotan los propios jugadores: no es un registro oficial.";
+}
+$("pVs").onchange = $("pPrincipal").onchange = pintarPartidas;
 $("bReg").onchange = $("bFmt").onchange = pintarBarajas;
 $("bSync").onclick = sincronizar;
 $("bTiendas").onchange = async e => {
