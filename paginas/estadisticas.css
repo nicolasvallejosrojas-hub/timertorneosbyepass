@@ -99,3 +99,4 @@
 [data-pagina="estadisticas"] .cifra:nth-child(3n+2) {background:var(--amarillo-suave)}
 [data-pagina="estadisticas"] .cifra:nth-child(3n) {background:var(--menta)}
 @media(max-width:600px) {[data-pagina="estadisticas"] main.ancho{padding-top:30px}[data-pagina="estadisticas"] .grande{font-size:32px}[data-pagina="estadisticas"] .cifra{padding:19px}}
+  table.t.matriz td small{display:block;font-size:var(--t1);color:var(--apagado);} table.t.matriz .espejo{color:var(--apagado);}

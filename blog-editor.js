@@ -9,9 +9,9 @@
    a los pocos segundos; un artículo publicado se cambia con «Guardar cambios» (así no se publica algo a medio escribir). */
 import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getStorage, connectStorageEmulator, ref as sref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { app, db, auth } from "./sesion.js?v=a7d81edb2d2d";
-import { limpiarHtml } from "./blog-html.js?v=a7d81edb2d2d";
-import { norm } from "./listamazo.js?v=a7d81edb2d2d";
+import { app, db, auth } from "./sesion.js?v=11231c1e2ccf";
+import { limpiarHtml } from "./blog-html.js?v=11231c1e2ccf";
+import { norm } from "./listamazo.js?v=11231c1e2ccf";
 
 const st = getStorage(app);
 if (typeof EMULADOR !== "undefined" && EMULADOR) connectStorageEmulator(st, EMULADOR.host, EMULADOR.storage);

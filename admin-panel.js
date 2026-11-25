@@ -1,37 +1,39 @@
-import { montarIdentidad, aplicarMarca } from './identidad.js?v=a7d81edb2d2d';
-import { planPublicacion } from "./admin-publicacion.js?v=a7d81edb2d2d";
-import { avisarError } from "./errores.js?v=a7d81edb2d2d";
+import { montarIdentidad, aplicarMarca } from './identidad.js?v=11231c1e2ccf';
+import { planPublicacion } from "./admin-publicacion.js?v=11231c1e2ccf";
+import { avisarError } from "./errores.js?v=11231c1e2ccf";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=a7d81edb2d2d";
-import { activarPush, renovarPush, pushActivo } from "./push.js?v=a7d81edb2d2d";
-import { qrImg, qrPng } from "./qr.js?v=a7d81edb2d2d";
-import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=a7d81edb2d2d";
-import { vigilar } from "./mantenimiento.js?v=a7d81edb2d2d";
-import { estoyEnLinea } from "./presencia.js?v=a7d81edb2d2d";
-import { barras } from "./graficos.js?v=a7d81edb2d2d";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=a7d81edb2d2d";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=a7d81edb2d2d";
-import { planClaves } from "./jugadores.js?v=a7d81edb2d2d";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=a7d81edb2d2d";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=11231c1e2ccf";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=11231c1e2ccf";
+import { qrImg, qrPng } from "./qr.js?v=11231c1e2ccf";
+import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=11231c1e2ccf";
+import { vigilar } from "./mantenimiento.js?v=11231c1e2ccf";
+import { estoyEnLinea } from "./presencia.js?v=11231c1e2ccf";
+import { barras } from "./graficos.js?v=11231c1e2ccf";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=11231c1e2ccf";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=11231c1e2ccf";
+import { planClaves } from "./jugadores.js?v=11231c1e2ccf";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=11231c1e2ccf";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=a7d81edb2d2d";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=11231c1e2ccf";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
-         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=a7d81edb2d2d";
+         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=11231c1e2ccf";
 /* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
-const entregarTabla = datos => import("./tablafinal.js?v=a7d81edb2d2d").then(m => m.entregarTabla(datos));
-const entregarCalendario = datos => import("./calendarioimg.js?v=a7d81edb2d2d").then(m => m.entregarCalendario(datos));
-const dibujarCalendario = datos => import("./calendarioimg.js?v=a7d81edb2d2d").then(m => m.dibujarCalendario(datos));
-const entregarFechas = datos => import("./calendarioimg.js?v=a7d81edb2d2d").then(m => m.entregarFechas(datos));
-const dibujarFechas = datos => import("./calendarioimg.js?v=a7d81edb2d2d").then(m => m.dibujarFechas(datos));
+const entregarTabla = datos => import("./tablafinal.js?v=11231c1e2ccf").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=11231c1e2ccf").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=11231c1e2ccf").then(m => m.dibujarCalendario(datos));
+const entregarFechas = datos => import("./calendarioimg.js?v=11231c1e2ccf").then(m => m.entregarFechas(datos));
+const dibujarFechas = datos => import("./calendarioimg.js?v=11231c1e2ccf").then(m => m.dibujarFechas(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
-import { celdaCsv } from "./csv.js?v=a7d81edb2d2d";
-import { vistaDe, publicable } from "./vistapub.js?v=a7d81edb2d2d";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=a7d81edb2d2d";
+import { celdaCsv } from "./csv.js?v=11231c1e2ccf";
+import { vistaDe, publicable } from "./vistapub.js?v=11231c1e2ccf";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=11231c1e2ccf";
+import { pokemonDe, clasificar } from "./arquetipos.js?v=11231c1e2ccf";
+import { rondasDesde, tipoDe } from "./partidas.js?v=11231c1e2ccf";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
@@ -1158,7 +1160,7 @@ function renderClock(){
 let latidoPagina = null;
 const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250); };
 try {
-  const w = new Worker("reloj-worker.js?v=a7d81edb2d2d");
+  const w = new Worker("reloj-worker.js?v=11231c1e2ccf");
   w.onmessage = () => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
   w.onerror = latidoDePagina;
 } catch(e){ latidoDePagina(); }
@@ -2133,6 +2135,40 @@ function anotarJugo(uids){
   (uids || []).forEach(u => { if (u) r["jugo/" + u + "/" + TIENDA] = true; });
   if (Object.keys(r).length) update(ref(db), r).catch(e => console.warn("No se pudo anotar dónde jugó cada jugador", e));
 }
+/* «Mis partidas» con un toque: a cada fila con cuenta le deja sus rondas (y la baraja de cada rival, sacada de su lista de
+   inscripción) en prellenado/<uid>/<tienda>/<torneo>; el jugador las ve en Mis partidas y las anota (salen «verificadas»).
+   Las listas: las de los eventos con inscripción de esa semana, por ID de jugador (archivo de TOM), por cuenta o por nombre.
+   Es aparte: si falla (reglas sin publicar), el torneo queda archivado igual. Devuelve a cuántos les llegó. */
+async function enviarPartidas(tid, t, ids){
+  if (!t || !t.partidas || !(t.standings || []).some(f => f.uid)) return 0;
+  if (!ids) ids = await get(ref(db, "idsHistorial/" + TIENDA + "/" + tid)).then(x => x.val() || {}, () => ({}));
+  const evs = AGENDA.filter(ev => ev.inscripcion && ev.fecha && Math.abs(Date.parse(ev.fecha) - Date.parse(t.fecha)) <= 7 * 864e5);
+  const porId = {}, porUid = {}, porNom = {};
+  let fm = "", tipo = "";
+  for (const ev of evs){
+    const v = (await get(ref(db, "inscripciones/" + TIENDA + "/" + ev.id)).catch(() => null))?.val() || {};
+    Object.entries(v).forEach(([uid, ins]) => { if (!ins || !ins.lista) return;
+      if (ins.playerId) porId[String(ins.playerId)] = ins.lista;
+      porUid[uid] = ins.lista;
+      [[ins.nombre, ins.apellido].filter(Boolean).join(" "), ins.nick].forEach(n => { if (n) porNom[normNombre(n)] = ins.lista; }); });
+    if (Object.keys(v).length){ fm = fm || (ev.inscripcion.formato === "expandido" ? "expandido" : "estandar"); tipo = tipo || tipoDe(ev.tipo || ev.titulo); }
+  }
+  const base = Object.keys(porUid).length ? await cargarEstandar() : null;
+  const barajas = t.standings.map((f, i) => {
+    const lista = porId[String(ids[i] || "")] || (f.uid && porUid[f.uid]) || (!f.reservado && porNom[normNombre(f.name)]);
+    const a = lista && base ? clasificar(pokemonDe(lista, base)).arquetipo : "";
+    return a && a !== "Sin clasificar" ? a.slice(0, 80) : "";
+  });
+  const rutas = {}, ahora = Date.now(), tienda = nombreDeLaTienda().slice(0, 80);
+  t.standings.forEach((f, i) => {
+    const r = rondasDesde(t.partidas, i, barajas);
+    if (!f.uid || !r.length) return;
+    rutas["prellenado/" + f.uid + "/" + TIENDA + "/" + tid] = { f: t.fecha, nombre: String(t.nombre || "Torneo").slice(0, 120), r: r.slice(0, 20), creado: ahora,
+      ...(tienda ? { tienda } : {}), ...(fm ? { fm } : {}), ...(tipo ? { tipo } : {}), ...(barajas[i] ? { mia: barajas[i] } : {}) };
+  });
+  if (Object.keys(rutas).length) await update(ref(db), rutas);
+  return Object.keys(rutas).length;
+}
 function escucharEnlaces(){
   onValue(ref(db, "enlaces/" + TIENDA), s => {
     const v = s.val() || {};
@@ -2301,6 +2337,7 @@ async function archivarTorneo(){
     /* Aparte y sin bloquear: si las reglas nuevas no están publicadas, se archiva igual. */
     if (Object.keys(ids).length) set(ref(db, "idsHistorial/" + TIENDA + "/" + clave), ids).catch(e => avisarError(e));
     anotarJugo(registro.standings.map(f => f.uid));
+    enviarPartidas(clave, registro, ids).catch(e => console.warn("No se pudieron dejar las partidas para Mis partidas", e));
     $("archMsg").innerHTML = '<span class="ok">Archivado ✓ ' + esc(parsed.name) +
                              ' &middot; ' + fechaLarga(f) +
                              (enlazadas ? ' &middot; ' + enlazadas +
@@ -2517,6 +2554,17 @@ function pintarHist(){
     bj.title = "Ver cada fila y enlazarla con la cuenta de su jugador";
     bj.onclick = () => { HIST_ABIERTO = HIST_ABIERTO === id ? null : id; pintarHist(); };
     row.insertBefore(bj, b);
+    if (t.partidas){
+      const bp = document.createElement("button");
+      bp.className = "small sec"; bp.textContent = "Enviar partidas";
+      bp.title = "Deja a cada jugador con cuenta sus rondas en «Mis partidas», para que las anote con un toque (con la baraja de cada rival, si se inscribieron con lista)";
+      bp.onclick = async () => {
+        bp.disabled = true;
+        try { const n = await enviarPartidas(id, t); bp.textContent = n ? "Enviadas a " + n : "Nadie con cuenta"; }
+        catch(e){ bp.disabled = false; alert(mensajeConexion(e) + " (¿publicaste las reglas nuevas?)"); }
+      };
+      row.insertBefore(bp, b);
+    }
     $("histList").appendChild(row);
     if (HIST_ABIERTO === id) $("histList").appendChild(filasEnlace(id, t));
   });
@@ -2868,7 +2916,10 @@ async function archivarPagina(){
     [rutaT("archivado")]: ahora };
   Object.keys(TN.jugadores || {}).forEach(id => { if (BASEJ[id]) rutas[rutaJ(id) + "/ultimo"] = ahora; });
   $("tnArchivar").disabled = true;
-  try { await escribirT(rutas, false); anotarJugo(uids); }
+  try {
+    await escribirT(rutas, false); anotarJugo(uids);
+    enviarPartidas(clave, rutas[BASE_T + "/historial/" + clave], {}).catch(e => console.warn("No se pudieron dejar las partidas para Mis partidas", e));
+  }
   catch(e){ tnFallo(e); $("tnArchivar").disabled = false; }
 }
 
@@ -4466,7 +4517,7 @@ async function fiAbrir(){
   const h = new Date(), a = mesVista ? mesVista.a : h.getFullYear(), m = mesVista ? mesVista.m : h.getMonth();
   if (!fiMes || fiMes.ym !== ymDe(a, m) && !fiMes.cambio){ const d = await imagenDelMes(a, m); fiMes = { ym: ymDe(a, m), a, m, datos: d ? { ...d } : null, cambio: false }; if (fiBorrador) fiControles(); }
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
-  FONDO_DEF = (await import("./fondoimg.js?v=a7d81edb2d2d")).FONDO_DEF;
+  FONDO_DEF = (await import("./fondoimg.js?v=11231c1e2ccf")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };
@@ -4505,7 +4556,7 @@ $("fiCentrar").onclick = () => { const x = fiEncuadrable(); if (!x) return; Obje
   const prev = $("fiPrev");
   prev.addEventListener("pointerdown", async e => {
     const x = fiEncuadrable(), cv = prev.querySelector("canvas"); if (!x || !cv) return;
-    const { cargarImagen, encuadre } = await import("./fondoimg.js?v=a7d81edb2d2d"), img = await cargarImagen(x.fondo); if (!img) return;
+    const { cargarImagen, encuadre } = await import("./fondoimg.js?v=11231c1e2ccf"), img = await cargarImagen(x.fondo); if (!img) return;
     const p = encuadre(cv.width, cv.height, img, x);
     ini = { x: e.clientX, y: e.clientY, fx: x.focoX || 0, fy: x.focoY || 0, k: cv.width / cv.getBoundingClientRect().width, sobraX: p.w - cv.width, sobraY: p.h - cv.height, obj: x };
     prev.setPointerCapture(e.pointerId); prev.classList.add("arrastrando");

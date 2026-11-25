@@ -26,7 +26,7 @@
    Lo usan el muro (perfil propio y ajeno) y el panel (las de evento). No lee
    nada del navegador al cargarse, así que se puede probar con node.
    ============================================================ */
-import { clasificarPorCategoria, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=a7d81edb2d2d";
+import { clasificarPorCategoria, mesDe, nombreMes, PUNTOS_DEF, timerDe, deTimer, claveJugador } from "./clasificacion.js?v=11231c1e2ccf";
 
 /* ▌BLOQUE 1 · Catálogo e íconos ═════════════════════════════════════════════════
    Íconos SVG, medallas (permanentes) y parches (de tienda). */
@@ -58,6 +58,7 @@ export const ICONOS = {
   rayo:       svg('<path d="M13 3L5 13.5h6l-1 7.5 8-10.5h-6z"/>'),
   torta:      svg('<path d="M4 20.5h16v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 16c2 1.2 4 1.2 6 0s4-1.2 6 0 3 1 4 .5M12 11.5V8M12 5.5v.01"/>'),
   espadas:    svg('<path d="M5 19l7-7M19 19l-7-7M14.5 4.5h5v5L12 17M9.5 4.5h-5v5L12 17"/>'),
+  libreta:    svg('<rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>'),
   candado:    svg('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', 2.4),
 };
 /* Los que puede elegir una tienda para una insignia de evento. Las reglas de
@@ -170,7 +171,20 @@ export const PERMANENTES = [
     como: "Gana 5 partidas seguidas", logro: () => "5 partidas seguidas ganadas" },
   { id: "aniversario", nombre: "Aniversario", tono: "uva", ico: "calendario", niveles: [12], serie: "mesesCuenta",
     como: "Cumple un año con cuenta", logro: () => "Un año con cuenta", conAlta: true },
+  /* De Mis partidas (privadas): solo en el perfil propio; a los demás no se les puede comprobar. */
+  { id: "analista", nombre: "Analista", tono: "menta", ico: "libreta", niveles: [5, 15, 30], serie: "anotados", propia: true,
+    como: "Anota 5 torneos en Mis partidas", logro: v => v + " torneos anotados" },
+  { id: "especialista", nombre: "Especialista", tono: "noche", ico: "estrella", niveles: [10], serie: "conUna", propia: true,
+    como: "Anota 10 torneos con la misma baraja", logro: () => "10 torneos con la misma baraja" },
 ];
+/* Las series de Mis partidas: la fecha de cada torneo anotado y, para «Especialista», cada vez que una baraja suma un
+   torneo más que la mejor hasta ahí. */
+export function seriesPartidas(regs){
+  const xs = Object.values(regs || {}).filter(g => g && g.f).sort((a, b) => a.f < b.f ? -1 : a.f > b.f ? 1 : 0), por = new Map(), conUna = [];
+  let mejor = 0;
+  xs.forEach(g => { const n = (por.get(g.mia) || 0) + 1; por.set(g.mia, n); if (n > mejor){ mejor = n; conUna.push(g.f); } });
+  return { anotados: xs.map(g => g.f), conUna };
+}
 
 /* La fecha en que se sumó cada unidad de cada cuenta, con todas las tiendas
    juntas. `tiendas` es { sala: historial }. */
@@ -212,8 +226,8 @@ export function series(tiendas, esDe, alta){
 
 /* Las permanentes de un jugador, como fichas listas para dibujar. `alta` y
    `numero` (su orden de registro) solo se conocen si se sabe su uid. */
-export function permanentes({ tiendas, esDe, alta = null, numero = null, tester = false }){
-  const s = series(tiendas, esDe, alta);
+export function permanentes({ tiendas, esDe, alta = null, numero = null, tester = false, partidas = null }){
+  const s = { ...series(tiendas, esDe, alta), ...(partidas ? seriesPartidas(partidas) : {}) };
   return PERMANENTES.map(def => {
     const base = { key: "p:" + def.id, tipo: "perm", ico: def.ico, tono: def.tono, como: def.como };
     if (def.id === "beta"){
@@ -224,6 +238,7 @@ export function permanentes({ tiendas, esDe, alta = null, numero = null, tester 
                     rareza: "Solo en la beta", fecha: alta ? isoLocal(new Date(alta)) : null } : null;
     }
     if (def.conAlta && !alta) return null;
+    if (def.propia && !partidas) return null;
     const r = evaluar(def.niveles, s[def.serie]), conNiveles = def.niveles.length > 1;
     return { ...base, ok: r.ok, anillo: conNiveles ? r.nivel : 0, marca: base.key + (conNiveles ? ":" + r.nivel : ""),
              titulo: def.nombre + (conNiveles && r.ok ? " · " + NIVELES[r.nivel - 1] : ""),

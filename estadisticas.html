@@ -13,19 +13,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=a7d81edb2d2d"></script>
+<script src="tema.js?v=11231c1e2ccf"></script>
 <meta name="robots" content="noindex">
 <title>Estadísticas — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=a7d81edb2d2d">
-<link rel="stylesheet" href="estilo.css?v=a7d81edb2d2d">
+<link rel="stylesheet" href="tokens.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="estilo.css?v=11231c1e2ccf">
 <!-- ▌BLOQUE 1 · Estilos — Controles, cifras, gráficos y tablas. -->
 
-<link rel="stylesheet" href="/paginas/estadisticas.css?v=a7d81edb2d2d">
-<link rel="stylesheet" href="/sistema.css?v=a7d81edb2d2d">
-<script src="/sistema.js?v=a7d81edb2d2d" defer></script>
+<link rel="stylesheet" href="/paginas/estadisticas.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="/sistema.css?v=11231c1e2ccf">
+<script src="/sistema.js?v=11231c1e2ccf" defer></script>
 </head>
 <body data-pagina="estadisticas">
   <header class="sup vidrio">
@@ -117,34 +117,49 @@
 
       <h2 class="gtit">Partidas anotadas <span id="tPartidas"></span></h2>
       <div class="grupo desliza">
-        <div class="controles"><label><input type="checkbox" id="pPrincipal"> Agrupar por el Pokémon principal</label></div>
+        <div class="controles"><label><input type="checkbox" id="pPrincipal"> Agrupar por el Pokémon principal</label>
+          <label><input type="checkbox" id="pVer"> Solo verificadas (rondas de la tienda)</label>
+          <span class="hueco"></span><span id="pPubMsg"></span>
+          <button class="btn" id="pPub" title="Guarda el meta de cada mes (últimos 12, Estándar, sin nombres) para la página pública «Meta de Chile»">Publicar el meta</button>
+          <a class="btn" id="pVerPub" href="meta-chile.html" target="_blank" rel="noopener">Ver la página pública</a></div>
         <div id="pRank"></div>
       </div>
-      <div class="grupo desliza">
-        <div class="controles"><label>Enfrentamientos de <select id="pVs"></select></label></div>
-        <div id="pMatch"></div>
+      <div class="dos">
+        <div>
+          <h2 class="gtit">Evolución por mes</h2>
+          <div class="grupo desliza" id="pEvol"></div>
+        </div>
+        <div>
+          <h2 class="gtit">Enfrentamientos de una baraja</h2>
+          <div class="grupo desliza">
+            <div class="controles"><label><select id="pVs" aria-label="Baraja"></select></label></div>
+            <div id="pMatch"></div>
+          </div>
+        </div>
       </div>
+      <h2 class="gtit">Matriz de enfrentamientos</h2>
+      <div class="grupo desliza" id="pMatriz"></div>
       <p class="nota" id="pNota"></p>
 
       <p class="nota" id="notas"></p>
     </div>
   </main>
 
-<script src="config.js?v=a7d81edb2d2d"></script>
+<script src="config.js?v=11231c1e2ccf"></script>
 <!-- ▌BLOQUE 2 · Módulos — Imports. -->
 <script type="module">
 import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta } from "./sesion.js?v=a7d81edb2d2d";
-import { nombreTienda } from "./sala.js?v=a7d81edb2d2d";
-import { contarEnLinea } from "./presencia.js?v=a7d81edb2d2d";
-import { historialUnaVez } from "./historial.js?v=a7d81edb2d2d";
-import { resumen, pctTxt, recTxt } from "./partidas.js?v=a7d81edb2d2d";
-import { barras } from "./graficos.js?v=a7d81edb2d2d";
-import { norm } from "./insignias.js?v=a7d81edb2d2d";
-import { claveGlobal } from "./clasificacion.js?v=a7d81edb2d2d";
-import { cargarEstandar } from "./listamazo.js?v=a7d81edb2d2d";
-import { REGIONES, pokemonDe, clasificar, hash } from "./arquetipos.js?v=a7d81edb2d2d";
+import { db, auth, enEmulador, urlCuenta } from "./sesion.js?v=11231c1e2ccf";
+import { nombreTienda } from "./sala.js?v=11231c1e2ccf";
+import { contarEnLinea } from "./presencia.js?v=11231c1e2ccf";
+import { historialUnaVez } from "./historial.js?v=11231c1e2ccf";
+import { resumen, pctTxt, recTxt, verificada, instantanea } from "./partidas.js?v=11231c1e2ccf";
+import { barras } from "./graficos.js?v=11231c1e2ccf";
+import { norm } from "./insignias.js?v=11231c1e2ccf";
+import { claveGlobal } from "./clasificacion.js?v=11231c1e2ccf";
+import { cargarEstandar } from "./listamazo.js?v=11231c1e2ccf";
+import { REGIONES, pokemonDe, clasificar, hash } from "./arquetipos.js?v=11231c1e2ccf";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 3 · Arranque ══════════════════════════════════════════════════════════
@@ -198,9 +213,11 @@ let D = null, DIAS = 30;
 async function cargar(){
   $("leido").textContent = "Leyendo…";
   const leer = r => get(ref(db, r)).then(s => s.val() || {}, () => null);
-  const [usuarios, altas, tiendas, solicitudes, stats, statsMazos, partidas] = await Promise.all(["usuarios", "altas", "tiendas", "solicitudes", "stats", "statsMazos", "partidas"].map(leer));
+  const [usuarios, altas, tiendas, solicitudes, stats, statsMazos, partidas, prellenado] = await Promise.all(["usuarios", "altas", "tiendas", "solicitudes", "stats", "statsMazos", "partidas", "prellenado"].map(leer));
   BZ = statsMazos || {};
-  PT = Object.entries(partidas || {}).flatMap(([u, gs]) => Object.values(gs || {}).map(g => ({ ...g, u })));
+  /* verificada: anotada desde lo que dejó la tienda y con las mismas partidas (partidas.js verificada) */
+  const preDe = (u, src) => { const [t, tor] = String(src || "").split("/"); return ((((prellenado || {})[u] || {})[t]) || {})[tor]; };
+  PT = Object.entries(partidas || {}).flatMap(([u, gs]) => Object.values(gs || {}).map(g => ({ ...g, u, ver: !!g.src && verificada(g, preDe(u, g.src)) })));
   const hist = {};
   await Promise.all(Object.keys(tiendas || {}).map(id => historialUnaVez(db, id).then(h => hist[id] = h || {})));
   D = { usuarios: usuarios || {}, altas: altas || {}, tiendas: tiendas || {}, solicitudes: solicitudes || {}, stats: stats || {}, hist,
@@ -279,28 +296,60 @@ let CSVB = null;
    ponytail: cada torneo anotado cuenta igual, sin verificar; si alguien infla los números se ve en «Jugadores» (personas
    distintas) y se puede filtrar por cuenta cuando haga falta. */
 let PT = [];
+const pri = () => $("pPrincipal").checked ? b => String(b || "").split(" + ")[0] : b => b;   // «Raging Bolt ex + Ogerpon» → «Raging Bolt ex»
+const agrupar = (g, p) => ({ ...g, mia: p(g.mia), r: (g.r || []).map(x => x && x.op ? { ...x, op: p(x.op) } : x) });
+/* un fondo según el valor: winrate (verde sobre 50 %, rojo bajo) o cuota (el color de acción) */
+const tinte = (v, modo) => v == null ? "" : modo === "wr" ? ' style="background:color-mix(in srgb,var(' + (v >= .5 ? "--ok" : "--negativo") + ") " + Math.round(Math.min(1, Math.abs(v - .5) * 2.4) * 55) + '%,transparent)"'
+  : ' style="background:color-mix(in srgb,var(--accion) ' + Math.round(Math.min(1, v * 2.5) * 55) + '%,transparent)"';
 function pintarPartidas(){
-  const { desde, hasta } = rango(), fm = $("bFmt").value, reg = $("bReg").value;
-  const pri = $("pPrincipal").checked ? b => String(b || "").split(" + ")[0] : b => b;   // «Raging Bolt ex + Ogerpon» → «Raging Bolt ex»
-  const L = PT.filter(g => g.f >= desde && g.f <= hasta && (!fm || g.fm === fm) && (!reg || (g.reg || "Sin región") === reg))
-    .map(g => ({ ...g, mia: pri(g.mia), r: (g.r || []).map(x => x && x.op ? { ...x, op: pri(x.op) } : x) }));
-  const R = resumen(L, { espejos: false }), jug = new Set(L.map(g => g.u)).size, rondas = R.reduce((a, d) => a + d.G + d.P + d.E, 0);
-  $("tPartidas").textContent = fmtN(L.length) + (L.length === 1 ? " torneo" : " torneos") + " · " + jug + (jug === 1 ? " jugador" : " jugadores") + (reg ? " · " + reg : "");
+  const { desde, hasta } = rango(), fm = $("bFmt").value, reg = $("bReg").value, p = pri();
+  const L = PT.filter(g => g.f >= desde && g.f <= hasta && (!fm || g.fm === fm) && (!reg || (g.reg || "Sin región") === reg) && (!$("pVer").checked || g.ver)).map(g => agrupar(g, p));
+  const R = resumen(L, { espejos: false }), jug = new Set(L.map(g => g.u)).size, ver = L.filter(g => g.ver).length, rondas = R.reduce((a, d) => a + d.G + d.P + d.E, 0);
+  $("tPartidas").textContent = fmtN(L.length) + (L.length === 1 ? " torneo" : " torneos") + " · " + jug + (jug === 1 ? " jugador" : " jugadores") + " · " + ver + (ver === 1 ? " verificado" : " verificados") + (reg ? " · " + reg : "");
   $("pRank").innerHTML = R.length ? '<table class="t"><tr><th>Baraja</th><th class="n">Jugadores</th><th class="n">Torneos</th><th class="n">%</th><th class="n">Como rival</th><th class="n">Récord</th><th class="n">Winrate</th></tr>' +
     R.slice(0, 40).map((d, i) => "<tr><td>" + (i + 1) + ". " + esc(d.baraja) + '</td><td class="n">' + (d.torneos ? d.jugadores + '</td><td class="n">' + d.torneos + '</td><td class="n">' + pct(d.torneos, L.length) : '—</td><td class="n">—</td><td class="n">—') +
       '</td><td class="n">' + d.enfrentada + '</td><td class="n">' + (d.torneos ? recTxt(d) : "—") + '</td><td class="n"><b>' + pctTxt(d.wr) + "</b></td></tr>").join("") + "</table>"
     : '<div class="vacio">Todavía nadie anota partidas en este período. Los jugadores lo hacen en «Mis partidas» (desde su muro o su cuenta).</div>';
-  const sel = $("pVs"), antes = sel.value, con = R.filter(d => d.torneos);
+  const con = R.filter(d => d.torneos), top = con.slice(0, 8).map(d => d.baraja);
+  /* evolución: la cuota de las 8 más jugadas del período, mes a mes */
+  const meses = [...new Set(L.map(g => g.f.slice(0, 7)))].sort().slice(-12);
+  $("pEvol").innerHTML = top.length && meses.length ? '<table class="t"><tr><th>Baraja</th>' + meses.map(m => '<th class="n">' + MESES[+m.slice(5) - 1] + " " + m.slice(2, 4) + "</th>").join("") + "</tr>" +
+    top.map(b => "<tr><td>" + esc(b) + "</td>" + meses.map(m => { const xs = L.filter(g => g.f.startsWith(m)), n = xs.filter(g => g.mia === b).length, v = xs.length ? n / xs.length : null;
+      return '<td class="n"' + tinte(v, "cuota") + ">" + (xs.length ? Math.round(100 * v) + "%" : "—") + "</td>"; }).join("") + "</tr>").join("") + "</table>"
+    : '<div class="vacio">Sin datos.</div>';
+  /* matriz: fila contra columna (winrate de la fila), entre las 8 más jugadas */
+  $("pMatriz").innerHTML = top.length > 1 ? '<table class="t matriz"><tr><th>Fila contra…</th>' + top.map(b => '<th class="n" title="' + esc(b) + '">' + esc(b.split(" + ")[0].replace(/ ex$/, "")) + "</th>").join("") + "</tr>" +
+    top.map(a => { const d = con.find(x => x.baraja === a); return "<tr><td>" + esc(a) + "</td>" + top.map(b => { const v = d.vs.find(x => x.op === b);
+      return a === b ? '<td class="n espejo">—</td>' : '<td class="n"' + (v ? tinte(v.wr, "wr") : "") + ">" + (v ? pctTxt(v.wr) + "<small>" + v.n + "</small>" : "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"
+    : '<div class="vacio">Hacen falta al menos dos barajas con partidas.</div>';
+  const sel = $("pVs"), antes = sel.value;
   sel.innerHTML = con.map(d => "<option>" + esc(d.baraja) + "</option>").join("") || "<option value=\"\">—</option>";
   if (con.some(d => d.baraja === antes)) sel.value = antes;
   const d = con.find(x => x.baraja === sel.value);
   $("pMatch").innerHTML = d && d.vs.length ? '<table class="t"><tr><th>Contra</th><th class="n">Partidas</th><th class="n">Récord</th><th class="n">Winrate</th></tr>' +
-    d.vs.map(v => "<tr><td>" + esc(v.op) + (v.op === d.baraja ? " <small>espejo</small>" : "") + '</td><td class="n">' + v.n + '</td><td class="n">' + recTxt(v) + '</td><td class="n">' + pctTxt(v.wr) + "</td></tr>").join("") + "</table>"
+    d.vs.map(v => "<tr><td>" + esc(v.op) + (v.op === d.baraja ? " <small>espejo</small>" : "") + '</td><td class="n">' + v.n + '</td><td class="n">' + recTxt(v) + '</td><td class="n"' + tinte(v.wr, "wr") + ">" + pctTxt(v.wr) + "</td></tr>").join("") + "</table>"
     : '<div class="vacio">Sin enfrentamientos anotados.</div>';
   $("pNota").textContent = fmtN(rondas) + " partidas entre barajas distintas. «Como rival»: cuántas veces otros la anotaron enfrente (cuenta aunque nadie la anote como suya). " +
-    "Los empates cuentan como partidas no ganadas. Lo anotan los propios jugadores: no es un registro oficial.";
+    "Verificado: anotado desde las rondas que archivó la tienda, sin cambiar resultados ni rivales. Los empates cuentan como partidas no ganadas. Lo demás lo anotan los propios jugadores.";
 }
-$("pVs").onchange = $("pPrincipal").onchange = pintarPartidas;
+/* «Publicar el meta»: los últimos 12 meses con partidas, Estándar, como está el filtro de verificadas y de Pokémon principal; sin
+   nombres ni cuentas (partidas.js instantanea) en metaPublico/<AAAA-MM>, que lee cualquiera en meta-chile.html. */
+$("pPub").onclick = async () => {
+  const p = pri(), L = PT.filter(g => g.fm === "estandar" && (!$("pVer").checked || g.ver)).map(g => agrupar(g, p));
+  const meses = [...new Set(L.map(g => g.f.slice(0, 7)))].sort().slice(-12);
+  if (!meses.length) return $("pPubMsg").textContent = "No hay partidas de Estándar para publicar.";
+  if (!confirm("¿Publicar el meta de " + meses.length + (meses.length === 1 ? " mes" : " meses") + " (" + meses[0] + " a " + meses[meses.length - 1] + ")?\n\nQueda a la vista de todos en «Meta de Chile», sin nombres ni cuentas." + ($("pVer").checked ? "\nSolo con partidas verificadas." : ""))) return;
+  $("pPub").disabled = true; $("pPubMsg").textContent = "Publicando…";
+  try {
+    const ahora = Date.now(), rutas = {};
+    meses.forEach(m => { rutas[m] = { ...instantanea(L.filter(g => g.f.startsWith(m))), act: ahora, ...($("pVer").checked ? { soloVer: true } : {}), ...($("pPrincipal").checked ? { principal: true } : {}) }; });
+    await update(ref(db, "metaPublico"), rutas);
+    $("pPubMsg").textContent = "Publicado ✓ " + meses.length + (meses.length === 1 ? " mes" : " meses");
+  } catch(e){ console.warn(e); $("pPubMsg").textContent = "No se pudo publicar (¿publicaste las reglas nuevas?)"; }
+  $("pPub").disabled = false;
+};
+$("pVerPub").href = "meta-chile.html" + (EMU ? "?emu=1" : "");
+$("pVs").onchange = $("pPrincipal").onchange = $("pVer").onchange = pintarPartidas;
 $("bReg").onchange = $("bFmt").onchange = pintarBarajas;
 $("bSync").onclick = sincronizar;
 $("bTiendas").onchange = async e => {

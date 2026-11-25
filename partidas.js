@@ -7,7 +7,8 @@
        r: [ { op: "Gardevoir ex", res: "G" }, … ], creado, act }
    res: G ganó, P perdió, E empate, B bye (sin rival: no es partida y no cuenta).
    Las barajas se escriben como las arma arquetipos.js: uno o dos Pokémon con su nombre de carta en inglés, unidos por « + ». */
-import { norm } from "./listamazo.js?v=a7d81edb2d2d";
+import { norm } from "./listamazo.js?v=11231c1e2ccf";
+import { REGIONES } from "./arquetipos.js?v=11231c1e2ccf";
 
 export const TIPOS = { liga: "Liga / torneo local", challenge: "League Challenge", cup: "League Cup", regional: "Regional",
   especial: "Especial", internacional: "Internacional o Mundial", casual: "Casual / práctica", otro: "Otro" };
@@ -36,23 +37,60 @@ export const wr = o => { const n = o.G + o.P + o.E; return n ? o.G / n : null; }
 
 /* El resumen de muchos torneos anotados: por baraja, cuántos torneos, su récord y winrate, y contra qué barajas.
    espejos: false deja fuera las partidas contra la misma baraja del winrate (no dicen nada de ella), como el meta del torneo.
-   Los empates cuentan como jugadas no ganadas. jugadores: cuántas personas distintas (si cada torneo trae su uid en «u»). */
+   Los empates cuentan como jugadas no ganadas. jugadores: cuántas personas distintas (si cada torneo trae su uid en «u»).
+   p1 / p2: el récord empezando primero o segundo (las rondas que lo dicen). versiones: una por lista distinta (la copia que
+   guardó el torneo), con su récord, para ver cómo le fue a cada versión. */
 export function resumen(regs, { espejos = true } = {}){
   const por = new Map();
-  const de = k => por.get(k) || (por.set(k, { baraja: k, torneos: 0, jugadores: new Set(), G: 0, P: 0, E: 0, vs: new Map(), enfrentada: 0 }), por.get(k));
+  const cero = () => ({ G: 0, P: 0, E: 0 });
+  const de = k => por.get(k) || (por.set(k, { baraja: k, torneos: 0, jugadores: new Set(), G: 0, P: 0, E: 0, vs: new Map(), enfrentada: 0, p1: cero(), p2: cero(), versiones: new Map() }), por.get(k));
   for (const reg of regs){
     if (!reg || !reg.mia) continue;
     const d = de(reg.mia); d.torneos++; if (reg.u) d.jugadores.add(reg.u);
+    const v = reg.lista ? d.versiones.get(huella(reg.lista)) || (d.versiones.set(huella(reg.lista), { lista: reg.lista, nombre: reg.mazoNom || "", desde: reg.f, torneos: 0, ...cero() }), d.versiones.get(huella(reg.lista))) : null;
+    if (v){ v.torneos++; if (reg.f < v.desde) v.desde = reg.f; }
     for (const x of jugadas(reg)){
       if (!(x.res in { G: 1, P: 1, E: 1 })) continue;
       de(x.op).enfrentada++;
       const m = d.vs.get(x.op) || (d.vs.set(x.op, { G: 0, P: 0, E: 0 }), d.vs.get(x.op)); m[x.res]++;
-      if (espejos || x.op !== reg.mia) d[x.res]++;
+      if (espejos || x.op !== reg.mia){ d[x.res]++; if (x.pr === 1 || x.pr === 2) d["p" + x.pr][x.res]++; if (v) v[x.res]++; }
     }
   }
   return [...por.values()].map(d => ({ ...d, jugadores: d.jugadores.size, wr: wr(d),
+    versiones: [...d.versiones.values()].sort((a, b) => a.desde < b.desde ? -1 : 1),
     vs: [...d.vs].map(([op, o]) => ({ op, ...o, n: o.G + o.P + o.E, wr: wr(o) })).sort((a, b) => b.n - a.n || (a.op < b.op ? -1 : 1)) }))
     .sort((a, b) => b.torneos - a.torneos || b.enfrentada - a.enfrentada || (a.baraja < b.baraja ? -1 : 1));
 }
+/* La misma lista escrita igual da la misma huella (sin espacios de más ni líneas vacías). */
+const huella = lista => String(lista).split(/\r?\n/).map(l => l.trim().replace(/\s+/g, " ")).filter(Boolean).join("\n");
 export const pctTxt = x => x == null ? "—" : Math.round(100 * x) + "%";
 export const recTxt = o => o.G + "-" + o.P + (o.E ? "-" + o.E : "");
+
+/* ── Desde los torneos de ByePass ── Las partidas archivadas ([ronda, a, b, g], a/b = índice en la tabla final; g: 1 ganó a,
+   2 ganó b, 0 empate, 3 doble derrota) vistas por la fila «yo». barajas[i] = la baraja de la fila i (de su lista de inscripción)
+   o "": sin ella, la ronda va sin rival y el jugador lo escribe. Los byes no se archivan. */
+export function rondasDesde(partidas, yo, barajas = []){
+  return Object.values(partidas || {}).filter(p => p && (p[1] === yo || p[2] === yo)).sort((x, y) => x[0] - y[0])
+    .map(([, a, b, g]) => { const otro = a === yo ? b : a, res = g === 0 ? "E" : g === 3 ? "P" : (g === 1) === (a === yo) ? "G" : "P";
+      return barajas[otro] ? { op: barajas[otro], res } : { res }; });
+}
+/* El tipo de la agenda («League Cup», «Liga de los sábados»…) → el de Mis partidas. */
+export const tipoDe = s => /cup/i.test(s || "") ? "cup" : /challenge/i.test(s || "") ? "challenge" : /regional/i.test(s || "") ? "regional" : "liga";
+/* Un torneo anotado es «verificado» si sus partidas (sin byes) son las que archivó la tienda: mismos resultados, en orden, y el
+   mismo rival donde la tienda lo sabía. La baraja propia se puede corregir (la lista no siempre la dice bien). */
+export function verificada(g, pre){
+  if (!g || !pre || !pre.r) return false;
+  const mias = (g.r || []).filter(x => x && x.res !== "B"), suyas = Object.values(pre.r);
+  return mias.length === suyas.length && suyas.every((x, i) => mias[i].res === x.res && (!x.op || mias[i].op === x.op));
+}
+
+/* ── El meta que se publica (metaPublico/<AAAA-MM>, lo lee cualquiera en meta-chile.html) ── De los torneos de UN mes (cada uno
+   con su «u», para contar personas, y «ver» si es verificado): por baraja, torneos, jugadores, récord sin espejos, «como rival» y sus
+   enfrentamientos; y las 5 más jugadas de cada región. Sin cuentas ni nombres. La región solo si es una de las 16 (es una clave). */
+export function instantanea(regs){
+  const limpio = o => ({ G: o.G, P: o.P, E: o.E }), regDe = g => REGIONES.includes(g.reg) ? g.reg : "Sin región";
+  const R = resumen(regs, { espejos: false }).filter(d => d.torneos), reg = {};
+  for (const r of new Set(regs.map(regDe))) reg[r] = resumen(regs.filter(g => regDe(g) === r)).filter(d => d.torneos).slice(0, 5).map(d => ({ b: d.baraja, t: d.torneos }));
+  return { torneos: regs.length, jugadores: new Set(regs.map(g => g.u)).size, verif: regs.filter(g => g.ver).length, reg,
+    b: R.slice(0, 25).map(d => ({ b: d.baraja, t: d.torneos, j: d.jugadores, ri: d.enfrentada, ...limpio(d), vs: d.vs.slice(0, 12).map(v => ({ op: v.op, ...limpio(v) })) })) };
+}

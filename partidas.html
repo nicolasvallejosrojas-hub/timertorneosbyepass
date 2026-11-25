@@ -9,18 +9,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=a7d81edb2d2d"></script>
+<script src="tema.js?v=11231c1e2ccf"></script>
 <meta name="description" content="Anota con qué baraja jugaste cada torneo, contra qué barajas y cómo te fue.">
 <title>Mis partidas — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=a7d81edb2d2d">
-<link rel="stylesheet" href="estilo.css?v=a7d81edb2d2d">
-<link rel="stylesheet" href="/paginas/mazos.css?v=a7d81edb2d2d">
-<link rel="stylesheet" href="/paginas/partidas.css?v=a7d81edb2d2d">
-<link rel="stylesheet" href="/sistema.css?v=a7d81edb2d2d">
-<script src="/sistema.js?v=a7d81edb2d2d" defer></script>
+<link rel="stylesheet" href="tokens.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="estilo.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="/paginas/mazos.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="/paginas/partidas.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="/sistema.css?v=11231c1e2ccf">
+<script src="/sistema.js?v=11231c1e2ccf" defer></script>
 </head>
 <body data-pagina="mazos">
   <!-- ▌BLOQUE 1 · Marcado -->
@@ -29,29 +29,41 @@
     <div>
       <h1>Mis partidas</h1>
       <p class="meta">Anota con qué baraja jugaste cada torneo, contra qué barajas y cómo te fue en cada ronda. Ves tu winrate y tus
-        enfrentamientos, y con las partidas de todos armamos la estadística de las barajas que se juegan en Chile (sin tu nombre).</p>
+        enfrentamientos, y con las partidas de todos armamos la estadística de las barajas que se juegan en Chile (sin tu nombre).
+        <a id="aMeta" href="meta-chile.html">Ver el meta de Chile</a></p>
+      <p class="pista oculto" id="pushFila"><button class="enlace" type="button" id="bPush"></button> <span id="pushMsg" role="status"></span></p>
     </div>
 
     <div class="aviso oculto" id="sinSesion" role="status"></div>
+
+    <section class="caja oculto" id="vistaPendientes" aria-labelledby="tPend">
+      <h2 id="tPend">Para anotar · de tus tiendas</h2>
+      <p class="pista">Torneos que la tienda archivó con tus rondas y resultados (y la baraja de tus rivales si se inscribieron con lista).
+        Revisa, completa lo que falte y guárdalo: queda marcado como verificado.</p>
+      <div id="pendientes"></div>
+    </section>
 
     <section class="caja oculto" id="vistaResumen" aria-labelledby="tResumen">
       <h2 id="tResumen">Tus barajas <span id="tTotal"></span></h2>
       <div id="resumen"><p class="vacio">Cargando…</p></div>
       <div id="vsCaja" class="oculto">
         <h2 id="tVs"></h2>
+        <p class="pista" id="turnos"></p>
         <div id="vs"></div>
+        <div id="versiones"></div>
       </div>
     </section>
 
     <section class="caja oculto" id="vistaLista" aria-labelledby="tLista">
       <h2 id="tLista">Torneos anotados</h2>
       <div id="lista"></div>
-      <div class="acc"><button class="btn primario" type="button" id="nuevo">Anotar un torneo</button></div>
+      <div class="acc"><button class="btn primario" type="button" id="nuevo">Anotar un torneo</button><button class="btn" type="button" id="csv">Descargar CSV</button></div>
       <p class="pista" id="listaMsg" role="status"></p>
     </section>
 
     <section class="caja oculto" id="vistaEditor" aria-labelledby="tEditor">
       <h2 id="tEditor">Anotar un torneo</h2>
+      <p class="aviso oculto" id="deTienda" role="status"></p>
       <div class="pt-datos">
         <label class="campo"><span>Fecha</span><input type="date" id="fecha" required></label>
         <label class="campo"><span>Tipo de torneo</span><select id="tipo"></select></label>
@@ -60,12 +72,16 @@
         <label class="campo ancho"><span>Nombre o tienda (opcional)</span><input id="nombre" maxlength="80" autocomplete="off" placeholder="Ej.: League Cup de la tienda"></label>
       </div>
       <label class="campo"><span>Tu baraja</span><input id="mia" list="barajas" maxlength="80" autocomplete="off" placeholder="Ej.: Dragapult ex + Dusknoir"></label>
-      <div class="acc oculto" id="deMazos"><label class="campo" style="flex:1"><span>O sácala de Mis mazos</span><select id="mazo"></select></label></div>
-      <p class="pista">Uno o dos Pokémon, separados por «+». Elige de la lista para que tu baraja cuente igual que la de los demás.</p>
+      <div class="acc oculto" id="deMazos"><label class="campo" style="flex:1"><span>Con qué lista (de Mis mazos)</span><select id="mazo"></select></label></div>
+      <p class="pista" id="listaAct"></p>
+      <p class="pista">Uno o dos Pokémon, separados por «+». Elige de la lista para que tu baraja cuente igual que la de los demás.
+        Si eliges la lista de Mis mazos, se guarda una copia con el torneo: así comparas cómo te fue con cada versión.</p>
 
       <h2>Rondas</h2>
       <ol class="rondas" id="rondas"></ol>
       <div class="acc"><button class="btn" type="button" id="otraRonda">Agregar ronda</button></div>
+
+      <label class="campo"><span>Notas del torneo (opcional)</span><textarea id="nota" maxlength="500" rows="2" placeholder="Ej.: cambié 1 Boss por Counter Catcher; me faltó una Energía"></textarea></label>
 
       <div class="acc pt-pie">
         <button class="btn primario" type="button" id="guardar">Guardar el torneo</button>
@@ -76,42 +92,40 @@
     <datalist id="barajas"></datalist>
   </main>
 
-<script src="config.js?v=a7d81edb2d2d"></script>
+<script src="config.js?v=11231c1e2ccf"></script>
 <!-- ▌BLOQUE 2 · Módulos -->
 <script type="module">
 import { ref, get, set, remove, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, params, urlCuenta, urlMuro } from "./sesion.js?v=a7d81edb2d2d";
-import { cargarEstandar } from "./listamazo.js?v=a7d81edb2d2d";
-import { pokemonDe, clasificar, REGIONES } from "./arquetipos.js?v=a7d81edb2d2d";
-import { especieDe } from "./meta.js?v=a7d81edb2d2d";
-import { TIPOS, RES, MAX_RONDAS, vocabulario, canonica, record, wr, resumen, pctTxt, recTxt } from "./partidas.js?v=a7d81edb2d2d";
+import { app, db, auth, params, urlCuenta, urlMuro, enEmulador } from "./sesion.js?v=11231c1e2ccf";
+import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=11231c1e2ccf";
+import { cargarEstandar } from "./listamazo.js?v=11231c1e2ccf";
+import { pokemonDe, clasificar, REGIONES } from "./arquetipos.js?v=11231c1e2ccf";
+import { armarCartas } from "./analisis.js?v=11231c1e2ccf";
+import { spr, respaldoSprites } from "./metaimg.js?v=11231c1e2ccf";
+import { celdaCsv } from "./csv.js?v=11231c1e2ccf";
+import { TIPOS, RES, MAX_RONDAS, vocabulario, canonica, record, wr, resumen, pctTxt, recTxt } from "./partidas.js?v=11231c1e2ccf";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 3 · Mis partidas ══════════════════════════════════════════════════════ */
-let UID = null, REGS = {}, MAZOS = {}, VOC = new Map(), EDITANDO = null, SUCIO = false, VER_VS = null;
+let UID = null, REGS = {}, PRE = {}, MAZOS = {}, VOC = new Map(), BASE = null, EDITANDO = null, SUCIO = false, VER_VS = null, SRC = null, LISTA = null;
 const hoy = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
 const fechaTxt = f => new Date(f + "T12:00:00").toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" });
 const guardado = k => { try { return localStorage.getItem("partidas." + k) || ""; } catch(e){ return ""; } };
 const recordar = (k, v) => { try { localStorage.setItem("partidas." + k, v); } catch(e){} };
-$("aMuro").href = urlMuro();
+$("aMuro").href = urlMuro(); $("aMeta").href = "meta-chile.html" + (enEmulador() ? "?emu=1" : "");
 $("tipo").innerHTML = Object.entries(TIPOS).map(([k, t]) => '<option value="' + k + '">' + esc(t) + "</option>").join("");
 $("region").innerHTML += REGIONES.map(r => "<option>" + esc(r) + "</option>").join("");
 addEventListener("beforeunload", e => { if (SUCIO && !$("vistaEditor").classList.contains("oculto")) e.preventDefault(); });
 $("vistaEditor").addEventListener("input", () => { SUCIO = true; });
 
-/* Los sprites de Limitless (sprites/): primero la forma (manectric-mega), si no la especie; sin ninguno, se quita. */
-const spr = baraja => '<span class="spr" aria-hidden="true">' + String(baraja).split(" + ").slice(0, 2).map(n => {
-  const { base, slug } = especieDe(n), a = slug.replace(/-mask$/, "");
-  return '<img alt="" loading="lazy" src="sprites/' + esc(a) + '.png"' + (a !== base ? ' data-otra="sprites/' + esc(base) + '.png"' : "") + ">"; }).join("") + "</span>";
-document.addEventListener("error", e => { const i = e.target;
-  if (i.tagName !== "IMG" || !i.closest(".spr")) return;
-  if (i.dataset.otra){ i.src = i.dataset.otra; delete i.dataset.otra; } else i.remove(); }, true);
+respaldoSprites();
 
 async function cargar(){
   try {
-    const [r, m, base] = await Promise.all([get(ref(db, "partidas/" + UID)), get(ref(db, "mazos/" + UID)).catch(() => null), cargarEstandar()]);
-    REGS = r.val() || {}; MAZOS = (m && m.val()) || {}; VOC = vocabulario(base);
+    const [r, p, m, base] = await Promise.all([get(ref(db, "partidas/" + UID)), get(ref(db, "prellenado/" + UID)).catch(() => null),
+      get(ref(db, "mazos/" + UID)).catch(() => null), cargarEstandar()]);
+    REGS = r.val() || {}; PRE = (p && p.val()) || {}; MAZOS = (m && m.val()) || {}; VOC = vocabulario(base); BASE = base;
     MAZOS = Object.fromEntries(Object.entries(MAZOS).map(([k, x]) => [k, { ...x, arq: base ? clasificar(pokemonDe(x.lista, base)).arquetipo : "" }]));
   } catch(e){ $("resumen").innerHTML = '<p class="vacio">No se pudieron cargar tus partidas. Revisa la conexión y recarga.</p>'; return; }
   pintar();
@@ -121,28 +135,51 @@ function sugerencias(){
   Object.values(REGS).forEach(g => { mias.add(g.mia); (g.r || []).forEach(x => x && x.op && mias.add(x.op)); });
   $("barajas").innerHTML = [...mias, ...new Set(VOC.values())].filter((x, i, a) => x && a.indexOf(x) === i).map(x => '<option value="' + esc(x) + '">').join("");
 }
+/* Lo que la tienda dejó y todavía no se anota (un torneo anotado desde ahí lleva src = «tienda/torneo»). */
+const pendientes = () => Object.entries(PRE).flatMap(([t, ts]) => Object.entries(ts || {}).map(([tor, p]) => ({ t, tor, p })))
+  .filter(x => !Object.values(REGS).some(g => g.src === x.t + "/" + x.tor)).sort((a, b) => a.p.f < b.p.f ? 1 : -1);
 function pintar(){
+  const pend = pendientes();
+  $("vistaPendientes").classList.toggle("oculto", !pend.length || !$("vistaEditor").classList.contains("oculto"));
+  $("pendientes").innerHTML = pend.map(({ t, tor, p }) => '<div class="mazoF">' + spr(p.mia) + '<div class="dato"><b>' + esc(p.nombre) + "</b><small>" +
+    esc([p.tienda, fechaTxt(p.f), p.mia, recTxt(record({ r: Object.values(p.r || {}).map(x => ({ ...x, op: x.op || "?" })) }))].filter(Boolean).join(" · ")) + "</small></div>" +
+    '<div class="acc"><button class="btn primario" type="button" data-anotar="' + esc(t + "/" + tor) + '">Anotar</button><button class="btn" type="button" data-descartar="' + esc(t + "/" + tor) + '">Descartar</button></div></div>').join("");
+
   const ids = Object.keys(REGS).sort((a, b) => (REGS[b].f < REGS[a].f ? -1 : REGS[b].f > REGS[a].f ? 1 : (REGS[b].creado || 0) - (REGS[a].creado || 0)));
   const R = resumen(ids.map(k => REGS[k])).filter(d => d.torneos), tot = record({ r: ids.flatMap(k => REGS[k].r || []) });
   $("tTotal").textContent = ids.length ? "· " + ids.length + (ids.length === 1 ? " torneo" : " torneos") + " · " + recTxt(tot) + " · " + pctTxt(wr(tot)) : "";
   $("resumen").innerHTML = R.length ? '<table class="pt-tabla"><tr><th>Baraja</th><th class="n">Torneos</th><th class="n">Récord</th><th class="n">Winrate</th></tr>' +
     R.map(d => '<tr class="fila" tabindex="0" data-vs="' + esc(d.baraja) + '"' + (VER_VS === d.baraja ? ' aria-current="true"' : "") + "><td><span class=\"nomB\">" + spr(d.baraja) + "<b>" + esc(d.baraja) + "</b></span></td>" +
       '<td class="n">' + d.torneos + '</td><td class="n">' + recTxt(d) + '</td><td class="n"><b>' + pctTxt(d.wr) + "</b></td></tr>").join("") + "</table>" +
-      '<p class="pista">Toca una baraja para ver contra qué te ha ido mejor y peor. Los empates cuentan como partidas no ganadas; los byes no cuentan.</p>'
+      '<p class="pista">Toca una baraja para ver contra qué te ha ido mejor y peor, empezando primero o segundo, y con cada versión de la lista. Los empates cuentan como partidas no ganadas; los byes no cuentan.</p>'
     : '<p class="vacio">Todavía no anotas ningún torneo. Anota el primero abajo.</p>';
   const d = R.find(x => x.baraja === VER_VS);
   $("vsCaja").classList.toggle("oculto", !d);
   if (d){
     $("tVs").textContent = "Con " + d.baraja + " contra…";
+    const t = (o, txt) => o.G + o.P + o.E ? txt + " " + recTxt(o) + " (" + pctTxt(wr(o)) + ")" : "";
+    $("turnos").textContent = [t(d.p1, "Empezando primero:"), t(d.p2, "Segundo:")].filter(Boolean).join(" · ") || "Marca quién empezó en cada ronda para ver tu winrate primero y segundo.";
     $("vs").innerHTML = d.vs.length ? '<table class="pt-tabla"><tr><th>Rival</th><th class="n">Partidas</th><th class="n">Récord</th><th class="n">Winrate</th></tr>' +
       d.vs.map(v => "<tr><td><span class=\"nomB\">" + spr(v.op) + esc(v.op) + '</span></td><td class="n">' + v.n + '</td><td class="n">' + recTxt(v) + '</td><td class="n"><b class="' + (v.wr >= .5 ? "bien" : "mal") + '">' + pctTxt(v.wr) + "</b></td></tr>").join("") + "</table>"
       : '<p class="vacio">Sin partidas contra rivales anotados.</p>';
+    $("versiones").innerHTML = d.versiones.length ? "<h2>Versiones de la lista</h2>" + '<table class="pt-tabla"><tr><th>Versión</th><th class="n">Torneos</th><th class="n">Récord</th><th class="n">Winrate</th></tr>' +
+      d.versiones.map((v, i) => "<tr><td><b>" + (i + 1) + ". " + esc(v.nombre || "Lista") + "</b><small class=\"sub\">desde el " + esc(fechaTxt(v.desde)) + "</small>" +
+        (i ? '<small class="sub cambios">' + esc(cambios(d.versiones[i - 1].lista, v.lista)) + "</small>" : "") + '</td><td class="n">' + v.torneos + '</td><td class="n">' + recTxt(v) + '</td><td class="n"><b>' + pctTxt(wr(v)) + "</b></td></tr>").join("") + "</table>" : "";
   }
   $("lista").innerHTML = ids.map(id => { const g = REGS[id], o = record(g);
-    return '<div class="mazoF">' + spr(g.mia) + '<div class="dato"><b>' + esc(g.nombre || TIPOS[g.tipo] || "Torneo") + "</b><small>" +
-      esc(fechaTxt(g.f) + " · " + g.mia + " · " + recTxt(o) + ((g.r || []).length ? "" : " · sin rondas")) + "</small></div>" +
+    return '<div class="mazoF">' + spr(g.mia) + '<div class="dato"><b>' + esc(g.nombre || TIPOS[g.tipo] || "Torneo") + (g.src ? ' <span class="chip" title="Rondas y resultados de la tienda">✓ de la tienda</span>' : "") + "</b><small>" +
+      esc(fechaTxt(g.f) + " · " + g.mia + " · " + recTxt(o) + ((g.r || []).length ? "" : " · sin rondas")) + "</small>" + (g.nota ? '<small class="nota">' + esc(g.nota) + "</small>" : "") + "</div>" +
       '<div class="acc"><button class="btn" type="button" data-editar="' + id + '">Editar</button><button class="btn" type="button" data-borrar="' + id + '">Borrar</button></div></div>'; }).join("");
+  $("csv").disabled = !ids.length;
   sugerencias();
+}
+/* Qué cambió de una lista a otra, por nombre de carta en inglés: «+1 Counter Catcher, −1 Boss's Orders». */
+function cambios(a, b){
+  if (!BASE) return "";
+  const cuenta = l => { const m = new Map(); armarCartas(l, BASE).CARTAS.forEach(c => m.set(c.en, (m.get(c.en) || 0) + c.cant)); return m; };
+  const A = cuenta(a), B = cuenta(b), out = [];
+  new Set([...A.keys(), ...B.keys()]).forEach(n => { const x = (B.get(n) || 0) - (A.get(n) || 0); if (x) out.push((x > 0 ? "+" : "−") + Math.abs(x) + " " + n); });
+  return out.length ? out.join(", ") : "Misma lista";
 }
 const abrirVs = e => { const f = e.target.closest("[data-vs]"); if (!f) return; VER_VS = VER_VS === f.dataset.vs ? null : f.dataset.vs; pintar(); if (VER_VS) $("vsCaja").scrollIntoView({ block: "nearest", behavior: "smooth" }); };
 $("resumen").onclick = abrirVs;
@@ -157,44 +194,74 @@ $("lista").onclick = async e => {
     catch(err){ $("listaMsg").textContent = "No se pudo borrar. Revisa la conexión."; }
   }
 };
+$("pendientes").onclick = async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const [t, tor] = (b.dataset.anotar || b.dataset.descartar).split("/");
+  if (b.dataset.anotar) return abrir(null, { t, tor, p: PRE[t][tor] });
+  if (!confirm("¿Descartar este torneo? No se anota y deja de aparecer aquí.")) return;
+  try { await remove(ref(db, "prellenado/" + UID + "/" + t + "/" + tor)); delete PRE[t][tor]; pintar(); }
+  catch(err){ $("listaMsg").textContent = "No se pudo descartar. Revisa la conexión."; }
+};
 
 /* ── el editor ── */
 let N_RONDA = 0;
+const MARCADOR = ["", "2-0", "2-1", "1-2", "0-2", "1-1", "1-0", "0-1"];
 function ronda(x = {}){
   const i = N_RONDA++, li = document.createElement("li");
   li.innerHTML = '<input class="op" list="barajas" maxlength="80" autocomplete="off" placeholder="Baraja del rival" aria-label="Baraja del rival">' +
     '<div class="res" role="radiogroup" aria-label="Resultado">' + Object.entries(RES).map(([k, t]) =>
       '<label class="r' + k + '"><input type="radio" name="res' + i + '" value="' + k + '"' + ((x.res || "") === k ? " checked" : "") + "><span>" + t + "</span></label>").join("") + "</div>" +
-    '<button class="btn quitar" type="button" aria-label="Quitar esta ronda">✕</button>';
-  li.querySelector(".op").value = x.op || "";
+    '<button class="btn quitar" type="button" aria-label="Quitar esta ronda">✕</button>' +
+    '<div class="mas"><div class="res turno" role="radiogroup" aria-label="Quién empezó">' + [[1, "Empecé"], [2, "Segundo"]].map(([k, t]) =>
+      '<label><input type="radio" name="pr' + i + '" value="' + k + '"' + (x.pr === k ? " checked" : "") + "><span>" + t + "</span></label>").join("") + "</div>" +
+    '<select class="j" aria-label="Marcador de juegos">' + MARCADOR.map(m => '<option value="' + m + '"' + ((x.j || "") === m ? " selected" : "") + ">" + (m || "Marcador") + "</option>").join("") + "</select>" +
+    '<input class="notaR" maxlength="200" autocomplete="off" placeholder="Nota (opcional)" aria-label="Nota de la ronda"></div>';
+  li.querySelector(".op").value = x.op || ""; li.querySelector(".notaR").value = x.nota || "";
   $("rondas").append(li); numerar();
   return li;
 }
 const numerar = () => { [...$("rondas").children].forEach((li, k) => li.dataset.n = "R" + (k + 1)); $("otraRonda").disabled = $("rondas").children.length >= MAX_RONDAS; };
-$("rondas").onclick = e => { if (e.target.closest(".quitar")){ e.target.closest("li").remove(); numerar(); SUCIO = true; } };
-$("rondas").onchange = e => { const li = e.target.closest("li"); if (e.target.value === "B" && li) li.querySelector(".op").value = ""; };
+$("rondas").onclick = e => {
+  if (e.target.closest(".quitar")){ e.target.closest("li").remove(); numerar(); SUCIO = true; return; }
+  /* quien empezó se desmarca tocándolo de nuevo */
+  const r = e.target.closest(".turno input");
+  if (r && r.dataset.estaba === "1"){ r.checked = false; r.dataset.estaba = ""; }
+  else if (r){ r.closest(".turno").querySelectorAll("input").forEach(x => x.dataset.estaba = ""); r.dataset.estaba = "1"; }
+};
+$("rondas").onchange = e => { const li = e.target.closest("li"); if (e.target.value === "B" && e.target.name.startsWith("res") && li) li.querySelector(".op").value = ""; };
 $("otraRonda").onclick = () => { ronda().querySelector(".op").focus(); SUCIO = true; };
-$("mazo").onchange = () => { const m = MAZOS[$("mazo").value]; if (m && m.arq && m.arq !== "Sin clasificar"){ $("mia").value = m.arq; $("formato").value = m.formato; SUCIO = true; } };
+const pintarLista = () => { $("listaAct").innerHTML = LISTA ? "Con la lista «" + esc(LISTA.nombre || "sin nombre") + "». <button class=\"enlace\" type=\"button\" id=\"sinLista\">Quitar la lista</button>" : ""; };
+$("listaAct").onclick = e => { if (e.target.id === "sinLista"){ LISTA = null; $("mazo").value = ""; pintarLista(); SUCIO = true; } };
+$("mazo").onchange = () => { const m = MAZOS[$("mazo").value]; if (!m) return;
+  LISTA = { lista: m.lista, nombre: m.nombre }; $("formato").value = m.formato; pintarLista(); SUCIO = true;
+  if (m.arq && m.arq !== "Sin clasificar" && m.arq !== $("mia").value && (!$("mia").value || confirm("¿Cambiar tu baraja a «" + m.arq + "», la que dice esa lista?"))) $("mia").value = m.arq; };
 
-function abrir(id){
-  const g = id ? REGS[id] : null;
-  EDITANDO = id || null;
+/* id: un torneo anotado para editar; pre: lo que dejó la tienda ({t, tor, p}) para anotar uno nuevo. */
+function abrir(id, pre = null){
+  const g = id ? REGS[id] : null, p = pre && pre.p;
+  EDITANDO = id || null; SRC = g ? g.src || null : pre ? pre.t + "/" + pre.tor : null;
+  LISTA = g && g.lista ? { lista: g.lista, nombre: g.mazoNom || "" } : null;
   $("tEditor").textContent = g ? "Editar el torneo" : "Anotar un torneo";
-  $("fecha").value = g ? g.f : hoy(); $("fecha").max = hoy();
-  $("tipo").value = g ? g.tipo : guardado("tipo") || "liga";
-  $("formato").value = g ? g.fm : "estandar";
+  $("deTienda").classList.toggle("oculto", !p);
+  if (p) $("deTienda").textContent = "Rondas y resultados de " + (p.tienda || "la tienda") + "." + (Object.values(p.r).some(x => !x.op) ? " Escribe la baraja de los rivales que faltan (no se inscribieron con lista)." : "") +
+    " Puedes agregar quién empezó, el marcador y tus notas.";
+  $("fecha").value = g ? g.f : p ? p.f : hoy(); $("fecha").max = hoy();
+  $("tipo").value = g ? g.tipo : p && p.tipo ? p.tipo : guardado("tipo") || "liga";
+  $("formato").value = g ? g.fm : p && p.fm ? p.fm : "estandar";
   $("region").value = g ? g.reg || "" : guardado("region");
-  $("nombre").value = g ? g.nombre || "" : "";
-  $("mia").value = g ? g.mia : (Object.values(REGS).sort((a, b) => (b.creado || 0) - (a.creado || 0))[0] || {}).mia || "";
-  const ms = Object.entries(MAZOS).filter(([, m]) => m.arq && m.arq !== "Sin clasificar");
+  $("nombre").value = g ? g.nombre || "" : p ? (p.nombre + (p.tienda && !p.nombre.includes(p.tienda) ? " · " + p.tienda : "")).slice(0, 80) : "";
+  $("nota").value = g ? g.nota || "" : "";
+  $("mia").value = g ? g.mia : p && p.mia ? p.mia : (Object.values(REGS).sort((a, b) => (b.creado || 0) - (a.creado || 0))[0] || {}).mia || "";
+  const ms = Object.entries(MAZOS);
   $("deMazos").classList.toggle("oculto", !ms.length);
-  $("mazo").innerHTML = '<option value="">Elegir…</option>' + ms.map(([k, m]) => '<option value="' + k + '">' + esc(m.nombre + " · " + m.arq) + "</option>").join("");
+  $("mazo").innerHTML = '<option value="">Elegir…</option>' + ms.map(([k, m]) => '<option value="' + k + '">' + esc(m.nombre + (m.arq && m.arq !== "Sin clasificar" ? " · " + m.arq : "")) + "</option>").join("");
+  pintarLista();
   $("rondas").innerHTML = ""; N_RONDA = 0;
-  (g && g.r && g.r.length ? g.r : [{}, {}, {}]).forEach(x => ronda(x || {}));
+  (g && g.r && g.r.length ? g.r : p ? Object.values(p.r) : [{}, {}, {}]).forEach(x => ronda(x || {}));
   $("editorMsg").textContent = ""; SUCIO = false;
-  $("vistaResumen").classList.add("oculto"); $("vistaLista").classList.add("oculto"); $("vistaEditor").classList.remove("oculto"); scrollTo(0, 0);
+  ["vistaPendientes", "vistaResumen", "vistaLista"].forEach(v => $(v).classList.add("oculto")); $("vistaEditor").classList.remove("oculto"); scrollTo(0, 0);
 }
-const cerrar = () => { SUCIO = false; $("vistaEditor").classList.add("oculto"); $("vistaResumen").classList.remove("oculto"); $("vistaLista").classList.remove("oculto"); scrollTo(0, 0); };
+const cerrar = () => { SUCIO = false; $("vistaEditor").classList.add("oculto"); $("vistaResumen").classList.remove("oculto"); $("vistaLista").classList.remove("oculto"); pintar(); scrollTo(0, 0); };
 $("nuevo").onclick = () => abrir(null);
 $("volver").onclick = () => { if (SUCIO && !confirm("¿Salir sin guardar?")) return; cerrar(); };
 $("guardar").onclick = async () => {
@@ -203,29 +270,56 @@ $("guardar").onclick = async () => {
   if (!mia) return msg("Escribe con qué baraja jugaste."), $("mia").focus();
   const r = [];
   for (const [k, li] of [...$("rondas").children].entries()){
-    const op = canonica(li.querySelector(".op").value, VOC), res = (li.querySelector("input[type=radio]:checked") || {}).value;
+    const op = canonica(li.querySelector(".op").value, VOC), res = (li.querySelector("input[name^=res]:checked") || {}).value;
     if (!op && !res) continue;   // ronda en blanco: se ignora
-    if (!res) return msg("Marca cómo te fue en la ronda " + (k + 1) + "."), li.querySelector("input[type=radio]").focus();
+    if (!res) return msg("Marca cómo te fue en la ronda " + (k + 1) + "."), li.querySelector("input[name^=res]").focus();
     if (!op && res !== "B") return msg("Escribe la baraja del rival en la ronda " + (k + 1) + " (o márcala como bye)."), li.querySelector(".op").focus();
-    r.push(res === "B" ? { res } : { op, res });
+    if (res === "B"){ r.push({ res }); continue; }
+    const x = { op, res }, pr = (li.querySelector("input[name^=pr]:checked") || {}).value, j = li.querySelector(".j").value, nota = li.querySelector(".notaR").value.trim().slice(0, 200);
+    if (pr) x.pr = +pr; if (j) x.j = j; if (nota) x.nota = nota;
+    r.push(x);
   }
   if (!r.length) return msg("Anota al menos una ronda.");
   const ahora = Date.now(), g = { f, fm: $("formato").value, tipo: $("tipo").value, mia, r, creado: EDITANDO ? REGS[EDITANDO].creado || ahora : ahora, act: ahora };
   const nom = $("nombre").value.trim().replace(/\s+/g, " ").slice(0, 80); if (nom) g.nombre = nom;
+  const nota = $("nota").value.trim().slice(0, 500); if (nota) g.nota = nota;
   if ($("region").value) g.reg = $("region").value;
+  if (LISTA && LISTA.lista){ g.lista = LISTA.lista.slice(0, 6000); if (LISTA.nombre) g.mazoNom = LISTA.nombre.slice(0, 60); }
+  if (SRC) g.src = SRC;
   $("guardar").disabled = true;
   try {
     const id = EDITANDO || push(ref(db, "partidas/" + UID)).key;
     await set(ref(db, "partidas/" + UID + "/" + id), g);
     REGS[id] = g; recordar("tipo", g.tipo); recordar("region", g.reg || "");
-    cerrar(); pintar(); $("listaMsg").textContent = "Guardado: " + mia + " · " + recTxt(record(g)) + ".";
+    cerrar(); $("listaMsg").textContent = "Guardado: " + mia + " · " + recTxt(record(g)) + ".";
   } catch(e){ msg("No se pudo guardar. Revisa la conexión y vuelve a intentarlo."); }
   $("guardar").disabled = false;
 };
 
+/* Todo lo anotado, una fila por ronda, para Excel o Google Sheets. */
+$("csv").onclick = () => {
+  const filas = [["fecha", "torneo", "tipo", "formato", "region", "mi_baraja", "lista", "ronda", "rival", "resultado", "empece", "marcador", "nota_ronda", "nota_torneo", "de_la_tienda"]];
+  Object.values(REGS).sort((a, b) => a.f < b.f ? -1 : 1).forEach(g => (g.r || []).forEach((x, i) => filas.push([g.f, g.nombre || "", TIPOS[g.tipo] || "", g.fm, g.reg || "", g.mia, g.mazoNom || "",
+    i + 1, x.op || "", RES[x.res] || "", x.pr === 1 ? "primero" : x.pr === 2 ? "segundo" : "", x.j || "", x.nota || "", i ? "" : g.nota || "", g.src ? "sí" : ""])));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["﻿" + filas.map(f => f.map(celdaCsv).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" }));
+  a.download = "mis-partidas.csv"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
+
+/* Aviso push cuando una tienda deja mis rondas (functions avisoPartidas; el token en fcmJugador/<uid>). */
+const PUSH = () => ({ app, db, uid: UID, tienda: "jugador", rol: "jugador", ruta: "fcmJugador/" + UID });
+const pintarPush = () => { $("bPush").textContent = pushActivo("jugador") ? "Avisos activados en este aparato · desactivar" : "Avisarme en este aparato cuando una tienda deje mis partidas"; };
+$("bPush").onclick = async () => {
+  $("bPush").disabled = true;
+  if (pushActivo("jugador")){ await desactivarPush(PUSH()); $("pushMsg").textContent = ""; }
+  else { const r = await activarPush(PUSH()); $("pushMsg").textContent = r || "Listo: te avisamos cuando haya partidas para anotar."; }
+  $("bPush").disabled = false; pintarPush();
+};
 onAuthStateChanged(auth, u => {
   UID = u ? u.uid : null;
-  ["vistaResumen", "vistaLista", "vistaEditor"].forEach(v => $(v).classList.add("oculto"));
+  $("pushFila").classList.toggle("oculto", !u || u.isAnonymous);
+  if (u && !u.isAnonymous){ pintarPush(); renovarPush(PUSH()); }
+  ["vistaPendientes", "vistaResumen", "vistaLista", "vistaEditor"].forEach(v => $(v).classList.add("oculto"));
   if (!u || u.isAnonymous){
     $("sinSesion").innerHTML = 'Entra con tu cuenta de ByePass para anotar tus partidas. <a href="' +
       esc(urlCuenta("ingresar").replace("#", (params() ? "&" : "?") + "volver=" + encodeURIComponent("partidas.html" + params()) + "#")) + '">Entrar</a>';

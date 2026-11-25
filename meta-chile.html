@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<!-- ▌ÍNDICE de meta-chile.html
+      1. Marcado: el mes y la región, las barajas más jugadas, cómo cambia, enfrentamientos e imágenes para redes
+      2. Módulos
+      3. El meta de Chile: lee metaPublico/<AAAA-MM> (lo publica el admin desde Estadísticas; sin nombres ni cuentas)
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#243B60">
+<script src="tema.js?v=11231c1e2ccf"></script>
+<meta name="description" content="Las barajas que se juegan en Chile: cuota, winrate y enfrentamientos, mes a mes, según lo que anotan los jugadores en ByePass.">
+<title>Meta de Chile — ByePass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&family=Barlow+Condensed:ital,wght@0,700;0,800;1,700;1,800&family=Newsreader:opsz,wght@6..72,300&display=swap">
+<link rel="stylesheet" href="tokens.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="estilo.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="/paginas/mazos.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="/paginas/partidas.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="/paginas/meta-chile.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="/sistema.css?v=11231c1e2ccf">
+<script src="/sistema.js?v=11231c1e2ccf" defer></script>
+</head>
+<body data-pagina="mazos">
+  <!-- ▌BLOQUE 1 · Marcado -->
+  <header class="sup"><a class="marca bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-3.85 -0.01 41.15 41.15" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a><a id="aPartidas" href="partidas.html">Mis partidas</a></header>
+  <main class="mc">
+    <div>
+      <h1>Meta de Chile</h1>
+      <p class="meta" id="bajada">Las barajas que se juegan en Chile según lo que anotan los jugadores en <a id="aPartidas2" href="partidas.html">Mis partidas</a>.</p>
+    </div>
+
+    <div class="controles mc-filtros">
+      <label class="campo"><span>Mes</span><select id="mes"></select></label>
+      <label class="campo"><span>Región</span><select id="region"><option value="">Todo Chile</option></select></label>
+    </div>
+
+    <section class="caja" aria-labelledby="tRank">
+      <h2 id="tRank">Barajas más jugadas <span id="tMuestra"></span></h2>
+      <div id="rank"><p class="vacio">Cargando…</p></div>
+      <p class="pista" id="notaRank"></p>
+    </section>
+
+    <section class="caja" id="cajaEvol" aria-labelledby="tEvol">
+      <h2 id="tEvol">Cómo cambia el meta</h2>
+      <p class="pista">Cuota de cada baraja (qué parte de los torneos anotados la usó), mes a mes, en todo Chile. Las 6 más jugadas.</p>
+      <div class="leyenda" id="leyenda"></div>
+      <div class="graf" id="graf"></div>
+      <details><summary>Ver como tabla</summary><div class="desliza" id="evolTabla"></div></details>
+    </section>
+
+    <section class="caja" id="cajaMatriz" aria-labelledby="tMatriz">
+      <h2 id="tMatriz">Enfrentamientos</h2>
+      <p class="pista">Winrate de la baraja de la fila contra la de la columna, entre las más jugadas del mes. Azul: gana más de lo que pierde; naranjo: al revés. Debajo, cuántas partidas.</p>
+      <div class="desliza" id="matriz"></div>
+    </section>
+
+    <section class="caja" aria-labelledby="tImg">
+      <h2 id="tImg">Imágenes para redes</h2>
+      <div class="acc"><label class="campo"><span>Formato</span><select id="fmt"><option value="post">Post (1080 × 1350)</option><option value="historia">Historia (1080 × 1920)</option></select></label>
+        <button class="btn primario" type="button" id="generar">Generar imágenes</button></div>
+      <div class="imgs" id="imgs"></div>
+    </section>
+  </main>
+
+<script src="config.js?v=11231c1e2ccf"></script>
+<!-- ▌BLOQUE 2 · Módulos -->
+<script type="module">
+import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { db, enEmulador } from "./sesion.js?v=11231c1e2ccf";
+import { nombreCorto } from "./meta.js?v=11231c1e2ccf";
+import { wr, pctTxt, recTxt } from "./partidas.js?v=11231c1e2ccf";
+import { spr, respaldoSprites, C, COND, lienzo, texto, dibujarSprites, cabecera, pie, fila, barra, fuentes, figuras } from "./metaimg.js?v=11231c1e2ccf";
+
+const $ = id => document.getElementById(id);
+/* ▌BLOQUE 3 · El meta de Chile ══════════════════════════════════════════════════ */
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const mesTxt = m => MESES[+m.slice(5) - 1] + " " + m.slice(0, 4), mesCorto = m => MESES[+m.slice(5) - 1].slice(0, 3) + " " + m.slice(2, 4);
+/* la paleta categórica (validada con la guía de gráficos en claro y oscuro); el color va con la baraja, no con su puesto */
+const SERIES = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"];
+const q = enEmulador() ? "?emu=1" : "";
+["aPartidas", "aPartidas2"].forEach(id => $(id).href = "partidas.html" + q);
+let M = {}, MES = "", COLOR = new Map();
+
+respaldoSprites();
+
+async function cargar(){
+  try { M = (await get(ref(db, "metaPublico"))).val() || {}; }
+  catch(e){ $("rank").innerHTML = '<p class="vacio">No se pudo cargar el meta. Revisa la conexión y recarga.</p>'; return; }
+  const meses = Object.keys(M).sort().reverse();
+  if (!meses.length){ $("rank").innerHTML = '<p class="vacio">Todavía no hay un meta publicado. Anota tus torneos en Mis partidas para que salga el primero.</p>';
+    ["cajaEvol", "cajaMatriz"].forEach(id => $(id).classList.add("oculto")); return; }
+  $("mes").innerHTML = meses.map(m => '<option value="' + m + '">' + esc(mesTxt(m)) + "</option>").join("");
+  /* los colores, una vez: las 6 barajas con más torneos en todo lo publicado */
+  const tot = new Map(); meses.forEach(m => (M[m].b || []).forEach(d => tot.set(d.b, (tot.get(d.b) || 0) + d.t)));
+  [...tot].sort((a, b) => b[1] - a[1]).slice(0, SERIES.length).forEach(([b], i) => COLOR.set(b, SERIES[i]));
+  MES = meses[0]; pintar(); pintarEvol();
+}
+function pintar(){
+  const d = M[MES] || {}, reg = $("region").value, B = d.b || [];
+  const regs = Object.keys(d.reg || {}).sort();
+  const antes = reg; $("region").innerHTML = '<option value="">Todo Chile</option>' + regs.map(r => "<option>" + esc(r) + "</option>").join(""); $("region").value = regs.includes(antes) ? antes : "";
+  $("bajada").innerHTML = "Las barajas que se juegan en Chile según lo que anotan los jugadores en <a href=\"partidas.html" + q + "\">Mis partidas</a>. " +
+    esc(mesTxt(MES)) + ": " + d.torneos + (d.torneos === 1 ? " torneo" : " torneos") + " de " + d.jugadores + (d.jugadores === 1 ? " jugador" : " jugadores") +
+    (d.verif ? " (" + d.verif + " con rondas verificadas por la tienda)" : "") + ". Actualizado el " + new Date(d.act).toLocaleDateString("es-CL", { day: "numeric", month: "long" }) + ".";
+  if ($("region").value){
+    const R = d.reg[$("region").value] || [], n = R.reduce((a, x) => a + x.t, 0);
+    $("tMuestra").textContent = "· " + $("region").value;
+    $("rank").innerHTML = '<table class="pt-tabla"><tr><th>Baraja</th><th class="n">Torneos</th></tr>' + R.map((x, i) => '<tr><td><span class="nomB">' + spr(x.b) + "<b>" + (i + 1) + ". " + esc(x.b) + '</b></span></td><td class="n">' + x.t + "</td></tr>").join("") + "</table>";
+    $("notaRank").textContent = "Por región se muestran las 5 más jugadas. El winrate y los enfrentamientos son de todo Chile (por región hay pocas partidas para que digan algo).";
+  } else {
+    $("tMuestra").textContent = "";
+    $("rank").innerHTML = B.length ? '<table class="pt-tabla"><tr><th>Baraja</th><th class="n">Cuota</th><th class="n">Winrate</th><th class="n mc-ocultable">Récord</th></tr>' +
+      B.map((x, i) => '<tr><td><span class="nomB">' + spr(x.b) + "<b>" + (i + 1) + ". " + esc(x.b) + "</b></span></td>" +
+        '<td class="n"><b>' + pctTxt(x.t / d.torneos) + '</b><small class="sub">' + x.t + (x.t === 1 ? " torneo" : " torneos") + '</small></td><td class="n">' + pctTxt(wr(x)) + '</td><td class="n mc-ocultable">' + recTxt(x) + "</td></tr>").join("") + "</table>"
+      : '<p class="vacio">Sin barajas este mes.</p>';
+    $("notaRank").textContent = "Cuota: qué parte de los torneos anotados del mes la usó. Winrate: partidas ganadas sobre jugadas contra otras barajas (sin espejos ni byes; los empates cuentan como no ganadas). Lo anotan los propios jugadores.";
+  }
+  pintarMatriz(B);
+}
+function pintarMatriz(B){
+  const top = B.slice(0, 8);
+  $("cajaMatriz").classList.toggle("oculto", top.length < 2);
+  if (top.length < 2) return;
+  /* divergente: azul arriba del 50 %, naranjo abajo, nada en el medio */
+  const tinte = v => v == null ? "" : ' style="background:color-mix(in srgb,var(' + (v >= .5 ? "--s1" : "--s2") + ") " + Math.round(Math.min(1, Math.abs(v - .5) * 2.4) * 60) + '%,transparent)"';
+  $("matriz").innerHTML = '<table class="pt-tabla matriz"><tr><th>Fila contra…</th>' + top.map(x => '<th class="n" title="' + esc(x.b) + '">' + spr(x.b) + "<small class=\"sub\">" + esc(nombreCorto(x.b).split(" / ")[0].replace(/ ex$/, "")) + "</small></th>").join("") + "</tr>" +
+    top.map(a => "<tr><th class=\"fil\">" + esc(nombreCorto(a.b)) + "</th>" + top.map(b => { if (a.b === b.b) return '<td class="n espejo">—</td>';
+      const v = (a.vs || []).find(x => x.op === b.b), n = v ? v.G + v.P + v.E : 0;
+      return '<td class="n"' + (n ? tinte(wr(v)) : "") + ' title="' + esc(a.b + " contra " + b.b + (n ? ": " + recTxt(v) : ": sin partidas")) + '">' + (n ? pctTxt(wr(v)) + '<small class="sub">' + n + "</small>" : "") + "</td>"; }).join("") + "</tr>").join("") + "</table>";
+}
+/* ── Cómo cambia el meta: una línea por baraja (2 px, puntos de 8 px), una sola escala (cuota), con su nombre al final y una
+   línea vertical con el detalle del mes al pasar el mouse o el dedo ── */
+function pintarEvol(){
+  const meses = Object.keys(M).sort().slice(-12), series = [...COLOR.keys()];
+  if (meses.length < 2){ $("cajaEvol").classList.add("oculto"); return; }
+  const val = (b, m) => { const d = M[m], x = (d.b || []).find(y => y.b === b); return d && d.torneos ? (x ? x.t : 0) / d.torneos : null; };
+  const W = 720, H = 300, L = 44, R = 150, T = 16, Bm = 30, max = Math.max(.1, ...series.flatMap(b => meses.map(m => val(b, m) || 0)));
+  const tope = Math.ceil(max * 10) / 10, X = i => L + i * (W - L - R) / (meses.length - 1), Y = v => T + (1 - v / tope) * (H - T - Bm);
+  let s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Cuota mensual de las barajas más jugadas"><g class="ejes">';
+  for (let k = 0; k <= 4; k++){ const v = tope * k / 4; s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text x="' + (L - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + Math.round(v * 100) + "%</text>"; }
+  meses.forEach((m, i) => { s += '<text x="' + X(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + mesCorto(m) + "</text>"; });
+  s += "</g>";
+  const fin = [];
+  series.forEach(b => {
+    const pts = meses.map((m, i) => [X(i), val(b, m)]).filter(p => p[1] != null);
+    s += '<g style="--c:var(' + COLOR.get(b) + ')"><polyline class="linea" points="' + pts.map(([x, v]) => x + "," + Y(v)).join(" ") + '"/>' +
+      pts.map(([x, v]) => '<circle class="punto" cx="' + x + '" cy="' + Y(v) + '" r="4"/>').join("") + "</g>";
+    const u = pts[pts.length - 1]; if (u) fin.push({ b, y: Y(u[1]) });
+  });
+  /* el nombre al final de cada línea, sin chocar */
+  fin.sort((a, b) => a.y - b.y).forEach((f, i, a) => { if (i && f.y - a[i - 1].y < 14) f.y = a[i - 1].y + 14; });
+  fin.forEach(f => { s += '<text class="etq" x="' + (W - R + 10) + '" y="' + (f.y + 4) + '">' + esc(nombreCorto(f.b).split(" / ")[0]) + "</text>"; });
+  s += '<line class="cruz" x1="0" x2="0" y1="' + T + '" y2="' + (H - Bm) + '" visibility="hidden"/></svg><div class="tip" hidden></div>';
+  $("graf").innerHTML = s;
+  $("leyenda").innerHTML = series.map(b => '<span><i style="background:var(' + COLOR.get(b) + ')"></i>' + esc(b) + "</span>").join("");
+  const svg = $("graf").querySelector("svg"), cruz = svg.querySelector(".cruz"), tip = $("graf").querySelector(".tip");
+  const mover = e => {
+    const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(meses.length - 1, Math.round((x - L) / ((W - L - R) / (meses.length - 1)))));
+    cruz.setAttribute("x1", X(i)); cruz.setAttribute("x2", X(i)); cruz.setAttribute("visibility", "visible");
+    tip.hidden = false; tip.innerHTML = "<b>" + esc(mesTxt(meses[i])) + "</b>" + series.map(b => [b, val(b, meses[i])]).sort((a, b) => (b[1] || 0) - (a[1] || 0))
+      .map(([b, v]) => '<span><i style="background:var(' + COLOR.get(b) + ')"></i>' + esc(nombreCorto(b)) + " <b>" + pctTxt(v) + "</b></span>").join("");
+    const px = X(i) * r.width / W; tip.style.left = Math.max(0, Math.min(px > r.width / 2 ? px - 200 : px + 10, r.width - 190)) + "px";   // al lado contrario de los nombres
+  };
+  svg.addEventListener("pointermove", mover); svg.addEventListener("pointerdown", mover);
+  svg.addEventListener("pointerleave", () => { cruz.setAttribute("visibility", "hidden"); tip.hidden = true; });
+  $("evolTabla").innerHTML = '<table class="pt-tabla"><tr><th>Baraja</th>' + meses.map(m => '<th class="n">' + mesCorto(m) + "</th>").join("") + "</tr>" +
+    series.map(b => "<tr><td>" + esc(b) + "</td>" + meses.map(m => '<td class="n">' + pctTxt(val(b, m)) + "</td>").join("") + "</tr>").join("") + "</table>";
+}
+$("mes").onchange = () => { MES = $("mes").value; pintar(); };
+$("region").onchange = pintar;
+
+/* ── imágenes para redes: el meta (cuota) y el winrate del mes, con el estilo de «Meta del torneo» ── */
+async function imgMeta(fmt, d){
+  const [c, x, w, h] = lienzo(fmt); const y = cabecera(x, w, "Meta de Chile", mesTxt(MES).toUpperCase() + "  ·  " + d.torneos + " torneos  ·  " + d.jugadores + " jugadores", fmt);
+  const D = (d.b || []).slice(0, fmt === "historia" ? 10 : 8), alto = Math.min(fmt === "historia" ? 205 : 150, (h - y - 150) / Math.max(1, D.length)), max = Math.max(...D.map(z => z.t));
+  for (const [i, z] of D.entries()){
+    const Y = y + i * alto, a = alto - 14; fila(x, 56, Y, w - 112, a);
+    texto(x, i + 1, 104, Y + a / 2 + 20, { size: 60, peso: 800, fam: COND, ital: true, color: C.rojo, align: "center" });
+    await dibujarSprites(x, z.b.split(" + "), 150, Y + 12, a - 24, 170);
+    texto(x, nombreCorto(z.b), 340, Y + a / 2 - 2, { size: 46, peso: 700, fam: COND, max: 470 });
+    barra(x, 340, Y + a - 36, 470, z.t / max, C.rojo);
+    texto(x, pctTxt(z.t / d.torneos), w - 88, Y + a / 2 + 6, { size: 64, peso: 800, fam: COND, ital: true, align: "right" });
+    texto(x, z.t + (z.t === 1 ? " torneo" : " torneos"), w - 88, Y + a / 2 + 38, { size: 22, peso: 500, color: C.apagado, align: "right" });
+  }
+  pie(x, w, h, "Según lo que anotan los jugadores en ByePass (Mis partidas)."); return c;
+}
+async function imgWinrate(fmt, d){
+  const [c, x, w, h] = lienzo(fmt); const y = cabecera(x, w, "Winrate", "META DE CHILE  ·  " + mesTxt(MES).toUpperCase(), fmt);
+  const min = 3, D = (d.b || []).filter(z => z.G + z.P + z.E >= 10 && z.t >= min).sort((a, b) => wr(b) - wr(a)).slice(0, fmt === "historia" ? 10 : 8);
+  const alto = Math.min(fmt === "historia" ? 205 : 150, (h - y - 190) / Math.max(1, D.length)), bx = 340, bw = 470;
+  for (const [i, z] of D.entries()){
+    const Y = y + i * alto, a = alto - 14, v = wr(z), arriba = v >= 0.5; fila(x, 56, Y, w - 112, a);
+    await dibujarSprites(x, z.b.split(" + "), 88, Y + 12, a - 24, 210);
+    texto(x, nombreCorto(z.b), bx, Y + a / 2 - 2, { size: 46, peso: 700, fam: COND, max: bw });
+    barra(x, bx, Y + a - 36, bw, v, arriba ? C.rojo : C.gris);
+    x.fillStyle = "#FFFFFF"; x.fillRect(bx + bw / 2 - 1.5, Y + a - 44, 3, 28);   // el 50 %
+    texto(x, pctTxt(v), w - 88, Y + a / 2 + 6, { size: 64, peso: 800, fam: COND, ital: true, align: "right", color: arriba ? "#FFFFFF" : C.apagado });
+    texto(x, recTxt(z), w - 88, Y + a / 2 + 38, { size: 22, peso: 500, color: C.apagado, align: "right" });
+  }
+  pie(x, w, h, "Partidas contra otras barajas, sin espejos. Barajas con " + min + " torneos y 10 partidas o más. La línea blanca marca el 50 %.");
+  return c;
+}
+$("generar").onclick = async () => {
+  const b = $("generar"), d = M[MES]; if (!d) return;
+  b.disabled = true; b.textContent = "Generando…";
+  try {
+    await fuentes();
+    const fmt = $("fmt").value, piezas = [["Meta", await imgMeta(fmt, d)], ["Winrate", await imgWinrate(fmt, d)]];
+    $("imgs").replaceChildren(...figuras(piezas, nom => "meta-chile-" + MES + "-" + nom.toLowerCase() + "-" + fmt + ".png"));
+    $("imgs").querySelectorAll("button").forEach(x => x.className = "btn");
+  } catch(e){ console.warn(e); $("imgs").textContent = "No se pudieron armar las imágenes."; }
+  b.disabled = false; b.textContent = "Generar imágenes";
+};
+cargar();
+</script>
+</body>
+</html>

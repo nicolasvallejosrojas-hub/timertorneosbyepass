@@ -23,18 +23,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=a7d81edb2d2d"></script>
+<script src="tema.js?v=11231c1e2ccf"></script>
 <title>ByePass — Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=a7d81edb2d2d">
-<link rel="stylesheet" href="estilo.css?v=a7d81edb2d2d">
+<link rel="stylesheet" href="tokens.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="estilo.css?v=11231c1e2ccf">
 <!-- ▌BLOQUE 1 · Estilos del muro — Rejilla de tres columnas, perfil, publicaciones, en vivo e insignias. -->
 
-<link rel="stylesheet" href="/paginas/muro.css?v=a7d81edb2d2d">
-<link rel="stylesheet" href="/sistema.css?v=a7d81edb2d2d">
-<script src="/sistema.js?v=a7d81edb2d2d" defer></script>
+<link rel="stylesheet" href="/paginas/muro.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="/sistema.css?v=11231c1e2ccf">
+<script src="/sistema.js?v=11231c1e2ccf" defer></script>
 </head>
 <body data-pagina="muro">
 
@@ -79,6 +79,7 @@
         <li class="oculto" id="liHerr"><a href="herramientas.html" id="aHerr">Herramientas de administrador</a></li>
         <li><a href="mazos.html" id="aMazos">Mis mazos</a></li>
         <li><a href="partidas.html" id="aPartidas">Mis partidas</a></li>
+        <li><a href="meta-chile.html" id="aMetaCl">Meta de Chile</a></li>
         <li><a href="blog.html">Blog</a></li>
         <li class="oculto" id="liRulings"><a href="rulings.html" id="aRulings">Rulings</a></li>
         <li><a href="cuenta.html#ajustes" id="aCuenta">Ajustes</a></li>
@@ -103,6 +104,7 @@
   <!-- ================= columna central ================= -->
   <main>
     <div class="aviso accion oculto" id="avisoCorreo" role="status"></div>
+    <div class="aviso accion oculto" id="avisoPartidas" role="status"></div>
     <section id="tabInicio" aria-labelledby="hInicio">
       <h1 class="solo-lector" id="hInicio">Inicio</h1>
       <div id="muro" aria-live="polite"></div>
@@ -226,25 +228,25 @@
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
-<script src="config.js?v=a7d81edb2d2d"></script>
-<script src="noticias.js?v=a7d81edb2d2d"></script>
+<script src="config.js?v=11231c1e2ccf"></script>
+<script src="noticias.js?v=11231c1e2ccf"></script>
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=a7d81edb2d2d";
+import { avisarError } from "./errores.js?v=11231c1e2ccf";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, serverTimestamp, query, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signOut, onAuthStateChanged, sendEmailVerification }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=a7d81edb2d2d";
-import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=a7d81edb2d2d";
-import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=a7d81edb2d2d";
-import { estoyEnLinea } from "./presencia.js?v=a7d81edb2d2d";
-import { perfilCompleto } from "./registro.js?v=a7d81edb2d2d";
-import { parecido } from "./jugadores.js?v=a7d81edb2d2d";
-import { leerHistorial } from "./historial.js?v=a7d81edb2d2d";
-import { vigilar } from "./mantenimiento.js?v=a7d81edb2d2d";
-import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=a7d81edb2d2d";
+import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=11231c1e2ccf";
+import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=11231c1e2ccf";
+import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=11231c1e2ccf";
+import { estoyEnLinea } from "./presencia.js?v=11231c1e2ccf";
+import { perfilCompleto } from "./registro.js?v=11231c1e2ccf";
+import { parecido } from "./jugadores.js?v=11231c1e2ccf";
+import { leerHistorial } from "./historial.js?v=11231c1e2ccf";
+import { vigilar } from "./mantenimiento.js?v=11231c1e2ccf";
+import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=11231c1e2ccf";
 
 const $ = id => document.getElementById(id);
 /* El muro es el inicio de cada persona y no depende de una tienda. El ?sala= solo cuenta con #jugador=
@@ -281,7 +283,7 @@ $("aAjustes").href = "cuenta.html" + qs + "#ajustes";
 $("aPanel").href = "admin.html" + qs;
 $("aPedir").href = "cuenta.html" + qs + "#tienda";
 $("aHerr").href = "herramientas.html" + qs;
-$("aMazos").href = "mazos.html" + qs; $("aPartidas").href = "partidas.html" + qs; $("aRulings").href = "rulings.html" + qs;
+$("aMazos").href = "mazos.html" + qs; $("aPartidas").href = "partidas.html" + qs; $("aMetaCl").href = "meta-chile.html" + (qs.includes("emu=1") ? "?emu=1" : ""); $("aRulings").href = "rulings.html" + qs;
 /* Modo noche (tema.js): el botón dice lo que hace */
 const pintarTema = () => { const n = temaNoche(); $("bTema").innerHTML = (n ? ICONO_SOL : ICONO_LUNA) + (n ? "Modo día" : "Modo noche"); $("bTema").setAttribute("aria-pressed", n); };
 $("bTema").onclick = () => cambiarTema(); addEventListener("tema", pintarTema); pintarTema();
@@ -682,6 +684,8 @@ const misSalas = () => [...new Set([MIRA, ...Object.keys(TIENDAS || {}), ...Obje
    jugo/<uid>/<tienda>, que anota la tienda al archivar un torneo con mi cuenta. El muro y En vivo siguen
    con misSalas: ahí van solo las tiendas elegidas. */
 let JUGO = {};
+/* Mis partidas (para las insignias de Analista y Especialista, solo en el perfil propio) y lo que dejó la tienda para anotar. */
+let MIS_PARTIDAS = {};
 const salasPerfil = () => [...new Set([...misSalas(), ...Object.keys(JUGO)])];
 let pintura = 0;
 function repintarInsignias(){
@@ -697,7 +701,7 @@ function insigniasDe(esDe, uid, salas){
   const listas = salas.filter(cargada);
   const perm = permanentes({ tiendas: Object.fromEntries(listas.map(s => [s, TD[s].hist])), esDe,
                              alta: uid && ALTAS ? ALTAS[uid] || null : null, numero: numeroDe(uid),
-                             tester: !!(uid && TESTERS[uid]) });
+                             tester: !!(uid && TESTERS[uid]), partidas: usuario && uid === usuario.uid ? MIS_PARTIDAS : null });
   const grupos = listas.map(sala => {
     const t = TD[sala], perfilT = (t.tienda && t.tienda.perfil) || null, nombre = nombreTienda(perfilT, sala);
     const color = (perfilT && perfilT.color) || COLOR_TIENDA;
@@ -1334,6 +1338,16 @@ onAuthStateChanged(auth, async u => {
   pintarFicha(); pintarPerfil();
   /* Quien organiza alguna tienda, o administra el sitio, llega a eso desde el menú. */
   onValue(ref(db, "jugo/" + u.uid), s => { JUGO = s.val() || {}; repintarInsignias(); }, () => {});
+  get(ref(db, "partidas/" + u.uid)).then(s => { MIS_PARTIDAS = s.val() || {}; repintarInsignias();
+    /* «Para anotar»: torneos que la tienda archivó con mis rondas y que todavía no anoto */
+    return get(ref(db, "prellenado/" + u.uid)).then(p => {
+      const hechos = new Set(Object.values(MIS_PARTIDAS).map(g => g.src).filter(Boolean));
+      const n = Object.entries(p.val() || {}).reduce((a, [t, ts]) => a + Object.keys(ts || {}).filter(k => !hechos.has(t + "/" + k)).length, 0);
+      $("avisoPartidas").innerHTML = n ? (n === 1 ? "Una tienda dejó tus rondas de un torneo" : "Las tiendas dejaron tus rondas de " + n + " torneos") +
+        ' para anotar en Mis partidas. <a href="partidas.html' + qs + '">Anotar</a>' : "";
+      $("avisoPartidas").classList.toggle("oculto", !n);
+    });
+  }).catch(() => {});
   get(ref(db, "organiza/" + u.uid)).then(s => {
     ORGANIZA = s.val() || {};
     $("liPanel").classList.toggle("oculto", !s.exists());

@@ -35,7 +35,9 @@ export async function razonNoPush(){
 export const pushActivo = tienda => { try { return localStorage.getItem(marca(tienda)) === "1" && Notification.permission === "granted"; } catch(e){ return false; } };
 
 /* Activa: permiso, token y guardarlo. Devuelve "" si salió bien o el motivo. */
-export async function activarPush({ app, db, uid, tienda, rol }){
+/* ruta: dónde se guarda el token (staff y panel: fcmTokens/<tienda>/<uid>; jugador: fcmJugador/<uid>, con tienda "jugador"). */
+const rutaDe = (tienda, uid, ruta) => ruta || "fcmTokens/" + tienda + "/" + uid;
+export async function activarPush({ app, db, uid, tienda, rol, ruta }){
   const razon = await razonNoPush(); if (razon) return razon;
   try {
     const permiso = await Notification.requestPermission();
@@ -44,24 +46,24 @@ export async function activarPush({ app, db, uid, tienda, rol }){
     const registro = await navigator.serviceWorker.ready;
     const token = await getToken(getMessaging(app), { vapidKey: VAPID, serviceWorkerRegistration: registro });
     if (!token) return "No se pudo activar los avisos. Inténtalo otra vez.";
-    await set(ref(db, "fcmTokens/" + tienda + "/" + uid), { token, rol, t: serverTimestamp() });
+    await set(ref(db, rutaDe(tienda, uid, ruta)), { token, rol, t: serverTimestamp() });
     try { localStorage.setItem(marca(tienda), "1"); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
     return "";
   } catch(e){ return "No se pudo activar los avisos (" + (e.code || e.message || "error") + ")."; }
 }
 
 /* Los tokens cambian de vez en cuando: al abrir, si ya estaban activos, se vuelve a guardar el vigente. */
-export async function renovarPush({ app, db, uid, tienda, rol }){
+export async function renovarPush({ app, db, uid, tienda, rol, ruta }){
   if (!pushActivo(tienda) || await razonNoPush()) return;
   try {
     const { getMessaging, getToken } = await import(MENSAJERIA);
     const token = await getToken(getMessaging(app), { vapidKey: VAPID, serviceWorkerRegistration: await navigator.serviceWorker.ready });
-    if (token) await set(ref(db, "fcmTokens/" + tienda + "/" + uid), { token, rol, t: serverTimestamp() });
+    if (token) await set(ref(db, rutaDe(tienda, uid, ruta)), { token, rol, t: serverTimestamp() });
   } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
 }
 
-export async function desactivarPush({ app, db, uid, tienda }){
+export async function desactivarPush({ app, db, uid, tienda, ruta }){
   try { localStorage.removeItem(marca(tienda)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
-  try { await remove(ref(db, "fcmTokens/" + tienda + "/" + uid)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
+  try { await remove(ref(db, rutaDe(tienda, uid, ruta))); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
   try { const { getMessaging, deleteToken } = await import(MENSAJERIA); await deleteToken(getMessaging(app)); } catch(e){ console.warn("No se pudo completar una operación opcional", e); }
 }

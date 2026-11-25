@@ -41,3 +41,18 @@
 }
 .pt-pie{margin-top:var(--e3);}
 @media (min-width:960px){ #vistaResumen,#vistaEditor{width:100%;max-width:640px;margin-left:auto;margin-right:auto;box-sizing:border-box;} }
+
+/* Más datos por ronda (quién empezó, marcador, nota), notas del torneo y lo que viene de la tienda. */
+.rondas .mas{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:var(--e2);align-items:center;}
+.rondas .mas .j{min-height:44px;padding:0 10px;font-family:inherit;font-size:var(--t3);}
+.rondas .mas .notaR{flex:1 1 160px;min-height:44px;padding:0 12px;font-family:inherit;font-size:var(--t3);box-sizing:border-box;}
+.res.turno input:checked + span{background:var(--sup-alta);color:var(--texto);box-shadow:inset 0 0 0 1.5px var(--texto);}
+.campo textarea{width:100%;padding:12px 14px;font-size:var(--t4);box-sizing:border-box;font-family:inherit;resize:vertical;}
+.chip{display:inline-block;font-size:var(--t1);font-weight:600;padding:2px 8px;border-radius:999px;background:var(--aviso-accion);color:var(--accion-texto);vertical-align:middle;margin-left:4px;}
+.mazoF .dato small.nota{display:block;font-style:italic;margin-top:2px;}
+.pt-tabla small.sub{display:block;font-size:var(--t1);color:var(--apagado);font-weight:400;}
+.pt-tabla small.cambios{color:var(--texto);}
+button.enlace{background:none;border:0;padding:0;color:var(--accion-texto);font:inherit;text-decoration:underline;cursor:pointer;}
+#versiones h2{margin-top:var(--e3);}
+@media (max-width:640px){ .rondas .mas{grid-column:2 / 4;grid-row:3;} .rondas li{row-gap:6px;} }
+[data-pagina="mazos"] .meta a{color:var(--accion-texto);}

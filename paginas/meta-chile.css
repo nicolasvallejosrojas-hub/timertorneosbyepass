@@ -1,0 +1,31 @@
+/* meta-chile.html — el meta de Chile. Usa la composición de mazos.css y las tablas/sprites de partidas.css; aquí lo propio.
+   La paleta de las líneas es la categórica validada (guía de gráficos): claro sobre #FFFFFF, noche sobre #1A2940. */
+:root{ --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --eje:#e1e0d9; }
+:root[data-tema="noche"]{ --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --eje:#2c3b52; }
+@media (min-width:960px){ main.mc > *{width:100%;max-width:760px;margin-left:auto;margin-right:auto;box-sizing:border-box;} [data-pagina="mazos"] main.mc{max-width:1160px;} }
+.mc-filtros{display:flex;gap:var(--e3);flex-wrap:wrap;}
+.mc-filtros .campo{flex:1 1 200px;}
+.desliza{overflow-x:auto;}
+.leyenda{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:var(--t2);color:var(--texto);}
+.leyenda i,.tip i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:baseline;}
+.graf{position:relative;}
+.graf svg{width:100%;height:auto;display:block;touch-action:pan-y;}
+.graf .ejes line{stroke:var(--eje);stroke-width:1;}
+.graf .ejes text,.graf .etq{fill:var(--apagado);font-size:12px;font-family:inherit;}
+.graf .etq{fill:var(--texto);font-weight:600;}
+.graf .linea{fill:none;stroke:var(--c);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;}
+.graf .punto{fill:var(--c);stroke:var(--sup);stroke-width:2;}
+.graf .cruz{stroke:var(--apagado);stroke-width:1;stroke-dasharray:3 3;}
+.graf .tip{position:absolute;top:0;width:190px;box-sizing:border-box;background:var(--sup-alta);color:var(--texto);border-radius:var(--radio-chico);padding:10px 12px;
+  font-size:var(--t2);display:flex;flex-direction:column;gap:3px;box-shadow:var(--sombra);pointer-events:none;}
+.graf .tip[hidden]{display:none;}
+.pt-tabla.matriz th,.pt-tabla.matriz td{text-align:center;padding:6px 4px;min-width:62px;}
+.pt-tabla.matriz th.fil{text-align:left;font-size:var(--t2);font-weight:550;text-transform:none;letter-spacing:0;color:var(--texto);min-width:120px;}
+.pt-tabla.matriz th .spr{justify-content:center;min-width:0;}
+.pt-tabla.matriz th .spr img{width:32px;height:32px;}
+.pt-tabla.matriz td.espejo{color:var(--apagado);}
+.pt-tabla.matriz tr > :first-child{width:1%;}
+.imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:var(--e3);}
+.imgs canvas{width:100%;height:auto;border-radius:var(--radio-chico);}
+.imgs figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;font-size:var(--t2);}
+@media (max-width:560px){ .mc-ocultable{display:none;} }
