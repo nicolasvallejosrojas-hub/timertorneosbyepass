@@ -42,8 +42,8 @@
    Se prueba con node (pruebas/probar-importar.mjs); la parte XML usa el
    DOMParser del navegador: esa prueba se corre abriendo el mismo archivo ahí.
    ========================================================= */
-import { aPairings, aHistorial, clasificacion, EMPATE, DOBLE } from "./torneo.js?v=6a8e75c14088";
-import { normNombre } from "./jugadores.js?v=6a8e75c14088";
+import { aPairings, aHistorial, clasificacion, EMPATE, DOBLE } from "./torneo.js?v=04fd01b03cf9";
+import { normNombre } from "./jugadores.js?v=04fd01b03cf9";
 
 /* ▌BLOQUE 1 · Columnas y metadatos ══════════════════════════════════════════════
    Alias de las cabeceras (español o inglés) y de las líneas # (torneo, fecha, tiempo, suizas,

@@ -7,8 +7,8 @@
    · La baraja sale de la lista (arquetipos.js: el Pokémon, o los dos, que más pesan). Se puede corregir a mano.
    · Winrate de una baraja = partidas ganadas / jugadas contra OTRAS barajas (los espejos no dicen nada de la baraja y
      los byes no son partidas). Los empates cuentan como jugadas no ganadas; también se dan V-D-E. */
-import { pokemonDe, clasificar } from "./arquetipos.js?v=6a8e75c14088";
-import { division, temporada } from "./listamazo.js?v=6a8e75c14088";
+import { pokemonDe, clasificar } from "./arquetipos.js?v=04fd01b03cf9";
+import { division, temporada } from "./listamazo.js?v=04fd01b03cf9";
 
 /* Categorías como las numera TOM: 0 Junior, 1 Senior, 2 Masters. */
 export const CATEGORIAS = ["Junior", "Senior", "Masters"];
