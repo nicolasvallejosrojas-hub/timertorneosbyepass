@@ -20,12 +20,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, update, increment }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, updateProfile, sendEmailVerification, deleteUser }
+import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, updateProfile, sendEmailVerification, deleteUser, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { crearRegistro, perfilCompleto } from "./registro.js?v=aec73935b9fd";
+import { crearRegistro, perfilCompleto } from "./registro.js?v=e78d9286eec9";
 export { perfilCompleto };
-import { SALA } from "./sala.js?v=aec73935b9fd";
-import { vigilar } from "./mantenimiento.js?v=aec73935b9fd";
+import { SALA } from "./sala.js?v=e78d9286eec9";
+import { vigilar } from "./mantenimiento.js?v=e78d9286eec9";
 
 /* ▌BLOQUE 1 · Firebase y enlaces ════════════════════════════════════════════════
    app, db, auth compartidos; params() conserva ?emu y ?sala en los enlaces. */
@@ -33,6 +33,9 @@ export const app  = initializeApp(FIREBASE_CONFIG);
 export const db   = getDatabase(app);
 export const auth = getAuth(app);
 auth.languageCode = "es";   // los correos de Firebase (recuperar, confirmar) y su página, en español
+/* Pista para la portada, que la lee antes de que Firebase sepa si hay sesión (eso tarda): con ella esconde la portada
+   mientras salta al muro, en vez de mostrarla un instante. Solo una pista: quien decide sigue siendo onAuthStateChanged. */
+onAuthStateChanged(auth, u => { try { if (u && !u.isAnonymous) localStorage.setItem("bp-sesion", "1"); else localStorage.removeItem("bp-sesion"); } catch(e){} });
 
 export const enEmulador = () => typeof EMULADOR !== "undefined" && !!EMULADOR;
 

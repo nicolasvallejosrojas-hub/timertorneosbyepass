@@ -4,7 +4,7 @@
    Sprites: los iconos de Limitless (los de Training Court) copiados al sitio en sprites/ (meta-torneo/bajar-sprites.mjs); en la
    herramienta local, los que no estén los trae servidor.mjs en /sprite/ (usarProxyLocal); si no hay, pokesprite (gen 8) y el
    pixel art de PokeAPI (gen 9); sin ninguno, la fila va sin sprite. */
-import { especieDe } from "./meta.js?v=aec73935b9fd";
+import { especieDe } from "./meta.js?v=e78d9286eec9";
 
 const PS = "https://cdn.jsdelivr.net/gh/msikma/pokesprite@master/pokemon-gen8/regular/";
 const PA = "https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/";

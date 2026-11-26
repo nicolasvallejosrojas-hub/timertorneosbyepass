@@ -6,13 +6,25 @@
 <meta name="theme-color" content="#F8F7F2">
 <meta name="description" content="Tu próxima partida empieza en ByePass. Encuentra tu tienda, sigue tus torneos y conecta con tu comunidad de juegos.">
 <title>ByePass — Tu próxima partida empieza aquí</title>
-<script src="tema.js?v=aec73935b9fd"></script>
+<script>
+/* Con sesión abierta y llegando desde fuera del sitio (escribiste byepass.cl, Google, un enlace) la portada salta al
+   muro (portada-auth.js): se esconde mientras Firebase lo confirma. Desde el logo de ByePass se queda (ver DESDE_ADENTRO). */
+(function(){ try {
+  var adentro = !!document.referrer && new URL(document.referrer).origin === location.origin;
+  if (localStorage.getItem("bp-sesion") === "1" && !adentro){
+    document.documentElement.className += " saltando";
+    setTimeout(function(){ document.documentElement.classList.remove("saltando"); }, 4000);   // si Firebase no responde, se ve igual
+  }
+} catch(e){} })();
+</script>
+<style>html.saltando body{visibility:hidden}</style>
+<script src="tema.js?v=e78d9286eec9"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=aec73935b9fd">
-<link rel="stylesheet" href="estilo.css?v=aec73935b9fd">
-<link rel="stylesheet" href="portada.css?v=aec73935b9fd">
+<link rel="stylesheet" href="tokens.css?v=e78d9286eec9">
+<link rel="stylesheet" href="estilo.css?v=e78d9286eec9">
+<link rel="stylesheet" href="portada.css?v=e78d9286eec9">
 </head>
 <body data-pagina="index">
 <a class="skip" href="#contenido">Saltar al contenido</a>
@@ -167,9 +179,9 @@
   </div>
 </dialog>
 <noscript><p class="wrap">Activa JavaScript para iniciar sesión y consultar los datos de tu tienda.</p></noscript>
-<script src="config.js?v=aec73935b9fd"></script>
-<script src="portada.js?v=aec73935b9fd"></script>
-<script src="noticias.js?v=aec73935b9fd"></script>
-<script type="module" src="portada-auth.js?v=aec73935b9fd"></script>
+<script src="config.js?v=e78d9286eec9"></script>
+<script src="portada.js?v=e78d9286eec9"></script>
+<script src="noticias.js?v=e78d9286eec9"></script>
+<script type="module" src="portada-auth.js?v=e78d9286eec9"></script>
 </body>
 </html>

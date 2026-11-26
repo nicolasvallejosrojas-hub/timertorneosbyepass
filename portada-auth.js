@@ -1,10 +1,10 @@
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { signInWithEmailAndPassword, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { MES_LARGO } from "./agenda.js?v=aec73935b9fd";
+import { MES_LARGO } from "./agenda.js?v=e78d9286eec9";
 import { db, auth, params, enEmulador, urlMuro, urlCuenta, urlPanel, decir, CORREO_OK, revisarClave, claveOk,
-         textoFalta, errorNacimiento, registrar, codigoInvitacion, betaActiva, normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto } from "./sesion.js?v=aec73935b9fd";
-import { estoyEnLinea } from "./presencia.js?v=aec73935b9fd";
+         textoFalta, errorNacimiento, registrar, codigoInvitacion, betaActiva, normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto } from "./sesion.js?v=e78d9286eec9";
+import { estoyEnLinea } from "./presencia.js?v=e78d9286eec9";
 estoyEnLinea(db, "portada");
 
 const $ = id => document.getElementById(id);
@@ -33,9 +33,21 @@ get(ref(db, "sistema/rulingsAbierto")).then(s => {
 
 /* Con la sesión abierta, esta página no tiene nada que ofrecer: al muro, como
    hacía Facebook. Mientras se registra no, o la cuenta quedaría a medias. */
-let registrando = false;
+/* Excepción: si llegaste desde otra página de ByePass (el logo), quieres ver la portada: se queda, con «Mi muro» en vez
+   de «Ingresar». Iniciar sesión aquí mismo sí lleva al muro (solo se salta la primera respuesta de Firebase). */
+const DESDE_ADENTRO = (() => { try { return !!document.referrer && new URL(document.referrer).origin === location.origin; } catch(e){ return false; } })();
+let registrando = false, primera = true;
+function conSesion(){
+  const b = document.querySelector('header [data-auth-open="ingreso"]');
+  if (!b) return;
+  const a = document.createElement("a");
+  a.className = b.className; a.href = urlMuro(); a.innerHTML = "Mi muro " + (b.querySelector("svg")?.outerHTML || "");
+  b.replaceWith(a);
+}
 onAuthStateChanged(auth, async u => {
-  if (!u || registrando) return;
+  const inicial = primera; primera = false;
+  if (!u || registrando){ document.documentElement.classList.remove("saltando"); return; }
+  if (inicial && DESDE_ADENTRO){ document.documentElement.classList.remove("saltando"); return conSesion(); }
   try {
     const p = await consultarPerfil(u);
     if (auth.currentUser?.uid === u.uid && !registrando) location.replace(perfilCompleto(p) ? urlMuro() : urlCuenta("ajustes"));
