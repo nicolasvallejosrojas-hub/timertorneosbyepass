@@ -11,8 +11,8 @@
    los días de liga ni de torneos: así se publica en un minuto. Se descarga o se comparte igual que la tabla final.
    El logo se elige desde el equipo (un archivo), así el lienzo no queda bloqueado para exportar.
    ============================================================ */
-import { cabe, entregarImagen } from "./tablafinal.js?v=e78d9286eec9";
-import { paletaDe, pintarFondo } from "./fondoimg.js?v=e78d9286eec9";
+import { cabe, entregarImagen } from "./tablafinal.js?v=6a8e75c14088";
+import { paletaDe, pintarFondo } from "./fondoimg.js?v=6a8e75c14088";
 
 /* ▌BLOQUE 1 · Post de «nueva tienda» ════════════════════════════════════════════
    El texto para acompañar la imagen y el dibujo de la imagen (claro u oscuro, con el logo si hay). */

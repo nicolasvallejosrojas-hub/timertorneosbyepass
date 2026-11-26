@@ -136,3 +136,31 @@
   [data-pagina="herramientas"] .sup>.btn{order:2}
 }
   .nfila{grid-template-columns:1fr auto;}
+
+  /* ---------------------------------------------------------- pestañas (una por tema) */
+  .htabs{display:flex;gap:var(--e1);margin-top:var(--e5);border-bottom:1px solid var(--divider);overflow-x:auto;scrollbar-width:none;
+    position:sticky;top:76px;z-index:5;background:var(--pagina);}
+  .htabs::-webkit-scrollbar{display:none;}
+  .htabs button{background:none;border:none;border-bottom:2px solid transparent;font:inherit;font-size:var(--t3);color:var(--apagado);
+    padding:12px 12px 10px;min-height:44px;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .htabs button:hover{color:var(--texto);}
+  .htabs button[aria-selected="true"]{color:var(--accion-texto);border-bottom-color:var(--accion);font-weight:600;}
+  .hcuenta{background:var(--accion);color:var(--sobre-accion);border-radius:999px;font-size:12px;font-weight:600;line-height:18px;min-width:18px;
+    padding:0 6px;text-align:center;font-variant-numeric:tabular-nums;}
+  .hpanel > .gtit:first-child{margin-top:var(--e4);}
+
+  /* ---------------------------------------------------------- escribir a las tiendas */
+  .etForm{display:grid;gap:var(--e3);padding:var(--e4);}
+  .etForm label{display:grid;gap:4px;font-size:var(--t2);color:var(--apagado);}
+  .etForm textarea{min-height:180px;}
+  .etA{border:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--e2) var(--e4);}
+  .etA legend{font-size:var(--t2);color:var(--apagado);padding:0;margin-bottom:4px;}
+  .etA label, .etTiendas label{display:inline-flex;align-items:center;gap:6px;color:var(--texto);font-size:var(--t3);min-height:32px;}
+  .etTiendas summary{cursor:pointer;font-size:var(--t3);min-height:32px;}
+  #etTiendas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px var(--e3);padding-top:var(--e2);}
+  .etVista:not(:empty){border:1px solid var(--divider);border-radius:var(--radio-chico);padding:var(--e3);display:grid;gap:6px;}
+  .etVista p{margin:0;white-space:pre-wrap;font-size:var(--t3);line-height:1.5;}
+  .etLista{display:grid;gap:2px;}
+  .etLista > div{display:flex;justify-content:space-between;gap:var(--e3);padding:6px 0;border-top:1px solid var(--divider);font-size:var(--t3);}
+  .etLista small{color:var(--apagado);font-size:var(--t2);}
+  .estado.mal{color:var(--negativo);white-space:normal;text-align:right;}

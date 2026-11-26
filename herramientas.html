@@ -20,19 +20,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=e78d9286eec9"></script>
+<script src="tema.js?v=6a8e75c14088"></script>
 <meta name="robots" content="noindex">
 <title>Herramientas de administrador — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=e78d9286eec9">
-<link rel="stylesheet" href="estilo.css?v=e78d9286eec9">
+<link rel="stylesheet" href="tokens.css?v=6a8e75c14088">
+<link rel="stylesheet" href="estilo.css?v=6a8e75c14088">
 <!-- ▌BLOQUE 1 · Estilos — Mantenimiento, beta, tiendas, cifras, buzón, cuentas y borrar. -->
 
-<link rel="stylesheet" href="/paginas/herramientas.css?v=e78d9286eec9">
-<link rel="stylesheet" href="/sistema.css?v=e78d9286eec9">
-<script src="/sistema.js?v=e78d9286eec9" defer></script>
+<link rel="stylesheet" href="/paginas/herramientas.css?v=6a8e75c14088">
+<link rel="stylesheet" href="/sistema.css?v=6a8e75c14088">
+<script src="/sistema.js?v=6a8e75c14088" defer></script>
 </head>
 <body data-pagina="herramientas">
   <header class="sup vidrio">
@@ -55,108 +55,126 @@
       </div>
       <p class="nota"><a href="estadisticas.html" data-link="estadisticas">Ver las estadísticas completas</a>: visitas, cuentas, torneos y tiendas en el tiempo.</p>
 
-      <h2 class="gtit">¿Qué está publicado?</h2>
-      <div class="grupo">
-        <div class="barraAcc"><button class="btn primario" id="pubRevisar">Revisar el sitio</button>
-          <span class="nota" id="pubEstado" style="margin:0">Compara la versión de cada archivo de byepass.cl con la que piden las páginas, y prueba si las reglas nuevas ya están publicadas.</span></div>
-        <div id="pubLista"></div>
-      </div>
-
-      <h2 class="gtit">Uso de la base <span id="usoResumen"></span></h2>
-      <div class="grupo">
-        <div class="barraAcc"><button class="btn primario" id="usoMedir">Medir</button>
-          <span class="nota" id="usoEstado" style="margin:0">Baja cada tienda y sala para ver cuánto ocupa. Tarda un poco y descarga varios MB: úsalo con wifi.</span></div>
-        <div id="usoMedidor"></div>
-        <div id="usoLista"></div>
-      </div>
-      <p class="nota" style="margin:var(--e2) var(--e3) 0">El plan gratis de Firebase guarda hasta 1 GB. Las salas de invitado se pueden borrar desde acá; las tiendas, desde «Todas las tiendas».</p>
-
-      <h2 class="gtit">Buzón de sugerencias y reportes <span id="bzResumen"></span></h2>
-      <div class="grupo" id="bzLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
-      <p class="nota" style="margin:var(--e2) var(--e3) 0">Llegan desde Ajustes → Escríbenos (los enlaces «Sugerencias» del sitio).
-        Si dejaron un correo, «Responder» le manda la respuesta por correo, desde contacto@byepass.cl.</p>
-
-      <h2 class="gtit">Mantenimiento de todo el sitio</h2>
-      <div class="grupo"><div class="mantCaja" id="mant">
-        <div><b id="mantEstado">…</b><small id="mantDesc"></small></div>
-        <button class="btn" id="mantBtn" disabled>…</button>
-        <input id="mantMensaje" maxlength="200" placeholder="Mensaje para los jugadores (opcional)" aria-label="Mensaje de mantenimiento">
-      </div></div>
-
-      <h2 class="gtit">Aviso para todos</h2>
-      <div class="grupo"><div class="mantCaja" id="avG">
-        <div><b id="avEstado">…</b><small id="avDesc"></small></div>
-        <button class="btn" id="avBtn" disabled>…</button>
-        <input id="avTexto" maxlength="200" placeholder="Texto del aviso (ej.: Este sábado no hay torneos)" aria-label="Texto del aviso">
-        <input id="avEnlace" type="url" maxlength="300" placeholder="Enlace (opcional, https://…)" aria-label="Enlace del aviso">
-        <select id="avDura" aria-label="Cuánto dura el aviso"><option value="1">Se ve 1 día</option><option value="3">Se ve 3 días</option>
-          <option value="7" selected>Se ve 1 semana</option><option value="30">Se ve 1 mes</option></select>
-      </div></div>
-      <p class="nota" style="margin:var(--e2) var(--e3) 0">Una franja arriba de la portada, las cuentas, las tiendas, el muro y el panel. Cada persona la puede cerrar. El timer de pantalla no la muestra.</p>
-
-      <h2 class="gtit">Limpieza</h2>
-      <div class="grupo">
-        <div class="barraAcc"><button class="btn primario" id="limBuscar">Buscar</button>
-          <span class="nota" id="limEstado" style="margin:0">Inscripciones de torneos de hace más de 30 días o de eventos que ya no existen. Guardan nombre, correo y fecha de nacimiento: la política de privacidad dice que se borran.</span></div>
-        <div id="limLista"></div>
-      </div>
-
-      <h2 class="gtit">Noticias del TCG</h2>
-      <div class="grupo" id="ntLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
-
-      <h2 class="gtit">Base de cartas</h2>
-      <div class="grupo"><div class="mantCaja" id="cartasBase">
-        <div><b id="caEstado">Revisando…</b><small id="caDesc"></small></div>
-        <a class="btn" href="https://github.com/nicolasvallejosrojas-hub/timertorneosbyepass/actions/workflows/cartas.yml" target="_blank" rel="noopener">Actualizar ahora</a>
-      </div></div>
-
-      <h2 class="gtit">Rulings</h2>
-      <div class="grupo"><div class="mantCaja" id="rulAbierto">
-        <div><b id="ruEstado">…</b><small id="ruDesc"></small></div>
-        <button class="btn" id="ruBtn" disabled>…</button>
-      </div></div>
-
-      <h2 class="gtit">Beta cerrada <span id="btResumen"></span></h2>
-      <div class="grupo"><div class="mantCaja" id="beta">
-        <div><b id="btEstado">…</b><small id="btDesc"></small></div>
-        <button class="btn" id="btBtn" disabled>…</button>
-      </div></div>
-      <div class="grupo" style="margin-top:var(--e2)"><form class="btNuevo" id="btForm">
-        <label>Para quién es<input id="btNota" maxlength="80" placeholder="Ej.: jugadores de Cartas del Sur"></label>
-        <label>Cuántos códigos<input type="number" id="btCant" min="1" max="500" value="1" inputmode="numeric"></label>
-        <label>Usos de cada uno<input type="number" id="btMax" min="1" max="1000" value="1" inputmode="numeric"></label>
-        <button class="btn primario" type="submit">Crear</button>
-        <button class="btn" type="button" id="btCopiarLibres">Copiar enlaces disponibles</button>
-        <p class="nota" id="btMsg"></p>
-      </form></div>
-      <div class="grupo" id="btLista" style="margin-top:var(--e2)"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
-      <p class="nota" style="margin:var(--e2) var(--e3) 0">Con la beta cerrada, crear una cuenta pide un código; las cuentas que ya
-        existen entran igual. Comparte el enlace: abre el registro con el código escrito. Un código de varios usos sirve para
-        una tienda entera; al borrarlo deja de aceptar gente nueva, pero no borra las cuentas que ya lo usaron. Toda cuenta
-        creada con un código gana la insignia Beta tester.</p>
-
-      <h2 class="gtit">Salas de invitado</h2>
-      <div class="grupo"><p class="nota" id="invEstado" style="padding:var(--e4)">Revisando…</p></div>
-
-      <h2 class="gtit">Marcas de organizador</h2>
-      <div class="grupo"><p class="nota" id="orgEstado" style="padding:var(--e4)">Revisando…</p></div>
-
-      <h2 class="gtit">Solicitudes de tienda <span id="solResumen"></span></h2>
-      <div class="grupo" id="solLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
-      <p class="nota" style="margin:var(--e2) var(--e3) 0">Aprobada, quien la pidió la crea desde su cuenta y queda de dueño. «Avisarle» le manda el aviso por
-        correo, desde contacto@byepass.cl. Rechazada, ve tu nota y puede mandarla de nuevo.</p>
-      <div class="barraAcc"><button class="btn" id="postAbrir">Crear el post de Instagram de una tienda nueva</button></div>
-
-      <h2 class="gtit">Todas las tiendas <span id="resumen"></span></h2>
-      <div class="grupo" id="lista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
-      <p class="nota" style="margin:var(--e2) var(--e3) 0">Verificada: sale en el directorio y puede subir banner y logo.
-        «Panel» entra al panel del organizador de esa tienda.</p>
-
-      <h2 class="gtit">Cuentas <span id="cuResumen"></span></h2>
-      <input type="search" id="cuBuscar" placeholder="Busca una cuenta por nombre o ID de jugador" aria-label="Buscar cuentas">
-      <div class="grupo" id="cuLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
-      <p class="nota" style="margin:var(--e2) var(--e3) 0">Eliminar borra sus datos del sitio. El acceso (correo y contraseña) vive
-        en Firebase y se borra desde la consola: al eliminar te queda su UID para buscarlo ahí.</p>
+      <nav class="htabs" role="tablist" aria-label="Secciones">
+        <button type="button" role="tab" id="ht-comunicacion" aria-controls="hp-comunicacion" aria-selected="true">Comunicación <span class="hcuenta oculto" id="hc-comunicacion"></span></button>
+        <button type="button" role="tab" id="ht-tiendas" aria-controls="hp-tiendas" aria-selected="false" tabindex="-1">Tiendas <span class="hcuenta oculto" id="hc-tiendas"></span></button>
+        <button type="button" role="tab" id="ht-jugadores" aria-controls="hp-jugadores" aria-selected="false" tabindex="-1">Jugadores <span class="hcuenta oculto" id="hc-jugadores"></span></button>
+        <button type="button" role="tab" id="ht-contenido" aria-controls="hp-contenido" aria-selected="false" tabindex="-1">Contenido <span class="hcuenta oculto" id="hc-contenido"></span></button>
+        <button type="button" role="tab" id="ht-sitio" aria-controls="hp-sitio" aria-selected="false" tabindex="-1">Sitio y base <span class="hcuenta oculto" id="hc-sitio"></span></button>
+      </nav>
+      <section class="hpanel" role="tabpanel" id="hp-comunicacion" aria-labelledby="ht-comunicacion">
+        <h2 class="gtit">Buzón de sugerencias y reportes <span id="bzResumen"></span></h2>
+        <div class="grupo" id="bzLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
+        <p class="nota" style="margin:var(--e2) var(--e3) 0">Llegan desde Ajustes → Escríbenos (los enlaces «Sugerencias» del sitio).
+          Si dejaron un correo, «Responder» le manda la respuesta por correo, desde contacto@byepass.cl.</p>
+        <h2 class="gtit">Escribir a las tiendas <span id="etResumen"></span></h2>
+        <div class="grupo"><form class="etForm" id="etForm">
+          <fieldset class="etA"><legend>A quién</legend>
+            <label><input type="radio" name="etRol" value="dueno" checked> Solo dueños</label>
+            <label><input type="radio" name="etRol" value="todos"> Dueños y staff</label>
+          </fieldset>
+          <details class="etTiendas"><summary id="etTiendasSum">Todas las tiendas</summary><div id="etTiendas"></div></details>
+          <label>Asunto <input id="etAsunto" maxlength="150" autocomplete="off"></label>
+          <label>Mensaje <textarea id="etTexto" spellcheck="true" placeholder="Hola {nombre}: …"></textarea></label>
+          <p class="nota" style="margin:0">{nombre} se cambia por el nombre de cada persona y {tienda} por su tienda. Cada una recibe su propio correo, en el que usó para crear su cuenta, desde contacto@byepass.cl; si responde, te llega ahí.</p>
+          <div class="etVista" id="etVista" aria-live="polite"></div>
+          <div class="barraAcc" style="padding:0"><button class="btn primario" type="submit" id="etEnviar">Enviar</button>
+            <button class="btn oculto" type="button" id="etReintentar">Reintentar los que fallaron</button></div>
+          <div id="etEstado"></div>
+        </form></div>
+        <h2 class="gtit">Aviso para todos</h2>
+        <div class="grupo"><div class="mantCaja" id="avG">
+          <div><b id="avEstado">…</b><small id="avDesc"></small></div>
+          <button class="btn" id="avBtn" disabled>…</button>
+          <input id="avTexto" maxlength="200" placeholder="Texto del aviso (ej.: Este sábado no hay torneos)" aria-label="Texto del aviso">
+          <input id="avEnlace" type="url" maxlength="300" placeholder="Enlace (opcional, https://…)" aria-label="Enlace del aviso">
+          <select id="avDura" aria-label="Cuánto dura el aviso"><option value="1">Se ve 1 día</option><option value="3">Se ve 3 días</option>
+            <option value="7" selected>Se ve 1 semana</option><option value="30">Se ve 1 mes</option></select>
+        </div></div>
+        <p class="nota" style="margin:var(--e2) var(--e3) 0">Una franja arriba de la portada, las cuentas, las tiendas, el muro y el panel. Cada persona la puede cerrar. El timer de pantalla no la muestra.</p>
+      </section>
+      <section class="hpanel oculto" role="tabpanel" id="hp-tiendas" aria-labelledby="ht-tiendas">
+        <h2 class="gtit">Solicitudes de tienda <span id="solResumen"></span></h2>
+        <div class="grupo" id="solLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
+        <p class="nota" style="margin:var(--e2) var(--e3) 0">Aprobada, quien la pidió la crea desde su cuenta y queda de dueño. «Avisarle» le manda el aviso por
+          correo, desde contacto@byepass.cl. Rechazada, ve tu nota y puede mandarla de nuevo.</p>
+        <div class="barraAcc"><button class="btn" id="postAbrir">Crear el post de Instagram de una tienda nueva</button></div>
+        <h2 class="gtit">Todas las tiendas <span id="resumen"></span></h2>
+        <div class="grupo" id="lista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
+        <p class="nota" style="margin:var(--e2) var(--e3) 0">Verificada: sale en el directorio y puede subir banner y logo.
+          «Panel» entra al panel del organizador de esa tienda.</p>
+        <h2 class="gtit">Marcas de organizador</h2>
+        <div class="grupo"><p class="nota" id="orgEstado" style="padding:var(--e4)">Revisando…</p></div>
+        <h2 class="gtit">Salas de invitado</h2>
+        <div class="grupo"><p class="nota" id="invEstado" style="padding:var(--e4)">Revisando…</p></div>
+      </section>
+      <section class="hpanel oculto" role="tabpanel" id="hp-jugadores" aria-labelledby="ht-jugadores">
+        <h2 class="gtit">Cuentas <span id="cuResumen"></span></h2>
+        <input type="search" id="cuBuscar" placeholder="Busca una cuenta por nombre o ID de jugador" aria-label="Buscar cuentas">
+        <div class="grupo" id="cuLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
+        <p class="nota" style="margin:var(--e2) var(--e3) 0">Eliminar borra sus datos del sitio. El acceso (correo y contraseña) vive
+          en Firebase y se borra desde la consola: al eliminar te queda su UID para buscarlo ahí.</p>
+        <h2 class="gtit">Beta cerrada <span id="btResumen"></span></h2>
+        <div class="grupo"><div class="mantCaja" id="beta">
+          <div><b id="btEstado">…</b><small id="btDesc"></small></div>
+          <button class="btn" id="btBtn" disabled>…</button>
+        </div></div>
+        <div class="grupo" style="margin-top:var(--e2)"><form class="btNuevo" id="btForm">
+          <label>Para quién es<input id="btNota" maxlength="80" placeholder="Ej.: jugadores de Cartas del Sur"></label>
+          <label>Cuántos códigos<input type="number" id="btCant" min="1" max="500" value="1" inputmode="numeric"></label>
+          <label>Usos de cada uno<input type="number" id="btMax" min="1" max="1000" value="1" inputmode="numeric"></label>
+          <button class="btn primario" type="submit">Crear</button>
+          <button class="btn" type="button" id="btCopiarLibres">Copiar enlaces disponibles</button>
+          <p class="nota" id="btMsg"></p>
+        </form></div>
+        <div class="grupo" id="btLista" style="margin-top:var(--e2)"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
+        <p class="nota" style="margin:var(--e2) var(--e3) 0">Con la beta cerrada, crear una cuenta pide un código; las cuentas que ya
+          existen entran igual. Comparte el enlace: abre el registro con el código escrito. Un código de varios usos sirve para
+          una tienda entera; al borrarlo deja de aceptar gente nueva, pero no borra las cuentas que ya lo usaron. Toda cuenta
+          creada con un código gana la insignia Beta tester.</p>
+      </section>
+      <section class="hpanel oculto" role="tabpanel" id="hp-contenido" aria-labelledby="ht-contenido">
+        <h2 class="gtit">Noticias del TCG</h2>
+        <div class="grupo" id="ntLista"><div class="nota" style="padding:var(--e4)">Cargando…</div></div>
+        <h2 class="gtit">Rulings</h2>
+        <div class="grupo"><div class="mantCaja" id="rulAbierto">
+          <div><b id="ruEstado">…</b><small id="ruDesc"></small></div>
+          <button class="btn" id="ruBtn" disabled>…</button>
+        </div></div>
+        <h2 class="gtit">Base de cartas</h2>
+        <div class="grupo"><div class="mantCaja" id="cartasBase">
+          <div><b id="caEstado">Revisando…</b><small id="caDesc"></small></div>
+          <a class="btn" href="https://github.com/nicolasvallejosrojas-hub/timertorneosbyepass/actions/workflows/cartas.yml" target="_blank" rel="noopener">Actualizar ahora</a>
+        </div></div>
+      </section>
+      <section class="hpanel oculto" role="tabpanel" id="hp-sitio" aria-labelledby="ht-sitio">
+        <h2 class="gtit">¿Qué está publicado?</h2>
+        <div class="grupo">
+          <div class="barraAcc"><button class="btn primario" id="pubRevisar">Revisar el sitio</button>
+            <span class="nota" id="pubEstado" style="margin:0">Compara la versión de cada archivo de byepass.cl con la que piden las páginas, y prueba si las reglas nuevas ya están publicadas.</span></div>
+          <div id="pubLista"></div>
+        </div>
+        <h2 class="gtit">Mantenimiento de todo el sitio</h2>
+        <div class="grupo"><div class="mantCaja" id="mant">
+          <div><b id="mantEstado">…</b><small id="mantDesc"></small></div>
+          <button class="btn" id="mantBtn" disabled>…</button>
+          <input id="mantMensaje" maxlength="200" placeholder="Mensaje para los jugadores (opcional)" aria-label="Mensaje de mantenimiento">
+        </div></div>
+        <h2 class="gtit">Uso de la base <span id="usoResumen"></span></h2>
+        <div class="grupo">
+          <div class="barraAcc"><button class="btn primario" id="usoMedir">Medir</button>
+            <span class="nota" id="usoEstado" style="margin:0">Baja cada tienda y sala para ver cuánto ocupa. Tarda un poco y descarga varios MB: úsalo con wifi.</span></div>
+          <div id="usoMedidor"></div>
+          <div id="usoLista"></div>
+        </div>
+        <p class="nota" style="margin:var(--e2) var(--e3) 0">El plan gratis de Firebase guarda hasta 1 GB. Las salas de invitado se pueden borrar desde acá; las tiendas, desde «Todas las tiendas».</p>
+        <h2 class="gtit">Limpieza</h2>
+        <div class="grupo">
+          <div class="barraAcc"><button class="btn primario" id="limBuscar">Buscar</button>
+            <span class="nota" id="limEstado" style="margin:0">Inscripciones de torneos de hace más de 30 días o de eventos que ya no existen. Guardan nombre, correo y fecha de nacimiento: la política de privacidad dice que se borran.</span></div>
+          <div id="limLista"></div>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -205,16 +223,16 @@
       <button class="btn" id="dbSi" disabled>Descargar respaldo y eliminar</button></div>
   </dialog>
 
-<script src="config.js?v=e78d9286eec9"></script>
+<script src="config.js?v=6a8e75c14088"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=e78d9286eec9";
+import { avisarError } from "./errores.js?v=6a8e75c14088";
 import { ref, onValue, get, set, update, remove, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=e78d9286eec9";
-import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=e78d9286eec9";
-import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=e78d9286eec9";
-import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=e78d9286eec9";
+import { db, auth, enEmulador, urlCuenta, urlMuro } from "./sesion.js?v=6a8e75c14088";
+import { nombreTienda, iniciales, salaDeTimer, MAX_TIMERS } from "./sala.js?v=6a8e75c14088";
+import { estoyEnLinea, contarEnLinea } from "./presencia.js?v=6a8e75c14088";
+import { mensajeAceptada, asuntoAceptada, canalDe, mensajeRespuesta, asuntoRespuesta } from "./avisotienda.js?v=6a8e75c14088";
 estoyEnLinea(db, "herramientas");
 
 const $ = id => document.getElementById(id);
@@ -497,6 +515,100 @@ function pintarCodigos(){
   });
 }
 
+/* ▌Pestañas ═════════════════════════════════════════════════════════════════════
+   Una por tema; la elegida queda en el #hash (se puede recargar o enlazar). Flechas para moverse entre ellas. */
+const TABS = [...document.querySelectorAll(".htabs [role=tab]")];
+function abrirTab(id, foco = false){
+  const t = TABS.find(b => b.id === "ht-" + id) || TABS[0];
+  TABS.forEach(b => { const si = b === t; b.setAttribute("aria-selected", si); b.tabIndex = si ? 0 : -1;
+    $(b.getAttribute("aria-controls")).classList.toggle("oculto", !si); });
+  if (foco) t.focus();
+  history.replaceState(null, "", "#" + t.id.slice(3));
+}
+TABS.forEach((b, i) => {
+  b.onclick = () => abrirTab(b.id.slice(3));
+  b.onkeydown = e => { const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!d) return; e.preventDefault();
+    abrirTab(TABS[(i + d + TABS.length) % TABS.length].id.slice(3), true); };
+});
+if (location.hash) abrirTab(location.hash.slice(1));
+/* El número en la pestaña: lo que espera respuesta (mensajes sin leer, solicitudes por revisar). */
+function contar(id, n){ const c = $("hc-" + id); c.textContent = n || ""; c.classList.toggle("oculto", !n); }
+
+/* ▌Escribir a las tiendas ═══════════════════════════════════════════════════════
+   Un correo por persona (nadie ve a los demás) con {nombre} y {tienda} reemplazados: cada uno va a correosSalida/<id>
+   con «cuenta» = su uid, y la función enviarCorreo busca el correo con que se registró y lo manda con Brevo, igual que
+   «Responder» del buzón. Quien está en dos tiendas recibe uno solo, con las dos. */
+const ET_ESTADO = {};   // uid → { nombre, tiendas, estado: "cola" | "enviado" | "error", error }
+const etTiendasSel = () => new Set([...document.querySelectorAll("#etTiendas input:checked")].map(c => c.value));
+function etDestinatarios(){
+  const todos = document.querySelector("input[name=etRol]:checked").value === "todos", sel = etTiendasSel(), por = new Map();
+  Object.entries(TODAS).forEach(([id, t]) => {
+    if (!sel.has(id)) return;
+    Object.entries(t.miembros || {}).forEach(([uid, m]) => {
+      if (!m || (!todos && m.rol !== "dueno")) return;
+      const x = por.get(uid) || { uid, nombre: (m.nombre || "").trim(), tiendas: [] };
+      x.tiendas.push(nombreTienda(t.perfil, id)); por.set(uid, x);
+    });
+  });
+  return [...por.values()].sort((a, b) => a.nombre.localeCompare(b.nombre));
+}
+const etY = xs => xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " y " + xs.at(-1);
+const etArmar = (txt, d) => txt.replaceAll("{nombre}", d.nombre.split(" ")[0] || d.nombre).replaceAll("{tienda}", etY(d.tiendas));
+function pintarEscribir(){
+  const antes = etTiendasSel(), primera = !$("etTiendas").children.length;
+  $("etTiendas").innerHTML = Object.entries(TODAS).sort((a, b) => nombreTienda(a[1].perfil, a[0]).localeCompare(nombreTienda(b[1].perfil, b[0])))
+    .map(([id, t]) => '<label><input type="checkbox" value="' + esc(id) + '"' + (primera || antes.has(id) ? " checked" : "") + "> " + esc(nombreTienda(t.perfil, id)) + "</label>").join("");
+  etVista();
+}
+function etVista(){
+  const ds = etDestinatarios(), n = Object.keys(TODAS).length, sel = etTiendasSel().size;
+  $("etTiendasSum").textContent = sel === n ? "Todas las tiendas (" + n + ")" : sel + " de " + n + " tiendas";
+  $("etResumen").textContent = ds.length + (ds.length === 1 ? " persona" : " personas");
+  $("etEnviar").textContent = ds.length ? "Enviar a " + ds.length + (ds.length === 1 ? " persona" : " personas") : "Enviar";
+  const d = ds[0], a = $("etAsunto").value.trim(), t = $("etTexto").value.trim();
+  $("etVista").innerHTML = d && (a || t) ? '<span class="nota" style="margin:0">Así le llega a ' + esc(d.nombre || "la primera persona") + ":</span><b>" + esc(etArmar(a, d)) + "</b><p>" + esc(etArmar(t, d)) + "</p>" : "";
+}
+["etAsunto", "etTexto"].forEach(id => $(id).addEventListener("input", etVista));
+$("etForm").addEventListener("change", etVista);
+function etPintarEstado(){
+  const xs = Object.values(ET_ESTADO), mal = xs.filter(x => x.estado === "error");
+  $("etEstado").innerHTML = xs.length ? '<div class="etLista">' + xs.map(x => '<div><span>' + esc(x.nombre || "Sin nombre") + " <small>" + esc(etY(x.tiendas)) + "</small></span>" +
+    '<span class="estado ' + (x.estado === "enviado" ? "e1" : x.estado === "error" ? "mal" : "") + '">' +
+    (x.estado === "enviado" ? "Enviado" : x.estado === "error" ? "No se envió: " + esc(x.error || "error") : "En cola…") + "</span></div>").join("") + "</div>" : "";
+  $("etReintentar").classList.toggle("oculto", !mal.length);
+}
+async function etMandar(ds, asunto, texto){
+  for (const d of ds){
+    ET_ESTADO[d.uid] = { ...d, estado: "cola" };
+    const r = push(ref(db, "correosSalida"));
+    try { await set(r, { cuenta: d.uid, asunto: etArmar(asunto, d).slice(0, 150), texto: etArmar(texto, d).slice(0, 5000), por: auth.currentUser.uid, creado: serverTimestamp() }); }
+    catch(e){ ET_ESTADO[d.uid] = { ...d, estado: "error", error: "no quedó en cola (¿reglas?)" }; etPintarEstado(); continue; }
+    const deja = onValue(r, s => { const v = s.val() || {}; if (!v.estado) return; deja();
+      ET_ESTADO[d.uid] = { ...d, estado: v.estado === "enviado" ? "enviado" : "error", error: v.error }; etPintarEstado(); }, () => {});
+    etPintarEstado();
+  }
+}
+let ET_ULTIMO = null;
+$("etForm").onsubmit = async e => {
+  e.preventDefault();
+  const asunto = $("etAsunto").value.trim(), texto = $("etTexto").value.trim(), ds = etDestinatarios();
+  if (!asunto || !texto) return ($("etEstado").innerHTML = '<p class="nota">Escribe el asunto y el mensaje.</p>');
+  if (!ds.length) return ($("etEstado").innerHTML = '<p class="nota">No hay a quién: elige al menos una tienda.</p>');
+  if (!confirm("¿Enviar este correo a " + ds.length + (ds.length === 1 ? " persona" : " personas") + "?\n\nCada una recibe el suyo desde contacto@byepass.cl.")) return;
+  $("etEnviar").disabled = true;
+  Object.keys(ET_ESTADO).forEach(k => delete ET_ESTADO[k]);
+  ET_ULTIMO = { asunto, texto };
+  await etMandar(ds, asunto, texto);
+  $("etEnviar").disabled = false;
+};
+$("etReintentar").onclick = async () => {
+  const mal = Object.values(ET_ESTADO).filter(x => x.estado === "error");
+  if (!mal.length || !ET_ULTIMO) return;
+  $("etReintentar").disabled = true;
+  await etMandar(mal, ET_ULTIMO.asunto, ET_ULTIMO.texto);
+  $("etReintentar").disabled = false;
+};
+
 /* ▌BLOQUE 8 · Tiendas ═══════════════════════════════════════════════════════════
    Lista todas las tiendas y marca verificadas. */
 /* ------------------------------------------------------------ tiendas
@@ -509,6 +621,7 @@ async function pintarTiendas(){
   try { TODAS = (await get(ref(db, "tiendas"))).val() || {}; }
   catch(e){ $("lista").innerHTML = '<div class="nota" style="padding:var(--e4)">No se pudo cargar la lista.</div>'; return; }
   pintarCuentas();   // quién es dueño de qué, para la lista de cuentas
+  pintarEscribir();  // a quién le llega «Escribir a las tiendas»
   const filas = Object.entries(TODAS).map(([id, t]) => ({ id, t, p: t.perfil || {} }))
     .sort((a, b) => ESTADO(a.t) - ESTADO(b.t) || nombreTienda(a.p, a.id).localeCompare(nombreTienda(b.p, b.id)));
   const porRevisar = filas.filter(f => !ESTADO(f.t)).length;
@@ -587,6 +700,7 @@ function pintarBuzon(){
   $("cfBuzon").textContent = nuevos;
   $("cfBuzonDet").textContent = filas.length + (filas.length === 1 ? " mensaje en total" : " mensajes en total");
   $("bzResumen").textContent = nuevos ? nuevos + " sin leer" : "";
+  contar("comunicacion", nuevos);
   $("bzLista").innerHTML = filas.map(([id, m]) => {
     /* A quién responderle: el correo que escribió en «contacto»; si no puso uno, el de su cuenta (guardado, o el que busca la función
        con su uid en los mensajes de antes, que no lo guardaban). */
@@ -662,7 +776,7 @@ $("dcCierra").onclick = () => $("dlgCorreo").close();
 
 /* El post: la imagen se vuelve a dibujar con cada cambio (la última manda); el texto se rehace solo mientras no lo hayas editado a mano. */
 let POST_N = 0, POST_LOGO = null, POST_EDITADO = false, POST_MOD = null;
-const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=e78d9286eec9"));
+const postMod = () => POST_MOD || (POST_MOD = import("./postnuevatienda.js?v=6a8e75c14088"));
 const datosPost = () => ({ nombre: $("dpNombre").value, comuna: $("dpComuna").value, instagram: $("dpIg").value, logo: POST_LOGO, tema: $("dpTema").value });
 async function pintarPost(){
   const n = ++POST_N, m = await postMod(), d = datosPost();
@@ -769,6 +883,7 @@ function pintarSolicitudes(){
   const filas = Object.entries(SOL).sort(([, a], [, b]) => (ESTADO_SOL(a) > 0) - (ESTADO_SOL(b) > 0) || (a.creada || 0) - (b.creada || 0));
   const pend = filas.filter(([, x]) => !ESTADO_SOL(x)).length;
   $("solResumen").textContent = pend ? pend + " por revisar" : "";
+  contar("tiendas", pend);
   $("solLista").innerHTML = filas.map(([uid, x]) => {
     const e = ESTADO_SOL(x);
     const datos = [x.id, x.comuna, x.quien && "la pide " + x.quien,
@@ -906,7 +1021,7 @@ const PAGS_SITIO = ["index.html", "cuenta.html", "muro.html", "tienda.html", "ti
                  "invitado.html", "estadisticas.html", "herramientas.html", "widget.html", "privacidad.html", "terminos.html", "rifa.html", "staff.html", "afiche.html", "mazos.html", "partidas.html", "meta-chile.html", "rulings.html", "404.html"];
 /* El archivo tal como está publicado ahora (sin copias guardadas). */
 const bajar = archivo => fetch(archivo + (archivo.includes("?") ? "&" : "?") + "revisar=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : null).catch(() => null);
-/* Lo que pide un archivo: «./clasificacion.js?v=e78d9286eec9», «estilo.css?v=e78d9286eec9»… → [archivo, versión]. */
+/* Lo que pide un archivo: «./clasificacion.js?v=6a8e75c14088», «estilo.css?v=6a8e75c14088»… → [archivo, versión]. */
 const pide = txt => [...String(txt).matchAll(/["'(]\.?\/?([a-z0-9-]+\.(?:js|css))\?v=(\d+)/g)].map(m => [m[1], +m[2]]);
 const versionDe = txt => { const m = /Versión actual: v=(\d+)/.exec(txt || ""); return m ? +m[1] : null; };
 const lineaPub = (tipo, titulo, det) => '<div class="linea ' + tipo + '"><i>' + (tipo === "ok" ? "✓" : tipo === "mal" ? "✗" : "!") + "</i><b>" + esc(titulo) + "</b>" + (det ? "<small>" + esc(det) + "</small>" : "") + "</div>";
