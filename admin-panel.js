@@ -1,39 +1,39 @@
-import { montarIdentidad, aplicarMarca } from './identidad.js?v=11231c1e2ccf';
-import { planPublicacion } from "./admin-publicacion.js?v=11231c1e2ccf";
-import { avisarError } from "./errores.js?v=11231c1e2ccf";
+import { montarIdentidad, aplicarMarca } from './identidad.js?v=aec73935b9fd';
+import { planPublicacion } from "./admin-publicacion.js?v=aec73935b9fd";
+import { avisarError } from "./errores.js?v=aec73935b9fd";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=11231c1e2ccf";
-import { activarPush, renovarPush, pushActivo } from "./push.js?v=11231c1e2ccf";
-import { qrImg, qrPng } from "./qr.js?v=11231c1e2ccf";
-import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=11231c1e2ccf";
-import { vigilar } from "./mantenimiento.js?v=11231c1e2ccf";
-import { estoyEnLinea } from "./presencia.js?v=11231c1e2ccf";
-import { barras } from "./graficos.js?v=11231c1e2ccf";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=11231c1e2ccf";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=11231c1e2ccf";
-import { planClaves } from "./jugadores.js?v=11231c1e2ccf";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=11231c1e2ccf";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=aec73935b9fd";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=aec73935b9fd";
+import { qrImg, qrPng } from "./qr.js?v=aec73935b9fd";
+import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=aec73935b9fd";
+import { vigilar } from "./mantenimiento.js?v=aec73935b9fd";
+import { estoyEnLinea } from "./presencia.js?v=aec73935b9fd";
+import { barras } from "./graficos.js?v=aec73935b9fd";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=aec73935b9fd";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=aec73935b9fd";
+import { planClaves, parecido } from "./jugadores.js?v=aec73935b9fd";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=aec73935b9fd";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=11231c1e2ccf";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=aec73935b9fd";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
-         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=11231c1e2ccf";
+         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=aec73935b9fd";
 /* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
-const entregarTabla = datos => import("./tablafinal.js?v=11231c1e2ccf").then(m => m.entregarTabla(datos));
-const entregarCalendario = datos => import("./calendarioimg.js?v=11231c1e2ccf").then(m => m.entregarCalendario(datos));
-const dibujarCalendario = datos => import("./calendarioimg.js?v=11231c1e2ccf").then(m => m.dibujarCalendario(datos));
-const entregarFechas = datos => import("./calendarioimg.js?v=11231c1e2ccf").then(m => m.entregarFechas(datos));
-const dibujarFechas = datos => import("./calendarioimg.js?v=11231c1e2ccf").then(m => m.dibujarFechas(datos));
+const entregarTabla = datos => import("./tablafinal.js?v=aec73935b9fd").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=aec73935b9fd").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=aec73935b9fd").then(m => m.dibujarCalendario(datos));
+const entregarFechas = datos => import("./calendarioimg.js?v=aec73935b9fd").then(m => m.entregarFechas(datos));
+const dibujarFechas = datos => import("./calendarioimg.js?v=aec73935b9fd").then(m => m.dibujarFechas(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
-import { celdaCsv } from "./csv.js?v=11231c1e2ccf";
-import { vistaDe, publicable } from "./vistapub.js?v=11231c1e2ccf";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=11231c1e2ccf";
-import { pokemonDe, clasificar } from "./arquetipos.js?v=11231c1e2ccf";
-import { rondasDesde, tipoDe } from "./partidas.js?v=11231c1e2ccf";
+import { celdaCsv } from "./csv.js?v=aec73935b9fd";
+import { vistaDe, publicable } from "./vistapub.js?v=aec73935b9fd";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=aec73935b9fd";
+import { pokemonDe, clasificar } from "./arquetipos.js?v=aec73935b9fd";
+import { rondasDesde, tipoDe } from "./partidas.js?v=aec73935b9fd";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
@@ -1160,7 +1160,7 @@ function renderClock(){
 let latidoPagina = null;
 const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250); };
 try {
-  const w = new Worker("reloj-worker.js?v=11231c1e2ccf");
+  const w = new Worker("reloj-worker.js?v=aec73935b9fd");
   w.onmessage = () => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
   w.onerror = latidoDePagina;
 } catch(e){ latidoDePagina(); }
@@ -2169,27 +2169,79 @@ async function enviarPartidas(tid, t, ids){
   if (Object.keys(rutas).length) await update(ref(db), rutas);
   return Object.keys(rutas).length;
 }
+/* ID por confirmar. El ID lo escribe cada cuenta en Ajustes y nadie lo comprueba al escribirlo: con poner el ID de otra
+   persona, sus resultados de esta tienda pasaban a esa cuenta (y si pedía no salir con su nombre, la fila del otro
+   quedaba como «Jugador reservado»). Ahora un ID compartido enlaza torneos solo si está CONFIRMADO en
+   enlacesOk/<tienda>/<uid> = { id, por, t }, que escribe solo la tienda: por «inscripcion» (lo confirma el panel solo,
+   ver confirmarPorInscripcion) o por «tienda» (aprobado a mano); «rechazo» = la tienda dijo que no es esa persona.
+   La confirmación es de ESE ID: si la cuenta cambia de ID, no calza y vuelve a quedar por confirmar.
+   Todo pasa por ENLACES, así que archivar, enlazarPasados y recuperar categorías quedan cubiertos de una vez. */
+let ENL_TODOS = {}, ENL_OK = {};
+const confirmado = (uid, id) => !!ENL_OK[uid] && ENL_OK[uid].id === id && ENL_OK[uid].por !== "rechazo";
+const pendientesEnl = () => Object.entries(ENL_TODOS)
+  .filter(([uid, e]) => e && e.playerId && !(ENL_OK[uid] && ENL_OK[uid].id === String(e.playerId)))
+  .map(([uid, e]) => ({ uid, id: String(e.playerId), nombre: e.nombre || "" }));
+/* Las filas de los torneos archivados que tienen ese ID (idsHistorial: solo la tienda lo lee). */
+const filasDeId = id => Object.entries(IDS_HIST).flatMap(([tid, ids]) => Object.entries(ids || {})
+  .filter(([, x]) => String(x) === id).map(([i]) => ({ tid, t: HIST_P[tid], f: HIST_P[tid] && (HIST_P[tid].standings || [])[i] })).filter(x => x.f));
+function armarEnlaces(){
+  ENLACES = {}; CUENTAS_ENL = {};
+  Object.entries(ENL_TODOS).forEach(([uid, e]) => { if (e && e.nombre) CUENTAS_ENL[uid] = e.nombre; });
+  const repetidos = new Set();
+  Object.entries(ENL_TODOS).forEach(([uid, e]) => {
+    /* publico ausente = sí sale: es como funcionaba todo antes de que
+       existiera la opción, y un enlace sin el dato no pidió reservarse. */
+    if (!e || !e.playerId) return;
+    const id = String(e.playerId);
+    if (!confirmado(uid, id)) return;
+    if (ENLACES[id] && ENLACES[id].uid !== uid) repetidos.add(id);
+    ENLACES[id] = { uid, publico: e.publico !== false };
+  });
+  /* Si la tienda confirmó el mismo ID en dos cuentas, no se le asignan los torneos a ninguna (si no, la que se
+     vincula después le quitaba el historial a la otra). El aviso de «por confirmar» lo advierte antes. */
+  repetidos.forEach(id => delete ENLACES[id]);
+  enlazarPasados(); pintarHist(); confirmarPorInscripcion();
+}
+/* Confirmación sola: la misma cuenta se inscribió en la página, con ese ID, a un evento de esta tienda, y en un torneo
+   archivado de esos días (±7, como enviarPartidas) la fila de ese ID lleva el nombre de esa inscripción. O sea: quien
+   jugó con ese ID es quien se inscribió con esa cuenta.
+   ponytail: si la tienda copia a TOM el ID que el jugador escribió al inscribirse, alguien que juega EN PERSONA con el
+   ID de otro queda confirmado; para eso está «Quitar» en Jugadores y que la tienda lo vea en la mesa. */
+let confirmando = false;
+const REVISADO = new Set();
+const mismoNombre = (a, b) => normNombre(a) === normNombre(b) || parecido(a, b);
+async function confirmarPorInscripcion(){
+  if (confirmando || !AGENDA.length) return;
+  const pend = pendientesEnl();
+  if (!pend.length) return;
+  confirmando = true;
+  const rutas = {};
+  try {
+    for (const p of pend){
+      let ok = false;
+      for (const { tid, t, f } of filasDeId(p.id)){
+        const k = p.uid + "|" + p.id + "|" + tid;
+        if (REVISADO.has(k) || f.uid && f.uid !== p.uid) continue;
+        REVISADO.add(k);
+        const evs = AGENDA.filter(ev => ev.inscripcion && ev.fecha && Math.abs(Date.parse(ev.fecha) - Date.parse(t.fecha)) <= 7 * 864e5);
+        for (const ev of evs){
+          const ins = (await get(ref(db, "inscripciones/" + TIENDA + "/" + ev.id + "/" + p.uid)).catch(() => null))?.val();
+          if (ins && String(ins.playerId || "") === p.id &&
+              [[ins.nombre, ins.apellido].filter(Boolean).join(" "), ins.nick].some(n => n && mismoNombre(n, f.name))){ ok = true; break; }
+        }
+        if (ok) break;
+      }
+      if (ok) rutas["enlacesOk/" + TIENDA + "/" + p.uid] = { id: p.id, por: "inscripcion", t: Date.now() };
+    }
+    if (Object.keys(rutas).length) await update(ref(db), rutas);
+  } catch(e){ console.warn("No se pudieron confirmar los ID por inscripción", e); }
+  confirmando = false;
+}
 function escucharEnlaces(){
-  onValue(ref(db, "enlaces/" + TIENDA), s => {
-    const v = s.val() || {};
-    ENLACES = {}; CUENTAS_ENL = {};
-    Object.entries(v).forEach(([uid, e]) => { if (e && e.nombre) CUENTAS_ENL[uid] = e.nombre; });
-    const repetidos = new Set();
-    Object.entries(v).forEach(([uid, e]) => {
-      /* publico ausente = sí sale: es como funcionaba todo antes de que
-         existiera la opción, y un enlace sin el dato no pidió reservarse. */
-      if (!e || !e.playerId) return;
-      const id = String(e.playerId);
-      if (ENLACES[id] && ENLACES[id].uid !== uid) repetidos.add(id);
-      ENLACES[id] = { uid, publico: e.publico !== false };
-    });
-    /* El ID de jugador lo declara cada cuenta y nadie puede comprobarlo: si dos cuentas dicen tener el mismo ID en
-       esta tienda, no se le asignan los torneos a ninguna (si no, la que se vincula después le quitaba el historial
-       a la otra). Queda pendiente hasta que una de las dos lo corrija. */
-    repetidos.forEach(id => delete ENLACES[id]);
-    enlazarPasados(); pintarHist();
-  }, () => { ENLACES = {}; });
-  onValue(ref(db, "idsHistorial/" + TIENDA), s => { IDS_HIST = s.val() || {}; enlazarPasados(); }, () => {});
+  onValue(ref(db, "enlaces/" + TIENDA), s => { ENL_TODOS = s.val() || {}; armarEnlaces(); }, () => { ENL_TODOS = {}; ENLACES = {}; });
+  /* Sin las reglas de enlacesOk publicadas esto falla: ningún ID enlaza solo (lo seguro) hasta publicarlas. */
+  onValue(ref(db, "enlacesOk/" + TIENDA), s => { ENL_OK = s.val() || {}; armarEnlaces(); }, () => { ENL_OK = {}; armarEnlaces(); });
+  onValue(ref(db, "idsHistorial/" + TIENDA), s => { IDS_HIST = s.val() || {}; enlazarPasados(); confirmarPorInscripcion(); }, () => {});
   /* Jugadores que piden, desde su perfil, que una fila de un torneo archivado quede a su nombre. */
   onValue(ref(db, "reclamos/" + TIENDA), s => { RECLAMOS = s.val() || {}; pintarHist(); }, () => { RECLAMOS = {}; });
 }
@@ -2484,7 +2536,7 @@ $("recCatArchivos").onchange = async e => {
 };
 
 onValue(R_HIST, snap => {
-  HIST_P = snap.val() || {}; pintarInsPanel(); pintarJuegos(); enlazarPasados(); pintarHist();
+  HIST_P = snap.val() || {}; pintarInsPanel(); pintarJuegos(); enlazarPasados(); pintarHist(); confirmarPorInscripcion();
 });
 let HIST_ABIERTO = null;   // el torneo archivado cuyos jugadores se están mirando (para enlazarlos)
 function pintarHist(){
@@ -2514,6 +2566,31 @@ function pintarHist(){
       const { u, k } = pedidos[+b.dataset.rechazar];
       remove(ref(db, "reclamos/" + TIENDA + "/" + u + "/" + k)).catch(e => alert(mensajeConexion(e)));
     });
+    $("histList").appendChild(caja);
+  }
+  /* ID compartidos que la tienda todavía no confirma: con lo que dicen sus torneos de ese ID, para decidir. */
+  const pend = pendientesEnl();
+  if (pend.length){
+    const caja = document.createElement("div");
+    caja.className = "pedidosEnl idsPend";
+    caja.innerHTML = '<b>ID de jugador por confirmar (' + pend.length + ')</b><span class="muted">Confirma solo si sabes que ese ID es de esa persona: ' +
+      "sus torneos con ese ID pasan a su cuenta. Se confirman solos cuando se inscribe con su cuenta y juega con ese ID.</span>" +
+      pend.map((p, n) => {
+        const fs = filasDeId(p.id), noms = [...new Set(fs.map(x => x.f.name).filter(x => x && x !== "Jugador reservado"))].slice(0, 2);
+        const otra = Object.entries(ENL_OK).some(([u, o]) => u !== p.uid && o && o.id === p.id && o.por !== "rechazo");
+        return '<div class="row pedido"><span style="flex:1"><b>' + esc(p.nombre) + "</b> dice tener el ID " + esc(p.id) + ". " +
+          (fs.length ? (noms.length ? "En tus torneos ese ID es «" + noms.map(esc).join("», «") + "»" : "Ese ID está en tus torneos") +
+            " (" + fs.length + (fs.length === 1 ? " torneo)." : " torneos).") : "Ese ID todavía no aparece en tus torneos.") +
+          (otra ? ' <b class="err">Otra cuenta ya tiene este ID confirmado.</b>' : "") + "</span>" +
+          '<button class="small" data-confid="' + n + '">Confirmar</button><button class="small sec" data-rechid="' + n + '">No es esa persona</button></div>';
+      }).join("");
+    const marcar = (b, por) => {
+      const p = pend[+(b.dataset.confid ?? b.dataset.rechid)];
+      b.disabled = true;
+      set(ref(db, "enlacesOk/" + TIENDA + "/" + p.uid), { id: p.id, por, t: Date.now() }).catch(e => { b.disabled = false; alert(mensajeConexion(e)); });
+    };
+    caja.querySelectorAll("[data-confid]").forEach(b => b.onclick = () => marcar(b, "tienda"));
+    caja.querySelectorAll("[data-rechid]").forEach(b => b.onclick = () => marcar(b, "rechazo"));
     $("histList").appendChild(caja);
   }
   items.forEach(([id, t]) => {
@@ -3267,7 +3344,7 @@ let mesVista = null;                                // {a, m} con m de 0 a 11
 onValue(R_AGENDA, snap => {
   const v = snap.val() || {};
   AGENDA = ordenar(Object.entries(v).map(([id, e]) => ({ id, ...e })));
-  renderAgenda();
+  renderAgenda(); confirmarPorInscripcion();
 }, () => $("evLista").innerHTML = '<span class="err">No se pudo cargar el calendario.</span>');
 
 /* Plantillas: lo que se repite de una fecha a otra (título, hora, duración,
@@ -4517,7 +4594,7 @@ async function fiAbrir(){
   const h = new Date(), a = mesVista ? mesVista.a : h.getFullYear(), m = mesVista ? mesVista.m : h.getMonth();
   if (!fiMes || fiMes.ym !== ymDe(a, m) && !fiMes.cambio){ const d = await imagenDelMes(a, m); fiMes = { ym: ymDe(a, m), a, m, datos: d ? { ...d } : null, cambio: false }; if (fiBorrador) fiControles(); }
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
-  FONDO_DEF = (await import("./fondoimg.js?v=11231c1e2ccf")).FONDO_DEF;
+  FONDO_DEF = (await import("./fondoimg.js?v=aec73935b9fd")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };
@@ -4556,7 +4633,7 @@ $("fiCentrar").onclick = () => { const x = fiEncuadrable(); if (!x) return; Obje
   const prev = $("fiPrev");
   prev.addEventListener("pointerdown", async e => {
     const x = fiEncuadrable(), cv = prev.querySelector("canvas"); if (!x || !cv) return;
-    const { cargarImagen, encuadre } = await import("./fondoimg.js?v=11231c1e2ccf"), img = await cargarImagen(x.fondo); if (!img) return;
+    const { cargarImagen, encuadre } = await import("./fondoimg.js?v=aec73935b9fd"), img = await cargarImagen(x.fondo); if (!img) return;
     const p = encuadre(cv.width, cv.height, img, x);
     ini = { x: e.clientX, y: e.clientY, fx: x.focoX || 0, fy: x.focoY || 0, k: cv.width / cv.getBoundingClientRect().width, sobraX: p.w - cv.width, sobraY: p.h - cv.height, obj: x };
     prev.setPointerCapture(e.pointerId); prev.classList.add("arrastrando");

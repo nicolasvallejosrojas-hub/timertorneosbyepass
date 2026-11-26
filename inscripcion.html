@@ -15,21 +15,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=11231c1e2ccf"></script>
+<script src="tema.js?v=aec73935b9fd"></script>
 <meta name="description" content="Inscripción a un torneo o evento de una tienda.">
 <title>Inscripción — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=11231c1e2ccf">
-<link rel="stylesheet" href="estilo.css?v=11231c1e2ccf">
-<link rel="stylesheet" href="armador.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="tokens.css?v=aec73935b9fd">
+<link rel="stylesheet" href="estilo.css?v=aec73935b9fd">
+<link rel="stylesheet" href="armador.css?v=aec73935b9fd">
 <!-- ▌BLOQUE 1 · Estilos — Formulario, categorías y acuerdo (el armador de la lista trae los suyos en
      armador.css). -->
 
-<link rel="stylesheet" href="/paginas/inscripcion.css?v=11231c1e2ccf">
-<link rel="stylesheet" href="/sistema.css?v=11231c1e2ccf">
-<script src="/sistema.js?v=11231c1e2ccf" defer></script>
+<link rel="stylesheet" href="/paginas/inscripcion.css?v=aec73935b9fd">
+<link rel="stylesheet" href="/sistema.css?v=aec73935b9fd">
+<script src="/sistema.js?v=aec73935b9fd" defer></script>
 </head>
 <body data-pagina="inscripcion">
   <!-- ▌BLOQUE 2 · Marcado — Datos del jugador, categoría, lista de mazo, acuerdo y botones. -->
@@ -106,18 +106,18 @@
     </form>
   </main>
 
-<script src="config.js?v=11231c1e2ccf"></script>
+<script src="config.js?v=aec73935b9fd"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase, sesion, sala, agenda, listamazo y armador. -->
 <script type="module">
-import { guardarInscripcion } from "./inscripcion-datos.js?v=11231c1e2ccf";
+import { guardarInscripcion } from "./inscripcion-datos.js?v=aec73935b9fd";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=11231c1e2ccf";
-import { slug, nombreTienda } from "./sala.js?v=11231c1e2ccf";
-import { fechaLegible, urlGoogle } from "./agenda.js?v=11231c1e2ccf";
-import { leerLista, division, hoja, imprimir, TEMPORADA, RANGOS, usarTemporadaDe } from "./listamazo.js?v=11231c1e2ccf";
-import { armador } from "./armador.js?v=11231c1e2ccf";
+import { db, auth, ID_OK, CORREO_OK, errorNacimiento, params } from "./sesion.js?v=aec73935b9fd";
+import { slug, nombreTienda } from "./sala.js?v=aec73935b9fd";
+import { fechaLegible, urlGoogle } from "./agenda.js?v=aec73935b9fd";
+import { leerLista, division, hoja, imprimir, TEMPORADA, RANGOS, usarTemporadaDe } from "./listamazo.js?v=aec73935b9fd";
+import { armador } from "./armador.js?v=aec73935b9fd";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 4 · Arranque y variables ══════════════════════════════════════════════

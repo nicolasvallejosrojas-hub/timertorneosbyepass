@@ -1,10 +1,10 @@
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { signInWithEmailAndPassword, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { MES_LARGO } from "./agenda.js?v=11231c1e2ccf";
+import { MES_LARGO } from "./agenda.js?v=aec73935b9fd";
 import { db, auth, params, enEmulador, urlMuro, urlCuenta, urlPanel, decir, CORREO_OK, revisarClave, claveOk,
-         textoFalta, errorNacimiento, registrar, codigoInvitacion, betaActiva, normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto } from "./sesion.js?v=11231c1e2ccf";
-import { estoyEnLinea } from "./presencia.js?v=11231c1e2ccf";
+         textoFalta, errorNacimiento, registrar, codigoInvitacion, betaActiva, normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto } from "./sesion.js?v=aec73935b9fd";
+import { estoyEnLinea } from "./presencia.js?v=aec73935b9fd";
 estoyEnLinea(db, "portada");
 
 const $ = id => document.getElementById(id);

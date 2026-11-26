@@ -18,18 +18,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=11231c1e2ccf"></script>
+<script src="tema.js?v=aec73935b9fd"></script>
 <title>ByePass — Cuenta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=11231c1e2ccf">
-<link rel="stylesheet" href="estilo.css?v=11231c1e2ccf">
+<link rel="stylesheet" href="tokens.css?v=aec73935b9fd">
+<link rel="stylesheet" href="estilo.css?v=aec73935b9fd">
 <!-- ▌BLOQUE 1 · Estilos de la cuenta — Barra, pasos, campos, medidor de contraseña, vitrina y ajustes. -->
 
-<link rel="stylesheet" href="/paginas/cuenta.css?v=11231c1e2ccf">
-<link rel="stylesheet" href="/sistema.css?v=11231c1e2ccf">
-<script src="/sistema.js?v=11231c1e2ccf" defer></script>
+<link rel="stylesheet" href="/paginas/cuenta.css?v=aec73935b9fd">
+<link rel="stylesheet" href="/sistema.css?v=aec73935b9fd">
+<script src="/sistema.js?v=aec73935b9fd" defer></script>
 </head>
 <body data-pagina="cuenta">
 
@@ -444,21 +444,21 @@
 </div>
 </main>
 
-<script src="config.js?v=11231c1e2ccf"></script>
+<script src="config.js?v=aec73935b9fd"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y de sesion.js. -->
 <script type="module">
 import { ref, get, set, remove, update, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail,
          verifyPasswordResetCode, confirmPasswordReset, applyActionCode, checkActionCode, verifyBeforeUpdateEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=11231c1e2ccf";
-import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=11231c1e2ccf";   // BASE: el timer; BASE_T: su tienda
+import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=aec73935b9fd";
+import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=aec73935b9fd";   // BASE: el timer; BASE_T: su tienda
 /* La conexión, los enlaces con ?emu y ?sala, los errores en castellano, la
    contraseña y el registro viven en sesion.js: la portada registra igual. */
 import { db, auth, urlPanel, urlMuro, urlCuenta, decir, ID_OK, CORREO_OK, revisarClave, claveOk,
          textoFalta, errorNacimiento, registrar, params, codigoInvitacion, betaActiva, revisarCodigo,
-         normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto, reanudarRegistro, registroPendiente } from "./sesion.js?v=11231c1e2ccf";
-import { estoyEnLinea } from "./presencia.js?v=11231c1e2ccf";
+         normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto, reanudarRegistro, registroPendiente } from "./sesion.js?v=aec73935b9fd";
+import { estoyEnLinea } from "./presencia.js?v=aec73935b9fd";
 estoyEnLinea(db, "cuenta");
 
 const $ = id => document.getElementById(id);
@@ -940,6 +940,14 @@ $("formOtroId").onsubmit = async e => {
    escribe el ID en las tablas: serían los ID de toda la tienda a la vista.
    ------------------------------------------------------------ */
 const NOMBRES_T = {};
+/* enlacesOk/<tienda>/<uid>: la tienda confirmó (o rechazó) que el ID es mío. Sin confirmar, el ID no enlaza torneos. */
+const OK_T = {};
+function estadoId(s){
+  const o = OK_T[s];
+  if (o && o.id === perfil.playerId && o.por === "rechazo") return "La tienda no confirmó que este ID sea tuyo. Si es un error, habla con ella.";
+  if (o && o.id === perfil.playerId) return "Confirmado. Tus resultados entran solos aunque te inscriban con el nombre escrito distinto. Solo lo ve quien organiza la tienda.";
+  return "Por confirmar. Se confirma solo cuando te inscribes con tu cuenta en un torneo de la tienda y juegas con este ID, o cuando la tienda lo aprueba.";
+}
 function pintarPrivacidad(){
   const t = (perfil && perfil.tiendas) || {}, idOk = !!(perfil && perfil.playerId);
   const ids = Object.keys(t).sort((a, b) => (t[a].orden ?? 999) - (t[b].orden ?? 999));
@@ -947,10 +955,14 @@ function pintarPrivacidad(){
     NOMBRES_T[s] = null;
     get(ref(db, "tiendas/" + s + "/perfil/nombre")).then(x => { if (x.val()){ NOMBRES_T[s] = x.val(); pintarPrivacidad(); } }, () => {});
   });
+  ids.filter(s => t[s].compartirId && !(s in OK_T)).forEach(s => {
+    OK_T[s] = null;
+    get(ref(db, "enlacesOk/" + s + "/" + usuario.uid)).then(x => { OK_T[s] = x.val(); pintarPrivacidad(); }, () => {});
+  });
   const nom = s => esc(NOMBRES_T[s] || nombreTienda(null, s));
   $("ajTiendas").innerHTML = ids.length ? ids.map(s =>
     '<label class="filaj"><span class="k">Compartir mi ID con <b>' + nom(s) + "</b><small>" +
-      (idOk || t[s].compartirId ? "Tus resultados entran solos aunque te inscriban con el nombre escrito distinto. Solo lo ve quien organiza la tienda."
+      (t[s].compartirId ? estadoId(s) : idOk ? "Tus resultados entran solos aunque te inscriban con el nombre escrito distinto, cuando la tienda confirma que el ID es tuyo. Solo lo ve quien organiza la tienda."
                                 : "Primero agrega tu ID de jugador, más arriba.") + "</small></span>" +
       '<input type="checkbox" role="switch" class="sw" data-compartir="' + esc(s) + '"' +
       (t[s].compartirId ? " checked" : "") + (idOk || t[s].compartirId ? "" : " disabled") + "></label>" +
@@ -963,6 +975,7 @@ async function compartir(s, c){
   const si = c.checked, en = "enlaces/" + s + "/" + usuario.uid, mia = "usuarios/" + usuario.uid + "/tiendas/" + s;
   if (si && !confirm("¿Compartir tu ID de jugador " + perfil.playerId + " con " + (NOMBRES_T[s] || s) + "?\n\n" +
       "Sirve para que tus resultados entren solos a tu perfil, aunque en el torneo te inscriban con el nombre escrito distinto.\n\n" +
+      "Primero se confirma que el ID es tuyo: solo, cuando te inscribes con tu cuenta y juegas con ese ID, o lo aprueba la tienda.\n\n" +
       "Lo ve solo quien organiza esa tienda: no aparece en el muro ni en las clasificaciones.")){ c.checked = false; return; }
   try {
     /* En una sola escritura: lo que se ve tiene que ser lo que quedó guardado.
@@ -972,7 +985,8 @@ async function compartir(s, c){
       ? { [en]: { playerId: perfil.playerId, nombre: perfil.nombre, publico: !!perfil.publico, desde: Date.now() }, [mia + "/compartirId"]: true }
       : { [en]: null, [mia + "/compartirId"]: false });
     perfil.tiendas[s].compartirId = si;
-    aviso("msgPriv", si ? "Listo: tus resultados en " + (NOMBRES_T[s] || s) + " entran solos." : "Listo: ya no compartes tu ID con " + (NOMBRES_T[s] || s) + ".");
+    delete OK_T[s]; pintarPrivacidad();
+    aviso("msgPriv", si ? "Listo: compartiste tu ID con " + (NOMBRES_T[s] || s) + "." : "Listo: ya no compartes tu ID con " + (NOMBRES_T[s] || s) + ".");
   } catch(e){ c.checked = !si; aviso("msgPriv", "No se pudo guardar. Revisa la conexión."); }
 }
 async function dejar(s){
@@ -1300,7 +1314,7 @@ $("btnEliminar").onclick = async () => {
   /* Su timer personal (mi-xxxxxx) y la base de jugadores de ese timer. */
   const miSala = perfil && perfil.sala;
   if (/^mi-[a-z0-9]{6}$/.test(miSala || "")) { rutas["salas/" + miSala] = null; rutas["jugadores/" + miSala] = null; }
-  Object.keys((perfil && perfil.tiendas) || {}).forEach(t => rutas["enlaces/" + t + "/" + uid] = null);
+  Object.keys((perfil && perfil.tiendas) || {}).forEach(t => { rutas["enlaces/" + t + "/" + uid] = null; rutas["enlacesOk/" + t + "/" + uid] = null; });
   Object.keys(org).forEach(t => rutas["tiendas/" + t + "/miembros/" + uid] = null);
   try {
     await update(ref(db), rutas);

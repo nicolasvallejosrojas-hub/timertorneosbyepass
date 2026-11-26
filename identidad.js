@@ -1,4 +1,4 @@
-import { contraste } from './paleta.js?v=11231c1e2ccf';
+import { contraste } from './paleta.js?v=aec73935b9fd';
 export const colorValido = c => /^#[0-9a-f]{6}$/i.test(c || '');
 export function colorLogo(pixels){
  const bins=new Map();
