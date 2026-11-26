@@ -23,18 +23,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=04fd01b03cf9"></script>
+<script src="tema.js?v=55d3dec0f35c"></script>
 <title>ByePass — Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="estilo.css?v=04fd01b03cf9">
+<link rel="stylesheet" href="tokens.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="estilo.css?v=55d3dec0f35c">
 <!-- ▌BLOQUE 1 · Estilos del muro — Rejilla de tres columnas, perfil, publicaciones, en vivo e insignias. -->
 
-<link rel="stylesheet" href="/paginas/muro.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="/sistema.css?v=04fd01b03cf9">
-<script src="/sistema.js?v=04fd01b03cf9" defer></script>
+<link rel="stylesheet" href="/paginas/muro.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="/sistema.css?v=55d3dec0f35c">
+<script src="/sistema.js?v=55d3dec0f35c" defer></script>
 </head>
 <body data-pagina="muro">
 
@@ -105,6 +105,7 @@
   <main>
     <div class="aviso accion oculto" id="avisoCorreo" role="status"></div>
     <div class="aviso accion oculto" id="avisoPartidas" role="status"></div>
+    <div class="aviso accion oculto" id="avisoIdTodas" role="status"></div>
     <section id="tabInicio" aria-labelledby="hInicio">
       <h1 class="solo-lector" id="hInicio">Inicio</h1>
       <div id="muro" aria-live="polite"></div>
@@ -228,25 +229,25 @@
 <dialog class="hojaIns" id="dlgIns" aria-labelledby="dlgTitulo"><div id="dlgCuerpo"></div></dialog>
 <dialog class="celebra" id="dlgNueva" aria-labelledby="celTitulo"><div class="rayos"></div><div id="celCuerpo"></div></dialog>
 
-<script src="config.js?v=04fd01b03cf9"></script>
-<script src="noticias.js?v=04fd01b03cf9"></script>
+<script src="config.js?v=55d3dec0f35c"></script>
+<script src="noticias.js?v=55d3dec0f35c"></script>
 <!-- ▌BLOQUE 3 · Módulos que usa el muro — Imports de Firebase y módulos compartidos. -->
 <script type="module">
-import { avisarError } from "./errores.js?v=04fd01b03cf9";
+import { avisarError } from "./errores.js?v=55d3dec0f35c";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, get, set, update, serverTimestamp, query, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signOut, onAuthStateChanged, sendEmailVerification }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=04fd01b03cf9";
-import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=04fd01b03cf9";
-import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=04fd01b03cf9";
-import { estoyEnLinea } from "./presencia.js?v=04fd01b03cf9";
-import { perfilCompleto } from "./registro.js?v=04fd01b03cf9";
-import { parecido } from "./jugadores.js?v=04fd01b03cf9";
-import { leerHistorial } from "./historial.js?v=04fd01b03cf9";
-import { vigilar } from "./mantenimiento.js?v=04fd01b03cf9";
-import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=04fd01b03cf9";
+import { estaVigente, urlGoogle, fechaLegible, cuantoFalta, ordenar } from "./agenda.js?v=55d3dec0f35c";
+import { TIENDA, nombreTienda, iniciales, COLOR_TIENDA } from "./sala.js?v=55d3dec0f35c";
+import { nombreMes, claveJugador, porCategoria, CATEGORIAS } from "./clasificacion.js?v=55d3dec0f35c";
+import { estoyEnLinea } from "./presencia.js?v=55d3dec0f35c";
+import { perfilCompleto } from "./registro.js?v=55d3dec0f35c";
+import { parecido } from "./jugadores.js?v=55d3dec0f35c";
+import { leerHistorial } from "./historial.js?v=55d3dec0f35c";
+import { vigilar } from "./mantenimiento.js?v=55d3dec0f35c";
+import { permanentes, deTienda, medalla, parche, colorTienda, fechaLarga, norm } from "./insignias.js?v=55d3dec0f35c";
 
 const $ = id => document.getElementById(id);
 /* El muro es el inicio de cada persona y no depende de una tienda. El ?sala= solo cuenta con #jugador=
@@ -1282,6 +1283,25 @@ $("btnSalir").onclick = () => signOut(auth);
    Recuperar la contraseña depende de que el correo sea de verdad de quien se
    registró. No se bloquea nada: se avisa hasta que lo confirme. Las cuentas
    de antes del 25-09 también lo ven, y piden el enlace desde acá. */
+/* Invitación a «Que todas las tiendas de ByePass reconozcan mis torneos» (Ajustes → Privacidad; functions/idtodas.js): a quien tiene
+   su ID y no lo ha encendido, hasta que lo encienda o diga «Ahora no» (en este navegador). */
+function pintarIdTodas(){
+  const a = $("avisoIdTodas");
+  let no = false;
+  try { no = localStorage.getItem("avisoIdTodas") === "no"; } catch(e){}
+  const ver = !!(perfil && perfil.playerId && !perfil.idTodas && !no);
+  a.classList.toggle("oculto", !ver);
+  if (!ver) return;
+  a.innerHTML = "<b>¿Juegas en tiendas que no sigues?</b> Activa que todas las tiendas de ByePass reconozcan tus torneos con tu ID: " +
+    "se lo comparte solo a las que ya lo tienen en sus torneos y nunca se publica. " +
+    '<div class="acc"><button class="btn" id="bIdTodas">Activarlo</button><button class="btn" id="bIdTodasNo">Ahora no</button></div>';
+  $("bIdTodas").onclick = async () => {
+    try { await set(ref(db, "usuarios/" + usuario.uid + "/idTodas"), true); perfil.idTodas = true;
+      a.innerHTML = "Listo: en unos segundos, las tiendas que tienen tu ID en sus torneos lo reciben. Lo cambias en Ajustes → Privacidad."; }
+    catch(e){ a.innerHTML = "No se pudo guardar. Revisa la conexión o hazlo en Ajustes → Privacidad."; }
+  };
+  $("bIdTodasNo").onclick = () => { try { localStorage.setItem("avisoIdTodas", "no"); } catch(e){} a.classList.add("oculto"); };
+}
 function pintarCorreo(msg){
   const a = $("avisoCorreo");
   a.classList.toggle("oculto", usuario.emailVerified);
@@ -1335,7 +1355,7 @@ onAuthStateChanged(auth, async u => {
   try { perfil = (await get(ref(db, "usuarios/" + u.uid))).val(); }
   catch(e){ location.replace("cuenta.html" + qs + "#ajustes"); return; }
   if (!perfilCompleto(perfil)){ location.replace("cuenta.html" + qs + "#ajustes"); return; }
-  pintarFicha(); pintarPerfil();
+  pintarFicha(); pintarPerfil(); pintarIdTodas();
   /* Quien organiza alguna tienda, o administra el sitio, llega a eso desde el menú. */
   onValue(ref(db, "jugo/" + u.uid), s => { JUGO = s.val() || {}; repintarInsignias(); }, () => {});
   get(ref(db, "partidas/" + u.uid)).then(s => { MIS_PARTIDAS = s.val() || {}; repintarInsignias();

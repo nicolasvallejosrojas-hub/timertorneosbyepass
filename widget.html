@@ -13,14 +13,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="estilo.css?v=04fd01b03cf9">
+<link rel="stylesheet" href="tokens.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="estilo.css?v=55d3dec0f35c">
 <!-- ▌BLOQUE 1 · Estilos -->
 
-<link rel="stylesheet" href="/paginas/widget.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="/sistema.css?v=04fd01b03cf9">
-<script src="/tema.js?v=04fd01b03cf9"></script>
-<script src="/sistema.js?v=04fd01b03cf9" defer></script>
+<link rel="stylesheet" href="/paginas/widget.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="/sistema.css?v=55d3dec0f35c">
+<script src="/tema.js?v=55d3dec0f35c"></script>
+<script src="/sistema.js?v=55d3dec0f35c" defer></script>
 </head>
 <body data-pagina="widget">
 <main class="w" aria-live="polite">
@@ -30,17 +30,17 @@
   <div class="pie"><a id="pie" target="_blank" rel="noopener">Ver todo en <span class="marca">Bye<span>Pass</span></span></a></div>
 </main>
 
-<script src="config.js?v=04fd01b03cf9"></script>
+<script src="config.js?v=55d3dec0f35c"></script>
 <!-- ▌BLOQUE 2 · Script — Lee una vez la agenda y el historial de la tienda, arma el ranking del mes y suelta
      la conexión. -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, get, goOffline } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { TIENDA, nombreTienda, iniciales } from "./sala.js?v=04fd01b03cf9";
-import { estaVigente, urlGoogle, ordenar } from "./agenda.js?v=04fd01b03cf9";
-import { clasificarPorCategoria, mesesDe, nombreMes, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=04fd01b03cf9";
-import { historialUnaVez } from "./historial.js?v=04fd01b03cf9";
-import { contarVisita } from "./presencia.js?v=04fd01b03cf9";
+import { TIENDA, nombreTienda, iniciales } from "./sala.js?v=55d3dec0f35c";
+import { estaVigente, urlGoogle, ordenar } from "./agenda.js?v=55d3dec0f35c";
+import { clasificarPorCategoria, mesesDe, nombreMes, PUNTOS_DEF, deTimer } from "./clasificacion.js?v=55d3dec0f35c";
+import { historialUnaVez } from "./historial.js?v=55d3dec0f35c";
+import { contarVisita } from "./presencia.js?v=55d3dec0f35c";
 
 const $ = id => document.getElementById(id);
 const db = getDatabase(initializeApp(FIREBASE_CONFIG));

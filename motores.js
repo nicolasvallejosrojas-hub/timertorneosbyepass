@@ -8,10 +8,10 @@
    El texto sale de TCGdex (tcgdex.js) y se lee con efectos.js. Lo que el jugador corrige a mano queda por mazo en
    localStorage «probar-roles:<mazo>» y manda sobre la lectura. esc() es la global de config.js.
    ============================================================ */
-import { leerEfectos, rolesDe, etiquetas, manoDespues, ROLES } from "./efectos.js?v=04fd01b03cf9";
-import { alMenosUna } from "./probabilidad.js?v=04fd01b03cf9";
-import { pct, num, leerLS, guardarLS, ayuda, chips } from "./probar-ui.js?v=04fd01b03cf9";
-import { esEnergiaBasica } from "./listamazo.js?v=04fd01b03cf9";
+import { leerEfectos, rolesDe, etiquetas, manoDespues, ROLES } from "./efectos.js?v=55d3dec0f35c";
+import { alMenosUna } from "./probabilidad.js?v=55d3dec0f35c";
+import { pct, num, leerLS, guardarLS, ayuda, chips } from "./probar-ui.js?v=55d3dec0f35c";
+import { esEnergiaBasica } from "./listamazo.js?v=55d3dec0f35c";
 
 /* ▌BLOQUE 1 · Qué motores tiene la lista ════════════════════════════════════════ */
 export const GRUPOS = [

@@ -9,18 +9,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=04fd01b03cf9"></script>
+<script src="tema.js?v=55d3dec0f35c"></script>
 <meta name="description" content="Anota con qué baraja jugaste cada torneo, contra qué barajas y cómo te fue.">
 <title>Mis partidas — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="estilo.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="/paginas/mazos.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="/paginas/partidas.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="/sistema.css?v=04fd01b03cf9">
-<script src="/sistema.js?v=04fd01b03cf9" defer></script>
+<link rel="stylesheet" href="tokens.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="estilo.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="/paginas/mazos.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="/paginas/partidas.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="/sistema.css?v=55d3dec0f35c">
+<script src="/sistema.js?v=55d3dec0f35c" defer></script>
 </head>
 <body data-pagina="mazos">
   <!-- ▌BLOQUE 1 · Marcado -->
@@ -92,19 +92,19 @@
     <datalist id="barajas"></datalist>
   </main>
 
-<script src="config.js?v=04fd01b03cf9"></script>
+<script src="config.js?v=55d3dec0f35c"></script>
 <!-- ▌BLOQUE 2 · Módulos -->
 <script type="module">
 import { ref, get, set, remove, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { app, db, auth, params, urlCuenta, urlMuro, enEmulador } from "./sesion.js?v=04fd01b03cf9";
-import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=04fd01b03cf9";
-import { cargarEstandar } from "./listamazo.js?v=04fd01b03cf9";
-import { pokemonDe, clasificar, REGIONES } from "./arquetipos.js?v=04fd01b03cf9";
-import { armarCartas } from "./analisis.js?v=04fd01b03cf9";
-import { spr, respaldoSprites } from "./metaimg.js?v=04fd01b03cf9";
-import { celdaCsv } from "./csv.js?v=04fd01b03cf9";
-import { TIPOS, RES, MAX_RONDAS, vocabulario, canonica, record, wr, resumen, pctTxt, recTxt } from "./partidas.js?v=04fd01b03cf9";
+import { app, db, auth, params, urlCuenta, urlMuro, enEmulador } from "./sesion.js?v=55d3dec0f35c";
+import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=55d3dec0f35c";
+import { cargarEstandar } from "./listamazo.js?v=55d3dec0f35c";
+import { pokemonDe, clasificar, REGIONES } from "./arquetipos.js?v=55d3dec0f35c";
+import { armarCartas } from "./analisis.js?v=55d3dec0f35c";
+import { spr, respaldoSprites } from "./metaimg.js?v=55d3dec0f35c";
+import { celdaCsv } from "./csv.js?v=55d3dec0f35c";
+import { TIPOS, RES, MAX_RONDAS, vocabulario, canonica, record, wr, resumen, pctTxt, recTxt } from "./partidas.js?v=55d3dec0f35c";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 3 · Mis partidas ══════════════════════════════════════════════════════ */

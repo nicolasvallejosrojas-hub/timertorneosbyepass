@@ -7,8 +7,8 @@
        r: [ { op: "Gardevoir ex", res: "G" }, … ], creado, act }
    res: G ganó, P perdió, E empate, B bye (sin rival: no es partida y no cuenta).
    Las barajas se escriben como las arma arquetipos.js: uno o dos Pokémon con su nombre de carta en inglés, unidos por « + ». */
-import { norm } from "./listamazo.js?v=04fd01b03cf9";
-import { REGIONES } from "./arquetipos.js?v=04fd01b03cf9";
+import { norm } from "./listamazo.js?v=55d3dec0f35c";
+import { REGIONES } from "./arquetipos.js?v=55d3dec0f35c";
 
 export const TIPOS = { liga: "Liga / torneo local", challenge: "League Challenge", cup: "League Cup", regional: "Regional",
   especial: "Especial", internacional: "Internacional o Mundial", casual: "Casual / práctica", otro: "Otro" };

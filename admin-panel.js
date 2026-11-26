@@ -1,39 +1,39 @@
-import { montarIdentidad, aplicarMarca } from './identidad.js?v=04fd01b03cf9';
-import { planPublicacion } from "./admin-publicacion.js?v=04fd01b03cf9";
-import { avisarError } from "./errores.js?v=04fd01b03cf9";
+import { montarIdentidad, aplicarMarca } from './identidad.js?v=55d3dec0f35c';
+import { planPublicacion } from "./admin-publicacion.js?v=55d3dec0f35c";
+import { avisarError } from "./errores.js?v=55d3dec0f35c";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, connectDatabaseEmulator, ref, onValue, set, get, push, remove, update, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { aEpoch, estaVigente, urlGoogle, bajarIcs, fechaLegible, cuantoFalta, ordenar,
-         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=04fd01b03cf9";
-import { activarPush, renovarPush, pushActivo } from "./push.js?v=04fd01b03cf9";
-import { qrImg, qrPng } from "./qr.js?v=04fd01b03cf9";
-import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=04fd01b03cf9";
-import { vigilar } from "./mantenimiento.js?v=04fd01b03cf9";
-import { estoyEnLinea } from "./presencia.js?v=04fd01b03cf9";
-import { barras } from "./graficos.js?v=04fd01b03cf9";
-import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=04fd01b03cf9";
-import { claveJugador, porCategoria } from "./clasificacion.js?v=04fd01b03cf9";
-import { planClaves, parecido } from "./jugadores.js?v=04fd01b03cf9";
-import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=04fd01b03cf9";
+         MES_LARGO, DOWS, mesDesplazado, celdasDelMes, porFecha } from "./agenda.js?v=55d3dec0f35c";
+import { activarPush, renovarPush, pushActivo } from "./push.js?v=55d3dec0f35c";
+import { qrImg, qrPng } from "./qr.js?v=55d3dec0f35c";
+import { slug, SALA, BASE, TIENDA, BASE_T, MAX_TIMERS, numTimer, salaDeTimer, nombreTienda, iniciales, COLOR_TIENDA, INVITADO, PERSONAL, SIN_TIENDA } from "./sala.js?v=55d3dec0f35c";
+import { vigilar } from "./mantenimiento.js?v=55d3dec0f35c";
+import { estoyEnLinea } from "./presencia.js?v=55d3dec0f35c";
+import { barras } from "./graficos.js?v=55d3dec0f35c";
+import { AUTO, ICONOS, ICONOS_EVENTO, parche, repartoEvento, claveFila, norm as normNombre } from "./insignias.js?v=55d3dec0f35c";
+import { claveJugador, porCategoria } from "./clasificacion.js?v=55d3dec0f35c";
+import { planClaves, parecido } from "./jugadores.js?v=55d3dec0f35c";
+import { importarArchivo, importarTexto, PLANTILLA } from "./importar.js?v=55d3dec0f35c";
 import { rondasDe, resumen, tabla, emparejar, rondasSugeridas, aPairings, aHistorial,
          delCorte, emparejarCorte, clasificacion, tamanoCorte, corteTerminado, nombreCorte, CORTES,
-         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=04fd01b03cf9";
+         GANA_A, GANA_B, EMPATE, DOBLE } from "./torneo.js?v=55d3dec0f35c";
 import { MAPA as PAL_MAPA, TOKENS as PAL_TOKENS, DEF as PAL_DEF, PRESETS as PAL_SETS,
          leerColor, formatear, extraerColores, contraste, derivar, resolver,
-         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=04fd01b03cf9";
+         revisar, esOriginal, aplicar as palAplicarEn, alDia } from "./paleta.js?v=55d3dec0f35c";
 /* Los módulos de las imágenes (tabla final, calendario, fondo) pesan y solo se usan al apretar un botón: se bajan entonces. */
-const entregarTabla = datos => import("./tablafinal.js?v=04fd01b03cf9").then(m => m.entregarTabla(datos));
-const entregarCalendario = datos => import("./calendarioimg.js?v=04fd01b03cf9").then(m => m.entregarCalendario(datos));
-const dibujarCalendario = datos => import("./calendarioimg.js?v=04fd01b03cf9").then(m => m.dibujarCalendario(datos));
-const entregarFechas = datos => import("./calendarioimg.js?v=04fd01b03cf9").then(m => m.entregarFechas(datos));
-const dibujarFechas = datos => import("./calendarioimg.js?v=04fd01b03cf9").then(m => m.dibujarFechas(datos));
+const entregarTabla = datos => import("./tablafinal.js?v=55d3dec0f35c").then(m => m.entregarTabla(datos));
+const entregarCalendario = datos => import("./calendarioimg.js?v=55d3dec0f35c").then(m => m.entregarCalendario(datos));
+const dibujarCalendario = datos => import("./calendarioimg.js?v=55d3dec0f35c").then(m => m.dibujarCalendario(datos));
+const entregarFechas = datos => import("./calendarioimg.js?v=55d3dec0f35c").then(m => m.entregarFechas(datos));
+const dibujarFechas = datos => import("./calendarioimg.js?v=55d3dec0f35c").then(m => m.dibujarFechas(datos));
 let FONDO_DEF = null;   // fondoimg.js: se carga al abrir la pestaña Tienda (fiAbrir)
-import { celdaCsv } from "./csv.js?v=04fd01b03cf9";
-import { vistaDe, publicable } from "./vistapub.js?v=04fd01b03cf9";
-import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=04fd01b03cf9";
-import { pokemonDe, clasificar } from "./arquetipos.js?v=04fd01b03cf9";
-import { rondasDesde, tipoDe } from "./partidas.js?v=04fd01b03cf9";
+import { celdaCsv } from "./csv.js?v=55d3dec0f35c";
+import { vistaDe, publicable } from "./vistapub.js?v=55d3dec0f35c";
+import { leerLista, division, hoja, imprimir, ddmmaaaa, cargarEstandar, usarTemporadaDe } from "./listamazo.js?v=55d3dec0f35c";
+import { pokemonDe, clasificar } from "./arquetipos.js?v=55d3dec0f35c";
+import { rondasDesde, tipoDe } from "./partidas.js?v=55d3dec0f35c";
 
 /* ▌BLOQUE 11 · Arranque: Firebase, sala y utilidades ════════════════════════════
    Conecta Firebase (app «invitado» si la sala es de invitado), apunta al emulador si corresponde,
@@ -1160,7 +1160,7 @@ function renderClock(){
 let latidoPagina = null;
 const latidoDePagina = () => { if (!latidoPagina) latidoPagina = setInterval(() => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } }, 250); };
 try {
-  const w = new Worker("reloj-worker.js?v=04fd01b03cf9");
+  const w = new Worker("reloj-worker.js?v=55d3dec0f35c");
   w.onmessage = () => { try { renderClock(); } catch(e){ console.warn("No se pudo completar una operación opcional", e); } };
   w.onerror = latidoDePagina;
 } catch(e){ latidoDePagina(); }
@@ -2199,6 +2199,13 @@ function armarEnlaces(){
   });
   /* Si la tienda confirmó el mismo ID en dos cuentas, no se le asignan los torneos a ninguna (si no, la que se
      vincula después le quitaba el historial a la otra). El aviso de «por confirmar» lo advierte antes. */
+  /* Confirmadas SIN enlace: cuentas que se inscribieron con su ID sin seguir la tienda ni compartirlo (confirmarPorInscripcion).
+     No dijeron si quieren salir con su nombre: la fila queda con el que escribió la tienda (como un torneo de la página). */
+  Object.entries(ENL_OK).forEach(([uid, o]) => {
+    if (!o || o.por === "rechazo" || !o.id || (ENL_TODOS[uid] && ENL_TODOS[uid].playerId)) return;
+    if (ENLACES[o.id] && ENLACES[o.id].uid !== uid) repetidos.add(o.id);
+    ENLACES[o.id] = { uid, publico: true };
+  });
   repetidos.forEach(id => delete ENLACES[id]);
   enlazarPasados(); pintarHist(); confirmarPorInscripcion();
 }
@@ -2210,28 +2217,42 @@ function armarEnlaces(){
 let confirmando = false;
 const REVISADO = new Set();
 const mismoNombre = (a, b) => normNombre(a) === normNombre(b) || parecido(a, b);
+/* Revisa dos cosas, torneo por torneo: (a) los ID compartidos por confirmar y (b) las filas sin cuenta cuyo ID nadie tiene
+   confirmado en esta tienda. En (b) basta con que alguien se haya inscrito con su cuenta y ese ID (aunque no siga la tienda
+   ni lo haya compartido): al inscribirse ya le dio a la tienda su nombre y su ID, así que no se expone nada nuevo. */
 async function confirmarPorInscripcion(){
   if (confirmando || !AGENDA.length) return;
-  const pend = pendientesEnl();
-  if (!pend.length) return;
+  const pend = new Map(pendientesEnl().map(p => [p.id, p]));
+  const tomados = new Set(Object.values(ENL_OK).filter(o => o && o.por !== "rechazo").map(o => o.id));
+  const tareas = [];
+  Object.entries(IDS_HIST).forEach(([tid, ids]) => {
+    const t = HIST_P[tid];
+    if (!t) return;
+    Object.entries(ids || {}).forEach(([i, x]) => {
+      const id = String(x), f = (t.standings || [])[i], p = pend.get(id), k = tid + "|" + id + "|" + (p ? p.uid : "");
+      if (!f || REVISADO.has(k)) return;
+      if (p ? (!f.uid || f.uid === p.uid) : (!f.uid && !tomados.has(id))) tareas.push({ k, t, f, id, p });
+    });
+  });
+  if (!tareas.length) return;
   confirmando = true;
-  const rutas = {};
+  const rutas = {}, insc = {}, hechos = new Set();
   try {
-    for (const p of pend){
-      let ok = false;
-      for (const { tid, t, f } of filasDeId(p.id)){
-        const k = p.uid + "|" + p.id + "|" + tid;
-        if (REVISADO.has(k) || f.uid && f.uid !== p.uid) continue;
-        REVISADO.add(k);
-        const evs = AGENDA.filter(ev => ev.inscripcion && ev.fecha && Math.abs(Date.parse(ev.fecha) - Date.parse(t.fecha)) <= 7 * 864e5);
-        for (const ev of evs){
-          const ins = (await get(ref(db, "inscripciones/" + TIENDA + "/" + ev.id + "/" + p.uid)).catch(() => null))?.val();
-          if (ins && String(ins.playerId || "") === p.id &&
-              [[ins.nombre, ins.apellido].filter(Boolean).join(" "), ins.nick].some(n => n && mismoNombre(n, f.name))){ ok = true; break; }
-        }
-        if (ok) break;
+    for (const { k, t, f, id, p } of tareas){
+      REVISADO.add(k);
+      if (hechos.has(id)) continue;
+      const evs = AGENDA.filter(ev => ev.inscripcion && ev.fecha && Math.abs(Date.parse(ev.fecha) - Date.parse(t.fecha)) <= 7 * 864e5);
+      for (const ev of evs){
+        if (!(ev.id in insc)) insc[ev.id] = (await get(ref(db, "inscripciones/" + TIENDA + "/" + ev.id)).catch(() => null))?.val() || {};
+        const quien = Object.entries(insc[ev.id]).find(([uid, ins]) => ins && String(ins.playerId || "") === id && (!p || uid === p.uid) &&
+          [[ins.nombre, ins.apellido].filter(Boolean).join(" "), ins.nick].some(n => n && mismoNombre(n, f.name)));
+        if (!quien) continue;
+        const uid = quien[0], o = ENL_OK[uid];
+        if (!p && o && (o.por === "rechazo" || o.id !== id)) break;   // la tienda ya decidió otra cosa para esa cuenta
+        hechos.add(id);
+        rutas["enlacesOk/" + TIENDA + "/" + uid] = { id, por: "inscripcion", t: serverTimestamp() };
+        break;
       }
-      if (ok) rutas["enlacesOk/" + TIENDA + "/" + p.uid] = { id: p.id, por: "inscripcion", t: serverTimestamp() };
     }
     if (Object.keys(rutas).length) await update(ref(db), rutas);
   } catch(e){ console.warn("No se pudieron confirmar los ID por inscripción", e); }
@@ -4595,7 +4616,7 @@ async function fiAbrir(){
   const h = new Date(), a = mesVista ? mesVista.a : h.getFullYear(), m = mesVista ? mesVista.m : h.getMonth();
   if (!fiMes || fiMes.ym !== ymDe(a, m) && !fiMes.cambio){ const d = await imagenDelMes(a, m); fiMes = { ym: ymDe(a, m), a, m, datos: d ? { ...d } : null, cambio: false }; if (fiBorrador) fiControles(); }
   if (fiBorrador) { fiVista(); return; }   // ya cargado: solo refresca la vista (la agenda pudo cambiar)
-  FONDO_DEF = (await import("./fondoimg.js?v=04fd01b03cf9")).FONDO_DEF;
+  FONDO_DEF = (await import("./fondoimg.js?v=55d3dec0f35c")).FONDO_DEF;
   fiBorrador = { ...FONDO_DEF, ...(await estiloImagenes()) }; fiControles(); fiVista();
 }
 $("fiTipo").onchange = e => { fiBorrador.tipo = e.target.value; fiCambio(); };
@@ -4634,7 +4655,7 @@ $("fiCentrar").onclick = () => { const x = fiEncuadrable(); if (!x) return; Obje
   const prev = $("fiPrev");
   prev.addEventListener("pointerdown", async e => {
     const x = fiEncuadrable(), cv = prev.querySelector("canvas"); if (!x || !cv) return;
-    const { cargarImagen, encuadre } = await import("./fondoimg.js?v=04fd01b03cf9"), img = await cargarImagen(x.fondo); if (!img) return;
+    const { cargarImagen, encuadre } = await import("./fondoimg.js?v=55d3dec0f35c"), img = await cargarImagen(x.fondo); if (!img) return;
     const p = encuadre(cv.width, cv.height, img, x);
     ini = { x: e.clientX, y: e.clientY, fx: x.focoX || 0, fy: x.focoY || 0, k: cv.width / cv.getBoundingClientRect().width, sobraX: p.w - cv.width, sobraY: p.h - cv.height, obj: x };
     prev.setPointerCapture(e.pointerId); prev.classList.add("arrastrando");

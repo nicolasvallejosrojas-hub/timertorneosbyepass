@@ -23,7 +23,7 @@
        A.formato(est)   cambia entre Estándar (true) y Expandido (false)
    `alCambiar` se llama cada vez que la persona cambia algo (no al poner una lista desde el código).
    ============================================================ */
-import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta, nombreEn, esEnergiaBasica } from "./listamazo.js?v=04fd01b03cf9";
+import { leerLista, cuenta, cargarEstandar, componer, norm, imagenCarta, nombreEn, esEnergiaBasica } from "./listamazo.js?v=55d3dec0f35c";
 
 /* ▌BLOQUE 1 · Marcado y arranque ════════════════════════════════════════════════
    El HTML del armador (con un lugar #misMazos para la página), las fotos de TCGdex y la carga de

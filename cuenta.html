@@ -18,18 +18,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="tema.js?v=04fd01b03cf9"></script>
+<script src="tema.js?v=55d3dec0f35c"></script>
 <title>ByePass — Cuenta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="estilo.css?v=04fd01b03cf9">
+<link rel="stylesheet" href="tokens.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="estilo.css?v=55d3dec0f35c">
 <!-- ▌BLOQUE 1 · Estilos de la cuenta — Barra, pasos, campos, medidor de contraseña, vitrina y ajustes. -->
 
-<link rel="stylesheet" href="/paginas/cuenta.css?v=04fd01b03cf9">
-<link rel="stylesheet" href="/sistema.css?v=04fd01b03cf9">
-<script src="/sistema.js?v=04fd01b03cf9" defer></script>
+<link rel="stylesheet" href="/paginas/cuenta.css?v=55d3dec0f35c">
+<link rel="stylesheet" href="/sistema.css?v=55d3dec0f35c">
+<script src="/sistema.js?v=55d3dec0f35c" defer></script>
 </head>
 <body data-pagina="cuenta">
 
@@ -373,6 +373,9 @@
 
     <div class="grupo" id="grPrivacidad">
       <h2>Privacidad en tus tiendas</h2>
+      <div class="filas"><label class="filaj"><span class="k">Que todas las tiendas de ByePass reconozcan mis torneos
+        <small id="ajIdTodasTxt">Le comparte tu ID solo a las tiendas que ya lo tienen en sus torneos, aunque no las sigas; ahí queda por confirmar. Nunca se publica. En las tiendas que sigues manda lo que elijas abajo para cada una.</small></span>
+        <input type="checkbox" role="switch" class="sw" id="ajIdTodas"></label></div>
       <div class="filas" id="ajTiendas"></div>
       <div class="aviso oculto" id="msgPriv" role="status"></div>
     </div>
@@ -444,21 +447,21 @@
 </div>
 </main>
 
-<script src="config.js?v=04fd01b03cf9"></script>
+<script src="config.js?v=55d3dec0f35c"></script>
 <!-- ▌BLOQUE 3 · Módulos — Imports de Firebase y de sesion.js. -->
 <script type="module">
 import { ref, get, set, remove, update, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail,
          verifyPasswordResetCode, confirmPasswordReset, applyActionCode, checkActionCode, verifyBeforeUpdateEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=04fd01b03cf9";
-import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=04fd01b03cf9";   // BASE: el timer; BASE_T: su tienda
+import { fechaLegible, ordenar, MES_LARGO } from "./agenda.js?v=55d3dec0f35c";
+import { BASE, BASE_T, nombreTienda, slug } from "./sala.js?v=55d3dec0f35c";   // BASE: el timer; BASE_T: su tienda
 /* La conexión, los enlaces con ?emu y ?sala, los errores en castellano, la
    contraseña y el registro viven en sesion.js: la portada registra igual. */
 import { db, auth, urlPanel, urlMuro, urlCuenta, decir, ID_OK, CORREO_OK, revisarClave, claveOk,
          textoFalta, errorNacimiento, registrar, params, codigoInvitacion, betaActiva, revisarCodigo,
-         normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto, reanudarRegistro, registroPendiente } from "./sesion.js?v=04fd01b03cf9";
-import { estoyEnLinea } from "./presencia.js?v=04fd01b03cf9";
+         normCodigo, CODIGO_OK, consultarPerfil, perfilCompleto, reanudarRegistro, registroPendiente } from "./sesion.js?v=55d3dec0f35c";
+import { estoyEnLinea } from "./presencia.js?v=55d3dec0f35c";
 estoyEnLinea(db, "cuenta");
 
 const $ = id => document.getElementById(id);
@@ -855,6 +858,8 @@ function pintarAjustes(){
   $("ajIdFijo").textContent = p.playerId || "";
   $("ajId").textContent = corrige ? p.playerId + " · corregir" : "Agregar";
   $("ajPublico").checked = !!p.publico;
+  $("ajIdTodas").checked = !!p.idTodas; $("ajIdTodas").disabled = !p.playerId && !p.idTodas;
+  if (!p.playerId) $("ajIdTodasTxt").textContent = "Primero agrega tu ID de jugador, más arriba.";
   pintarOtrosIds();
   pintarPrivacidad();
 }
@@ -1122,6 +1127,16 @@ async function corregirId(v){
 const pintarTema = () => { $("ajTema").checked = temaNoche(); };
 $("ajTema").onchange = () => { if ($("ajTema").checked !== temaNoche()) cambiarTema(); };
 addEventListener("tema", pintarTema); pintarTema();
+/* usuarios/<uid>/idTodas: la función idTodasCuenta (functions/idtodas.js) comparte el ID con cada tienda que ya lo tiene en sus
+   torneos (o lo saca de las que no sigue, al apagarlo). */
+$("ajIdTodas").onchange = async e => {
+  const v = e.target.checked;
+  try {
+    await guardar({ idTodas: v }, "msgPriv",
+      v ? "Listo: en unos segundos, las tiendas que tienen tu ID en sus torneos lo reciben, por confirmar."
+        : "Listo: tu ID ya no se comparte con las tiendas que no sigues.");
+  } catch(err){ e.target.checked = !v; aviso("msgPriv", "No se pudo guardar. Revisa la conexión."); }
+};
 $("ajPublico").onchange = async e => {
   const v = e.target.checked;
   try {
@@ -1314,7 +1329,10 @@ $("btnEliminar").onclick = async () => {
   /* Su timer personal (mi-xxxxxx) y la base de jugadores de ese timer. */
   const miSala = perfil && perfil.sala;
   if (/^mi-[a-z0-9]{6}$/.test(miSala || "")) { rutas["salas/" + miSala] = null; rutas["jugadores/" + miSala] = null; }
-  Object.keys((perfil && perfil.tiendas) || {}).forEach(t => { rutas["enlaces/" + t + "/" + uid] = null; rutas["enlacesOk/" + t + "/" + uid] = null; });
+  /* En TODAS las tiendas, no solo las que sigue: el interruptor «todas las tiendas» y las inscripciones dejan enlaces en otras. */
+  let todas = {};
+  try { todas = (await get(ref(db, "tiendas"))).val() || {}; } catch(err){ console.warn("No se pudo leer la lista de tiendas", err); }
+  new Set([...Object.keys((perfil && perfil.tiendas) || {}), ...Object.keys(todas)]).forEach(t => { rutas["enlaces/" + t + "/" + uid] = null; rutas["enlacesOk/" + t + "/" + uid] = null; });
   Object.keys(org).forEach(t => rutas["tiendas/" + t + "/miembros/" + uid] = null);
   try {
     await update(ref(db), rutas);
