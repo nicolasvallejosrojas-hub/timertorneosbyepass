@@ -153,13 +153,13 @@
   </div>
 </main>
 
-<script>if (/[?&]sala=/.test(location.search)) document.write('<script src="config.js?v=55d3dec0f35c"><\/script>');</script>
+<script>if (/[?&]sala=/.test(location.search)) document.write('<script src="config.js?v=873cc28a8e2f"><\/script>');</script>
 <script type="module">
 globalThis.esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-import { importarCategorias } from "./importar.js?v=55d3dec0f35c";
-import { indexar } from "./listamazo.js?v=55d3dec0f35c";
-import { listasDeCSV, cruzar, estadisticas, nombreCorto, CATEGORIAS } from "./meta.js?v=55d3dec0f35c";
-import { usarProxyLocal, sprHTML, C, COND, lienzo, texto, dibujarSprites, cabecera as cabeceraBase, pie, fila, barra, fuentes, figuras } from "./metaimg.js?v=55d3dec0f35c";
+import { importarCategorias } from "./importar.js?v=873cc28a8e2f";
+import { indexar } from "./listamazo.js?v=873cc28a8e2f";
+import { listasDeCSV, cruzar, estadisticas, nombreCorto, CATEGORIAS } from "./meta.js?v=873cc28a8e2f";
+import { usarProxyLocal, sprHTML, C, COND, lienzo, texto, dibujarSprites, cabecera as cabeceraBase, pie, fila, barra, fuentes, figuras } from "./metaimg.js?v=873cc28a8e2f";
 
 const $ = id => document.getElementById(id);
 const pct = x => x == null ? "—" : Math.round(x * 100) + "%";
@@ -175,7 +175,7 @@ const URLP = new URLSearchParams(location.search), SALA = URLP.get("sala") || ""
 usarProxyLocal(!SALA);   // en la herramienta local (sin sala), los sprites que falten los trae servidor.mjs
 /* Desde el panel: las listas salen de las inscripciones del torneo (inscripciones/<tienda>/<evento>), con la sesión de quien organiza. */
 async function listasDelPanel(){
-  const { db, auth, urlCuenta } = await import("./sesion.js?v=55d3dec0f35c");
+  const { db, auth, urlCuenta } = await import("./sesion.js?v=873cc28a8e2f");
   const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
   const { onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
   const u = await new Promise(ok => { const off = onAuthStateChanged(auth, x => { off(); ok(x); }); });

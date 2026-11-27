@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!-- ▌ÍNDICE de temporada.html
+      1. Marcado: la tabla (todo Chile o una región, por categoría), tu puesto y cómo se cuentan los puntos
+      2. La tabla: lee temporadas/<año> (la calcula el servidor, functions/temporada.js; sin ID de jugador)
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#243B60">
+<script src="tema.js?v=873cc28a8e2f"></script>
+<meta name="description" content="La clasificación de la Temporada 2027 de ByePass: los mejores jugadores de Chile y de cada región, con los torneos de las tiendas.">
+<title>Temporada 2027 — ByePass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&family=Newsreader:opsz,wght@6..72,300&display=swap">
+<link rel="stylesheet" href="tokens.css?v=873cc28a8e2f">
+<link rel="stylesheet" href="estilo.css?v=873cc28a8e2f">
+<link rel="stylesheet" href="/paginas/mazos.css?v=873cc28a8e2f">
+<link rel="stylesheet" href="/paginas/partidas.css?v=873cc28a8e2f">
+<link rel="stylesheet" href="/paginas/meta-chile.css?v=873cc28a8e2f">
+<link rel="stylesheet" href="/paginas/temporada.css?v=873cc28a8e2f">
+<link rel="stylesheet" href="/sistema.css?v=873cc28a8e2f">
+<script src="/sistema.js?v=873cc28a8e2f" defer></script>
+</head>
+<body data-pagina="mazos">
+  <!-- ▌BLOQUE 1 · Marcado -->
+  <header class="sup"><a class="marca bp-brand" href="index.html" aria-label="ByePass, inicio"><span class="bp-symbol" aria-hidden="true"><svg viewBox="-3.85 -0.01 41.15 41.15" aria-hidden="true"><g fill="var(--bp-logo-fondo,var(--pagina))" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-42 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-28 18 38)"/><rect x="17" y="9" width="19" height="27" rx="3.6" transform="rotate(-14 18 38)"/><g><rect x="17" y="9" width="19" height="27" rx="3.6"/><path fill="none" stroke-width="1.9" stroke-linecap="round" d="M22.6 15.5v13h4.9a3.3 3.3 0 0 0 0-6.6h-4.9h4.2a3.2 3.2 0 0 0 0-6.4z"/></g></g></svg></span><span class="bp-word" aria-hidden="true">ye<span>Pass</span></span></a><span class="enl"><a href="meta-chile.html" data-q>Meta de Chile</a><a href="muro.html" data-q>Mi muro</a></span></header>
+  <main class="mc">
+    <div>
+      <h1>Temporada 2027</h1>
+      <p class="meta" id="bajada">Del 1 de diciembre de 2026 al 15 de agosto de 2027, a la par con la temporada de Pokémon TCG. Suman los torneos que las tiendas de ByePass archivan.</p>
+    </div>
+
+    <div class="aviso oculto" id="yo" role="status"></div>
+
+    <div class="controles mc-filtros">
+      <label class="campo"><span>Tabla</span><select id="ambito"><option value="">Todo Chile</option></select></label>
+      <label class="campo"><span>Categoría</span><select id="cat"><option value="">Todas</option></select></label>
+    </div>
+
+    <section class="caja" aria-labelledby="tTabla">
+      <h2 id="tTabla">Clasificación <span id="tMuestra"></span></h2>
+      <div id="tabla"><p class="vacio">Cargando…</p></div>
+      <p class="pista" id="act"></p>
+    </section>
+
+    <section class="caja" aria-labelledby="tComo">
+      <h2 id="tComo">Cómo se cuentan los puntos</h2>
+      <p class="pista">Cada torneo de 4 jugadores o más da <b>1 punto por jugar</b>, más los del puesto según cuántos jugaron en tu categoría:</p>
+      <div class="desliza"><table class="pt-tabla escala">
+        <thead><tr><th>Jugadores</th><th class="n">1.º</th><th class="n">2.º</th><th class="n">3.º–4.º</th><th class="n">5.º–8.º</th><th class="n">9.º–16.º</th></tr></thead>
+        <tbody>
+          <tr><td>4 a 7</td><td class="n">8</td><td class="n">6</td><td class="n">4</td><td class="n">–</td><td class="n">–</td></tr>
+          <tr><td>8 a 15</td><td class="n">12</td><td class="n">9</td><td class="n">6</td><td class="n">4</td><td class="n">–</td></tr>
+          <tr><td>16 a 31</td><td class="n">16</td><td class="n">12</td><td class="n">9</td><td class="n">6</td><td class="n">3</td></tr>
+          <tr><td>32 o más</td><td class="n">20</td><td class="n">15</td><td class="n">11</td><td class="n">8</td><td class="n">5</td></tr>
+        </tbody>
+      </table></div>
+      <ul class="pista lista">
+        <li><b>Cuentan tus 12 mejores torneos.</b> Puedes jugar todos los que quieras: no gana el que más juega, sino el que mejor juega.</li>
+        <li>Desempate: más primeros lugares, después mejor récord.</li>
+        <li>Cada torneo suma a la región de su tienda. En la tabla de una región cuentan tus 12 mejores torneos de esa región.</li>
+        <li>Aparecen los jugadores con cuenta en ByePass. Tus torneos se juntan por tu ID de Play! Pokémon, que <b>nunca se publica</b>: si creas tu cuenta después, apareces con todo lo que ya sumaste.</li>
+        <li>Para salir con tu nombre, enciende «Salir con mi nombre en la clasificación» en Ajustes. Si no, sales como «Jugador reservado».</li>
+      </ul>
+    </section>
+  </main>
+
+<script src="config.js?v=873cc28a8e2f"></script>
+<!-- ▌BLOQUE 2 · La tabla -->
+<script type="module">
+import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { db, auth, enEmulador } from "./sesion.js?v=873cc28a8e2f";
+import { REGIONES } from "./arquetipos.js?v=873cc28a8e2f";
+
+const $ = id => document.getElementById(id);
+const TEMP = "2027", DESDE = "2026-12-01", CATS = ["Junior", "Senior", "Masters"];
+const q = enEmulador() ? "?emu=1" : "";
+document.querySelectorAll("a[data-q]").forEach(a => a.href = a.getAttribute("href") + q);
+let D = null, YO = null, CARGADA = false;
+
+/* la tabla elegida: todo Chile (sus puntos) o una región (los de esa región), y la categoría */
+function filas(){
+  const amb = $("ambito").value, c = $("cat").value;
+  const pts = f => amb ? ((f.rp || {})[amb] || 0) : f.p;
+  const wr = f => (f.w + f.l + f.d) ? f.w / (f.w + f.l + f.d) : 0;
+  return Object.values((D && D.filas) || {}).filter(f => f && pts(f) > 0 && (c === "" || String(f.cat) === c))
+    .map(f => ({ ...f, pts: pts(f) })).sort((a, b) => b.pts - a.pts || b.g - a.g || wr(b) - wr(a) || b.j - a.j || a.n.localeCompare(b.n));
+}
+const rec = f => f.w + "-" + f.l + "-" + f.d;
+function pintar(){
+  if (!CARGADA) return;
+  const fs = filas(), amb = $("ambito").value;
+  $("tMuestra").textContent = (amb || "Todo Chile") + ($("cat").value ? " · " + CATS[+$("cat").value] : "");
+  if (!fs.length){
+    const hoy = new Date().toLocaleDateString("sv");
+    $("tabla").innerHTML = '<p class="vacio">' + (hoy < DESDE
+      ? "La temporada parte el 1 de diciembre. Faltan " + Math.ceil((Date.parse(DESDE + "T00:00:00") - Date.now()) / 864e5) + " días: inscríbete con tu cuenta en los torneos de tu tienda."
+      : amb ? "Todavía no hay jugadores con puntos en " + esc(amb) + "." : "Todavía no hay torneos de la temporada archivados.") + "</p>";
+  } else {
+    $("tabla").innerHTML = '<div class="desliza"><table class="pt-tabla tp"><thead><tr><th class="n">#</th><th>Jugador</th><th class="n">Puntos</th><th class="n" title="Primeros lugares">1.º</th><th class="n mc-ocultable">Récord</th></tr></thead><tbody>' +
+      fs.map((f, i) => "<tr" + (YO && f.u === YO ? ' aria-current="true"' : "") + '><td class="n pos">' + (i + 1) + "</td><td><b>" + esc(f.n) + "</b>" +
+        '<small class="sub">' + f.c + (f.j > f.c ? " de " + f.j : "") + (f.j === 1 ? " torneo" : " torneos") + " · " + CATS[f.cat] + "</small></td>" +
+        '<td class="n"><b>' + f.pts + '</b></td><td class="n">' + (f.g || "–") + '</td><td class="n mc-ocultable">' + rec(f) + "</td></tr>").join("") + "</tbody></table></div>";
+  }
+  pintarYo(fs);
+}
+/* tu puesto, si entraste con tu cuenta */
+function pintarYo(fs){
+  const a = $("yo");
+  if (!YO || !D){ a.classList.add("oculto"); return; }
+  const i = fs.findIndex(f => f.u === YO), amb = $("ambito").value || "Chile";
+  a.innerHTML = i >= 0 ? "Vas <b>" + (i + 1) + ".º</b> en " + esc(amb) + " con <b>" + fs[i].pts + " puntos</b>."
+    : "Todavía no apareces en esta tabla. Para sumar: juega torneos de tiendas de ByePass, inscríbete con tu cuenta y agrega tu ID de jugador en " +
+      '<a href="cuenta.html' + q + '#ajustes">Ajustes</a>.';
+  a.classList.remove("oculto");
+}
+async function cargar(){
+  try { D = (await get(ref(db, "temporadas/" + TEMP))).val(); }
+  catch(e){ $("tabla").innerHTML = '<p class="vacio">No se pudo cargar la tabla. Revisa la conexión y recarga.</p>'; return; }
+  CARGADA = true;
+  const fs = Object.values((D && D.filas) || {}).filter(Boolean);
+  const regs = REGIONES.filter(r => fs.some(f => (f.rp || {})[r]));
+  $("ambito").innerHTML = '<option value="">Todo Chile</option>' + regs.map(r => '<option value="' + esc(r) + '">' + esc(r) + "</option>").join("");
+  const cats = [2, 1, 0].filter(c => fs.some(f => f.cat === c));
+  $("cat").innerHTML = '<option value="">Todas</option>' + cats.map(c => '<option value="' + c + '">' + CATS[c] + "</option>").join("");
+  $("cat").closest(".campo").classList.toggle("oculto", cats.length < 2);
+  $("ambito").closest(".campo").classList.toggle("oculto", !regs.length);
+  if (D && D.act) $("act").textContent = "Actualizada el " + new Date(D.act).toLocaleString("es-CL", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) +
+    " · " + D.torneos + (D.torneos === 1 ? " torneo" : " torneos") + " de la temporada.";
+  pintar();
+}
+["ambito", "cat"].forEach(id => $(id).onchange = pintar);
+onAuthStateChanged(auth, u => { YO = u && !u.isAnonymous ? u.uid : null; pintar(); });
+cargar();
+</script>
+</body>
+</html>
