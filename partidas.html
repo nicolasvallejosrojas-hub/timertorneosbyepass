@@ -9,18 +9,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#243B60">
-<script src="tema.js?v=873cc28a8e2f"></script>
+<script src="tema.js?v=e70802e24ce2"></script>
 <meta name="description" content="Anota con qué baraja jugaste cada torneo, contra qué barajas y cómo te fue.">
 <title>Mis partidas — ByePass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:opsz,wght@6..72,300&display=swap">
-<link rel="stylesheet" href="tokens.css?v=873cc28a8e2f">
-<link rel="stylesheet" href="estilo.css?v=873cc28a8e2f">
-<link rel="stylesheet" href="/paginas/mazos.css?v=873cc28a8e2f">
-<link rel="stylesheet" href="/paginas/partidas.css?v=873cc28a8e2f">
-<link rel="stylesheet" href="/sistema.css?v=873cc28a8e2f">
-<script src="/sistema.js?v=873cc28a8e2f" defer></script>
+<link rel="stylesheet" href="tokens.css?v=e70802e24ce2">
+<link rel="stylesheet" href="estilo.css?v=e70802e24ce2">
+<link rel="stylesheet" href="/paginas/mazos.css?v=e70802e24ce2">
+<link rel="stylesheet" href="/paginas/partidas.css?v=e70802e24ce2">
+<link rel="stylesheet" href="/sistema.css?v=e70802e24ce2">
+<script src="/sistema.js?v=e70802e24ce2" defer></script>
 </head>
 <body data-pagina="mazos">
   <!-- ▌BLOQUE 1 · Marcado -->
@@ -74,7 +74,7 @@
       <label class="campo"><span>Tu baraja</span><input id="mia" list="barajas" maxlength="80" autocomplete="off" placeholder="Ej.: Dragapult ex + Dusknoir"></label>
       <div class="acc oculto" id="deMazos"><label class="campo" style="flex:1"><span>Con qué lista (de Mis mazos)</span><select id="mazo"></select></label></div>
       <p class="pista" id="listaAct"></p>
-      <p class="pista">Uno o dos Pokémon, separados por «+». Elige de la lista para que tu baraja cuente igual que la de los demás.
+      <p class="pista">El Pokémon principal y, si tu baraja lleva otro importante, el segundo. Búscalos en inglés o en castellano.
         Si eliges la lista de Mis mazos, se guarda una copia con el torneo: así comparas cómo te fue con cada versión.</p>
 
       <h2>Rondas</h2>
@@ -92,19 +92,20 @@
     <datalist id="barajas"></datalist>
   </main>
 
-<script src="config.js?v=873cc28a8e2f"></script>
+<script src="config.js?v=e70802e24ce2"></script>
 <!-- ▌BLOQUE 2 · Módulos -->
 <script type="module">
 import { ref, get, set, remove, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { app, db, auth, params, urlCuenta, urlMuro, enEmulador } from "./sesion.js?v=873cc28a8e2f";
-import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=873cc28a8e2f";
-import { cargarEstandar } from "./listamazo.js?v=873cc28a8e2f";
-import { pokemonDe, clasificar, REGIONES } from "./arquetipos.js?v=873cc28a8e2f";
-import { armarCartas } from "./analisis.js?v=873cc28a8e2f";
-import { spr, respaldoSprites } from "./metaimg.js?v=873cc28a8e2f";
-import { celdaCsv } from "./csv.js?v=873cc28a8e2f";
-import { TIPOS, RES, MAX_RONDAS, vocabulario, canonica, record, wr, resumen, pctTxt, recTxt } from "./partidas.js?v=873cc28a8e2f";
+import { app, db, auth, params, urlCuenta, urlMuro, enEmulador } from "./sesion.js?v=e70802e24ce2";
+import { activarPush, renovarPush, desactivarPush, pushActivo } from "./push.js?v=e70802e24ce2";
+import { cargarEstandar } from "./listamazo.js?v=e70802e24ce2";
+import { pokemonDe, clasificar, REGIONES } from "./arquetipos.js?v=e70802e24ce2";
+import { armarCartas } from "./analisis.js?v=e70802e24ce2";
+import { spr, respaldoSprites } from "./metaimg.js?v=e70802e24ce2";
+import { opciones, montar, refrescar, enfocar } from "./selpoke.js?v=e70802e24ce2";
+import { celdaCsv } from "./csv.js?v=e70802e24ce2";
+import { TIPOS, RES, MAX_RONDAS, vocabulario, canonica, record, wr, resumen, pctTxt, recTxt } from "./partidas.js?v=e70802e24ce2";
 
 const $ = id => document.getElementById(id);
 /* ▌BLOQUE 3 · Mis partidas ══════════════════════════════════════════════════════ */
@@ -133,6 +134,11 @@ async function cargar(){
 function sugerencias(){
   const mias = new Set();
   Object.values(REGS).forEach(g => { mias.add(g.mia); (g.r || []).forEach(x => x && x.op && mias.add(x.op)); });
+  /* el buscador de Pokémon (selpoke.js): la lista y, primero, las barajas que más has anotado (tuyas y de tus rivales) */
+  const veces = new Map();
+  Object.values(REGS).forEach(g => [g.mia, ...(g.r || []).map(x => x && x.op)].forEach(b => { if (b) veces.set(b, (veces.get(b) || 0) + 1); }));
+  opciones(VOC, [...veces].sort((a, b) => b[1] - a[1]).map(([b]) => b));
+  montar($("mia"));
   $("barajas").innerHTML = [...mias, ...new Set(VOC.values())].filter((x, i, a) => x && a.indexOf(x) === i).map(x => '<option value="' + esc(x) + '">').join("");
 }
 /* Lo que la tienda dejó y todavía no se anota (un torneo anotado desde ahí lleva src = «tienda/torneo»). */
@@ -216,7 +222,7 @@ function ronda(x = {}){
       '<label><input type="radio" name="pr' + i + '" value="' + k + '"' + (x.pr === k ? " checked" : "") + "><span>" + t + "</span></label>").join("") + "</div>" +
     '<select class="j" aria-label="Marcador de juegos">' + MARCADOR.map(m => '<option value="' + m + '"' + ((x.j || "") === m ? " selected" : "") + ">" + (m || "Marcador") + "</option>").join("") + "</select>" +
     '<input class="notaR" maxlength="200" autocomplete="off" placeholder="Nota (opcional)" aria-label="Nota de la ronda"></div>';
-  li.querySelector(".op").value = x.op || ""; li.querySelector(".notaR").value = x.nota || "";
+  li.querySelector(".op").value = x.op || ""; montar(li.querySelector(".op")); li.querySelector(".notaR").value = x.nota || "";
   $("rondas").append(li); numerar();
   return li;
 }
@@ -229,12 +235,12 @@ $("rondas").onclick = e => {
   else if (r){ r.closest(".turno").querySelectorAll("input").forEach(x => x.dataset.estaba = ""); r.dataset.estaba = "1"; }
 };
 $("rondas").onchange = e => { const li = e.target.closest("li"); if (e.target.value === "B" && e.target.name.startsWith("res") && li) li.querySelector(".op").value = ""; };
-$("otraRonda").onclick = () => { ronda().querySelector(".op").focus(); SUCIO = true; };
+$("otraRonda").onclick = () => { enfocar(ronda().querySelector(".op")); SUCIO = true; };
 const pintarLista = () => { $("listaAct").innerHTML = LISTA ? "Con la lista «" + esc(LISTA.nombre || "sin nombre") + "». <button class=\"enlace\" type=\"button\" id=\"sinLista\">Quitar la lista</button>" : ""; };
 $("listaAct").onclick = e => { if (e.target.id === "sinLista"){ LISTA = null; $("mazo").value = ""; pintarLista(); SUCIO = true; } };
 $("mazo").onchange = () => { const m = MAZOS[$("mazo").value]; if (!m) return;
   LISTA = { lista: m.lista, nombre: m.nombre }; $("formato").value = m.formato; pintarLista(); SUCIO = true;
-  if (m.arq && m.arq !== "Sin clasificar" && m.arq !== $("mia").value && (!$("mia").value || confirm("¿Cambiar tu baraja a «" + m.arq + "», la que dice esa lista?"))) $("mia").value = m.arq; };
+  if (m.arq && m.arq !== "Sin clasificar" && m.arq !== $("mia").value && (!$("mia").value || confirm("¿Cambiar tu baraja a «" + m.arq + "», la que dice esa lista?"))) { $("mia").value = m.arq; refrescar($("mia")); } };
 
 /* id: un torneo anotado para editar; pre: lo que dejó la tienda ({t, tor, p}) para anotar uno nuevo. */
 function abrir(id, pre = null){
@@ -252,6 +258,7 @@ function abrir(id, pre = null){
   $("nombre").value = g ? g.nombre || "" : p ? (p.nombre + (p.tienda && !p.nombre.includes(p.tienda) ? " · " + p.tienda : "")).slice(0, 80) : "";
   $("nota").value = g ? g.nota || "" : "";
   $("mia").value = g ? g.mia : p && p.mia ? p.mia : (Object.values(REGS).sort((a, b) => (b.creado || 0) - (a.creado || 0))[0] || {}).mia || "";
+  refrescar($("mia"));
   const ms = Object.entries(MAZOS);
   $("deMazos").classList.toggle("oculto", !ms.length);
   $("mazo").innerHTML = '<option value="">Elegir…</option>' + ms.map(([k, m]) => '<option value="' + k + '">' + esc(m.nombre + (m.arq && m.arq !== "Sin clasificar" ? " · " + m.arq : "")) + "</option>").join("");
@@ -267,13 +274,13 @@ $("volver").onclick = () => { if (SUCIO && !confirm("¿Salir sin guardar?")) ret
 $("guardar").onclick = async () => {
   const msg = t => { $("editorMsg").textContent = t; }, f = $("fecha").value, mia = canonica($("mia").value, VOC);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(f) || f > hoy()) return msg("Pon la fecha del torneo (no puede ser futura)."), $("fecha").focus();
-  if (!mia) return msg("Escribe con qué baraja jugaste."), $("mia").focus();
+  if (!mia) return msg("Elige con qué baraja jugaste."), enfocar($("mia"));
   const r = [];
   for (const [k, li] of [...$("rondas").children].entries()){
     const op = canonica(li.querySelector(".op").value, VOC), res = (li.querySelector("input[name^=res]:checked") || {}).value;
     if (!op && !res) continue;   // ronda en blanco: se ignora
     if (!res) return msg("Marca cómo te fue en la ronda " + (k + 1) + "."), li.querySelector("input[name^=res]").focus();
-    if (!op && res !== "B") return msg("Escribe la baraja del rival en la ronda " + (k + 1) + " (o márcala como bye)."), li.querySelector(".op").focus();
+    if (!op && res !== "B") return msg("Elige la baraja del rival en la ronda " + (k + 1) + " (o márcala como bye)."), enfocar(li.querySelector(".op"));
     if (res === "B"){ r.push({ res }); continue; }
     const x = { op, res }, pr = (li.querySelector("input[name^=pr]:checked") || {}).value, j = li.querySelector(".j").value, nota = li.querySelector(".notaR").value.trim().slice(0, 200);
     if (pr) x.pr = +pr; if (j) x.j = j; if (nota) x.nota = nota;
